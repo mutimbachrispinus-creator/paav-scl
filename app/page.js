@@ -20,7 +20,7 @@ import Image from 'next/image';
 const FEATURES = [
   { icon: '📝', text: 'CBC marks entry per subject — Senior/JSS 72pts · Primary 4pts/subject' },
   { icon: '💰', text: 'Configurable fee structure — admin sets termly amounts' },
-  { icon: '👨‍👩‍👧', text: 'Parent portal — child\'s fees, grades & school messages' },
+  { icon: '👨‍👩‍👧', text: 'Parent portal — child&apos;s fees, grades & school messages' },
   { icon: '💬', text: 'Direct messaging between staff and parents' },
 ];
 

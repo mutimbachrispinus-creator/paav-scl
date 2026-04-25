@@ -86,7 +86,7 @@ export default function AllocationsPage() {
       <div className="panel">
         <div className="panel-body">
           <p style={{ marginBottom: 20, fontSize: 13, color: '#666' }}>
-            Select a teacher for each subject in each grade. These assignments will determine which classes appear for teachers in their "Grades" and "Learners" tabs.
+            Select a teacher for each subject in each grade. These assignments will determine which classes appear for teachers in their &quot;Grades&quot; and &quot;Learners&quot; tabs.
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
