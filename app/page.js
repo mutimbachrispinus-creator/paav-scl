@@ -379,11 +379,11 @@ export default function LoginPage() {
                 <label>Security Question (for password recovery)</label>
                 <select value={regSecQ} onChange={e => setRegSecQ(e.target.value)}>
                   <option value="">Optional — select a question</option>
-                  <option>What is your mother's maiden name?</option>
+                  <option>What is your mother&apos;s maiden name?</option>
                   <option>What was the name of your first school?</option>
                   <option>What is your favourite colour?</option>
                   <option>What is the name of your hometown?</option>
-                  <option>What is your pet's name?</option>
+                  <option>What is your pet&apos;s name?</option>
                 </select>
               </div>
               {regSecQ && (

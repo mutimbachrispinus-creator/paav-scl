@@ -74,7 +74,7 @@ export default function ParentHome() {
       <div className="page on" id="pg-parent-home">
         <div className="parent-banner" style={{ background: 'linear-gradient(135deg,var(--maroon),var(--maroon2))', padding: '24px', borderRadius: 'var(--r2)', color: '#fff', marginBottom: '22px' }}>
           <h2>Welcome, {user?.name}</h2>
-          <p>No learner linked. Contact school admin to link your child's admission number to your account.</p>
+          <p>No learner linked. Contact school admin to link your child&apos;s admission number to your account.</p>
         </div>
       </div>
     );
@@ -103,7 +103,7 @@ export default function ParentHome() {
       </div>
 
       <div className="sg sg3" style={{ marginBottom: '22px' }}>
-        <StatCard icon="🎓" bg="#EFF6FF" n={child.grade} l={`${child.name.split(' ')[0]}'s Grade`} />
+        <StatCard icon="🎓" bg="#EFF6FF" n={child.grade} l={`${child.name.split(' ')[0]}&apos;s Grade`} />
         <StatCard icon="💰" bg={bal <= 0 ? '#ECFDF5' : '#FEF3C7'} n={fmtK(bal)} l="Fee Balance"
           sub={bal <= 0 ? '✅ Cleared' : '⚠ Outstanding'} subBg={bal <= 0 ? '#ECFDF5' : '#FEE2E2'} subColor={bal <= 0 ? 'var(--green)' : 'var(--red)'} />
         <StatCard icon="💬" bg="#F5F3FF" n={unr} l="New Messages" />
