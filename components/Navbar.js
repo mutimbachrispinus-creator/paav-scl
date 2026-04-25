@@ -15,20 +15,16 @@ import Link from 'next/link';
 
 const ALL_NAV = [
   { key:'dashboard',  label:'📊 Home',       roles:['admin','teacher','staff','member'] },
-  { key:'parent-home',label:'🏠 My Child',   roles:['parent'] },
-  { key:'parent-marks',label:'📋 Report Card', roles:['parent'] },
-  { key:'messages',   label:'💬 Messages',   roles:['admin','teacher','staff','parent'] },
+  { key:'performance',label:'📈 Performance',roles:['admin','teacher'] },
   { key:'learners',   label:'🎓 Learners',   roles:['admin','teacher'] },
   { key:'grades',     label:'📊 Grades',     roles:['admin','teacher'] },
-  { key:'predictor',  label:'🎯 Predictor',  roles:['admin','teacher'] },
   { key:'merit-list', label:'🏆 Merit List', roles:['admin','teacher'] },
-  { key:'classes',    label:'🏫 Classes',    roles:['admin','teacher'] },
   { key:'allocations',label:'🗓️ Allocations',roles:['admin'] },
   { key:'templates',  label:'📄 Templates',  roles:['admin'] },
   { key:'fees',       label:'💰 Fees',       roles:['admin','staff']   },
   { key:'teachers',   label:'👔 Staff',      roles:['admin']           },
-  { key:'sms',        label:'📱 SMS',        roles:['admin']           },
   { key:'settings',   label:'⚙ Settings',   roles:['admin']           },
+  { key:'messages',   label:'💬 Messages',   roles:['admin','teacher','staff','parent'] },
 ];
 
 export default function Navbar({ user, unreadCount = 0 }) {

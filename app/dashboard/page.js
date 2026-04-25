@@ -92,14 +92,51 @@ export default function DashboardPage() {
   const collectionPct = totalExp ? Math.round((totalPaid / totalExp) * 100) : 0;
 
   /* ── Render ── */
-  if (loading) return <LoadingSkeleton />;
+  async function updateProfilePic() {
+    const url = prompt("Enter Image URL (Base64 or HTTPS):");
+    if (!url) return;
+    setBusy(true);
+    try {
+      const staffList = (await (await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_staff' }] })
+      })).json()).results[0].value || [];
+      
+      const idx = staffList.findIndex(s => s.id === user.id);
+      if (idx !== -1) {
+        staffList[idx].avatar = url;
+        await fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_staff', value: staffList }] })
+        });
+        alert('✅ Profile updated! Please refresh.');
+      }
+    } catch (e) {
+      alert('❌ Error: ' + e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (loading) return <div className="page on"><p>Loading dashboard...</p></div>;
 
   return (
     <div className="page on" id="pg-dashboard">
       <div className="page-hdr">
-        <div>
-          <h2>📊 Dashboard</h2>
-          <p>PAAV Gitombo Community School — Overview</p>
+        <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+          <div 
+            style={{ width: 80, height: 80, borderRadius: '50%', background: user.color || '#2563EB', cursor: 'pointer', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}
+            onClick={updateProfilePic}
+            title="Click to update profile picture"
+          >
+            {user.avatar ? <img src={user.avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (user.emoji || '👤')}
+          </div>
+          <div>
+            <h2>Jambo, {user.name}!</h2>
+            <p>Welcome to your school portal command center.</p>
+          </div>
         </div>
         <div className="page-hdr-acts">
           <button className="btn btn-ghost btn-sm no-print" onClick={() => window.print()}>
