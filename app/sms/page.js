@@ -133,7 +133,7 @@ export default function SMSPage() {
               </div>
             </div>
             <div className="note-box">
-              <strong>Note:</strong> SMS is sent via Africa's Talking.
+              <strong>Note:</strong> SMS is sent via Africa&apos;s Talking.
               Configure API credentials in <strong>Settings → SMS</strong>.
             </div>
             <button className="btn btn-primary" onClick={send} disabled={sending}

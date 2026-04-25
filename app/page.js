@@ -204,7 +204,7 @@ export default function LoginPage() {
           PAAV-GITOMBO<br />
           <span>Community School</span>
         </h1>
-        <p className="auth-tagline">"More Than Academics!" — Powered by the PAAV Portal v122</p>
+        <p className="auth-tagline">&quot;More Than Academics!&quot; — Powered by the PAAV Portal v122</p>
 
         <div className="auth-pills">
           {FEATURES.map((f, i) => (
@@ -352,7 +352,7 @@ export default function LoginPage() {
               </div>
               {regRole === 'parent' && (
                 <div className="field">
-                  <label>Child's Admission Number *</label>
+                  <label>Child&apos;s Admission Number *</label>
                   <input value={regAdm} onChange={e => setRegAdm(e.target.value)}
                     placeholder="e.g. 101" />
                 </div>
@@ -367,7 +367,7 @@ export default function LoginPage() {
                 <select value={regSecQ} onChange={e => setRegSecQ(e.target.value)}>
                   <option value="">None</option>
                   <option>What is your favourite colour?</option>
-                  <option>What is your mother's maiden name?</option>
+                  <option>What is your mother&apos;s maiden name?</option>
                   <option>Name of your primary school?</option>
                   <option>Name of your first pet?</option>
                 </select>
