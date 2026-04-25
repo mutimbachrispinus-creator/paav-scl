@@ -31,6 +31,7 @@ export default function GradesPage() {
   const [learners, setLearners] = useState([]);
   const [marks,    setMarks]    = useState({});
   const [locked,   setLocked]   = useState({});
+  const [subjCfg,  setSubjCfg]  = useState({});
   const [gradCfg,  setGradCfg]  = useState(null);
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
@@ -59,6 +60,7 @@ export default function GradesPage() {
         { type: 'get', key: 'paav6_marks'     },
         { type: 'get', key: 'paav_marks_locked' },
         { type: 'get', key: 'paav8_grad'      },
+        { type: 'get', key: 'paav8_subj'      },
       ]}),
     });
     const db = await dbRes.json();
@@ -66,6 +68,7 @@ export default function GradesPage() {
     setMarks(   db.results[1]?.value || {});
     setLocked(  db.results[2]?.value || {});
     setGradCfg( db.results[3]?.value || null);
+    setSubjCfg( db.results[4]?.value || {});
     setLoading(false);
   }, [router]);
 
@@ -74,7 +77,7 @@ export default function GradesPage() {
   /* ── Derived ── */
   const classLearners = learners.filter(l => l.grade === grade)
     .sort((a, b) => a.name.localeCompare(b.name));
-  const subjects      = DEFAULT_SUBJECTS[grade] || [];
+  const subjects      = (subjCfg[grade] && subjCfg[grade].length > 0) ? subjCfg[grade] : (DEFAULT_SUBJECTS[grade] || []);
   const lockKey       = `${term}:${grade}:${assess}`;
   const isLocked      = !!locked[lockKey];
 

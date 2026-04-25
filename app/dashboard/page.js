@@ -11,6 +11,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { fmtK } from '@/lib/cbe';
 import { PRE, LOWER, UPPER, JSS, SENIOR } from '@/lib/cbe';
 
@@ -123,6 +124,31 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── Quick Access Panel ── */}
+      <div className="panel" style={{ marginBottom: 18 }}>
+        <div className="panel-hdr"><h3>⚡ Quick Access</h3></div>
+        <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+          {user?.role === 'admin' && (
+            <>
+              <Link href="/learners" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>🎓 Add Learner</Link>
+              <Link href="/fees" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>💰 Receive Payment</Link>
+              <Link href="/grades" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>📊 Enter Marks</Link>
+              <Link href="/sms" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>📱 Send SMS</Link>
+              <Link href="/templates" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>📄 Templates</Link>
+              <Link href="/settings" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>⚙️ Settings</Link>
+            </>
+          )}
+          {user?.role === 'teacher' && (
+            <>
+              <Link href="/grades" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>📊 Enter Marks</Link>
+              <Link href="/classes" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>🏫 Class List</Link>
+              <Link href="/predictor" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>🎯 Predictor</Link>
+              <Link href="/merit-list" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>🏆 Merit List</Link>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* ── Stat cards ── */}
       <div className="sg sg4">

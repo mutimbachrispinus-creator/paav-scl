@@ -1,0 +1,168 @@
+'use client';
+/**
+ * app/settings/subjects/page.js — Subjects Configuration
+ *
+ * Allows admins to manage the list of subjects per grade level.
+ * Persists to 'paav8_subj' in Turso KV.
+ */
+
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ALL_GRADES, DEFAULT_SUBJECTS } from '@/lib/cbe';
+
+export default function SubjectsPage() {
+  const router = useRouter();
+  const [subjCfg, setSubjCfg] = useState({});
+  const [selectedGrade, setSelectedGrade] = useState(ALL_GRADES[0]);
+  const [newSubj, setNewSubj] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState(null);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav8_subj' }] })
+      });
+      const data = await res.json();
+      const cfg = data.results[0]?.value || {};
+      
+      // Merge with defaults if missing
+      const merged = { ...DEFAULT_SUBJECTS };
+      Object.keys(cfg).forEach(k => { if(cfg[k]) merged[k] = cfg[k]; });
+      
+      setSubjCfg(merged);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function save(newCfg) {
+    setSaving(true);
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requests: [{ type: 'set', key: 'paav8_subj', value: newCfg }]
+        })
+      });
+      setMsg({ type: 'success', text: 'Subjects updated successfully!' });
+      setTimeout(() => setMsg(null), 3000);
+    } catch (e) {
+      setMsg({ type: 'error', text: 'Failed to save changes.' });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function addSubject() {
+    if (!newSubj.trim()) return;
+    const current = subjCfg[selectedGrade] || [];
+    if (current.includes(newSubj.trim())) {
+      alert('Subject already exists for this grade.');
+      return;
+    }
+    const updated = { ...subjCfg, [selectedGrade]: [...current, newSubj.trim()] };
+    setSubjCfg(updated);
+    setNewSubj('');
+    save(updated);
+  }
+
+  function removeSubject(s) {
+    if (!confirm(`Remove "${s}" from ${selectedGrade}?`)) return;
+    const updated = {
+      ...subjCfg,
+      [selectedGrade]: (subjCfg[selectedGrade] || []).filter(x => x !== s)
+    };
+    setSubjCfg(updated);
+    save(updated);
+  }
+
+  if (loading) return <div className="page on"><p>Loading configuration...</p></div>;
+
+  const currentList = subjCfg[selectedGrade] || [];
+
+  return (
+    <div className="page on" id="pg-settings-subjects">
+      <div className="page-hdr">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Link href="/settings" className="btn btn-ghost btn-sm">← Back</Link>
+          <div>
+            <h2>📚 Subjects Configuration</h2>
+            <p>Define available subjects for each grade level</p>
+          </div>
+        </div>
+      </div>
+
+      {msg && (
+        <div className={`alert alert-${msg.type}`} style={{ marginBottom: 16 }}>
+          {msg.text}
+        </div>
+      )}
+
+      <div className="sg sg2">
+        <div className="panel">
+          <div className="panel-hdr"><h3>Grade Level</h3></div>
+          <div className="panel-body">
+            <div className="grade-list" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {ALL_GRADES.map(g => (
+                <button
+                  key={g}
+                  className={`btn ${selectedGrade === g ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ justifyContent: 'flex-start', textAlign: 'left' }}
+                  onClick={() => setSelectedGrade(g)}
+                >
+                  {g}
+                  <span style={{ marginLeft: 'auto', opacity: 0.5, fontSize: 11 }}>
+                    {(subjCfg[g] || []).length} subs
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-hdr">
+            <h3>Subjects for {selectedGrade}</h3>
+          </div>
+          <div className="panel-body">
+            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+              <input
+                type="text"
+                className="f-input"
+                placeholder="New subject name..."
+                value={newSubj}
+                onChange={e => setNewSubj(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addSubject()}
+              />
+              <button className="btn btn-primary" onClick={addSubject} disabled={saving}>
+                {saving ? '...' : 'Add'}
+              </button>
+            </div>
+
+            <div className="subj-grid" style={{ display: 'grid', gap: 8 }}>
+              {currentList.length === 0 && <p style={{ opacity: 0.5 }}>No subjects defined for this grade.</p>}
+              {currentList.map(s => (
+                <div key={s} className="assign-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#F8FAFF', borderRadius: 8, border: '1.5px solid var(--border)' }}>
+                  <span style={{ fontWeight: 600 }}>{s}</span>
+                  <button className="btn btn-ghost btn-sm" style={{ color: 'var(--red)', padding: 4 }} onClick={() => removeSubject(s)}>
+                    🗑️
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

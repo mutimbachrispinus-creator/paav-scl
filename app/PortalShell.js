@@ -14,6 +14,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 
 /* Pages that should NOT show the navbar */
@@ -170,29 +171,28 @@ export default function PortalShell({ children }) {
         </button>
       </div>
 
-      {/* ── Bottom mobile nav ── */}
+      {/* ── Mobile Bottom Nav ── */}
       {showNav && user && (
-        <nav id="bottom-nav" className="no-print">
-          <div className="bnav-items">
-            {[
-              { path: '/dashboard',  icon: '📊', label: 'Home'    },
-              { path: '/learners',   icon: '🎓', label: 'Learners', roles: ['admin','teacher'] },
-              { path: '/grades',     icon: '📋', label: 'Grades',   roles: ['admin','teacher'] },
-              { path: '/fees',       icon: '💰', label: 'Fees',     roles: ['admin','staff']   },
-              { path: '/merit-list', icon: '🏆', label: 'Merit',    roles: ['admin','teacher'] },
-            ]
-              .filter(n => !n.roles || n.roles.includes(user.role))
-              .map(n => (
-                <button
-                  key={n.path}
-                  className={`bnav-btn${pathname.startsWith(n.path) ? ' on' : ''}`}
-                  onClick={() => router.push(n.path)}>
-                  <span className="bnav-icon">{n.icon}</span>
-                  {n.label}
-                </button>
-              ))}
-          </div>
-        </nav>
+        <div className="mobile-bottom-nav no-print">
+          {[
+            { path: '/dashboard',  icon: '📊', label: 'Home'    },
+            { path: '/messages',   icon: '💬', label: 'Messages' },
+            { path: '/grades',     icon: '📋', label: 'Grades',   roles: ['admin','teacher'] },
+            { path: '/fees',       icon: '💰', label: 'Fees',     roles: ['admin','staff']   },
+            { path: '/settings',   icon: '⚙️', label: 'Setup',    roles: ['admin'] },
+          ]
+            .filter(n => !n.roles || n.roles.includes(user.role))
+            .map(n => (
+              <Link
+                key={n.path}
+                href={n.path}
+                className={pathname.startsWith(n.path) ? 'active' : ''}
+              >
+                <span className="icon">{n.icon}</span>
+                <span className="label">{n.label}</span>
+              </Link>
+            ))}
+        </div>
       )}
     </>
   );
