@@ -122,7 +122,7 @@ export default function PayPage() {
         {!learner && (
           <form onSubmit={lookup}>
             <div className="field">
-              <label>Learner's Admission Number</label>
+              <label>Learner&apos;s Admission Number</label>
               <input value={adm} onChange={e => setAdm(e.target.value)}
                 placeholder="e.g. 101" autoFocus />
             </div>
@@ -157,7 +157,7 @@ export default function PayPage() {
 
             {balance <= 0 ? (
               <div className="alert alert-ok show" style={{ display: 'flex' }}>
-                ✅ This learner's fees are fully paid!
+                ✅ This learner&apos;s fees are fully paid!
               </div>
             ) : (
               <form onSubmit={stkPush}>

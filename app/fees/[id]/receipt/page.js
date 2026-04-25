@@ -165,7 +165,7 @@ export default function ReceiptPage() {
           <div style={{ marginTop: 20, textAlign: 'center', borderTop: '1px dashed #ccc',
             paddingTop: 10, fontSize: 10, color: 'var(--muted)' }}>
             <div>This is a computer-generated receipt</div>
-            <div style={{ marginTop: 2 }}>"More Than Academics!" — PAAV Portal</div>
+            <div style={{ marginTop: 2 }}>&quot;More Than Academics!&quot; — PAAV Portal</div>
           </div>
         </div>
       </div>
