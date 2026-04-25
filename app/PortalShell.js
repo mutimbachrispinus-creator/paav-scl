@@ -139,7 +139,7 @@ export default function PortalShell({ children }) {
 
       {/* ── Announcement banner ── */}
       {showNav && announcement && (
-        <div id="announcement-banner">
+        <div id="announcement-banner" style={{ background: 'linear-gradient(135deg,var(--maroon),var(--maroon2))', padding: '16px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: '2px solid var(--gold)', color: '#fff', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 18 }}>📢</span>
             <span style={{ fontSize: 12.5, fontWeight: 600 }}>{announcement}</span>

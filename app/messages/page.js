@@ -1,0 +1,275 @@
+'use client';
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { today } from '@/lib/cbe';
+
+export default function MessagesPage() {
+  const router = useRouter();
+  const [user, setUser] = useState(null);
+  const [allMessages, setAllMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  const [activeThread, setActiveThread] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  
+  const [showCompose, setShowCompose] = useState(false);
+  const [cmpTo, setCmpTo] = useState('ALL');
+  const [cmpSub, setCmpSub] = useState('');
+  const [cmpBody, setCmpBody] = useState('');
+  const [cmpPri, setCmpPri] = useState('normal');
+
+  const load = useCallback(async () => {
+    try {
+      const authRes = await fetch('/api/auth');
+      const auth = await authRes.json();
+      if (!auth.ok || !auth.user) { router.push('/'); return; }
+      setUser(auth.user);
+
+      const dbRes = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_msgs' }] })
+      });
+      const db = await dbRes.json();
+      setAllMessages(db.results[0]?.value || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const saveMessages = async (newMsgs) => {
+    setSaving(true);
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_msgs', value: newMsgs }] })
+      });
+      setAllMessages(newMsgs);
+    } catch (e) {
+      console.error(e);
+      alert('Failed to save message');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openThread = async (m) => {
+    setActiveThread(m);
+    if (!m.read.includes(user.username)) {
+      const newMsgs = allMessages.map(msg => {
+        if (msg.id === m.id) return { ...msg, read: [...msg.read, user.username] };
+        return msg;
+      });
+      await saveMessages(newMsgs);
+      setActiveThread(newMsgs.find(msg => msg.id === m.id));
+    }
+  };
+
+  const sendReply = async (e) => {
+    e.preventDefault();
+    if (!replyText.trim() || !activeThread) return;
+    
+    const newMsgs = allMessages.map(msg => {
+      if (msg.id === activeThread.id) {
+        return {
+          ...msg,
+          replies: [...(msg.replies || []), { from: user.username, fromName: user.name, text: replyText.trim(), date: today() }]
+        };
+      }
+      return msg;
+    });
+    
+    await saveMessages(newMsgs);
+    setReplyText('');
+    setActiveThread(newMsgs.find(msg => msg.id === activeThread.id));
+  };
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!cmpTo || !cmpSub.trim() || !cmpBody.trim()) {
+      alert('Please fill all fields');
+      return;
+    }
+    
+    const newMsg = {
+      id: 'm' + Date.now(),
+      from: user.username,
+      fromName: user.name,
+      to: cmpTo,
+      subject: cmpSub.trim(),
+      body: cmpBody.trim(),
+      date: today(),
+      read: [user.username],
+      priority: cmpPri,
+      replies: []
+    };
+    
+    const newMsgs = [newMsg, ...allMessages];
+    await saveMessages(newMsgs);
+    
+    setShowCompose(false);
+    setCmpSub('');
+    setCmpBody('');
+  };
+
+  if (loading) return <LoadingSkeleton />;
+
+  const myMsgs = allMessages.filter(m => 
+    m.from === user.username || 
+    m.to === user.username || 
+    m.to === 'ALL' || 
+    (m.to === 'ALL_PARENTS' && user.role === 'parent') || 
+    (m.to === 'ALL_STAFF' && ['admin','teacher','staff'].includes(user.role))
+  ).sort((a,b) => b.date.localeCompare(a.date));
+
+  return (
+    <div className="page on" id="pg-messages">
+      <div className="page-hdr">
+        <div>
+          <h2>💬 Messages</h2>
+          <p>School inbox and announcements</p>
+        </div>
+        <div className="page-hdr-acts">
+          <button className="btn btn-primary btn-sm" onClick={() => setShowCompose(true)}>
+            ✏️ Compose
+          </button>
+        </div>
+      </div>
+
+      <div className="sg sg2">
+        <div className="panel">
+          <div className="panel-hdr">
+            <h3>Inbox</h3>
+          </div>
+          <div className="panel-body" style={{ padding: 0 }}>
+            {myMsgs.length > 0 ? myMsgs.map(m => {
+              const unr = !m.read.includes(user.username) && m.from !== user.username;
+              const pC = m.priority === 'urgent' ? '#EF4444' : m.priority === 'important' ? 'var(--amber)' : 'transparent';
+              return (
+                <div key={m.id} className={`msg-item ${unr ? 'unread' : ''}`} onClick={() => openThread(m)}
+                  style={{ borderLeft: `3px solid ${pC}`, padding: '12px 16px', borderBottom: '1px solid var(--border)', cursor: 'pointer', background: activeThread?.id === m.id ? '#F8FAFF' : 'transparent' }}>
+                  <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--navy)' }}>
+                    {m.fromName} {unr && <span style={{ color: 'var(--blue)', fontSize: '10px' }}>●NEW</span>}
+                  </div>
+                  <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--navy)', marginTop: '2px' }}>{m.subject}</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {m.body}
+                  </div>
+                  <div style={{ fontSize: '10.5px', color: 'var(--light)', marginTop: '6px' }}>
+                    {m.date} {m.replies?.length ? ` · ${m.replies.length} replies` : ''}
+                  </div>
+                </div>
+              );
+            }) : <div style={{ padding: '20px', color: 'var(--muted)', fontSize: '12.5px', textAlign: 'center' }}>No messages found</div>}
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-hdr">
+            <h3>Thread View</h3>
+          </div>
+          <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', height: '60vh' }}>
+            {activeThread ? (
+              <>
+                <div style={{ paddingBottom: '12px', borderBottom: '1px solid var(--border)', marginBottom: '12px' }}>
+                  <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--navy)' }}>{activeThread.subject}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>From: {activeThread.fromName} · {activeThread.date}</div>
+                </div>
+                
+                <div style={{ flex: 1, overflowY: 'auto', paddingRight: '6px' }}>
+                  <div className="msg-bubble recv" style={{ marginBottom: '12px' }}>
+                    <div>
+                      <div className="bbl" style={{ background: '#F1F5F9', padding: '10px 14px', borderRadius: '12px', fontSize: '13px', color: '#334155', display: 'inline-block' }}>{activeThread.body}</div>
+                      <div className="bbl-time" style={{ fontSize: '10px', color: 'var(--light)', marginTop: '4px' }}>{activeThread.fromName} · {activeThread.date}</div>
+                    </div>
+                  </div>
+                  
+                  {(activeThread.replies || []).map((r, i) => {
+                    const mine = r.from === user.username;
+                    return (
+                      <div key={i} className={`msg-bubble ${mine ? 'sent' : 'recv'}`} style={{ marginBottom: '12px', textAlign: mine ? 'right' : 'left' }}>
+                        <div>
+                          <div className="bbl" style={{ background: mine ? 'var(--blue)' : '#F1F5F9', color: mine ? '#fff' : '#334155', padding: '10px 14px', borderRadius: '12px', fontSize: '13px', display: 'inline-block' }}>
+                            {r.text}
+                          </div>
+                          <div className="bbl-time" style={{ fontSize: '10px', color: 'var(--light)', marginTop: '4px' }}>{r.fromName || r.from} · {r.date}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <form onSubmit={sendReply} style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+                  <input type="text" value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="Write a reply..." style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }} disabled={saving} />
+                  <button type="submit" className="btn btn-primary" disabled={saving || !replyText.trim()}>Send</button>
+                </form>
+              </>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '13px' }}>
+                Select a message to view the thread
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {showCompose && (
+        <div className="modal-overlay" style={{ display: 'flex' }}>
+          <div className="modal">
+            <div className="modal-hdr">
+              <h3>✉️ Compose Message</h3>
+              <button className="btn-close" onClick={() => setShowCompose(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={sendMessage}>
+                <div className="field">
+                  <label>To</label>
+                  <select value={cmpTo} onChange={e => setCmpTo(e.target.value)}>
+                    <option value="ALL">All Portal Users</option>
+                    <option value="ALL_STAFF">All Staff & Teachers</option>
+                    <option value="ALL_PARENTS">All Parents</option>
+                    {user.role === 'parent' && <option value="admin">School Admin</option>}
+                  </select>
+                </div>
+                <div className="field-row">
+                  <div className="field">
+                    <label>Subject</label>
+                    <input value={cmpSub} onChange={e => setCmpSub(e.target.value)} placeholder="Brief title" required />
+                  </div>
+                  <div className="field">
+                    <label>Priority</label>
+                    <select value={cmpPri} onChange={e => setCmpPri(e.target.value)}>
+                      <option value="normal">Normal</option>
+                      <option value="important">Important</option>
+                      <option value="urgent">Urgent</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="field">
+                  <label>Message</label>
+                  <textarea value={cmpBody} onChange={e => setCmpBody(e.target.value)} rows="5" placeholder="Type your message here..." required></textarea>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+                  <button type="button" className="btn btn-ghost" onClick={() => setShowCompose(false)} style={{ flex: 1 }}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" disabled={saving} style={{ flex: 1 }}>
+                    {saving ? 'Sending...' : 'Send Message'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LoadingSkeleton() {
+  return <div className="page on" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>Loading messages...</div>;
+}

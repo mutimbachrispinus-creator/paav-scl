@@ -8,8 +8,10 @@ import { JSS_SCALE, PRIMARY_SCALE } from '@/lib/cbe';
 
 export default function GradingSettingsPage() {
   const router  = useRouter();
-  const [jss,   setJss]   = useState(JSS_SCALE.map(s => ({ ...s })));
-  const [pri,   setPri]   = useState(PRIMARY_SCALE.map(s => ({ ...s })));
+  const [k6,     setK6]     = useState(PRIMARY_SCALE.map(s => ({ ...s })));
+  const [junior, setJunior] = useState(JSS_SCALE.map(s => ({ ...s })));
+  const [senior, setSenior] = useState(JSS_SCALE.map(s => ({ ...s })));
+  
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -24,8 +26,17 @@ export default function GradingSettingsPage() {
     });
     const db  = await dbRes.json();
     const cfg = db.results[0]?.value;
-    if (cfg?.jss) setJss(cfg.jss.map(s => ({ ...s })));
-    if (cfg?.pri) setPri(cfg.pri.map(s => ({ ...s })));
+    
+    // Backwards compatibility with old pri/jss config
+    if (cfg?.k6) setK6(cfg.k6.map(s => ({ ...s })));
+    else if (cfg?.pri) setK6(cfg.pri.map(s => ({ ...s })));
+    
+    if (cfg?.junior) setJunior(cfg.junior.map(s => ({ ...s })));
+    else if (cfg?.jss) setJunior(cfg.jss.map(s => ({ ...s })));
+    
+    if (cfg?.senior) setSenior(cfg.senior.map(s => ({ ...s })));
+    else if (cfg?.jss) setSenior(cfg.jss.map(s => ({ ...s })));
+    
     setLoading(false);
   }, [router]);
 
@@ -34,7 +45,7 @@ export default function GradingSettingsPage() {
   async function save() {
     await fetch('/api/db', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ requests:[{ type:'set', key:'paav8_grad', value:{ jss, pri } }] }),
+      body: JSON.stringify({ requests:[{ type:'set', key:'paav8_grad', value:{ k6, junior, senior } }] }),
     });
     setSaved(true); setTimeout(() => setSaved(false), 3000);
   }
@@ -95,8 +106,9 @@ export default function GradingSettingsPage() {
         Changes apply immediately to all marks entry, report cards, and merit lists.
         Lowering a threshold upgrades learners; raising it downgrades them.
       </div>
-      <ScaleEditor scale={jss} setScale={setJss} title="JSS / Senior (Grade 7–12) — 8-Level Scale" />
-      <ScaleEditor scale={pri} setScale={setPri} title="Primary / Pre-School (KG–Grade 6) — 4-Level Scale" />
+      <ScaleEditor scale={k6} setScale={setK6} title="🟢 K–Grade 6" />
+      <ScaleEditor scale={junior} setScale={setJunior} title="🟡 Junior School (7–9)" />
+      <ScaleEditor scale={senior} setScale={setSenior} title="🔴 Senior School (10–12)" />
     </div>
   );
 }

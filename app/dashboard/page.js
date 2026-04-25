@@ -42,7 +42,7 @@ export default function DashboardPage() {
 
       // Parent → redirect to parent home
       if (auth.user.role === 'parent') {
-        router.push('/dashboard?tab=parent-home');
+        router.push('/parent-home');
         return;
       }
 
