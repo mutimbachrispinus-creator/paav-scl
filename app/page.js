@@ -25,17 +25,13 @@ const FEATURES = [
 ];
 
 /* ─── School stats ───────────────────────────────────────────────────────── */
-const STATS = [
-  { n: '—', l: 'Learners' },
-  { n: '—', l: 'Classes' },
-  { n: '—', l: 'Year' },
-];
-
 export default function LoginPage() {
   const router = useRouter();
   const [tab,  setTab]  = useState('login');   // 'login' | 'register' | 'forgot'
   const [busy, setBusy] = useState(false);
   const [msg,  setMsg]  = useState({ text: '', type: '' });
+  
+  const [stats, setStats] = useState({ learners: '—', classes: '—', year: '—' });
 
   // ── Login state
   const [username,  setUsername]  = useState('');
@@ -61,6 +57,10 @@ export default function LoginPage() {
   const [fgStep, setFgStep] = useState(1);  // 1: enter username | 2: verify | 3: new password
 
   useEffect(() => {
+    fetch('/api/stats').then(r => r.json()).then(data => {
+      if (!data.error) setStats({ learners: data.learners, classes: data.classes, year: data.year });
+    }).catch(() => {});
+    
     // ── If already logged in, go straight to dashboard ──
     fetch('/api/auth')
       .then(r => r.json())
@@ -219,7 +219,11 @@ export default function LoginPage() {
         </div>
 
         <div className="auth-stats">
-          {STATS.map((s, i) => (
+          {[
+            { n: stats.learners, l: 'Learners' },
+            { n: stats.classes, l: 'Classes' },
+            { n: stats.year, l: 'Year' },
+          ].map((s, i) => (
             <div key={i}>
               <div className="auth-stat-n">{s.n}</div>
               <div className="auth-stat-l">{s.l}</div>
