@@ -15,6 +15,9 @@ import Link from 'next/link';
 
 const ALL_NAV = [
   { key:'dashboard',  label:'📊 Home',       roles:['admin','teacher','staff','member'] },
+  { key:'attendance', label:'📋 Attendance', roles:['admin','teacher'] },
+  { key:'timetable',  label:'📅 Timetable',  roles:['admin','teacher','staff'] },
+  { key:'duties',     label:'🎖️ Duties',      roles:['admin','teacher','staff'] },
   { key:'performance',label:'📈 Performance',roles:['admin','teacher'] },
   { key:'learners',   label:'🎓 Learners',   roles:['admin','teacher'] },
   { key:'grades',     label:'📊 Grades',     roles:['admin','teacher'] },
@@ -30,6 +33,7 @@ const ALL_NAV = [
 export default function Navbar({ user, unreadCount = 0 }) {
   const router   = useRouter();
   const pathname = usePathname();
+  const [showMobileNav, setShowMobileNav] = useState(false);
 
   const nav = ALL_NAV.filter(n => n.roles.includes(user?.role || 'member'));
 
@@ -61,19 +65,41 @@ export default function Navbar({ user, unreadCount = 0 }) {
         </div>
       </Link>
 
+      {/* ── Mobile Hamburger ── */}
+      <button className="tb-hamburger no-print" onClick={() => setShowMobileNav(!showMobileNav)}>
+        {showMobileNav ? '✕' : '☰'}
+      </button>
+
       {/* ── Nav tabs ── */}
-      <nav className="tb-nav">
-        {nav.map(n => (
-          <Link
-            key={n.key}
-            href={n.key === 'classes' ? '/classes/GRADE%207' : `/${n.key}`}
-            className={`tb-nbtn${isActive(n.key) ? ' on' : ''}`}
-            style={{ textDecoration: 'none' }}
-          >
-            {n.label}
-          </Link>
-        ))}
-      </nav>
+      <div className="nav-container">
+        <button className="nav-scroll-btn no-print" onClick={() => document.getElementById('tb-nav-inner').scrollBy({left:-200, behavior:'smooth'})}>‹</button>
+        <nav className="tb-nav" id="tb-nav-inner">
+          {nav.map(n => (
+            <Link
+              key={n.key}
+              href={n.key === 'classes' ? '/classes/GRADE%207' : `/${n.key}`}
+              className={`tb-nbtn${isActive(n.key) ? ' on' : ''}`}
+              style={{ textDecoration: 'none' }}
+              onClick={() => setShowMobileNav(false)}
+            >
+              {n.label}
+            </Link>
+          ))}
+        </nav>
+        <button className="nav-scroll-btn no-print" onClick={() => document.getElementById('tb-nav-inner').scrollBy({left:200, behavior:'smooth'})}>›</button>
+      </div>
+
+      {/* ── Mobile Drawer ── */}
+      {showMobileNav && (
+        <div className="mobile-drawer no-print">
+          {nav.map(n => (
+            <Link key={n.key} href={`/${n.key}`} className={`drawer-item ${isActive(n.key)?'on':''}`} onClick={() => setShowMobileNav(false)}>
+              {n.label}
+            </Link>
+          ))}
+          <button className="btn btn-danger" style={{ margin: 20 }} onClick={logout}>🚪 Logout</button>
+        </div>
+      )}
 
       {/* ── Actions ── */}
       <div className="tb-actions">

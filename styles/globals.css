@@ -418,3 +418,71 @@ tr:hover td{background:#F8FAFF}
 .tb-crest {
   border: 2px solid rgba(255,255,255,0.2);
 }
+
+/* ── NEW NAVIGATION UX ── */
+.nav-container {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  overflow: hidden;
+  margin: 0 10px;
+}
+.tb-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px;
+}
+.mobile-drawer {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--navy);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  animation: slideInLeft 0.3s ease;
+}
+.drawer-item {
+  padding: 15px 20px;
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.drawer-item.on {
+  color: #fff;
+  background: rgba(37,99,235,0.2);
+}
+.nav-scroll-btn {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s;
+}
+.nav-scroll-btn:hover { background: var(--blue); }
+
+@media (max-width: 800px) {
+  .tb-hamburger { display: block; }
+  .nav-container { display: none; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
