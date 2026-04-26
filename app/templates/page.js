@@ -261,13 +261,13 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
         <thead>
           <tr>
-            <th style={{ border: '1px solid #ddd', padding: 8 }}>Pos</th>
-            <th style={{ border: '1px solid #ddd', padding: 8 }}>ADM</th>
+            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>Pos</th>
+            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>ADM</th>
             <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Name</th>
-            {subjects.map(s => <th key={s} style={{ border: '1px solid #ddd', padding: 8, fontSize: 9 }}>{s.slice(0,5)}</th>)}
-            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A' }}>Total Marks</th>
-            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A' }}>Total Pts</th>
-            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A' }}>%</th>
+            {subjects.map(s => <th key={s} style={{ border: '1px solid #ddd', padding: 8, fontSize: 9, textAlign: 'center' }}>{s.slice(0,5)}</th>)}
+            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A', textAlign: 'center' }}>Total Marks</th>
+            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A', textAlign: 'center' }}>Total Pts</th>
+            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A', textAlign: 'center' }}>%</th>
           </tr>
         </thead>
         <tbody>
@@ -478,12 +478,12 @@ function FeeBalanceListTemplate({ learners, fees, grade, feeCfg }) {
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ background: '#f4f4f4' }}>
-            <th style={{ border: '1px solid #ddd', padding: 10 }}>#</th>
-            <th style={{ border: '1px solid #ddd', padding: 10 }}>ADM</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>#</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>ADM</th>
             <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'left' }}>Full Name</th>
-            <th style={{ border: '1px solid #ddd', padding: 10 }}>Expected (KES)</th>
-            <th style={{ border: '1px solid #ddd', padding: 10 }}>Paid (KES)</th>
-            <th style={{ border: '1px solid #ddd', padding: 10 }}>Balance (KES)</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Expected (KES)</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Paid (KES)</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Balance (KES)</th>
           </tr>
         </thead>
         <tbody>

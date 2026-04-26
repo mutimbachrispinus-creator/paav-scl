@@ -193,9 +193,9 @@ export default function MeritListPage() {
               <table>
                 <thead>
                   <tr>
-                    <th>Rank</th>
-                    <th>Adm</th>
-                    <th>Name</th>
+                    <th style={{ textAlign: 'center' }}>Rank</th>
+                    <th style={{ textAlign: 'center' }}>Adm</th>
+                    <th style={{ textAlign: 'left' }}>Name</th>
                     {subjects.map(s => (
                       <th key={s} style={{ textAlign: 'center', fontSize: 9 }} title={s}>
                         {s.length > 6 ? s.slice(0,6)+'…' : s}
