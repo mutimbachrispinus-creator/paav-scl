@@ -75,25 +75,37 @@ export default function TemplatesPage() {
     (subjCfg[grade] && subjCfg[grade].length > 0) ? subjCfg[grade] : (DEFAULT_SUBJECTS[grade] || []),
   [subjCfg, grade]);
 
-  function printGrade() {
-    setSelLearner('');
-    const landscape = tab === 'merit' || tab === 'class';
+  function triggerPrint(landscape) {
+    const style = document.createElement('style');
+    style.innerHTML = landscape ? '@page { size: A4 landscape; margin: 8mm; }' : '@page { size: A4 portrait; margin: 8mm; }';
+    document.head.appendChild(style);
+    
     if (landscape) document.body.classList.add('print-landscape');
     else document.body.classList.remove('print-landscape');
-    setTimeout(() => { window.print(); document.body.classList.remove('print-landscape'); }, 150);
+    
+    setTimeout(() => {
+      window.print();
+      document.body.classList.remove('print-landscape');
+      style.remove();
+    }, 150);
+  }
+
+  function printGrade() {
+    setSelLearner('');
+    const landscape = tab === 'merit' || tab === 'class' || tab === 'balance';
+    triggerPrint(landscape);
   }
   function printLearner() {
     if (!selLearner) { alert('Please select a learner first'); return; }
-    const landscape = tab === 'merit' || tab === 'class';
-    if (landscape) document.body.classList.add('print-landscape');
-    else document.body.classList.remove('print-landscape');
-    setTimeout(() => { window.print(); document.body.classList.remove('print-landscape'); }, 150);
+    const landscape = tab === 'merit' || tab === 'class' || tab === 'balance';
+    triggerPrint(landscape);
   }
 
   const TABS = [
     { id: 'merit',   label: '🏆 Merit List' },
     { id: 'report',  label: '📋 Report Cards' },
     { id: 'class',   label: '🏫 Class List' },
+    { id: 'balance', label: '📊 Fee Balance List' },
     { id: 'receipt', label: '💰 Fee Receipts' },
     { id: 'id',      label: '🆔 Student IDs' },
   ];
@@ -173,6 +185,9 @@ export default function TemplatesPage() {
         </div>
         <div style={{ display: tab === 'class'   ? 'block' : 'none' }}>
           <ClassListTemplate learners={filteredLearners} grade={grade} />
+        </div>
+        <div style={{ display: tab === 'balance' ? 'block' : 'none' }}>
+          <FeeBalanceListTemplate learners={filteredLearners} fees={fees} grade={grade} feeCfg={feeCfg} />
         </div>
         <div style={{ display: tab === 'receipt' ? 'block' : 'none' }}>
           <ReceiptTemplate learners={filteredLearners} fees={fees} grade={grade} selLearner={selLearner} feeCfg={feeCfg} />
@@ -432,6 +447,66 @@ function ClassListTemplate({ learners, grade }) {
               <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>{l.phone}</td>
             </tr>
           ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function FeeBalanceListTemplate({ learners, fees, grade, feeCfg }) {
+  const getAnnualFee = g => feeCfg[g]?.annual || 5000;
+  
+  let totalExpected = 0;
+  let totalPaid = 0;
+  let totalBalance = 0;
+
+  const data = learners.map(l => {
+    const expected = getAnnualFee(l.grade);
+    const paid = (l.t1||0) + (l.t2||0) + (l.t3||0);
+    const bal = expected - paid;
+    
+    totalExpected += expected;
+    totalPaid += paid;
+    totalBalance += bal;
+    
+    return { ...l, expected, paid, bal };
+  });
+
+  return (
+    <div>
+      <PrintHeader title="FEE BALANCE LIST" grade={grade} />
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ background: '#f4f4f4' }}>
+            <th style={{ border: '1px solid #ddd', padding: 10 }}>#</th>
+            <th style={{ border: '1px solid #ddd', padding: 10 }}>ADM</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'left' }}>Full Name</th>
+            <th style={{ border: '1px solid #ddd', padding: 10 }}>Expected (KES)</th>
+            <th style={{ border: '1px solid #ddd', padding: 10 }}>Paid (KES)</th>
+            <th style={{ border: '1px solid #ddd', padding: 10 }}>Balance (KES)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((l, i) => (
+            <tr key={l.adm}>
+              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>{i + 1}</td>
+              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', fontWeight: 600 }}>{l.adm}</td>
+              <td style={{ border: '1px solid #ddd', padding: 8, fontWeight: 700 }}>{l.name}</td>
+              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>{l.expected.toLocaleString()}</td>
+              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', color: '#059669', fontWeight: 600 }}>{l.paid.toLocaleString()}</td>
+              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', color: l.bal > 0 ? '#DC2626' : '#059669', fontWeight: 700 }}>
+                {l.bal.toLocaleString()}
+              </td>
+            </tr>
+          ))}
+          <tr style={{ background: '#f9f9f9', fontWeight: 800 }}>
+            <td colSpan={3} style={{ border: '1px solid #ddd', padding: 10, textAlign: 'right' }}>TOTAL:</td>
+            <td style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>{totalExpected.toLocaleString()}</td>
+            <td style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center', color: '#059669' }}>{totalPaid.toLocaleString()}</td>
+            <td style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center', color: totalBalance > 0 ? '#DC2626' : '#059669' }}>
+              {totalBalance.toLocaleString()}
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>

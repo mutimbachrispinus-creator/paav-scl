@@ -103,9 +103,15 @@ export default function MeritListPage() {
         </div>
         <div className="page-hdr-acts">
           <button className="btn btn-ghost btn-sm no-print" onClick={() => {
+            const style = document.createElement('style');
+            style.innerHTML = '@page { size: A4 landscape; margin: 8mm; }';
+            document.head.appendChild(style);
             document.body.classList.add('print-landscape');
-            window.print();
-            setTimeout(() => document.body.classList.remove('print-landscape'), 1000);
+            setTimeout(() => {
+              window.print();
+              document.body.classList.remove('print-landscape');
+              style.remove();
+            }, 150);
           }}>🖨️ Print Landscape</button>
         </div>
       </div>
