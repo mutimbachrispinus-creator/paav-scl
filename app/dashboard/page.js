@@ -118,14 +118,11 @@ export default function DashboardPage() {
         ctx.drawImage(img, 0, 0, w, h);
         const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
         try {
-          const sdb = await (await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ requests:[{ type:'get', key:'paav6_staff' }] }) })).json();
-          const staffList = sdb.results[0]?.value||[];
-          const idx = staffList.findIndex(s=>s.id===user.id);
-          if (idx>=0) staffList[idx].avatar=dataUrl;
           const res = await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ requests:[{ type:'set', key:'paav6_staff', value:staffList }] }) });
-          if (!res.ok) throw new Error('API request failed');
+            body: JSON.stringify({ requests:[{ type:'updateStaffAvatar', id: user.id, avatar: dataUrl }] }) });
+          const out = await res.json();
+          if (!res.ok) throw new Error(out.error || 'API request failed');
+          if (out.results?.[0]?.error) throw new Error(out.results[0].error);
           setUser(u=>({...u, avatar:dataUrl}));
         } catch(err) { alert('Upload failed: ' + err.message); } finally { setBusy(false); }
       };

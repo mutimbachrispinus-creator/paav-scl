@@ -126,23 +126,23 @@ export default function ProfilePage() {
       const profiles = db.results[0]?.value || {};
       profiles[user.id] = { ...profiles[user.id], ...profileData, photo: newPhoto || photoPreview || '' };
 
-      // Update staff table as well (for name, phone)
-      const staffList = [...allStaff];
-      const idx = staffList.findIndex(s => s.id === user.id);
       const finalPhoto = newPhoto || photoPreview || '';
-      if (idx >= 0) {
-        staffList[idx] = { ...staffList[idx], name: profileData.name, phone: profileData.phone, avatar: finalPhoto };
-      }
 
-      await fetch('/api/db', {
+      const res = await fetch('/api/db', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [
           { type: 'set', key: 'paav_profiles', value: profiles },
-          { type: 'set', key: 'paav6_staff', value: staffList }
+          { type: 'updateStaffProfile', id: user.id, name: profileData.name, phone: profileData.phone, avatar: finalPhoto }
         ] })
       });
+      const out = await res.json();
+      if (!res.ok) throw new Error(out.error || 'API request failed');
+      if (out.results?.some(r => r.error)) throw new Error(out.results.find(r => r.error).error);
       setSaved(true); setTimeout(() => setSaved(false), 3000);
-      setAllProfiles(profiles); setAllStaff(staffList);
+            const newStaffList = [...allStaff];
+      const idx = newStaffList.findIndex(s => s.id === user.id);
+      if (idx >= 0) newStaffList[idx] = { ...newStaffList[idx], name: profileData.name, phone: profileData.phone, avatar: finalPhoto };
+      setAllProfiles(profiles); setAllStaff(newStaffList);
     } catch (e) { alert('Error saving profile: ' + e.message); }
     finally { setBusy(false); }
   }

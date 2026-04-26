@@ -108,6 +108,26 @@ async function handleRequest(req) {
       return { type: 'timestamps', timestamps: map };
     }
 
+    /* ── Update Avatar ── */
+    case 'updateStaffAvatar': {
+      if (!req.id || req.avatar === undefined) return { type: req.type, error: 'id and avatar are required' };
+      const { kvUpdateStaffAvatar } = await import('@/lib/db');
+      await kvUpdateStaffAvatar(req.id, req.avatar);
+      return { type: req.type, id: req.id, ok: true };
+    }
+    case 'updateStaffProfile': {
+      if (!req.id) return { type: req.type, error: 'id is required' };
+      const { kvUpdateStaffProfile } = await import('@/lib/db');
+      await kvUpdateStaffProfile(req.id, req.name, req.phone, req.avatar);
+      return { type: req.type, id: req.id, ok: true };
+    }
+    case 'updateLearnerAvatar': {
+      if (!req.adm || req.avatar === undefined) return { type: req.type, error: 'adm and avatar are required' };
+      const { kvUpdateLearnerAvatar } = await import('@/lib/db');
+      await kvUpdateLearnerAvatar(req.adm, req.avatar);
+      return { type: req.type, adm: req.adm, ok: true };
+    }
+
     /* ── Bulk read ── */
     case 'getAll': {
       const keys = Array.isArray(req.keys) ? req.keys : [];
