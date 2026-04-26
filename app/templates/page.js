@@ -214,8 +214,27 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
         count++;
       }
     });
-    return { ...l, total, count, avg: count > 0 ? (total / (subjects.length * (grade.includes('GRADE 7') || grade.includes('GRADE 8') || grade.includes('GRADE 9') ? 8 : 4)) * 100).toFixed(1) : 0 };
+    return { ...l, total, count, avg: count > 0 ? (total / (subjects.length * (grade.includes('GRADE 7') || grade.includes('GRADE 8') || grade.includes('GRADE 9') || grade.includes('GRADE 1') ? (grade.includes('GRADE 10')||grade.includes('GRADE 11')||grade.includes('GRADE 12')?8:8) : 4)) * 100).toFixed(1) : 0 };
   }).sort((a, b) => b.total - a.total);
+
+  const colStats = subjects.map(s => {
+    let sum = 0;
+    let count = 0;
+    data.forEach(l => {
+      const score = marks[`${term}:${grade}|${s}|${assess}`]?.[l.adm];
+      if (score !== undefined) {
+        sum += Number(score);
+        count++;
+      }
+    });
+    const avgScore = count > 0 ? Math.round(sum / count) : null;
+    const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg) : null;
+    return { avgScore, avgInfo };
+  });
+
+  const totalPtsSum = data.reduce((acc, l) => acc + l.total, 0);
+  const totalAvgPts = data.length > 0 ? Math.round(totalPtsSum / data.length) : 0;
+  const avgPct = data.length > 0 ? (data.reduce((acc, l) => acc + parseFloat(l.avg), 0) / data.length).toFixed(1) : 0;
 
   return (
     <div>
@@ -239,12 +258,56 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
               <td style={{ border: '1px solid #ddd', padding: 6 }}>{l.name}</td>
               {subjects.map(s => {
                 const score = marks[`${term}:${grade}|${s}|${assess}`]?.[l.adm];
-                return <td key={s} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>{score ?? '—'}</td>
+                const info = score !== undefined ? gInfo(Number(score), grade, gradCfg) : null;
+                return (
+                  <td key={s} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>
+                    {score !== undefined ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600 }}>{score}</span>
+                        <span style={{ fontSize: 9, color: info.c, fontWeight: 800 }}>{info.lv}</span>
+                      </div>
+                    ) : '—'}
+                  </td>
+                );
               })}
               <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{l.total}</td>
               <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>{l.avg}%</td>
             </tr>
           ))}
+          {data.length > 0 && (
+            <>
+              <tr style={{ background: '#f9f9f9', borderTop: '2px solid #8B1A1A' }}>
+                <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>AVERAGE SCORE</td>
+                {colStats.map((stat, i) => (
+                  <td key={i} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>
+                    {stat.avgScore !== null ? stat.avgScore : '—'}
+                  </td>
+                ))}
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{avgPct}%</td>
+              </tr>
+              <tr style={{ background: '#f9f9f9' }}>
+                <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>AVERAGE LEVEL</td>
+                {colStats.map((stat, i) => (
+                  <td key={i} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>
+                    {stat.avgInfo ? <span style={{ color: stat.avgInfo.c, fontWeight: 800, fontSize: 10 }}>{stat.avgInfo.lv}</span> : '—'}
+                  </td>
+                ))}
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
+              </tr>
+              <tr style={{ background: '#f9f9f9' }}>
+                <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>AVERAGE POINTS</td>
+                {colStats.map((stat, i) => (
+                  <td key={i} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>
+                    {stat.avgInfo ? stat.avgInfo.pts : '—'}
+                  </td>
+                ))}
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800, color: '#8B1A1A' }}>{totalAvgPts}</td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
+              </tr>
+            </>
+          )}
         </tbody>
       </table>
     </div>

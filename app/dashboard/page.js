@@ -106,17 +106,30 @@ export default function DashboardPage() {
     setBusy(true);
     const reader = new FileReader();
     reader.onload = async ev => {
-      const dataUrl = ev.target.result;
-      try {
-        const sdb = await (await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ requests:[{ type:'get', key:'paav6_staff' }] }) })).json();
-        const staffList = sdb.results[0]?.value||[];
-        const idx = staffList.findIndex(s=>s.id===user.id);
-        if (idx>=0) staffList[idx].avatar=dataUrl;
-        await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ requests:[{ type:'set', key:'paav6_staff', value:staffList }] }) });
-        setUser(u=>({...u, avatar:dataUrl}));
-      } catch(err) { alert('Upload failed'); } finally { setBusy(false); }
+      const img = new window.Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 300;
+        let w = img.width, h = img.height;
+        if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
+        else       { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        try {
+          const sdb = await (await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ requests:[{ type:'get', key:'paav6_staff' }] }) })).json();
+          const staffList = sdb.results[0]?.value||[];
+          const idx = staffList.findIndex(s=>s.id===user.id);
+          if (idx>=0) staffList[idx].avatar=dataUrl;
+          const res = await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ requests:[{ type:'set', key:'paav6_staff', value:staffList }] }) });
+          if (!res.ok) throw new Error('API request failed');
+          setUser(u=>({...u, avatar:dataUrl}));
+        } catch(err) { alert('Upload failed: ' + err.message); } finally { setBusy(false); }
+      };
+      img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
   }
@@ -126,14 +139,26 @@ export default function DashboardPage() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async ev => {
-      const b64 = ev.target.result;
-      setHeroUrl(b64);
-      try {
-        await fetch('/api/db', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ requests: [{ type: 'set', key: 'paav7_hero_img', value: b64 }] })
-        });
-      } catch {}
+      const img = new window.Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 1200;
+        let w = img.width, h = img.height;
+        if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
+        else       { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const b64 = canvas.toDataURL('image/jpeg', 0.8);
+        setHeroUrl(b64);
+        try {
+          await fetch('/api/db', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requests: [{ type: 'set', key: 'paav7_hero_img', value: b64 }] })
+          });
+        } catch {}
+      };
+      img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
   }

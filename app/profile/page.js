@@ -94,7 +94,23 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ev => { setPhotoPreview(ev.target.result); setNewPhoto(ev.target.result); };
+    reader.onload = ev => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 300;
+        let w = img.width, h = img.height;
+        if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
+        else       { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const b64 = canvas.toDataURL('image/jpeg', 0.8);
+        setPhotoPreview(b64);
+        setNewPhoto(b64);
+      };
+      img.src = ev.target.result;
+    };
     reader.readAsDataURL(file);
   }
 

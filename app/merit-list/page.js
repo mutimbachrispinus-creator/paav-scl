@@ -68,6 +68,28 @@ export default function MeritListPage() {
   const subjects = DEFAULT_SUBJECTS[grade] || [];
   const max = maxPts(grade, subjects);
 
+  const colStats = useMemo(() => {
+    return subjects.map(s => {
+      let sum = 0;
+      let count = 0;
+      ranked.forEach(l => {
+        const detail = l.detail.find(d => d.subj === s);
+        if (detail && detail.score !== null) {
+          sum += detail.score;
+          count++;
+        }
+      });
+      const avgScore = count > 0 ? Math.round(sum / count) : null;
+      const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg) : null;
+      return { avgScore, avgInfo };
+    });
+  }, [ranked, subjects, grade, gradCfg]);
+
+  const totalPtsSum = ranked.reduce((acc, l) => acc + l.totalPts, 0);
+  const totalAvgPts = ranked.length > 0 ? Math.round(totalPtsSum / ranked.length) : 0;
+  const avgPct = ranked.length > 0 && max > 0 ? Math.round((totalAvgPts / max) * 100) : 0;
+
+
   if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading merit list…</div>;
 
   return (
