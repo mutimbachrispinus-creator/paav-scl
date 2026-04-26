@@ -18,7 +18,7 @@ export default function PayPage() {
   const [adm,     setAdm]     = useState('');
   const [learner, setLearner] = useState(null);
   const [feeCfg,  setFeeCfg]  = useState({});
-  const [paybill, setPaybill] = useState('');
+  const [paybillAccounts, setPaybillAccounts] = useState([]);
   const [looking, setLooking] = useState(false);
   const [err,     setErr]     = useState('');
 
@@ -41,7 +41,7 @@ export default function PayPage() {
       body:    JSON.stringify({ requests: [
         { type: 'get', key: 'paav6_learners' },
         { type: 'get', key: 'paav6_feecfg'  },
-        { type: 'get', key: 'paav_paybill'  },
+        { type: 'get', key: 'paav_paybill_accounts' },
       ]}),
     });
     const db = await res.json();
@@ -49,13 +49,13 @@ export default function PayPage() {
 
     const all  = db.results[0]?.value || [];
     const cfg  = db.results[1]?.value || {};
-    const pb   = db.results[2]?.value || '';
+    const pbas = db.results[2]?.value || [];
     const found = all.find(l => l.adm === adm.trim());
 
     if (!found) { setErr(`Learner with adm no. "${adm}" not found.`); return; }
     setLearner(found);
     setFeeCfg(cfg);
-    setPaybill(pb);
+    setPaybillAccounts(pbas);
 
     // Pre-fill amount with outstanding balance
     const fee = cfg[found.grade]?.annual || 5000;
@@ -63,8 +63,7 @@ export default function PayPage() {
     setAmount(Math.max(0, fee - paid).toString());
   }
 
-  async function stkPush(e) {
-    e?.preventDefault();
+  async function stkPush(acc) {
     if (!phone.trim()) { setErr('Enter your M-Pesa phone number'); return; }
     if (!amount || Number(amount) <= 0) { setErr('Enter a valid amount'); return; }
     setPaying(true);
@@ -77,7 +76,10 @@ export default function PayPage() {
         phone:      phone.trim(),
         amount:     Number(amount),
         accountRef: learner.adm,
-        description: `${learner.grade} Fees`,
+        term:       term,
+        description: `${learner.name} Fees`,
+        shortcode:  acc.shortcode,
+        passkey:    acc.passkey
       }),
     });
     const data = await res.json();
@@ -160,7 +162,7 @@ export default function PayPage() {
                 ✅ This learner&apos;s fees are fully paid!
               </div>
             ) : (
-              <form onSubmit={stkPush}>
+              <form onSubmit={e => e.preventDefault()}>
                 <div className="field">
                   <label>Term</label>
                   <select value={term} onChange={e => setTerm(e.target.value)}>
@@ -180,18 +182,27 @@ export default function PayPage() {
                     onChange={e => setPhone(e.target.value)}
                     placeholder="e.g. 0712345678" />
                 </div>
-                {paybill && (
-                  <div className="note-box" style={{ marginBottom: 12 }}>
-                    You can also pay manually via M-Pesa Paybill <strong>{paybill}</strong>,
-                    Account: <strong>{learner.adm}</strong>
-                  </div>
-                )}
-                <button type="submit" disabled={paying}
-                  className="btn btn-success"
-                  style={{ width: '100%', justifyContent: 'center',
-                    opacity: paying ? 0.7 : 1 }}>
-                  {paying ? '⏳ Sending STK Push…' : '💚 Pay via M-Pesa'}
-                </button>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 15 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase' }}>Select Payment Account</div>
+                  {paybillAccounts.map(acc => (
+                    <button key={acc.id} type="button" disabled={paying}
+                      onClick={() => stkPush(acc)}
+                      className="btn btn-success"
+                      style={{ width: '100%', justifyContent: 'space-between', opacity: paying ? 0.7 : 1, padding: '12px 18px' }}>
+                      <div style={{ textAlign: 'left' }}>
+                        <div style={{ fontSize: 13, fontWeight: 800 }}>{acc.name}</div>
+                        <div style={{ fontSize: 11, opacity: 0.8 }}>Paybill: {acc.shortcode}</div>
+                      </div>
+                      <span>{paying ? '⏳ ...' : '💚 Pay'}</span>
+                    </button>
+                  ))}
+                  {paybillAccounts.length === 0 && (
+                    <div style={{ fontSize: 12, color: 'var(--muted)', textAlign: 'center', padding: 10, border: '1px dashed var(--border)', borderRadius: 8 }}>
+                      No payment accounts configured
+                    </div>
+                  )}
+                </div>
               </form>
             )}
 

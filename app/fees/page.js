@@ -28,8 +28,9 @@ export default function FeesPage() {
   const [loading,  setLoading]  = useState(true);
   const [query,    setQuery]    = useState('');
   const [gradeF,   setGradeF]   = usePersistedState('paav_fees_grade', '');
-  const [modal,    setModal]    = useState(null); // 'pay' | 'config' | null
+  const [modal,    setModal]    = useState(null); // 'pay' | 'config' | 'paybills' | null
   const [selLearner, setSelLearner] = useState(null);
+  const [paybillAccounts, setPaybillAccounts] = useState([]);
 
   const load = useCallback(async () => {
     const authRes = await fetch('/api/auth');
@@ -45,12 +46,14 @@ export default function FeesPage() {
         { type: 'get', key: 'paav6_learners' },
         { type: 'get', key: 'paav6_feecfg'  },
         { type: 'get', key: 'paav6_paylog'  },
+        { type: 'get', key: 'paav_paybill_accounts' },
       ]}),
     });
     const db = await dbRes.json();
     setLearners(db.results[0]?.value || []);
     setFeeCfg(  db.results[1]?.value || {});
     setPaylog(  db.results[2]?.value || []);
+    setPaybillAccounts(db.results[3]?.value || []);
     setLoading(false);
   }, [router]);
 
@@ -93,9 +96,14 @@ export default function FeesPage() {
           </div>
           <div className="page-hdr-acts">
             {user?.role === 'admin' && (
-              <button className="btn btn-ghost btn-sm" onClick={() => setModal('config')}>
-                ⚙ Fee Config
-              </button>
+              <>
+                <button className="btn btn-ghost btn-sm" onClick={() => setModal('config')}>
+                  ⚙ Fee Config
+                </button>
+                <button className="btn btn-ghost btn-sm" onClick={() => setModal('paybills')}>
+                  📱 Paybills
+                </button>
+              </>
             )}
             <button className="btn btn-ghost btn-sm no-print" onClick={() => window.print()}>
               🖨️ Print
@@ -254,7 +262,83 @@ export default function FeesPage() {
           onClose={() => { setModal(null); load(); }}
         />
       )}
+
+      {/* ── Paybill Config Modal ── */}
+      {modal === 'paybills' && (
+        <PaybillConfigModal
+          accounts={paybillAccounts}
+          onClose={() => { setModal(null); load(); }}
+        />
+      )}
     </>
+  );
+}
+
+/* ─── Paybill Config Modal ────────────────────────────────────────────────── */
+function PaybillConfigModal({ accounts, onClose }) {
+  const [list, setList] = useState(accounts.length ? accounts : [{ id: Date.now(), name: '', shortcode: '', passkey: '', type: 'Paybill' }]);
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    setBusy(true);
+    await fetch('/api/db', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_paybill_accounts', value: list }] }),
+    });
+    setBusy(false);
+    onClose();
+  }
+
+  const add = () => setList([...list, { id: Date.now(), name: '', shortcode: '', passkey: '', type: 'Paybill' }]);
+  const del = (id) => setList(list.filter(x => x.id !== id));
+  const upd = (id, k, v) => setList(list.map(x => x.id === id ? { ...x, [k]: v } : x));
+
+  return (
+    <ModalOverlay title="📱 M-Pesa Paybill Accounts" onClose={onClose}>
+      <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 15 }}>
+        Set up multiple accounts for parent payments.
+      </p>
+      <div style={{ maxHeight: 400, overflowY: 'auto', paddingRight: 5 }}>
+        {list.map((a, i) => (
+          <div key={a.id} style={{ padding: 12, border: '1.5px solid var(--border)', borderRadius: 10, marginBottom: 10, background: '#FAFBFF' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <span style={{ fontWeight: 800, color: 'var(--navy)', fontSize: 11 }}>ACCOUNT #{i + 1}</span>
+              <button className="btn btn-ghost btn-sm" style={{ color: 'var(--red)' }} onClick={() => del(a.id)}>✕ Remove</button>
+            </div>
+            <div className="field">
+              <label>Account Name (e.g. Tuition Fees)</label>
+              <input value={a.name} onChange={e => upd(a.id, 'name', e.target.value)} placeholder="Tuition Fees" />
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Shortcode / Paybill</label>
+                <input value={a.shortcode} onChange={e => upd(a.id, 'shortcode', e.target.value)} placeholder="e.g. 400200" />
+              </div>
+              <div className="field">
+                <label>Type</label>
+                <select value={a.type} onChange={e => upd(a.id, 'type', e.target.value)}>
+                  <option>Paybill</option>
+                  <option>Till</option>
+                </select>
+              </div>
+            </div>
+            <div className="field">
+              <label>Online Passkey (Lipa na M-Pesa Online)</label>
+              <input value={a.passkey} onChange={e => upd(a.id, 'passkey', e.target.value)} placeholder="e.g. bfb279f9aa9..." />
+            </div>
+          </div>
+        ))}
+      </div>
+      <button className="btn btn-ghost btn-sm" onClick={add} style={{ width: '100%', border: '1px dashed var(--border)', marginTop: 5 }}>
+        + Add Another Account
+      </button>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 15 }}>
+        <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
+        <button className="btn btn-primary btn-sm" onClick={save} disabled={busy} style={{ width: 'auto' }}>
+          {busy ? '⏳ Saving…' : '💾 Save Accounts'}
+        </button>
+      </div>
+    </ModalOverlay>
   );
 }
 

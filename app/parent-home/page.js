@@ -35,10 +35,7 @@ export default function ParentHome() {
           { type: 'get', key: 'paav6_msgs' },
           { type: 'get', key: 'paav6_feecfg' },
           { type: 'get', key: 'paav6_marks' },
-          { type: 'get', key: 'paav_paybill' },
-          { type: 'get', key: 'paav_payname' },
-          { type: 'get', key: 'paav_acc_fmt' },
-          { type: 'get', key: 'paav_pay_methods' },
+          { type: 'get', key: 'paav_paybill_accounts' },
           { type: 'get', key: 'paav_calendar_events' },
         ]})
       });
@@ -60,12 +57,9 @@ export default function ParentHome() {
       setMessages(msgs);
       setFeeCfg(fees);
       setMarks(mks);
-      setEvents(db.results[8]?.value || []);
+      setEvents(db.results[6]?.value || []);
       setPayInfo({
-        paybill: db.results[4]?.value || '',
-        payname: db.results[5]?.value || '',
-        accFmt: db.results[6]?.value || 'Use Admission No.',
-        methods: (db.results[7]?.value || 'M-Pesa,Cash').split(',').map(s=>s.trim()).filter(Boolean)
+        accounts: db.results[4]?.value || [],
       });
     } catch(e) { console.error(e); } finally { setLoading(false); }
   }, [router, selAdm]);
@@ -94,6 +88,39 @@ export default function ParentHome() {
       } catch(err) { alert('Upload failed: '+err.message); }
     };
     reader.readAsDataURL(file);
+  }
+
+  /* ── M-Pesa STK Push ── */
+  async function initiateMpesa(account, termLabel) {
+    const phone = user.phone || prompt('Enter M-Pesa Phone Number (07xxxxxxxx):');
+    if (!phone) return;
+    
+    const amount = prompt(`Enter amount to pay for ${termLabel}:`, '1000');
+    if (!amount || isNaN(amount)) return;
+
+    try {
+      const res = await fetch('/api/mpesa/stk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: phone,
+          amount: Number(amount),
+          accountRef: child.adm,
+          term: termLabel.replace('Term ', 'T'),
+          description: `${child.name} Fees`,
+          shortcode: account.shortcode,
+          passkey: account.passkey
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('✅ M-Pesa prompt sent to your phone! Please enter your PIN to complete payment.');
+      } else {
+        alert('❌ Error: ' + (data.error || 'Failed to initiate M-Pesa.'));
+      }
+    } catch (err) {
+      alert('❌ Connection error: ' + err.message);
+    }
   }
 
   if (loading || !user) return <div className="page on" style={{padding:60,textAlign:'center',color:'var(--muted)'}}>Loading…</div>;
@@ -237,29 +264,81 @@ export default function ParentHome() {
               <option value="op1">Opener</option><option value="mt1">Mid-Term</option><option value="et1">End-Term</option>
             </select>
           </div>
-          <div className="panel" style={{border:`1.5px solid ${MB}`}}>
-            <div className="panel-hdr" style={{background:`linear-gradient(135deg,${M},${M2})`,color:'#fff'}}>
-              <h3 style={{color:'#fff'}}>📊 {child?.name} — {term} Performance</h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+            {/* Subject List */}
+            <div className="panel" style={{border:`1.5px solid ${MB}`}}>
+              <div className="panel-hdr" style={{background:`linear-gradient(135deg,${M},${M2})`,color:'#fff'}}>
+                <h3 style={{color:'#fff'}}>📊 {child?.name} — {term} Performance</h3>
+              </div>
+              <div className="panel-body">
+                {subjs.map(s => {
+                  const key = `${term}:${child?.grade}|${s}|${assess}`;
+                  const sc = marks[key]?.[child?.adm];
+                  const info = sc!=null ? gInfo(Number(sc),child?.grade) : null;
+                  return (
+                    <div key={s} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 0',borderBottom:'1px solid var(--border)'}}>
+                      <div style={{flex:1,fontWeight:600,fontSize:13}}>{s}</div>
+                      {sc!=null ? (
+                        <>
+                          <span style={{fontWeight:800,fontSize:16,color:info.c}}>{sc}</span>
+                          <span style={{padding:'2px 8px',borderRadius:20,fontSize:11,fontWeight:800,background:info.bg,color:info.c}}>{info.lv}</span>
+                        </>
+                      ) : <span style={{color:'var(--muted)',fontSize:12}}>—</span>}
+                    </div>
+                  );
+                })}
+                {subjs.length===0&&<div style={{color:'var(--muted)',padding:20,textAlign:'center'}}>No subjects found for {child?.grade}</div>}
+              </div>
             </div>
-            <div className="panel-body">
-              {subjs.map(s => {
-                const key = `${term}:${child?.grade}|${s}|${assess}`;
-                const sc = marks[key]?.[child?.adm];
-                const info = sc!=null ? gInfo(Number(sc),child?.grade) : null;
-                return (
-                  <div key={s} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 0',borderBottom:'1px solid var(--border)'}}>
-                    <div style={{flex:1,fontWeight:600,fontSize:13}}>{s}</div>
-                    {sc!=null ? (
-                      <>
-                        <span style={{fontWeight:800,fontSize:16,color:info.c}}>{sc}</span>
-                        <span style={{padding:'2px 8px',borderRadius:20,fontSize:11,fontWeight:800,background:info.bg,color:info.c}}>{info.lv}</span>
-                        <span style={{fontSize:11,color:'var(--muted)'}}>{info.desc?.split('—')[0]}</span>
-                      </>
-                    ) : <span style={{color:'var(--muted)',fontSize:12}}>—</span>}
-                  </div>
-                );
-              })}
-              {subjs.length===0&&<div style={{color:'var(--muted)',padding:20,textAlign:'center'}}>No subjects found for {child?.grade}</div>}
+
+            {/* Analysis Panel */}
+            <div className="panel" style={{ border: '1.5px solid #BFDBFE' }}>
+              <div className="panel-hdr" style={{ background: 'linear-gradient(135deg, #1D4ED8, #1E3A8A)', color: '#fff' }}>
+                <h3 style={{ color: '#fff' }}>📈 Performance Analysis</h3>
+              </div>
+              <div className="panel-body">
+                {(() => {
+                  const scores = subjs.map(s => {
+                    const sc = marks[`${term}:${child?.grade}|${s}|${assess}`]?.[child?.adm];
+                    return sc != null ? { s, sc: Number(sc) } : null;
+                  }).filter(Boolean);
+                  
+                  if (!scores.length) return <p style={{ color: 'var(--muted)', fontSize: 13, textAlign: 'center', padding: 20 }}>Enter marks to see analysis</p>;
+
+                  const avg = Math.round(scores.reduce((a, b) => a + b.sc, 0) / scores.length);
+                  const best = scores.reduce((a, b) => a.sc > b.sc ? a : b);
+                  const worst = scores.reduce((a, b) => a.sc < b.sc ? a : b);
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+                      <div style={{ background: '#EFF6FF', padding: 15, borderRadius: 12, textAlign: 'center', border: '1px solid #BFDBFE' }}>
+                        <div style={{ fontSize: 11, color: '#1D4ED8', fontWeight: 800, textTransform: 'uppercase' }}>{term} Average Score</div>
+                        <div style={{ fontSize: 42, fontWeight: 900, color: '#1E3A8A' }}>{avg}%</div>
+                        <div style={{ fontSize: 12, color: 'var(--muted)' }}>Based on {scores.length} subjects</div>
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        <div style={{ background: '#ECFDF5', padding: 12, borderRadius: 10, border: '1px solid #A7F3D0' }}>
+                          <div style={{ fontSize: 10, color: '#059669', fontWeight: 700 }}>🌟 Strongest</div>
+                          <div style={{ fontWeight: 800, fontSize: 13 }}>{best.s}</div>
+                          <div style={{ fontSize: 18, fontWeight: 900, color: '#059669' }}>{best.sc}%</div>
+                        </div>
+                        <div style={{ background: '#FFF7ED', padding: 12, borderRadius: 10, border: '1px solid #FED7AA' }}>
+                          <div style={{ fontSize: 10, color: '#92400E', fontWeight: 700 }}>🚀 Needs Focus</div>
+                          <div style={{ fontWeight: 800, fontSize: 13 }}>{worst.s}</div>
+                          <div style={{ fontSize: 18, fontWeight: 900, color: '#DC2626' }}>{worst.sc}%</div>
+                        </div>
+                      </div>
+
+                      <div style={{ fontSize: 12, color: 'var(--muted)', background: '#F8FAFC', padding: 12, borderRadius: 10, fontStyle: 'italic' }}>
+                        💡 <strong>Insight:</strong> {child.name.split(' ')[0]} is performing best in <strong>{best.s}</strong>. 
+                        Consider providing more support in <strong>{worst.s}</strong> to improve overall performance.
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         </div>
@@ -294,42 +373,42 @@ export default function ParentHome() {
               </div>
             </div>
           </div>
-          {/* Payment instructions */}
+          {/* Payment instructions and Accounts */}
           <div className="panel" style={{border:`1.5px solid #A7F3D0`}}>
             <div className="panel-hdr" style={{background:'linear-gradient(135deg,#047857,#065F46)',color:'#fff'}}>
               <h3 style={{color:'#fff'}}>💳 How to Pay</h3>
             </div>
             <div className="panel-body">
-              {payInfo.paybill ? (
-                <>
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}>
-                    <div style={{background:'#F0FDF4',borderRadius:10,padding:14,border:'2px solid #A7F3D0',textAlign:'center'}}>
-                      <div style={{fontSize:10,fontWeight:800,color:'var(--muted)',textTransform:'uppercase',marginBottom:4}}>📱 M-Pesa Paybill</div>
-                      <div style={{fontSize:26,fontWeight:900,color:'#065F46',letterSpacing:2}}>{payInfo.paybill}</div>
-                      <div style={{fontSize:11,color:'var(--muted)'}}>{payInfo.payname||'School Fees'}</div>
+              {payInfo.accounts?.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 15 }}>
+                  {payInfo.accounts.map(acc => (
+                    <div key={acc.id} style={{ background: '#fff', border: '2px solid #A7F3D0', borderRadius: 12, padding: 15, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase' }}>{acc.type}</div>
+                          <div style={{ fontSize: 24, fontWeight: 900, color: '#065F46' }}>{acc.shortcode}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700 }}>{acc.name}</div>
+                        </div>
+                        <div style={{ background: '#ECFDF5', padding: '4px 8px', borderRadius: 8, fontSize: 10, color: '#059669', fontWeight: 800 }}>M-PESA</div>
+                      </div>
+                      <div style={{ background: '#F8FAFF', padding: 8, borderRadius: 8, fontSize: 11 }}>
+                        Account: <strong>{child?.adm}</strong>
+                      </div>
+                      <button 
+                        className="btn btn-success btn-sm" 
+                        style={{ marginTop: 'auto', width: '100%', justifyContent: 'center' }}
+                        onClick={() => initiateMpesa(acc, 'Term ' + term.replace('T', ''))}
+                      >
+                        💚 Pay with STK Push
+                      </button>
                     </div>
-                    <div style={{background:'#EFF6FF',borderRadius:10,padding:14,border:'2px solid #BFDBFE',textAlign:'center'}}>
-                      <div style={{fontSize:10,fontWeight:800,color:'var(--muted)',textTransform:'uppercase',marginBottom:4}}>🔢 Account No.</div>
-                      <div style={{fontSize:26,fontWeight:900,color:'#1D4ED8',letterSpacing:2}}>{child?.adm}</div>
-                      <div style={{fontSize:11,color:'var(--muted)'}}>{payInfo.accFmt}</div>
-                    </div>
-                  </div>
-                  <div style={{background:'#FFF7ED',border:'1.5px solid #FED7AA',borderRadius:10,padding:12,fontSize:12,color:'#92400E'}}>
-                    <strong>📋 Steps:</strong> M-Pesa → Lipa na M-Pesa → Paybill → <strong>{payInfo.paybill}</strong> → Account: <strong>{child?.adm}</strong> → Amount → PIN
-                  </div>
-                </>
+                  ))}
+                </div>
               ) : (
                 <div style={{background:'#FEF9C3',border:'1px solid #FDE68A',borderRadius:8,padding:12,fontSize:12,color:'#92400E'}}>
                   ⚠️ Payment details not configured. Contact school admin.
                 </div>
               )}
-              <div style={{marginTop:12,display:'flex',gap:8,flexWrap:'wrap'}}>
-                {payInfo.methods?.map(m=>(
-                  <span key={m} style={{background:'#F0FDF4',color:'#065F46',padding:'5px 12px',borderRadius:12,fontSize:12,fontWeight:700,border:'1.5px solid #A7F3D0'}}>
-                    {m==='M-Pesa'?'📱':m==='Cash'?'💵':'🏦'} {m}
-                  </span>
-                ))}
-              </div>
             </div>
           </div>
         </div>
