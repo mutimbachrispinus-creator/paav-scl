@@ -23,9 +23,9 @@ export default function LoginPage() {
   const [err, setErr] = useState('');
   const [okMsg, setOkMsg] = useState('');
   
-  // Dynamic stats
   const [stats, setStats] = useState({ learners: 0, classes: 0 });
   const [announcement, setAnnouncement] = useState('Welcome to the official PAAV-Gitombo Community School portal. Quality education for every child.');
+  const [heroImg, setHeroImg] = useState('');
 
   // Form states
   const [form, setForm] = useState({
@@ -47,13 +47,17 @@ export default function LoginPage() {
           fetch('/api/stats'),
           fetch('/api/db', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ requests: [{ type: 'get', key: 'paav7_announcement' }] })
+            body: JSON.stringify({ requests: [
+              { type: 'get', key: 'paav7_announcement' },
+              { type: 'get', key: 'paav7_hero_img' }
+            ] })
           })
         ]);
         const s = await statsRes.json();
         setStats(s);
         const db = await dbRes.json();
         if (db.results[0]?.value) setAnnouncement(db.results[0].value);
+        if (db.results[1]?.value) setHeroImg(db.results[1].value);
       } catch (e) {}
     }
     loadStats();
@@ -121,7 +125,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div id="auth">
+    <div id="auth" style={heroImg ? { background: `linear-gradient(135deg, rgba(5,15,28,0.85) 0%, rgba(13,31,60,0.85) 40%, rgba(21,45,79,0.9) 100%), url(${heroImg})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
       <div className="auth-bg" />
       
       {/* ── LEFT PANEL (Branding & Stats) ── */}
