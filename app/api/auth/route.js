@@ -56,7 +56,9 @@ export async function POST(request) {
 }
 
 export async function GET(request) {
-  return handleWhoami(request);
+  const response = await handleWhoami(request);
+  response.headers.set('Cache-Control', 'no-store, max-age=0');
+  return response;
 }
 
 /* ─── login ─────────────────────────────────────────────────────────────── */

@@ -53,7 +53,7 @@ export default function ProfilePage() {
   const load = useCallback(async () => {
     try {
       const [authRes, dbRes] = await Promise.all([
-        fetch('/api/auth'),
+        fetch('/api/auth', { cache: 'no-store' }),
         fetch('/api/db', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

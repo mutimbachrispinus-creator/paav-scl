@@ -43,7 +43,7 @@ export default function DashboardPage() {
     try {
       // Run auth + DB fetch in parallel using the cache
       const [authRes, dbRes] = await Promise.all([
-        fetch('/api/auth'),
+        fetch('/api/auth', { cache: 'no-store' }),
         fetch('/api/db', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
