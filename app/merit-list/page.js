@@ -27,6 +27,7 @@ const MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
 export default function MeritListPage() {
   const router = useRouter();
+  const [user, setUser] = useState(null);
   const [learners, setLearners] = useState([]);
   const [marks,    setMarks]    = useState({});
   const [gradCfg,  setGradCfg]  = useState(null);
@@ -40,6 +41,7 @@ export default function MeritListPage() {
     const authRes = await fetch('/api/auth');
     const auth    = await authRes.json();
     if (!auth.ok) { router.push('/'); return; }
+        setUser(auth.user);
     // Note: grade filter is set by user selection only
 
     const dbRes = await fetch('/api/db', {
