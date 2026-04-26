@@ -1,0 +1,156 @@
+'use client';
+import { useState, useEffect } from 'react';
+
+export default function ProfilePanel({ user, onClose }) {
+  const [form, setForm]     = useState({ 
+    phone: user?.phone || '', newPw: '', address: '', id_num: '', 
+    gender: '', tribe: '', medical: '', blood: '', 
+    nok_name: '', nok_phone: '', nok_id: '' 
+  });
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg]       = useState('');
+  const [showPw, setShowPw] = useState(false);
+
+  useEffect(() => {
+    async function loadExtra() {
+      if (!user?.id) return;
+      try {
+        const res = await fetch('/api/db', { 
+          method:'POST', 
+          headers:{'Content-Type':'application/json'}, 
+          body: JSON.stringify({ requests: [{type:'get', key:'paav_profiles'}] }) 
+        });
+        const db = await res.json();
+        const pExtra = db.results[0]?.value?.[user.id] || {};
+        setForm(f => ({ 
+          ...f, 
+          phone: user?.phone || '', 
+          address: pExtra.address||'', 
+          id_num: pExtra.id_num||'', 
+          gender: pExtra.gender||'', 
+          tribe: pExtra.tribe||'', 
+          medical: pExtra.medical||'', 
+          blood: pExtra.blood||'', 
+          nok_name: pExtra.nok_name||'', 
+          nok_phone: pExtra.nok_phone||'', 
+          nok_id: pExtra.nok_id||'' 
+        }));
+      } catch(e) {}
+    }
+    loadExtra();
+  }, [user?.id, user?.phone]);
+
+  const F = (k,v) => setForm(f => ({...f,[k]:v}));
+
+  async function saveProfile() {
+    setSaving(true);
+    try {
+      // 1. Save auth level (phone/pw)
+      const res = await fetch('/api/auth', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'edit_user', id: user.id, phone: form.phone, password: form.newPw || undefined })
+      });
+      const d = await res.json();
+      if (!d.ok) throw new Error(d.error);
+
+      // 2. Save extra profile details to paav_profiles
+      const pRes = await fetch('/api/db', { 
+        method:'POST', 
+        headers:{'Content-Type':'application/json'}, 
+        body: JSON.stringify({ requests: [{type:'get', key:'paav_profiles'}] }) 
+      });
+      const pdb = await pRes.json();
+      const profiles = pdb.results[0]?.value || {};
+      profiles[user.id] = { 
+        ...profiles[user.id], 
+        phone: form.phone, 
+        address: form.address, 
+        id_num: form.id_num, 
+        gender: form.gender, 
+        tribe: form.tribe, 
+        medical: form.medical, 
+        blood: form.blood, 
+        nok_name: form.nok_name, 
+        nok_phone: form.nok_phone, 
+        nok_id: form.nok_id 
+      };
+      await fetch('/api/db', { 
+        method:'POST', 
+        headers:{'Content-Type':'application/json'}, 
+        body: JSON.stringify({ requests: [{type:'set', key:'paav_profiles', value: profiles}] }) 
+      });
+
+      setMsg('✅ Profile updated!');
+    } catch(e) { setMsg('❌ '+e.message); }
+    setSaving(false);
+    setTimeout(()=>setMsg(''),3000);
+  }
+
+  return (
+    <div onClick={e=>e.target===e.currentTarget&&onClose()}
+      style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:10000, display:'flex', justifyContent:'flex-end' }}>
+      <div style={{ width: 360, background:'#fff', height:'100%', overflowY:'auto', boxShadow:'-8px 0 40px rgba(0,0,0,.2)', display:'flex', flexDirection:'column' }}>
+        <div style={{ background:'linear-gradient(135deg,#8B1A1A,#6B1212)', padding:'28px 24px 20px', color:'#fff', position:'relative' }}>
+          <button onClick={onClose} style={{ position:'absolute', top:16, right:16, background:'rgba(255,255,255,.2)', border:'none', borderRadius:'50%', width:30, height:30, color:'#fff', cursor:'pointer', fontSize:16 }}>✕</button>
+          <div style={{ width:80, height:80, borderRadius:'50%', background: user.color||'#2563EB', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, margin:'0 auto 12px', overflow:'hidden', border:'3px solid rgba(255,255,255,.4)' }}>
+            {user.avatar ? <img src={user.avatar} style={{width:'100%',height:'100%',objectFit:'cover'}} alt="" /> : (user.emoji||'👤')}
+          </div>
+          <h3 style={{textAlign:'center',margin:0,fontFamily:'Sora,sans-serif'}}>{user.name}</h3>
+          <p style={{textAlign:'center',fontSize:13,opacity:.75,marginTop:4}}>{user.role}{user.grade ? ` · ${user.grade}` : ''}</p>
+        </div>
+        <div style={{padding:24,flex:1}}>
+          {[
+            { label:'Username', val: user.username, icon:'👤' },
+            { label:'Role',     val: user.role,     icon:'🎭' },
+            { label:'Grade',    val: user.grade||'—', icon:'📚' },
+          ].map(row=>(
+            <div key={row.label} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid #F1F5F9'}}>
+              <span style={{fontSize:18,width:28}}>{row.icon}</span>
+              <div style={{flex:1}}>
+                <div style={{fontSize:10,color:'var(--muted)',textTransform:'uppercase',letterSpacing:.8}}>{row.label}</div>
+                <div style={{fontWeight:600,fontSize:14}}>{row.val}</div>
+              </div>
+            </div>
+          ))}
+          <div style={{marginTop:20}}>
+            <div style={{fontSize:13,fontWeight:700,color:'var(--navy)',marginBottom:12}}>📝 Edit Personal Details</div>
+            <div className="field">
+              <label>Phone Number</label>
+              <input value={form.phone} onChange={e=>F('phone',e.target.value)} type="tel" placeholder="07XXXXXXXX" />
+            </div>
+            <div className="field"><label>ID Number</label><input value={form.id_num} onChange={e=>F('id_num',e.target.value)} /></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <div className="field"><label>Gender</label><select value={form.gender} onChange={e=>F('gender',e.target.value)}><option value=""></option><option>Male</option><option>Female</option></select></div>
+              <div className="field"><label>Tribe</label><input value={form.tribe} onChange={e=>F('tribe',e.target.value)} /></div>
+            </div>
+            <div className="field"><label>Address</label><input value={form.address} onChange={e=>F('address',e.target.value)} /></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <div className="field"><label>Blood Group</label><input value={form.blood} onChange={e=>F('blood',e.target.value)} /></div>
+              <div className="field"><label>Medical</label><input value={form.medical} onChange={e=>F('medical',e.target.value)} placeholder="e.g. None" /></div>
+            </div>
+            
+            <div style={{marginTop:16,marginBottom:8,fontSize:12,fontWeight:700,color:'var(--navy)'}}>Next of Kin</div>
+            <div className="field"><label>Name</label><input value={form.nok_name} onChange={e=>F('nok_name',e.target.value)} /></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <div className="field"><label>Phone</label><input value={form.nok_phone} onChange={e=>F('nok_phone',e.target.value)} /></div>
+              <div className="field"><label>ID No.</label><input value={form.nok_id} onChange={e=>F('nok_id',e.target.value)} /></div>
+            </div>
+
+            <div style={{marginTop:16,marginBottom:8,fontSize:12,fontWeight:700,color:'var(--navy)'}}>Security</div>
+            <div className="field" style={{position:'relative'}}>
+              <label>New Password <span style={{fontWeight:400,color:'var(--muted)'}}>leave blank to keep</span></label>
+              <input value={form.newPw} onChange={e=>F('newPw',e.target.value)} type={showPw?'text':'password'} placeholder="Min 6 characters" style={{paddingRight:40}} />
+              <button type="button" onClick={()=>setShowPw(!showPw)} style={{position:'absolute',right:10,top:28,background:'none',border:'none',cursor:'pointer',fontSize:16}}>
+                {showPw?'🙈':'👁️'}
+              </button>
+            </div>
+            {msg && <div className={`alert ${msg.startsWith('✅')?'alert-ok':'alert-err'} show`}>{msg}</div>}
+            <button className="btn btn-primary" onClick={saveProfile} disabled={saving} style={{width:'100%',marginTop:8}}>
+              {saving ? 'Saving…' : '💾 Save All Details'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

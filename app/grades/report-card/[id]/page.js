@@ -121,19 +121,22 @@ export default function ReportCardPage() {
       </div>
 
       {/* ── A4 Report Card ── */}
-      <div style={{ background: '#F0F4FF', padding: '24px 0', minHeight: '100vh' }}>
-        <div className="rc-a4">
+      <div style={{ background: '#F8FAFC', padding: '40px 0', minHeight: '100vh' }} className="no-print-bg">
+        <div className="rc-a4" style={{ background: '#fff', boxShadow: '0 0 40px rgba(0,0,0,0.1)', border: '1px solid #eee' }}>
+          {/* Watermark */}
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-30deg)', fontSize: 160, fontWeight: 900, color: 'rgba(139,26,26,0.03)', pointerEvents: 'none', zIndex: 0 }}>PAAV</div>
+
           {/* Header */}
-          <div className="rc-hdr">
-            <div className="rc-school">🏫 {school.name}</div>
-            <div style={{ fontSize: 12, color: 'var(--muted)', margin: '2px 0' }}>
+          <div className="rc-hdr" style={{ borderBottom: '3px double var(--maroon)', position: 'relative', zIndex: 1 }}>
+            <div className="rc-school" style={{ fontSize: 22, color: 'var(--maroon)' }}>🏫 {school.name}</div>
+            <div style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0', fontWeight: 600 }}>
               PAAV-Gitombo, Embu County, Kenya &nbsp;|&nbsp; Tel: 0758 922 915
             </div>
-            <div style={{ fontFamily: 'Sora,sans-serif', fontSize: 14, fontWeight: 700,
-              color: 'var(--maroon)', margin: '6px 0 2px' }}>
+            <div style={{ fontFamily: 'Sora,sans-serif', fontSize: 16, fontWeight: 800,
+              color: 'var(--navy)', margin: '10px 0 4px', background: '#FDF2F2', padding: '8px 20px', borderRadius: 30, display: 'inline-block' }}>
               ACADEMIC PROGRESS REPORT — TERM {term.replace('T','')} · {new Date().getFullYear()}
             </div>
-            <div className="rc-motto">{school.motto}</div>
+            <div className="rc-motto" style={{ fontStyle: 'italic', color: 'var(--maroon)', marginTop: 4 }}>{school.motto}</div>
           </div>
 
           {/* Learner info grid */}

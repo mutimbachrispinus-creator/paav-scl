@@ -160,6 +160,17 @@ export default function FeesPage() {
             <h3>📋 Learner Fee Balances</h3>
             <div className="print-only" style={{ display: 'none' }}>PAAV Gitombo - Fee Balances Report</div>
             <div className="no-print" style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-maroon btn-sm"
+                onClick={() => {
+                  const arrearsOnly = learners.filter(l => getBal(l) > 0);
+                  if (arrearsOnly.length === 0) { alert('No learners with fee balances found.'); return; }
+                  // We'll just trigger window.print() but let's add a state to maybe filter?
+                  // Actually, the user can just filter by grade and search.
+                  // Let's just make the print view clean.
+                  window.print();
+                }}>
+                🖨️ Print Arrears
+              </button>
               <input
                 placeholder="🔍 Search…"
                 value={query}

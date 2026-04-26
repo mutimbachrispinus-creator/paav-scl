@@ -58,13 +58,13 @@ export default function LearnerReceiptPage() {
     <div style={{ maxWidth: 800, margin: '40px auto', padding: '40px', background: '#fff', border: '1px solid #ddd', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
         <button className="btn btn-ghost" onClick={() => router.back()}>← Back</button>
-        <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Print Receipt</button>
+        <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Print Statement / Receipt</button>
       </div>
 
-      <div style={{ textAlign: 'center', marginBottom: 30, borderBottom: '2px solid #8B1A1A', paddingBottom: 20 }}>
-        <div style={{ fontWeight: 900, fontSize: 24, color: '#8B1A1A' }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
+      <div style={{ textAlign: 'center', marginBottom: 30, borderBottom: '2px solid var(--maroon)', paddingBottom: 20 }}>
+        <div style={{ fontWeight: 900, fontSize: 24, color: 'var(--maroon)' }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
         <div style={{ fontSize: 14, color: '#666' }}>✝ More Than Academics!</div>
-        <div style={{ fontWeight: 800, fontSize: 18, marginTop: 10, background: '#8B1A1A', color: '#fff', padding: '6px 20px', borderRadius: 20, display: 'inline-block' }}>OFFICIAL FEES RECEIPT</div>
+        <div style={{ fontWeight: 800, fontSize: 18, marginTop: 10, background: 'var(--maroon)', color: '#fff', padding: '6px 20px', borderRadius: 20, display: 'inline-block' }}>OFFICIAL FEES STATEMENT / RECEIPT</div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 30 }}>

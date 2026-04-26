@@ -102,7 +102,7 @@ export default function AllocationsPage() {
     return staff.find(s => s.id === id)?.name || '—';
   }
 
-  const teachingStaff = staff.filter(s => s.role === 'teacher' || s.role === 'admin');
+  const teachingStaff = staff.filter(s => s.role === 'teacher');
 
   if (loading) return (
     <div className="page on" style={{ padding: 40 }}>

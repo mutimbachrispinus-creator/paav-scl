@@ -33,7 +33,7 @@ const ALL_NAV = [
   { key:'sms',        label:'📱 SMS',         roles:['admin'] },
 ];
 
-export default function Navbar({ user, unreadCount = 0 }) {
+export default function Navbar({ user, unreadCount = 0, onProfileClick }) {
   const router   = useRouter();
   const pathname = usePathname();
   const [showMobileNav, setShowMobileNav] = useState(false);
@@ -116,7 +116,7 @@ export default function Navbar({ user, unreadCount = 0 }) {
         </Link>
 
         {/* User pill */}
-        <div className="tb-user">
+        <div className="tb-user" onClick={onProfileClick} style={{ cursor: 'pointer' }}>
           <div className="tb-avatar"
             style={{ background: user.color || '#2563EB' }}>
             {user.emoji || user.name?.charAt(0) || '?'}

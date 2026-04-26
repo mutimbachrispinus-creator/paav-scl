@@ -12,10 +12,14 @@ import { getCachedUser, invalidateUser } from '@/lib/client-cache';
  */
 
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, createContext, useContext } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import ProfilePanel from '@/components/ProfilePanel';
+
+const ProfileContext = createContext();
+export const useProfile = () => useContext(ProfileContext);
 
 /* Pages that should NOT show the navbar */
 const NO_NAV_PATHS = ['/', '/fees/pay'];
@@ -37,6 +41,7 @@ export default function PortalShell({ children }) {
   const [editAnn,      setEditAnn]      = useState(false);
   const [annDraft,     setAnnDraft]     = useState('');
   const [heroUrl,      setHeroUrl]      = useState('');
+  const [showProfile,  setShowProfile]  = useState(false);
 
   const idleTimer    = useRef(null);
   const warnTimer    = useRef(null);
@@ -172,18 +177,18 @@ export default function PortalShell({ children }) {
   }
 
   return (
-    <>
+    <ProfileContext.Provider value={{ openProfile: () => setShowProfile(true) }}>
       {/* ── Hero file input (hidden) ── */}
       <input ref={heroFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadHero} />
 
       {/* ── Topbar ── */}
       {showNav && user && (
-        <Navbar user={user} unreadCount={unreadCount} />
+        <Navbar user={user} unreadCount={unreadCount} onProfileClick={() => setShowProfile(true)} />
       )}
 
       {/* ── Announcement banner ── */}
       {showNav && (announcement || user?.role === 'admin') && (
-        <div className="announcement-bar-live">
+        <div className="announcement-bar-live no-print">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
             <span style={{ fontSize: 18 }}>📢</span>
             {editAnn ? (
@@ -267,6 +272,10 @@ export default function PortalShell({ children }) {
             ))}
         </div>
       )}
-    </>
+      {/* ── Global Profile Panel ── */}
+      {showProfile && user && (
+        <ProfilePanel user={user} onClose={() => setShowProfile(false)} />
+      )}
+    </ProfileContext.Provider>
   );
 }

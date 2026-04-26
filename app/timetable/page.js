@@ -7,6 +7,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
 import { ALL_GRADES } from '@/lib/cbe';
+import { getDefaultSubjectConfig, generateTimetableData } from '@/lib/timetable-gen.js';
 
 const M = '#8B1A1A';
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];

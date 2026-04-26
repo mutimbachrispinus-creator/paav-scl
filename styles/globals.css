@@ -275,9 +275,10 @@ tr:hover td{background:#F8FAFF}
   .auth-right{padding:20px 16px}
 }
 @media print{
-  @page { size: A4 portrait; margin: 10mm; }
-  #topbar,.no-print{display:none!important}
-  body{background:#fff!important}
+  @page { size: A4 portrait; margin: 0; }
+  #topbar,.no-print,.no-print-bg{display:none!important}
+  body{background:#fff!important;margin:0!important;padding:0!important}
+  .rc-a4{box-shadow:none!important;border:none!important;margin:0!important;width:100%!important;padding:12mm!important;page-break-after:always}
   .timetable-grade-block{page-break-inside:avoid;margin-bottom:20px}
   .timetable-grade-block table{width:100%!important;border-collapse:collapse!important}
   .timetable-grade-block td,.timetable-grade-block th{border:1px solid #333!important;padding:6px!important;font-size:10px!important}

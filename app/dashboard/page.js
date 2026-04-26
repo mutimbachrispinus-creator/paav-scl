@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { fmtK } from '@/lib/cbe';
 import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
 import { PRE, LOWER, UPPER, JSS, SENIOR } from '@/lib/cbe';
+import { useProfile } from '@/app/PortalShell';
 
 const ALL_GRADE_GROUPS = [
   { label: 'Pre-School', color: '#0D9488', grades: PRE },
@@ -26,6 +27,7 @@ const ALL_GRADE_GROUPS = [
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { openProfile } = useProfile();
   const [user,     setUser]     = useState(null);
   const [learners, setLearners] = useState([]);
   const [paylog,   setPaylog]   = useState([]);
@@ -34,7 +36,6 @@ export default function DashboardPage() {
   const [loading,  setLoading]  = useState(true);
   const [busy,     setBusy]     = useState(false);
   const [heroUrl,  setHeroUrl]  = useState('');
-  const [showProfile, setShowProfile] = useState(false);
   const heroFileRef = useRef(null);
 
   /* ── Load current user + data ── */
@@ -170,7 +171,7 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
           <div 
             style={{ width: 80, height: 80, borderRadius: '50%', background: user.color || '#2563EB', cursor: 'pointer', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, border: '3px solid rgba(139,26,26,0.2)', transition: 'transform .2s' }}
-            onClick={() => setShowProfile(true)}
+            onClick={openProfile}
             title="Click to view your profile"
           >
             <input ref={picRef} type="file" accept="image/*" capture="user" style={{display:'none'}} onChange={handlePhotoPick} />
@@ -283,8 +284,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Fee collection bars */}
+        {user?.role === "admin" && (
         <div className="panel">
+          {/* Fee collection bars */}
           <div className="panel-hdr"><h3>💰 Fee Collection</h3></div>
           <div className="panel-body">
             {ALL_GRADE_GROUPS.map(({ label, color, grades }) => {
@@ -316,10 +318,12 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        )}
       </div>
 
-      {/* ── Recent payments ── */}
+      {user?.role === "admin" && (
       <div className="panel">
+        {/* ── Recent payments ── */}
         <div className="panel-hdr">
           <h3>📥 Recent Payments</h3>
           <button className="btn btn-ghost btn-sm" onClick={() => router.push('/fees')}>
@@ -354,86 +358,7 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
-
-      {/* ── Profile Quick-View Panel ── */}
-      {showProfile && (
-        <ProfilePanel user={user} picRef={picRef} onPhotoClick={triggerPhotoPick} onClose={() => setShowProfile(false)} />
       )}
-    </div>
-  );
-}
-
-/* ── Profile Quick-View Panel ────────────────────────────────────────────── */
-function ProfilePanel({ user, picRef, onPhotoClick, onClose }) {
-  const [form, setForm]     = useState({ phone: user?.phone || '', newPw: '' });
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg]       = useState('');
-  const [showPw, setShowPw] = useState(false);
-
-  const F = (k,v) => setForm(f => ({...f,[k]:v}));
-
-  async function saveProfile() {
-    setSaving(true);
-    try {
-      const res = await fetch('/api/auth', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'edit_user', id: user.id, phone: form.phone, password: form.newPw || undefined })
-      });
-      const d = await res.json();
-      setMsg(d.ok ? '\u2705 Profile updated!' : '\u274c '+d.error);
-    } catch(e) { setMsg('\u274c '+e.message); }
-    setSaving(false);
-    setTimeout(()=>setMsg(''),3000);
-  }
-
-  return (
-    <div onClick={e=>e.target===e.currentTarget&&onClose()}
-      style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:9999, display:'flex', justifyContent:'flex-end' }}>
-      <div style={{ width: 360, background:'#fff', height:'100%', overflowY:'auto', boxShadow:'-8px 0 40px rgba(0,0,0,.2)', display:'flex', flexDirection:'column' }}>
-        <div style={{ background:'linear-gradient(135deg,#8B1A1A,#6B1212)', padding:'28px 24px 20px', color:'#fff', position:'relative' }}>
-          <button onClick={onClose} style={{ position:'absolute', top:16, right:16, background:'rgba(255,255,255,.2)', border:'none', borderRadius:'50%', width:30, height:30, color:'#fff', cursor:'pointer', fontSize:16 }}>\u2715</button>
-          <div onClick={onPhotoClick} title="Change photo" style={{ width:80, height:80, borderRadius:'50%', background: user.color||'#2563EB', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, margin:'0 auto 12px', cursor:'pointer', overflow:'hidden', border:'3px solid rgba(255,255,255,.4)' }}>
-            {user.avatar ? <img src={user.avatar} style={{width:'100%',height:'100%',objectFit:'cover'}} alt="" /> : (user.emoji||'\ud83d\udc64')}
-          </div>
-          <p style={{textAlign:'center',fontSize:10,opacity:.7,marginBottom:12}}>Tap photo to change</p>
-          <h3 style={{textAlign:'center',margin:0,fontFamily:'Sora,sans-serif'}}>{user.name}</h3>
-          <p style={{textAlign:'center',fontSize:13,opacity:.75,marginTop:4}}>{user.role}{user.grade ? ` \u00b7 ${user.grade}` : ''}</p>
-        </div>
-        <div style={{padding:24,flex:1}}>
-          {[
-            { label:'Username', val: user.username, icon:'\ud83d\udc64' },
-            { label:'Role',     val: user.role,     icon:'\ud83c\udfad' },
-            { label:'Grade',    val: user.grade||'\u2014', icon:'\ud83d\udcda' },
-            { label:'Status',   val: user.status||'active', icon:'\ud83d\udfe2' },
-          ].map(row=>(
-            <div key={row.label} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid #F1F5F9'}}>
-              <span style={{fontSize:18,width:28}}>{row.icon}</span>
-              <div style={{flex:1}}>
-                <div style={{fontSize:10,color:'var(--muted)',textTransform:'uppercase',letterSpacing:.8}}>{row.label}</div>
-                <div style={{fontWeight:600,fontSize:14}}>{row.val}</div>
-              </div>
-            </div>
-          ))}
-          <div style={{marginTop:20}}>
-            <div style={{fontSize:13,fontWeight:700,color:'var(--navy)',marginBottom:12}}>\ud83d\udcdd Edit Details</div>
-            <div className="field">
-              <label>Phone Number</label>
-              <input value={form.phone} onChange={e=>F('phone',e.target.value)} type="tel" placeholder="07XXXXXXXX" />
-            </div>
-            <div className="field" style={{position:'relative'}}>
-              <label>New Password <span style={{fontWeight:400,color:'var(--muted)'}}>leave blank to keep</span></label>
-              <input value={form.newPw} onChange={e=>F('newPw',e.target.value)} type={showPw?'text':'password'} placeholder="Min 6 characters" style={{paddingRight:40}} />
-              <button type="button" onClick={()=>setShowPw(!showPw)} style={{position:'absolute',right:10,top:28,background:'none',border:'none',cursor:'pointer',fontSize:16}}>
-                {showPw?'\ud83d\ude48':'\ud83d\udc41\ufe0f'}
-              </button>
-            </div>
-            {msg && <div className={`alert ${msg.startsWith('\u2705')?'alert-ok':'alert-err'} show`}>{msg}</div>}
-            <button className="btn btn-primary" onClick={saveProfile} disabled={saving} style={{width:'100%',marginTop:8}}>
-              {saving ? 'Saving\u2026' : '\ud83d\udcbe Save Changes'}
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
