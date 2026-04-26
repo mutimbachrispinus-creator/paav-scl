@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const [messages, setMessages] = useState([]);
   const [feeCfg,   setFeeCfg]   = useState({});
   const [loading,  setLoading]  = useState(true);
+  const [busy,     setBusy]     = useState(false);
 
   /* ── Load current user + data ── */
   const load = useCallback(async () => {
@@ -162,28 +163,38 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Quick Access Panel ── */}
+      {/* ── Quick Access Panel — ALL role-based tabs ── */}
       <div className="panel" style={{ marginBottom: 18 }}>
-        <div className="panel-hdr"><h3>⚡ Quick Access</h3></div>
-        <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-          {user?.role === 'admin' && (
-            <>
-              <Link href="/learners" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>🎓 Add Learner</Link>
-              <Link href="/fees" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>💰 Receive Payment</Link>
-              <Link href="/grades" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>📊 Enter Marks</Link>
-              <Link href="/sms" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>📱 Send SMS</Link>
-              <Link href="/templates" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>📄 Templates</Link>
-              <Link href="/settings" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>⚙️ Settings</Link>
-            </>
-          )}
-          {user?.role === 'teacher' && (
-            <>
-              <Link href="/grades" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>📊 Enter Marks</Link>
-              <Link href="/classes" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>🏫 Class List</Link>
-              <Link href="/predictor" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>🎯 Predictor</Link>
-              <Link href="/merit-list" className="btn btn-ghost" style={{ justifyContent: 'center', background: '#F8FAFF', border: '1.5px solid var(--border)' }}>🏆 Merit List</Link>
-            </>
-          )}
+        <div className="panel-hdr" style={{ background: 'linear-gradient(135deg,#8B1A1A,#6B1212)' }}>
+          <h3 style={{ color: '#fff' }}>⚡ Quick Access</h3>
+        </div>
+        <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
+          {(() => {
+            const allTabs = [
+              { href:'/dashboard',   icon:'📊', label:'Home',        roles:['admin','teacher','staff','member'] },
+              { href:'/learners',    icon:'🎓', label:'Learners',    roles:['admin','teacher'] },
+              { href:'/grades',      icon:'📝', label:'Marks',       roles:['admin','teacher'] },
+              { href:'/merit-list',  icon:'🏆', label:'Merit List',  roles:['admin','teacher'] },
+              { href:'/attendance',  icon:'📋', label:'Attendance',  roles:['admin','teacher'] },
+              { href:'/timetable',   icon:'📅', label:'Timetable',   roles:['admin','teacher','staff'] },
+              { href:'/duties',      icon:'🎖️', label:'Duties',      roles:['admin','teacher','staff'] },
+              { href:'/performance', icon:'📈', label:'Performance', roles:['admin','teacher'] },
+              { href:'/fees',        icon:'💰', label:'Fees',        roles:['admin','staff'] },
+              { href:'/salary',      icon:'💵', label:'Salary',      roles:['admin'] },
+              { href:'/templates',   icon:'📄', label:'Templates',   roles:['admin'] },
+              { href:'/teachers',    icon:'👔', label:'Staff',       roles:['admin'] },
+              { href:'/allocations', icon:'🗓️', label:'Allocations', roles:['admin'] },
+              { href:'/sms',         icon:'📱', label:'SMS',         roles:['admin'] },
+              { href:'/messages',    icon:'💬', label:'Messages',    roles:['admin','teacher','staff','member'] },
+              { href:'/settings',    icon:'⚙️', label:'Settings',    roles:['admin'] },
+            ].filter(t => t.roles.includes(user?.role || 'member'));
+            return allTabs.map(t => (
+              <Link key={t.href} href={t.href} className="quick-access-btn">
+                <span className="qa-icon">{t.icon}</span>
+                {t.label}
+              </Link>
+            ));
+          })()}
         </div>
       </div>
 

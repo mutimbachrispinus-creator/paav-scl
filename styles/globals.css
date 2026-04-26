@@ -514,3 +514,212 @@ tr:hover td{background:#F8FAFF}
   from { transform: translateX(-100%); }
   to { transform: translateX(0); }
 }
+
+/* ═══════════════════════════════════════════
+   ROUND 3 UPGRADES — Nav, Maroon Theme, A4
+   ═══════════════════════════════════════════ */
+
+/* ── PREMIUM NAV TABS ── */
+.tb-nbtn {
+  position: relative;
+  padding: 8px 13px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: rgba(255,255,255,.55);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s cubic-bezier(.4,0,.2,1);
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: .2px;
+  overflow: visible;
+  max-width: none !important;
+}
+.tb-nbtn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 70%;
+  height: 2px;
+  background: var(--gold2);
+  border-radius: 2px;
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+}
+.tb-nbtn:hover {
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.tb-nbtn.on {
+  background: rgba(139,26,26,.55) !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 1.5px rgba(139,26,26,.7), 0 4px 16px rgba(139,26,26,.3) !important;
+}
+.tb-nbtn.on::after { transform: translateX(-50%) scaleX(1); }
+
+/* ── TOPBAR LOGO FIX ── */
+.tb-crest img {
+  width: 36px !important;
+  height: 36px !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* ── AUTH LOGO FIX ── */
+.auth-logo img {
+  width: 110px !important;
+  height: 110px !important;
+  object-fit: contain !important;
+  border-radius: 50%;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  margin: 0 auto;
+  display: block;
+  background: #fff;
+  padding: 8px;
+}
+
+/* ── PANEL MAROON VARIANT ── */
+.panel-maroon {
+  border: 1.5px solid #F5E6E6 !important;
+  background: #fff !important;
+}
+.panel-maroon .panel-hdr {
+  background: linear-gradient(135deg,#8B1A1A,#6B1212) !important;
+  color: #fff !important;
+}
+.panel-maroon .panel-hdr h3 { color: #fff !important; }
+
+/* ── STAT CARDS MAROON HOVER ── */
+.stat-card:hover { border-color: #F5E6E6; }
+
+/* ── PAGE HEADER MAROON UNDERLINE ── */
+.page-hdr h2 {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 6px;
+}
+.page-hdr h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background: linear-gradient(90deg,#8B1A1A,transparent);
+  border-radius: 2px;
+}
+
+/* ── MAROON SELECT FOCUS ── */
+.field select:focus, .field input:focus {
+  border-color: #8B1A1A !important;
+  box-shadow: 0 0 0 4px rgba(139,26,26,.08) !important;
+}
+
+/* ── TAB BUTTONS MAROON ACTIVE ── */
+.tab-btn.on {
+  background: linear-gradient(135deg,#8B1A1A,#6B1212) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 10px rgba(139,26,26,.3) !important;
+}
+
+/* ── PERFECT A4 REPORT CARDS ── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+  .rc-page {
+    width: 100% !important;
+    min-height: auto !important;
+    max-height: none !important;
+    padding: 10mm !important;
+    border: 1px solid #ccc !important;
+    page-break-after: always !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    font-size: 9.5pt !important;
+    box-sizing: border-box !important;
+  }
+  .rc-page:last-child { page-break-after: avoid !important; }
+  .rc-page table { font-size: 8pt !important; }
+  .rc-page th, .rc-page td { padding: 4px 6px !important; }
+  .rc-page h1 { font-size: 14pt !important; }
+  .rc-page .rc-hdr img { width: 60px !important; }
+}
+
+/* ── RECEIPT PREVIEW CARD ── */
+.receipt-preview-card {
+  background: #fff;
+  border: 1.5px dashed #8B1A1A;
+  border-radius: 12px;
+  padding: 20px;
+  font-size: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.receipt-preview-card::before {
+  content: 'OFFICIAL RECEIPT';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%) rotate(-20deg);
+  font-size: 36px;
+  font-weight: 900;
+  color: rgba(139,26,26,.05);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── ANNOUNCEMENT BAR ANIMATED ── */
+.announcement-bar-live {
+  background: linear-gradient(135deg,#8B1A1A,#6B1212);
+  border-bottom: 2px solid #D97706;
+  padding: 10px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #fff;
+  flex-wrap: wrap;
+  animation: announcePulse 3s ease-in-out infinite;
+}
+@keyframes announcePulse {
+  0%,100% { box-shadow: 0 2px 0 rgba(217,119,6,.3); }
+  50% { box-shadow: 0 2px 12px rgba(217,119,6,.6); }
+}
+
+/* ── QUICK ACCESS BUTTONS ── */
+.quick-access-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: #FAFBFF;
+  color: var(--navy);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 700;
+  transition: all .2s;
+  text-align: center;
+  cursor: pointer;
+}
+.quick-access-btn:hover {
+  border-color: #8B1A1A;
+  background: #FDF2F2;
+  color: #8B1A1A;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(139,26,26,.12);
+}
+.quick-access-btn .qa-icon {
+  font-size: 24px;
+  display: block;
+}

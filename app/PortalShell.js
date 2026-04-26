@@ -34,6 +34,9 @@ export default function PortalShell({ children }) {
   const [unreadCount,  setUnreadCount]  = useState(0);
   const [showBanner,   setShowBanner]   = useState(false);   // inactivity warning
   const [countdown,    setCountdown]    = useState(60);
+  const [editAnn,      setEditAnn]      = useState(false);
+  const [annDraft,     setAnnDraft]     = useState('');
+  const [heroUrl,      setHeroUrl]      = useState('');
 
   const idleTimer    = useRef(null);
   const warnTimer    = useRef(null);
@@ -131,6 +134,20 @@ export default function PortalShell({ children }) {
     };
   }, [showNav, user]); // eslint-disable-line
 
+  async function saveAnnouncement() {
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [
+          { type: 'set', key: 'paav_announcement', value: { text: annDraft, active: !!annDraft, ts: Date.now() } }
+        ]})
+      });
+      setAnnouncement(annDraft);
+      setEditAnn(false);
+    } catch(e) { alert('Failed to save announcement'); }
+  }
+
   return (
     <>
       {/* ── Topbar ── */}
@@ -139,18 +156,47 @@ export default function PortalShell({ children }) {
       )}
 
       {/* ── Announcement banner ── */}
-      {showNav && announcement && (
-        <div id="announcement-banner" style={{ background: 'linear-gradient(135deg,var(--maroon),var(--maroon2))', padding: '16px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: '2px solid var(--gold)', color: '#fff', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      {showNav && (announcement || user?.role === 'admin') && (
+        <div className="announcement-bar-live">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
             <span style={{ fontSize: 18 }}>📢</span>
-            <span style={{ fontSize: 12.5, fontWeight: 600 }}>{announcement}</span>
+            {editAnn ? (
+              <input
+                autoFocus
+                value={annDraft}
+                onChange={e => setAnnDraft(e.target.value)}
+                placeholder="Type announcement…"
+                style={{ flex: 1, background: 'rgba(255,255,255,.15)', border: '1.5px solid rgba(255,255,255,.4)', borderRadius: 8, color: '#fff', padding: '6px 12px', fontSize: 13, outline: 'none', minWidth: 200 }}
+                onKeyDown={e => e.key === 'Enter' && saveAnnouncement()}
+              />
+            ) : (
+              <span style={{ fontSize: 12.5, fontWeight: 600 }}>{announcement || (user?.role === 'admin' ? 'Click Edit to add an announcement…' : '')}</span>
+            )}
           </div>
-          <button
-            onClick={() => setAnnouncement('')}
-            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.6)',
-              cursor: 'pointer', fontSize: 18, padding: '0 4px' }}>
-            ✕
-          </button>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            {user?.role === 'admin' && !editAnn && (
+              <button onClick={() => { setAnnDraft(announcement); setEditAnn(true); }}
+                style={{ background: 'rgba(255,255,255,.15)', border: '1.5px solid rgba(255,255,255,.3)', borderRadius: 7, color: '#fff', padding: '4px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                ✏️ Edit
+              </button>
+            )}
+            {user?.role === 'admin' && editAnn && (
+              <>
+                <button onClick={saveAnnouncement}
+                  style={{ background: '#D97706', border: 'none', borderRadius: 7, color: '#fff', padding: '4px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                  💾 Save
+                </button>
+                <button onClick={() => setEditAnn(false)}
+                  style={{ background: 'rgba(255,255,255,.1)', border: '1.5px solid rgba(255,255,255,.3)', borderRadius: 7, color: '#fff', padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              </>
+            )}
+            {announcement && (
+              <button onClick={() => { setAnnouncement(''); saveAnnouncement(); }}
+                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.6)', cursor: 'pointer', fontSize: 18, padding: '0 4px' }}>✕</button>
+            )}
+          </div>
         </div>
       )}
 

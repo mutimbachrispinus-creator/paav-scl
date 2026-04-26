@@ -10,10 +10,9 @@
  *   • Navigation to individual learner profile
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { buildMeritList, ALL_GRADES, maxPts, DEFAULT_SUBJECTS } from '@/lib/cbe';
-import { usePersistedState } from '@/components/TabState';
 
 const TERMS      = ['T1','T2','T3'];
 const ASSESSMENTS = [
@@ -31,15 +30,15 @@ export default function MeritListPage() {
   const [gradCfg,  setGradCfg]  = useState(null);
   const [loading,  setLoading]  = useState(true);
 
-  const [grade,  setGrade]  = usePersistedState('paav_merit_grade',  'GRADE 7');
-  const [term,   setTerm]   = usePersistedState('paav_merit_term',   'T1');
-  const [assess, setAssess] = usePersistedState('paav_merit_assess', 'mt1');
+  const [grade,  setGrade]  = useState('GRADE 7');
+  const [term,   setTerm]   = useState('T1');
+  const [assess, setAssess] = useState('mt1');
 
   const load = useCallback(async () => {
     const authRes = await fetch('/api/auth');
     const auth    = await authRes.json();
     if (!auth.ok) { router.push('/'); return; }
-    if (auth.user?.grade) setGrade(auth.user.grade);
+    // Note: grade filter is set by user selection only
 
     const dbRes = await fetch('/api/db', {
       method:  'POST',
@@ -59,8 +58,8 @@ export default function MeritListPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  /* ── Build ranked list ── */
-  const ranked = loading ? [] : buildMeritList(learners, marks, grade, term, assess, gradCfg);
+  /* ── Build ranked list (memoized so dropdowns trigger re-render) ── */
+  const ranked = useMemo(() => loading ? [] : buildMeritList(learners, marks, grade, term, assess, gradCfg), [learners, marks, grade, term, assess, gradCfg, loading]);
   const subjects = DEFAULT_SUBJECTS[grade] || [];
   const max = maxPts(grade, subjects);
 

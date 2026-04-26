@@ -45,7 +45,8 @@ export default function TemplatesPage() {
               { type: 'get', key: 'paav6_marks' },
               { type: 'get', key: 'paav8_subj' },
               { type: 'get', key: 'paav6_fees' },
-              { type: 'get', key: 'paav8_grad' }
+              { type: 'get', key: 'paav8_grad' },
+              { type: 'get', key: 'paav6_paylog' }
             ]})
           })
         ]);
@@ -55,8 +56,11 @@ export default function TemplatesPage() {
         setLearners(db.results[0]?.value || []);
         setMarks(db.results[1]?.value || {});
         setSubjCfg(db.results[2]?.value || {});
-        setFees(db.results[3]?.value || []);
         setGradCfg(db.results[4]?.value || null);
+        // Merge paav6_fees and paav6_paylog for receipt template
+        const feeList = db.results[3]?.value || [];
+        const paylogList = db.results[5]?.value || [];
+        setFees([...feeList, ...paylogList]);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     }
@@ -168,7 +172,7 @@ export default function TemplatesPage() {
           <ClassListTemplate learners={filteredLearners} grade={grade} />
         </div>
         <div style={{ display: tab === 'receipt' ? 'block' : 'none' }}>
-          <ReceiptTemplate learners={filteredLearners} fees={fees} grade={grade} />
+          <ReceiptTemplate learners={filteredLearners} fees={fees} grade={grade} selLearner={selLearner} />
         </div>
         <div style={{ display: tab === 'id'      ? 'block' : 'none' }}>
           <IDCardTemplate learners={filteredLearners} grade={grade} />
@@ -182,13 +186,17 @@ export default function TemplatesPage() {
 
 function PrintHeader({ title, grade }) {
   return (
-    <div style={{ textAlign: 'center', borderBottom: '3px double #8B1A1A', paddingBottom: 15, marginBottom: 20 }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.png" alt="PAAV Gitombo Logo" style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 6 }} />
-      <h1 style={{ fontFamily: 'Sora', fontSize: 20, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>PAAV-GITOMBO COMMUNITY SCHOOL</h1>
-      <p style={{ fontSize: 11, margin: '2px 0', color: '#555' }}>P.O BOX 4091-00100 Nairobi | 0758 922 915 | paavgitomboschool@gmail.com</p>
-      <p style={{ fontSize: 11, fontStyle: 'italic', color: '#8B1A1A', fontWeight: 700, margin: '2px 0' }}>More Than Academics!</p>
-      <div style={{ background: '#8B1A1A', color: '#fff', display: 'inline-block', padding: '4px 18px', borderRadius: 4, marginTop: 8, fontWeight: 700, fontSize: 13 }}>
+    <div style={{ textAlign: 'center', borderBottom: '3px double #8B1A1A', paddingBottom: 12, marginBottom: 16 }}>
+      {/* School crest circle */}
+      <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,#8B1A1A,#6B1212)', margin: '0 auto 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 8, fontWeight: 800, letterSpacing: 1, border: '2px solid #D97706' }}>
+        <span style={{ fontSize: 20 }}>🎓</span>
+        <span style={{ fontSize: 6, marginTop: 2 }}>PAAV</span>
+        <span style={{ fontSize: 5 }}>GITOMBO</span>
+      </div>
+      <h1 style={{ fontFamily: 'Sora', fontSize: 17, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>PAAV-GITOMBO COMMUNITY SCHOOL</h1>
+      <p style={{ fontSize: 10, margin: '2px 0', color: '#555' }}>P.O BOX 4091-00100 Nairobi | 0758 922 915 | paavgitomboschool@gmail.com</p>
+      <p style={{ fontSize: 10, fontStyle: 'italic', color: '#D97706', fontWeight: 700, margin: '2px 0' }}>✝ More Than Academics!</p>
+      <div style={{ background: '#8B1A1A', color: '#fff', display: 'inline-block', padding: '3px 16px', borderRadius: 4, marginTop: 6, fontWeight: 700, fontSize: 12 }}>
         {title} — {grade}
       </div>
     </div>
@@ -358,38 +366,83 @@ function ClassListTemplate({ learners, grade }) {
   );
 }
 
-function ReceiptTemplate({ learners, fees, grade }) {
+function ReceiptTemplate({ learners, fees, grade, selLearner }) {
+  const filtered = fees.filter(f => {
+    const gradeMatch = !grade || f.grade === grade || !f.grade;
+    const learnerMatch = !selLearner || f.adm === selLearner;
+    return gradeMatch && learnerMatch;
+  }).slice(0, 20);
+
+  if (filtered.length === 0) {
+    return (
+      <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
+        <div style={{ fontSize: 36, marginBottom: 12 }}>🧾</div>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>No fee receipts found</div>
+        <div style={{ fontSize: 12 }}>
+          {grade ? `No payments recorded for ${grade}` : 'No payments recorded yet'}.<br/>
+          Record payments in the Fees module — they will appear here.
+        </div>
+        <div style={{ marginTop: 16, padding: '8px 16px', background: '#FDF2F2', borderRadius: 8, fontSize: 11, color: '#8B1A1A', display: 'inline-block' }}>
+          Tip: Go to 💰 Fees → select learner → click + Pay
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-      {fees.filter(f => !grade || f.grade === grade || !f.grade).slice(0, 12).map(f => {
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+      {filtered.map((f, i) => {
         const l = learners.find(x => x.adm === f.adm);
         return (
-          <div key={f.id} style={{ border: '1.5px dashed #000', padding: 15, fontSize: 12 }}>
-            <div style={{ textAlign: 'center', marginBottom: 10 }}>
-              <img src={LOGO} style={{ width: 40 }} />
-              <div style={{ fontWeight: 800 }}>PAAV-GITOMBO SCHOOL RECEIPT</div>
+          <div key={f.id || i} className="receipt-preview-card" style={{ pageBreakInside: 'avoid' }}>
+            <div style={{ textAlign: 'center', marginBottom: 10, borderBottom: '2px dashed #8B1A1A', paddingBottom: 8 }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#8B1A1A', margin: '0 auto 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18 }}>🎓</div>
+              <div style={{ fontWeight: 800, fontSize: 11, color: '#8B1A1A' }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
+              <div style={{ fontSize: 9, color: '#888' }}>✝ More Than Academics!</div>
+              <div style={{ fontWeight: 700, fontSize: 12, marginTop: 4, background: '#8B1A1A', color: '#fff', padding: '2px 10px', borderRadius: 20, display: 'inline-block' }}>OFFICIAL RECEIPT</div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-              <span>No: <strong>{f.id.slice(-6)}</strong></span>
-              <span>Date: {new Date(f.date).toLocaleDateString()}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
+              <span style={{ color: '#888' }}>Receipt No:</span>
+              <strong>#{(f.id || `R${i+1}`).slice(-8).toUpperCase()}</strong>
             </div>
-            <div>Student: <strong>{l?.name || f.adm}</strong></div>
-            <div>Grade: {f.grade}</div>
-            <div style={{ margin: '10px 0', borderTop: '1px solid #000', paddingTop: 5 }}>
-              Description: {f.desc || 'Fee Payment'}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
+              <span style={{ color: '#888' }}>Date:</span>
+              <span>{f.date || new Date().toLocaleDateString()}</span>
             </div>
-            <div style={{ fontSize: 18, fontWeight: 800, textAlign: 'right' }}>
-              KES {f.amt?.toLocaleString()}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
+              <span style={{ color: '#888' }}>Student:</span>
+              <strong>{l?.name || f.name || f.adm}</strong>
             </div>
-            <div style={{ marginTop: 10, fontSize: 10, opacity: 0.7 }}>Issued by: System Admin</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
+              <span style={{ color: '#888' }}>Adm No:</span>
+              <span>{f.adm}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
+              <span style={{ color: '#888' }}>Grade:</span>
+              <span>{f.grade || grade}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
+              <span style={{ color: '#888' }}>Term:</span>
+              <span>{f.term || '—'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
+              <span style={{ color: '#888' }}>Method:</span>
+              <span>{f.method || f.desc || 'Payment'}</span>
+            </div>
+            {f.ref && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
+              <span style={{ color: '#888' }}>Ref:</span>
+              <span style={{ fontFamily: 'monospace', fontSize: 10 }}>{f.ref}</span>
+            </div>}
+            <div style={{ borderTop: '2px dashed #8B1A1A', marginTop: 8, paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: '#888' }}>Amount Paid:</span>
+              <span style={{ fontSize: 18, fontWeight: 900, color: '#059669' }}>KES {(f.amount || f.amt || 0).toLocaleString()}</span>
+            </div>
+            <div style={{ marginTop: 10, fontSize: 9, color: '#aaa', textAlign: 'center' }}>
+              Issued by: {f.by || 'Admin'} · This is an official receipt
+            </div>
           </div>
-        )
+        );
       })}
-      {fees.filter(f => !grade || f.grade === grade || !f.grade).length === 0 && (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)', fontSize: 13, gridColumn: '1 / -1' }}>
-          No fee receipts found for {grade}. Fee records are added in the Fees module.
-        </div>
-      )}
     </div>
   );
 }
