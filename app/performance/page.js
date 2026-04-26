@@ -2,7 +2,7 @@
 'use client';
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ALL_GRADES, gInfo, DEFAULT_SUBJECTS, buildMeritList } from '@/lib/cbe';
+import { ALL_GRADES, gInfo, DEFAULT_SUBJECTS, buildMeritList, getMark } from '@/lib/cbe';
 
 const M = '#8B1A1A', M2 = '#6B1212', ML = '#FDF2F2', MB = '#F5E6E6';
 const ASSESS_LABELS = { op1: 'Opener', mt1: 'Mid-Term', et1: 'End-Term' };
@@ -65,13 +65,15 @@ export default function PerformancePage() {
     return gl.map(l => {
       let totalPts=0, totalScore=0, count=0;
       const detail = subjects.map(s => {
-        const score = marks[`${term}:${grade}|${s}|${assess}`]?.[l.adm];
-        if (score!=null) {
-          const info = gInfo(Number(score),grade,gradCfg);
-          totalPts+=info.pts; totalScore+=Number(score); count++;
-          return {s,score:Number(score),lv:info.lv,...info};
+        const score = getMark(marks, term, grade, s, assess, l.adm);
+        if (score !== null) {
+          const info = gInfo(score, grade, gradCfg);
+          totalPts += info.pts;
+          totalScore += score;
+          count++;
+          return { s, score, lv: info.lv, ...info };
         }
-        return {s,score:null,lv:'—'};
+        return { s, score: null, lv: '—' };
       });
       return {...l,totalPts,totalScore,count,avgScore:count?Math.round(totalScore/count):0,detail};
     }).filter(l=>l.count>0).sort((a,b)=>b.totalPts-a.totalPts).map((l,i)=>({...l,rank:i+1}));
@@ -84,11 +86,11 @@ export default function PerformancePage() {
     const gl = learners.filter(l=>l.grade===grade);
     return gl.map(l => {
       let cur=0,old=0,cc=0,oc=0;
-      subjects.forEach(s=>{
-        const cs=marks[`${term}:${grade}|${s}|${assess}`]?.[l.adm];
-        const os=marks[`${term}:${grade}|${s}|${prev}`]?.[l.adm];
-        if(cs!=null){cur+=Number(cs);cc++;}
-        if(os!=null){old+=Number(os);oc++;}
+      subjects.forEach(s => {
+        const cs = getMark(marks, term, grade, s, assess, l.adm);
+        const os = getMark(marks, term, grade, s, prev, l.adm);
+        if (cs !== null) { cur += cs; cc++; }
+        if (os !== null) { old += os; oc++; }
       });
       const curAvg=cc?Math.round(cur/cc):0, oldAvg=oc?Math.round(old/oc):0;
       return {...l,curAvg,oldAvg,diff:curAvg-oldAvg};
@@ -107,9 +109,9 @@ export default function PerformancePage() {
   // Subject stats
   const subjectStats = useMemo(() => subjects.map(s=>{
     let tot=0,cnt=0;
-    learners.filter(l=>l.grade===grade).forEach(l=>{
-      const sc=marks[`${term}:${grade}|${s}|${assess}`]?.[l.adm];
-      if(sc!=null){tot+=Number(sc);cnt++;}
+    learners.filter(l => l.grade === grade).forEach(l => {
+      const sc = getMark(marks, term, grade, s, assess, l.adm);
+      if (sc !== null) { tot += sc; cnt++; }
     });
     const avg=cnt?Math.round(tot/cnt):0;
     const info=avg?gInfo(avg,grade,gradCfg):{lv:'—'};
@@ -121,9 +123,9 @@ export default function PerformancePage() {
     const gl=learners.filter(l=>l.grade===g);
     const subs=(subjCfg[g]?.length>0)?subjCfg[g]:(DEFAULT_SUBJECTS[g]||[]);
     let tot=0,cnt=0;
-    gl.forEach(l=>subs.forEach(s=>{
-      const sc=marks[`${term}:${g}|${s}|${assess}`]?.[l.adm];
-      if(sc!=null){tot+=Number(sc);cnt++;}
+    gl.forEach(l => subs.forEach(s => {
+      const sc = getMark(marks, term, g, s, assess, l.adm);
+      if (sc !== null) { tot += sc; cnt++; }
     }));
     return {grade:g,count:gl.length,avg:cnt?Math.round(tot/cnt):0,entries:cnt};
   }),[learners,marks,subjCfg,term,assess]);

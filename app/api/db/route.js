@@ -128,6 +128,13 @@ async function handleRequest(req) {
       return { type: req.type, adm: req.adm, ok: true };
     }
 
+    case 'updateMark': {
+      if (!req.gsa || !req.adm) return { type: req.type, error: 'gsa and adm are required' };
+      const { kvUpdateMark } = await import('@/lib/db');
+      await kvUpdateMark(req.gsa, req.adm, req.score);
+      return { type: req.type, ok: true };
+    }
+
     /* ── Bulk read ── */
     case 'getAll': {
       const keys = Array.isArray(req.keys) ? req.keys : [];

@@ -99,34 +99,52 @@ export default function GradesPage() {
     return marks[key]?.[admNo];
   }
 
+  /* ── Auto-save (Sync immediately) ── */
+  useEffect(() => {
+    if (loading || saving) return;
+    const timer = setTimeout(() => {
+      // We don't want to show the alert for every auto-save
+      // unless it fails
+      save(true); 
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [marks]);
+
   /* ── Save ── */
-  async function save() {
+  async function save(isAuto = false) {
     if (isLocked && user?.role !== 'admin') {
-      setAlert({ msg: 'Marks are locked. Only admin can edit.', type: 'err' });
+      if (!isAuto) setAlert({ msg: 'Marks are locked. Only admin can edit.', type: 'err' });
       return;
     }
-    setSaving(true);
+    if (!isAuto) setSaving(true);
     
     let nextLocked = locked;
     const reqs = [{ type: 'set', key: 'paav6_marks', value: marks }];
     
-    // Auto-lock for non-admins
-    if (user?.role !== 'admin' && !isLocked) {
+    // Auto-lock for non-admins (only on manual save or first entry)
+    if (!isAuto && user?.role !== 'admin' && !isLocked) {
       nextLocked = { ...locked, [lockKey]: true };
       reqs.push({ type: 'set', key: 'paav_marks_locked', value: nextLocked });
     }
 
-    await fetch('/api/db', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ requests: reqs }),
-    });
+    try {
+      await fetch('/api/db', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ requests: reqs }),
+      });
 
-    if (user?.role !== 'admin' && !isLocked) setLocked(nextLocked);
-
-    setSaving(false);
-    setAlert({ msg: '✅ Marks saved!', type: 'ok' });
-    setTimeout(() => setAlert({ msg: '', type: '' }), 3000);
+      if (!isAuto) {
+        if (user?.role !== 'admin' && !isLocked) setLocked(nextLocked);
+        setAlert({ msg: '✅ Marks saved!', type: 'ok' });
+        setTimeout(() => setAlert({ msg: '', type: '' }), 3000);
+      }
+    } catch (e) {
+      console.error(e);
+      if (!isAuto) setAlert({ msg: '❌ Save failed', type: 'err' });
+    } finally {
+      if (!isAuto) setSaving(false);
+    }
   }
 
   /* ── Lock toggle (admin only) ── */
@@ -150,10 +168,12 @@ export default function GradesPage() {
   return (
     <div className="page on">
       <div className="page-hdr">
-        <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <h2>📊 Marks Entry</h2>
-          <p>CBC competency-based grading — {grade}</p>
+          {saving && <span style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700, animation: 'pulse 1.5s infinite' }}>☁️ Syncing...</span>}
+          {!saving && <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 700, opacity: 0.7 }}>✅ Synced</span>}
         </div>
+        <p>CBC competency-based grading — {grade}</p>
         <div className="page-hdr-acts">
           {user?.role === 'admin' && (
             <button
