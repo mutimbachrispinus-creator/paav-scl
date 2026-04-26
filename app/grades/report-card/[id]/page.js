@@ -314,6 +314,11 @@ export default function ReportCardPage() {
           {/* ── REMARKS ── */}
           <div className="rc-remarks" style={{ position: 'relative', zIndex: 1, marginTop: 12, display: 'grid', gap: 10 }}>
             <div style={{ border: '1.5px solid #e2e8f0', borderRadius: 8, padding: 8 }}>
+              <div style={{ fontSize: 8, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Class Teacher's Remarks</div>
+              <div style={{ borderBottom: '1px dotted #cbd5e1', height: 20, marginBottom: 8 }} />
+              <div style={{ borderBottom: '1px dotted #cbd5e1', height: 20 }} />
+            </div>
+            <div style={{ border: '1.5px solid #e2e8f0', borderRadius: 8, padding: 8 }}>
               <div style={{ fontSize: 8, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Head Teacher's Remarks</div>
               <div style={{ borderBottom: '1px dotted #cbd5e1', height: 20, marginBottom: 8 }} />
               <div style={{ borderBottom: '1px dotted #cbd5e1', height: 20 }} />

@@ -418,6 +418,7 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg })
                 <div>Average: <strong>{l.report.subjects.reduce((acc, s) => acc + (s.avg || 0), 0)}</strong></div>
               </div>
               <div style={{ marginTop: 10, borderTop: '1px dotted #ccc', paddingTop: 10 }}>
+                <div style={{ fontSize: 11, marginBottom: 5 }}>Class Teacher's Remarks: _________________</div>
                 <div style={{ fontSize: 11, marginBottom: 5 }}>Headteacher's Remarks: _________________</div>
                 <div style={{ fontSize: 11 }}>Parent's Remarks: ______________________</div>
               </div>
