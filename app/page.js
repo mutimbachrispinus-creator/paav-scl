@@ -16,6 +16,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [tab, setTab] = useState('login'); // login | register | forgot
   const [busy, setBusy] = useState(false);
+  const [showPass, setShowPass] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [err, setErr] = useState('');
   const [okMsg, setOkMsg] = useState('');
   
@@ -28,6 +30,13 @@ export default function LoginPage() {
     username: '', password: '', 
     name: '', phone: '', role: 'teacher', childAdm: '', adminCode: ''
   });
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('paav_remember');
+      if (saved) { const r=JSON.parse(saved); F('username',r.u||''); setRememberMe(true); }
+    } catch{}
+  }, []);
 
   useEffect(() => {
     async function loadStats() {

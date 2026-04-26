@@ -9,7 +9,7 @@
  * Data is loaded from /api/db (Turso KV) on mount.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fmtK } from '@/lib/cbe';
@@ -93,32 +93,27 @@ export default function DashboardPage() {
   const collectionPct = totalExp ? Math.round((totalPaid / totalExp) * 100) : 0;
 
   /* ── Render ── */
-  async function updateProfilePic() {
-    const url = prompt("Enter Image URL (Base64 or HTTPS):");
-    if (!url) return;
+  const picRef = useRef(null);
+  function triggerPhotoPick() { if (picRef.current) picRef.current.click(); }
+  async function handlePhotoPick(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
     setBusy(true);
-    try {
-      const staffList = (await (await fetch('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_staff' }] })
-      })).json()).results[0].value || [];
-      
-      const idx = staffList.findIndex(s => s.id === user.id);
-      if (idx !== -1) {
-        staffList[idx].avatar = url;
-        await fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_staff', value: staffList }] })
-        });
-        alert('✅ Profile updated! Please refresh.');
-      }
-    } catch (e) {
-      alert('❌ Error: ' + e.message);
-    } finally {
-      setBusy(false);
-    }
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const dataUrl = ev.target.result;
+      try {
+        const sdb = await (await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ requests:[{ type:'get', key:'paav6_staff' }] }) })).json();
+        const staffList = sdb.results[0]?.value||[];
+        const idx = staffList.findIndex(s=>s.id===user.id);
+        if (idx>=0) staffList[idx].avatar=dataUrl;
+        await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ requests:[{ type:'set', key:'paav6_staff', value:staffList }] }) });
+        setUser(u=>({...u, avatar:dataUrl}));
+      } catch(err) { alert('Upload failed'); } finally { setBusy(false); }
+    };
+    reader.readAsDataURL(file);
   }
 
   if (loading) return <div className="page on"><p>Loading dashboard...</p></div>;
@@ -129,9 +124,10 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
           <div 
             style={{ width: 80, height: 80, borderRadius: '50%', background: user.color || '#2563EB', cursor: 'pointer', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}
-            onClick={updateProfilePic}
+            onClick={triggerPhotoPick}
             title="Click to update profile picture"
           >
+            <input ref={picRef} type="file" accept="image/*" capture="user" style={{display:'none'}} onChange={handlePhotoPick} />
             {user.avatar ? <img src={user.avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (user.emoji || '👤')}
           </div>
           <div>
@@ -179,7 +175,7 @@ export default function DashboardPage() {
               { href:'/timetable',   icon:'📅', label:'Timetable',   roles:['admin','teacher','staff'] },
               { href:'/duties',      icon:'🎖️', label:'Duties',      roles:['admin','teacher','staff'] },
               { href:'/performance', icon:'📈', label:'Performance', roles:['admin','teacher'] },
-              { href:'/fees',        icon:'💰', label:'Fees',        roles:['admin','staff'] },
+              { href:'/fees',        icon:'💰', label:'Fees',        roles:['admin'] },
               { href:'/salary',      icon:'💵', label:'Salary',      roles:['admin'] },
               { href:'/templates',   icon:'📄', label:'Templates',   roles:['admin'] },
               { href:'/teachers',    icon:'👔', label:'Staff',       roles:['admin'] },

@@ -83,24 +83,27 @@ export default function DutiesPage() {
     }
   }
 
-  async function submitRequest(type) {
-    const text = prompt(`Enter details for your ${type}:`);
-    if (!text) return;
+  const [reqForm, setReqForm] = useState({ type: 'permission', text: '' });
+  const [reqSent, setReqSent] = useState(false);
+
+  async function submitRequest(e) {
+    e?.preventDefault();
+    if (!reqForm.text.trim()) { alert('Please enter details'); return; }
     setBusy(true);
     try {
-      const newReqs = [...requests, { id: Date.now(), userId: user.id, userName: user.name, type, text, date: today, status: 'pending' }];
+      const newReqs = [...requests, {
+        id: Date.now(), userId: user.id, userName: user.name,
+        type: reqForm.type, text: reqForm.text, date: today, status: 'pending'
+      }];
       await fetch('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_staff_reqs', value: newReqs }] })
       });
       setRequests(newReqs);
-      alert('✅ Request submitted successfully!');
-    } catch (e) {
-      alert('❌ Error: ' + e.message);
-    } finally {
-      setBusy(false);
-    }
+      setReqForm({ type: 'permission', text: '' });
+      setReqSent(true);
+      setTimeout(() => setReqSent(false), 3000);
+    } catch(e) { alert('❌ Error: ' + e.message); } finally { setBusy(false); }
   }
 
   if (loading) return <div className="page on"><p>Loading duties...</p></div>;

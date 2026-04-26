@@ -34,7 +34,7 @@ export default function FeesPage() {
     const authRes = await fetch('/api/auth');
     const auth    = await authRes.json();
     if (!auth.ok) { router.push('/'); return; }
-    if (!['admin','staff'].includes(auth.user?.role)) { router.push('/dashboard'); return; }
+    if (!['admin'].includes(auth.user?.role)) { router.push('/dashboard'); return; }
     setUser(auth.user);
 
     const dbRes = await fetch('/api/db', {
