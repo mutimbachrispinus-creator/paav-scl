@@ -41,36 +41,26 @@ export default function DashboardPage() {
   /* ── Load current user + data ── */
   const load = useCallback(async () => {
     try {
-      // Run auth + DB fetch in parallel using the cache
-      const [authRes, dbRes] = await Promise.all([
-        fetch('/api/auth', { cache: 'no-store' }),
-        fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            requests: [
-              { type: 'get', key: 'paav6_learners' },
-              { type: 'get', key: 'paav6_paylog'   },
-              { type: 'get', key: 'paav6_msgs'     },
-              { type: 'get', key: 'paav6_feecfg'   },
-              { type: 'get', key: 'paav7_hero_img'  },
-            ],
-          }),
-        }),
+      const [u, db] = await Promise.all([
+        getCachedUser(),
+        getCachedDBMulti([
+          'paav6_learners',
+          'paav6_paylog',
+          'paav6_msgs',
+          'paav6_feecfg',
+          'paav7_hero_img'
+        ])
       ]);
 
-      const auth = await authRes.json();
-      if (!auth.ok || !auth.user) { router.push('/'); return; }
-      setUser(auth.user);
+      if (!u) { router.push('/'); return; }
+      setUser(u);
+      if (u.role === 'parent') { router.push('/parent-home'); return; }
 
-      if (auth.user.role === 'parent') { router.push('/parent-home'); return; }
-
-      const db = await dbRes.json();
-      setLearners(db.results[0]?.value || []);
-      setPaylog(  db.results[1]?.value || []);
-      setMessages(db.results[2]?.value || []);
-      setFeeCfg(  db.results[3]?.value || {});
-      if (db.results[4]?.value) setHeroUrl(db.results[4].value);
+      setLearners(db.paav6_learners || []);
+      setPaylog(  db.paav6_paylog   || []);
+      setMessages(db.paav6_msgs     || []);
+      setFeeCfg(  db.paav6_feecfg   || {});
+      if (db.paav7_hero_img) setHeroUrl(db.paav7_hero_img);
     } catch (e) {
       console.error('Dashboard load error:', e);
     } finally {

@@ -16,6 +16,8 @@ import { useRouter } from 'next/navigation';
 import { ALL_GRADES, fmtK } from '@/lib/cbe';
 import { usePersistedState } from '@/components/TabState';
 
+import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+
 export default function LearnersPage() {
   const router = useRouter();
   const [user,     setUser]     = useState(null);
@@ -27,26 +29,25 @@ export default function LearnersPage() {
   const [modal,    setModal]    = useState(null); // 'add' | 'bulk' | 'promote' | null
 
   const load = useCallback(async () => {
-    const [authRes, dbRes] = await Promise.all([
-      fetch('/api/auth'),
-      fetch('/api/db', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ requests: [
-          { type: 'get', key: 'paav6_learners' },
-          { type: 'get', key: 'paav6_feecfg'  },
-        ]}),
-      }),
-    ]);
-    const auth = await authRes.json();
-    if (!auth.ok)  { router.push('/'); return; }
-    if (!['admin','teacher','jss_teacher','senior_teacher'].includes(auth.user?.role)) { router.push('/dashboard'); return; }
-    setUser(auth.user);
+    try {
+      const [u, db] = await Promise.all([
+        getCachedUser(),
+        getCachedDBMulti(['paav6_learners', 'paav6_feecfg'])
+      ]);
 
-    const db = await dbRes.json();
-    setLearners(db.results[0]?.value || []);
-    setFeeCfg(  db.results[1]?.value || {});
-    setLoading(false);
+      if (!u) { router.push('/'); return; }
+      if (!['admin','teacher','jss_teacher','senior_teacher'].includes(u.role)) {
+        router.push('/dashboard'); return;
+      }
+      setUser(u);
+
+      setLearners(db.paav6_learners || []);
+      setFeeCfg(  db.paav6_feecfg   || {});
+    } catch (e) {
+      console.error('Learners load error:', e);
+    } finally {
+      setLoading(false);
+    }
   }, [router]);
 
   useEffect(() => { load(); }, [load]);

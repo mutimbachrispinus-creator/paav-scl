@@ -10,6 +10,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+import { getCachedUser, getCachedDB } from '@/lib/client-cache';
+
 export default function SettingsHubPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -19,15 +21,16 @@ export default function SettingsHubPage() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const res = await fetch('/api/auth');
-        const data = await res.json();
-        if (!data.ok || data.user.role !== 'admin') {
+        const u = await getCachedUser();
+        if (!u || u.role !== 'admin') {
           router.push('/dashboard');
           return;
         }
-        setUser(data.user);
+        setUser(u);
         
-        // Fetch DB usage
+        // Fetch DB usage via specialized request
+        // Since getCachedDB uses {type:'get'}, we still need to fetch usage separately
+        // but we can optimize the initial check.
         const dbRes = await fetch('/api/db', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

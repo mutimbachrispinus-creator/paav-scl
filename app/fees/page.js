@@ -19,6 +19,8 @@ import { usePersistedState } from '@/components/TabState';
 const TERMS   = ['T1','T2','T3'];
 const METHODS = ['Cash','M-Pesa','Bank','Cheque','Bursary'];
 
+import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+
 export default function FeesPage() {
   const router = useRouter();
   const [user,     setUser]     = useState(null);
@@ -31,30 +33,35 @@ export default function FeesPage() {
   const [modal,    setModal]    = useState(null); // 'pay' | 'config' | 'paybills' | null
   const [selLearner, setSelLearner] = useState(null);
   const [paybillAccounts, setPaybillAccounts] = useState([]);
+  const [alert, setAlert] = useState({ msg: '', type: '' });
 
   const load = useCallback(async () => {
-    const authRes = await fetch('/api/auth');
-    const auth    = await authRes.json();
-    if (!auth.ok) { router.push('/'); return; }
-    if (!['admin','staff'].includes(auth.user?.role)) { router.push('/dashboard'); return; }
-    setUser(auth.user);
+    try {
+      const [u, db] = await Promise.all([
+        getCachedUser(),
+        getCachedDBMulti([
+          'paav6_learners',
+          'paav6_feecfg',
+          'paav6_paylog',
+          'paav_paybill_accounts'
+        ])
+      ]);
 
-    const dbRes = await fetch('/api/db', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ requests: [
-        { type: 'get', key: 'paav6_learners' },
-        { type: 'get', key: 'paav6_feecfg'  },
-        { type: 'get', key: 'paav6_paylog'  },
-        { type: 'get', key: 'paav_paybill_accounts' },
-      ]}),
-    });
-    const db = await dbRes.json();
-    setLearners(db.results[0]?.value || []);
-    setFeeCfg(  db.results[1]?.value || {});
-    setPaylog(  db.results[2]?.value || []);
-    setPaybillAccounts(db.results[3]?.value || []);
-    setLoading(false);
+      if (!u) { router.push('/'); return; }
+      if (!['admin','staff'].includes(u.role)) {
+        router.push('/dashboard'); return;
+      }
+      setUser(u);
+
+      setLearners(db.paav6_learners || []);
+      setFeeCfg(  db.paav6_feecfg   || {});
+      setPaylog(  db.paav6_paylog   || []);
+      setPaybillAccounts(db.paav_paybill_accounts || []);
+    } catch (e) {
+      console.error('Fees load error:', e);
+    } finally {
+      setLoading(false);
+    }
   }, [router]);
 
   useEffect(() => { load(); }, [load]);
