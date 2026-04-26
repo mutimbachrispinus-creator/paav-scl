@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PAAV CBC Timetable Generator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif}
+body{background:#0a0f1e;color:#e2e8f0;min-height:100vh}
+header{background:linear-gradient(135deg,#8B1A1A,#6B1212);padding:18px 24px;display:flex;align-items:center;gap:14px}
+header img{width:48px;height:48px;border-radius:50%;object-fit:contain;border:2px solid #D97706;background:#fff;padding:3px}
+header h1{font-size:18px;font-weight:800;color:#fff}
+header p{font-size:11px;color:rgba(255,255,255,.7)}
+.main{padding:20px;max-width:1200px;margin:0 auto}
+.card{background:#111827;border:1px solid #1e293b;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{font-size:14px;font-weight:700;color:#FCD34D;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+label{font-size:11px;color:#94a3b8;display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+input,select,textarea{width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:9px 12px;font-size:13px;outline:none}
+input:focus,select:focus{border-color:#8B1A1A;box-shadow:0 0 0 3px rgba(139,26,26,.2)}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;transition:all .2s}
+.btn-red{background:linear-gradient(135deg,#8B1A1A,#6B1212);color:#fff}
+.btn-red:hover{opacity:.9;transform:translateY(-1px)}
+.btn-gold{background:linear-gradient(135deg,#D97706,#B45309);color:#fff}
+.btn-green{background:linear-gradient(135deg,#059669,#047857);color:#fff}
+.btn-ghost{background:transparent;border:1px solid #334155;color:#94a3b8}
+.btn-ghost:hover{border-color:#8B1A1A;color:#fff}
+.field{margin-bottom:12px}
+.subj-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;margin:2px;cursor:pointer;transition:all .2s}
+.subj-tag:hover{opacity:.8}
+.remove-btn{background:none;border:none;color:inherit;cursor:pointer;font-size:14px;padding:0;line-height:1}
+#tt-output{overflow-x:auto;margin-top:16px}
+.tt-table{border-collapse:collapse;width:100%;font-size:11px}
+.tt-table th{background:linear-gradient(135deg,#8B1A1A,#6B1212);color:#fff;padding:8px 10px;text-align:left;white-space:nowrap}
+.tt-table td{border:1px solid #1e293b;padding:4px;vertical-align:top;min-width:100px}
+.slot{border-radius:6px;padding:5px 7px;font-size:11px;font-weight:600}
+.slot .teacher{font-size:9px;opacity:.75;margin-top:2px;font-weight:400}
+.break-row td{background:#1e3a5f;color:#7dd3fc;font-weight:700;text-align:center;font-size:10px;padding:4px}
+.info-box{background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:12px;font-size:12px;color:#94a3b8;margin-top:8px}
+.info-box strong{color:#FCD34D}
+.tag-staff{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#1e293b;border-radius:8px;margin:3px;font-size:12px}
+.clash-warn{background:#7f1d1d;border:1px solid #991b1b;border-radius:8px;padding:10px;color:#fca5a5;font-size:12px;margin-top:8px}
+.ok-box{background:#064e3b;border:1px solid #065f46;border-radius:8px;padding:10px;color:#6ee7b7;font-size:12px;margin-top:8px}
+@media print{body{background:#fff;color:#000}header{background:#8B1A1A}#controls{display:none}.tt-table th{background:#8B1A1A}.card{border-color:#ddd;background:#fff}}
+</style>
+</head>
+<body>
+<header>
+  <img src="/logo.png" alt="PAAV Logo" onerror="this.style.display='none'">
+  <div><h1>PAAV Gitombo — CBC Timetable Generator</h1><p>Zero-clash, rule-compliant timetable engine</p></div>
+</header>
+<div class="main" id="controls">
+
+<!-- STEP 1: SETUP -->
+<div class="card">
+  <h2>⚙️ Step 1: School Setup</h2>
+  <div class="grid3">
+    <div class="field"><label>Grade Level</label>
+      <select id="level" onchange="updateLevelInfo()">
+        <option value="primary13">Primary — Grades 1–3 (35 min, 31 lessons/wk)</option>
+        <option value="primary46">Primary — Grades 4–6 (35 min, 35 lessons/wk)</option>
+        <option value="jss" selected>JSS — Grades 7–9 (40 min, 45 lessons/wk)</option>
+        <option value="senior">Senior — Grades 10–12 (40 min, 40 lessons/wk)</option>
+      </select>
+    </div>
+    <div class="field"><label>Grade / Class Name</label>
+      <input id="gradeName" value="GRADE 7" placeholder="e.g. GRADE 7 WEST"></div>
+    <div class="field"><label>Academic Year / Term</label>
+      <input id="termName" value="Term 1, 2025" placeholder="e.g. Term 1 2025"></div>
+  </div>
+  <div class="info-box" id="levelInfo"></div>
+</div>
+
+<!-- STEP 2: SUBJECTS & TEACHERS -->
+<div class="card">
+  <h2>📚 Step 2: Subjects & Teachers</h2>
+  <div class="grid2" style="margin-bottom:12px">
+    <div class="field"><label>Subject Name</label><input id="subjName" placeholder="e.g. Mathematics"></div>
+    <div class="field"><label>Teacher Name</label><input id="subjTeacher" placeholder="e.g. Mr. Kamau"></div>
+  </div>
+  <div class="grid3" style="margin-bottom:12px">
+    <div class="field"><label>Lessons/Week</label><input id="subjLessons" type="number" value="5" min="1" max="12"></div>
+    <div class="field"><label>Allow Double Lesson?</label>
+      <select id="subjDouble"><option value="no">No</option><option value="yes">Yes (practical)</option></select></div>
+    <div class="field"><label>Priority Slot</label>
+      <select id="subjPriority"><option value="any">Any</option><option value="morning">Morning (core)</option><option value="afternoon">Afternoon</option></select></div>
+  </div>
+  <button class="btn btn-gold" onclick="addSubject()">➕ Add Subject</button>
+  <div id="subjectList" style="margin-top:12px;display:flex;flex-wrap:wrap"></div>
+</div>
+
+<!-- STEP 3: GENERATE -->
+<div class="card">
+  <h2>🚀 Step 3: Generate Timetable</h2>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-red" onclick="generate()">⚡ Generate (Zero Clash)</button>
+    <button class="btn btn-ghost" onclick="shuffleGenerate()">🔀 Shuffle & Regenerate</button>
+    <button class="btn btn-green" onclick="printTT()">🖨️ Print</button>
+    <button class="btn btn-gold" onclick="downloadCSV()">📥 Download CSV</button>
+    <button class="btn btn-ghost" onclick="copyJSON()">📋 Copy JSON</button>
+  </div>
+  <div id="statusBox" style="margin-top:10px"></div>
+  <div id="tt-output"></div>
+</div>
+
+</div><!-- end controls -->
+<div class="main" id="printArea" style="display:none"></div>
+
+<script>
+const LEVEL_CFG = {
+  primary13: { dur:35, perDay:[7,6,6,6,6], startTime:'08:20', breaks:[{after:2,label:'BREAK',dur:20},{after:5,label:'LUNCH',dur:60}] },
+  primary46: { dur:35, perDay:[7,7,7,7,7], startTime:'08:20', breaks:[{after:2,label:'BREAK',dur:20},{after:5,label:'LUNCH',dur:60}] },
+  jss:       { dur:40, perDay:[9,9,9,9,9], startTime:'08:00', breaks:[{after:2,label:'BREAK',dur:30},{after:6,label:'LUNCH',dur:60}] },
+  senior:    { dur:40, perDay:[8,8,8,8,8], startTime:'08:20', breaks:[{after:2,label:'BREAK',dur:30},{after:5,label:'LUNCH',dur:60}] },
+};
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const SIMILAR = [['English','Kiswahili'],['Mathematics','Science'],['Physics','Chemistry'],['Biology','Agriculture']];
+const SUBJ_COLORS = {Mathematics:'#7C3AED',English:'#1D4ED8',Kiswahili:'#0D9488',Science:'#059669','Social Studies':'#D97706','Home Science':'#BE185D',CRE:'#8B1A1A',PE:'#16A34A','Creative Arts':'#0891B2',Music:'#6D28D9',PPI:'#9F1239',IRE:'#92400E',Agriculture:'#4D7C0F','Business Studies':'#B45309','Computer Studies':'#1E40AF',Physics:'#7C3AED',Chemistry:'#059669',Biology:'#16A34A',History:'#B45309',Geography:'#0D9488',default:'#475569'};
+
+let subjects = [];
+let generated = null;
+
+function subjColor(s){ return SUBJ_COLORS[s]||SUBJ_COLORS.default; }
+
+function updateLevelInfo(){
+  const cfg = LEVEL_CFG[document.getElementById('level').value];
+  const total = cfg.perDay.reduce((a,b)=>a+b,0);
+  document.getElementById('levelInfo').innerHTML=`<strong>Duration:</strong> ${cfg.dur} min &nbsp;|&nbsp; <strong>Lessons/week:</strong> ${total} &nbsp;|&nbsp; <strong>Start:</strong> ${cfg.startTime} &nbsp;|&nbsp; <strong>Breaks:</strong> ${cfg.breaks.map(b=>b.label+' ('+b.dur+' min)').join(', ')}`;
+}
+
+function addSubject(){
+  const name=document.getElementById('subjName').value.trim();
+  const teacher=document.getElementById('subjTeacher').value.trim();
+  const lessons=parseInt(document.getElementById('subjLessons').value)||5;
+  const dbl=document.getElementById('subjDouble').value==='yes';
+  const priority=document.getElementById('subjPriority').value;
+  if(!name){alert('Enter subject name');return;}
+  const existing=subjects.findIndex(s=>s.name===name);
+  if(existing>=0){subjects[existing]={name,teacher,lessons,dbl,priority};}
+  else{subjects.push({name,teacher,lessons,dbl,priority});}
+  renderSubjects();
+  document.getElementById('subjName').value='';
+  document.getElementById('subjTeacher').value='';
+}
+
+function removeSubject(i){subjects.splice(i,1);renderSubjects();}
+
+function renderSubjects(){
+  const el=document.getElementById('subjectList');
+  if(!subjects.length){el.innerHTML='<span style="color:#64748b;font-size:12px">No subjects added yet</span>';return;}
+  el.innerHTML=subjects.map((s,i)=>`<div class="subj-tag" style="background:${subjColor(s.name)}22;border:1.5px solid ${subjColor(s.name)}55;color:${subjColor(s.name)}">
+    <span>${s.name}</span><span style="opacity:.6;font-size:10px">${s.lessons}/wk${s.dbl?' ×2':''}</span>
+    ${s.teacher?`<span style="opacity:.6;font-size:10px">· ${s.teacher}</span>`:''}
+    <button class="remove-btn" onclick="removeSubject(${i})">✕</button>
+  </div>`).join('');
+}
+
+function isSimilar(a,b){return SIMILAR.some(g=>g.includes(a)&&g.includes(b));}
+
+function addDefaultSubjects(){
+  const lvl=document.getElementById('level').value;
+  let defs=[];
+  if(lvl==='primary13') defs=[{name:'English',t:'',l:6,d:false,p:'morning'},{name:'Kiswahili',t:'',l:5,d:false,p:'morning'},{name:'Mathematics',t:'',l:6,d:false,p:'morning'},{name:'Science',t:'',l:4,d:true,p:'any'},{name:'Social Studies',t:'',l:3,d:false,p:'any'},{name:'CRE',t:'',l:2,d:false,p:'any'},{name:'PE',t:'',l:2,d:false,p:'afternoon'},{name:'Creative Arts',t:'',l:3,d:true,p:'afternoon'}];
+  else if(lvl==='primary46') defs=[{name:'English',t:'',l:6,d:false,p:'morning'},{name:'Kiswahili',t:'',l:5,d:false,p:'morning'},{name:'Mathematics',t:'',l:6,d:false,p:'morning'},{name:'Science',t:'',l:5,d:true,p:'any'},{name:'Social Studies',t:'',l:4,d:false,p:'any'},{name:'CRE',t:'',l:2,d:false,p:'any'},{name:'Agriculture',t:'',l:3,d:false,p:'any'},{name:'Home Science',t:'',l:2,d:true,p:'afternoon'},{name:'PE',t:'',l:2,d:false,p:'afternoon'}];
+  else if(lvl==='jss') defs=[{name:'English',t:'',l:6,d:false,p:'morning'},{name:'Kiswahili',t:'',l:5,d:false,p:'morning'},{name:'Mathematics',t:'',l:6,d:false,p:'morning'},{name:'Integrated Science',t:'',l:6,d:true,p:'any'},{name:'Social Studies',t:'',l:4,d:false,p:'any'},{name:'CRE',t:'',l:2,d:false,p:'any'},{name:'Agriculture',t:'',l:3,d:false,p:'any'},{name:'Home Science',t:'',l:3,d:true,p:'afternoon'},{name:'Business Studies',t:'',l:3,d:false,p:'any'},{name:'Computer Studies',t:'',l:3,d:false,p:'any'},{name:'PE',t:'',l:2,d:false,p:'afternoon'},{name:'Creative Arts',t:'',l:2,d:true,p:'afternoon'},{name:'PPI',t:'',l:1,d:false,p:'morning'}];
+  else defs=[{name:'English',t:'',l:5,d:false,p:'morning'},{name:'Kiswahili',t:'',l:4,d:false,p:'morning'},{name:'Mathematics',t:'',l:5,d:false,p:'morning'},{name:'Physics',t:'',l:5,d:true,p:'any'},{name:'Chemistry',t:'',l:5,d:true,p:'any'},{name:'Biology',t:'',l:4,d:true,p:'any'},{name:'History',t:'',l:4,d:false,p:'any'},{name:'Geography',t:'',l:4,d:false,p:'any'},{name:'CRE',t:'',l:2,d:false,p:'any'},{name:'PE',t:'',l:2,d:false,p:'afternoon'}];
+  subjects=defs.map(d=>({name:d.name,teacher:d.t,lessons:d.l,dbl:d.d,priority:d.p}));
+  renderSubjects();
+}
+
+function addTime(hm,mins){
+  let[h,m]=hm.split(':').map(Number);
+  m+=mins; h+=Math.floor(m/60); m%=60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+
+function buildSlotTimes(cfg){
+  const times=[];let cur=cfg.startTime,period=1;
+  const perDay=cfg.perDay[0];
+  for(let i=1;i<=perDay;i++){
+    const start=cur,end=addTime(cur,cfg.dur);
+    times.push({period,start,end});
+    cur=end; period++;
+    const brk=cfg.breaks.find(b=>b.after===i);
+    if(brk){cur=addTime(cur,brk.dur);}
+  }
+  return times;
+}
+
+function generate(seed){
+  if(!subjects.length){document.getElementById('statusBox').innerHTML='<div class="clash-warn">⚠️ Add subjects first</div>';return;}
+  const lvl=document.getElementById('level').value;
+  const cfg=LEVEL_CFG[lvl];
+  const maxPeriods=cfg.perDay[0];
+
+  // Build slot queue: subject repeated by lessons count
+  let pool=[];
+  subjects.forEach(s=>{
+    for(let i=0;i<s.lessons;i++) pool.push({...s,double:false});
+    if(s.dbl&&s.lessons>=2){
+      // Replace 2 single lessons with 1 double
+      const idx=pool.findIndex(x=>x.name===s.name);
+      if(idx>=0){pool.splice(idx,2);pool.push({...s,double:true});}
+    }
+  });
+
+  // Shuffle
+  if(seed!==undefined) pool=seededShuffle(pool,seed);
+  else pool=pool.sort(()=>Math.random()-.5);
+
+  // Sort: morning-priority first, PPI first
+  pool.sort((a,b)=>{
+    if(a.name==='PPI') return -1;if(b.name==='PPI') return 1;
+    if(a.priority==='morning'&&b.priority!=='morning') return -1;
+    if(b.priority==='morning'&&a.priority!=='morning') return 1;
+    if(a.priority==='afternoon'&&b.priority!=='afternoon') return 1;
+    if(b.priority==='afternoon'&&a.priority!=='afternoon') return -1;
+    return 0;
+  });
+
+  // Grid: days x periods
+  const grid={};
+  DAYS.forEach(d=>{grid[d]={};for(let p=1;p<=maxPeriods;p++) grid[d][p]=null;});
+
+  const teacherBusy={}; // teacher -> Set of "day-period"
+  const usedSlots=[]; // track placed items
+
+  function canPlace(day,period,item){
+    if(period>maxPeriods) return false;
+    if(grid[day][period]!==null) return false;
+    if(item.double&&(period>=maxPeriods||grid[day][period+1]!==null)) return false;
+    // Teacher clash
+    if(item.teacher){
+      const key=item.teacher;
+      if(!teacherBusy[key]) teacherBusy[key]=new Set();
+      if(teacherBusy[key].has(day+'-'+period)) return false;
+      if(item.double&&teacherBusy[key].has(day+'-'+(period+1))) return false;
+    }
+    // No similar subjects back-to-back
+    const prev=grid[day][period-1];
+    if(prev&&isSimilar(prev.name,item.name)) return false;
+    const next=grid[day][period+1];
+    if(next&&isSimilar(next.name,item.name)) return false;
+    // Science max 2 doubles per week
+    if(item.double&&(item.name.toLowerCase().includes('science'))){
+      let sciDoubles=0;
+      DAYS.forEach(d=>{ for(let p=1;p<=maxPeriods;p++){ const s=grid[d][p]; if(s&&s.name===item.name&&s.double) sciDoubles++; }});
+      if(sciDoubles>=2) return false;
+    }
+    // Morning priority
+    if(item.priority==='morning'&&period>Math.ceil(maxPeriods/2)) return false;
+    if(item.priority==='afternoon'&&period<=Math.ceil(maxPeriods/2)) return false;
+    return true;
+  }
+
+  function place(day,period,item){
+    grid[day][period]={...item};
+    if(item.teacher){
+      if(!teacherBusy[item.teacher]) teacherBusy[item.teacher]=new Set();
+      teacherBusy[item.teacher].add(day+'-'+period);
+    }
+    if(item.double){
+      grid[day][period+1]={...item,cont:true};
+      if(item.teacher) teacherBusy[item.teacher].add(day+'-'+(period+1));
+    }
+  }
+
+  // PPI: place in same period across all days (block 1 period on Monday)
+  const ppi=pool.find(x=>x.name==='PPI');
+  if(ppi){
+    for(let p=1;p<=maxPeriods;p++){
+      if(DAYS.every(d=>grid[d][p]===null)){
+        DAYS.forEach(d=>place(d,p,ppi));
+        pool=pool.filter(x=>x.name!=='PPI');
+        break;
+      }
+    }
+  }
+
+  // Place remaining
+  let unplaced=[];
+  pool.forEach(item=>{
+    let placed=false;
+    for(const day of DAYS){
+      for(let p=1;p<=maxPeriods;p++){
+        if(canPlace(day,p,item)){place(day,p,item);placed=true;break;}
+      }
+      if(placed) break;
+    }
+    if(!placed) unplaced.push(item);
+  });
+
+  // Relax afternoon constraint for unplaced
+  unplaced=unplaced.filter(item=>{
+    if(item.priority==='afternoon'||item.priority==='morning'){
+      const relaxed={...item,priority:'any'};
+      for(const day of DAYS){
+        for(let p=1;p<=maxPeriods;p++){
+          const orig=item.priority;item.priority='any';
+          if(canPlace(day,p,item)){place(day,p,item);item.priority=orig;return false;}
+          item.priority=orig;
+        }
+      }
+    }
+    return true;
+  });
+
+  generated={grid,cfg,lvl,unplaced};
+  renderTimetable(grid,cfg,unplaced);
+}
+
+function seededShuffle(arr,seed){
+  let s=seed;function rand(){s=(s*1664525+1013904223)%4294967296;return s/4294967296;}
+  const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function shuffleGenerate(){generate(Math.floor(Math.random()*99999));}
+
+function renderTimetable(grid,cfg,unplaced){
+  const slotTimes=buildSlotTimes(cfg);
+  const maxP=cfg.perDay[0];
+  let html=`<table class="tt-table"><thead><tr><th style="min-width:90px">Period / Time</th>${DAYS.map(d=>`<th>${d}</th>`).join('')}</tr></thead><tbody>`;
+
+  for(let p=1;p<=maxP;p++){
+    const t=slotTimes[p-1];
+    html+=`<tr><td style="background:#1e293b;font-size:10px;font-weight:700;color:#94a3b8;white-space:nowrap;padding:6px 8px">${t?t.start+' – '+t.end:''}<br/><span style="color:#64748b;font-weight:400">P${p}</span></td>`;
+    DAYS.forEach(day=>{
+      const s=grid[day][p];
+      if(s&&s.cont){html+=`<td style="background:#1e293b22;border:1px dashed #1e293b"></td>`;return;}
+      if(!s){html+=`<td></td>`;return;}
+      const col=subjColor(s.name);
+      html+=`<td><div class="slot" style="background:${col}22;border-left:3px solid ${col};color:${col}">
+        ${s.name}${s.double?'<span style="font-size:9px;background:'+col+';color:#fff;border-radius:3px;padding:0 4px;margin-left:4px">×2</span>':''}
+        ${s.teacher?`<div class="teacher">${s.teacher}</div>`:''}
+      </div></td>`;
+    });
+    html+='</tr>';
+    // Insert break rows
+    const brk=cfg.breaks.find(b=>b.after===p);
+    if(brk) html+=`<tr class="break-row"><td>${brk.label} (${brk.dur} min)</td>${DAYS.map(()=>`<td>${brk.label}</td>`).join('')}</tr>`;
+  }
+  html+='</tbody></table>';
+
+  const statusEl=document.getElementById('statusBox');
+  if(unplaced.length){
+    statusEl.innerHTML=`<div class="clash-warn">⚠️ ${unplaced.length} subject(s) could not be placed: <strong>${unplaced.map(x=>x.name).join(', ')}</strong>. Try reducing lessons/week or adding more periods.</div>`;
+  } else {
+    statusEl.innerHTML=`<div class="ok-box">✅ Timetable generated with zero clashes! All ${subjects.reduce((a,s)=>a+s.lessons,0)} lessons placed across 5 days.</div>`;
+  }
+  document.getElementById('tt-output').innerHTML=html;
+}
+
+function printTT(){
+  if(!generated){alert('Generate a timetable first');return;}
+  window.print();
+}
+
+function downloadCSV(){
+  if(!generated){alert('Generate a timetable first');return;}
+  const {grid,cfg}=generated;
+  const maxP=cfg.perDay[0];
+  let csv='Period,'+DAYS.join(',')+'\n';
+  for(let p=1;p<=maxP;p++){
+    csv+=`P${p},`+DAYS.map(d=>{const s=grid[d][p];return s&&!s.cont?`"${s.name}${s.teacher?' ('+s.teacher+')':''}"`:''}).join(',')+'\n';
+    const brk=cfg.breaks.find(b=>b.after===p);
+    if(brk) csv+=`${brk.label}(${brk.dur}min),`+DAYS.map(()=>brk.label).join(',')+'\n';
+  }
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`timetable-${document.getElementById('gradeName').value}-${document.getElementById('termName').value}.csv`;a.click();
+}
+
+function copyJSON(){
+  if(!generated){alert('Generate a timetable first');return;}
+  navigator.clipboard.writeText(JSON.stringify(generated.grid,null,2)).then(()=>alert('✅ JSON copied to clipboard! Paste in the portal timetable editor.'));
+}
+
+// Init
+updateLevelInfo();
+addDefaultSubjects();
+</script>
+</body>
+</html>

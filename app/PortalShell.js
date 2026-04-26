@@ -1,4 +1,5 @@
 'use client';
+import { getCachedUser, invalidateUser } from '@/lib/client-cache';
 /**
  * app/PortalShell.js — Client-side portal shell
  *

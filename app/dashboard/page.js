@@ -13,6 +13,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fmtK } from '@/lib/cbe';
+import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
 import { PRE, LOWER, UPPER, JSS, SENIOR } from '@/lib/cbe';
 
 const ALL_GRADE_GROUPS = [
