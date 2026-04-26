@@ -193,17 +193,17 @@ export default function ReportCardPage() {
                   <tr key={subj}>
                     <td>{subj}</td>
                     {cells.map((c, ci) => (
-                      <td key={ci} style={{ textAlign: 'center', fontWeight: 700 }}>
+                      <td key={ci} style={{ textAlign: 'center', padding: '4px 2px' }}>
                         {c.score !== undefined ? (
-                          <span>{c.score}
+                          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
+                            <span style={{ fontWeight: 800, fontSize: 11 }}>{c.score}</span>
                             {c.inf && (
-                              <span style={{ display:'inline-block', marginLeft:3, padding:'1px 5px',
-                                borderRadius:8, fontSize:8.5, fontWeight:900,
+                              <span style={{ padding:'1px 5px', borderRadius:8, fontSize:8, fontWeight:900,
                                 background:c.inf.bg, color:c.inf.c }}>
                                 {c.inf.lv}
                               </span>
                             )}
-                          </span>
+                          </div>
                         ) : <span style={{color:'#cbd5e1'}}>—</span>}
                       </td>
                     ))}

@@ -195,9 +195,10 @@ export default function MeritListPage() {
                       {l.detail.map(d => (
                         <td key={d.subj} style={{ textAlign: 'center', padding: '3px 2px' }}>
                           {d.score !== null ? (
-                            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:1 }}>
-                              <span style={{ fontWeight:800, fontSize:12.5 }}>
-                                {d.score} <span style={{ padding:'1px 5px', borderRadius:10, fontSize:9.5, fontWeight:900, background:d.bg||'#eee', color:d.c||'#333', marginLeft:2 }}>{d.lv}</span>
+                            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
+                              <span style={{ fontWeight:800, fontSize:12.5 }}>{d.score}</span>
+                              <span style={{ padding:'1px 5px', borderRadius:10, fontSize:9, fontWeight:900, background:d.bg||'#eee', color:d.c||'#333' }}>
+                                {d.lv}
                               </span>
                             </div>
                           ) : '—'}
