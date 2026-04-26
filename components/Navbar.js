@@ -14,21 +14,23 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 const ALL_NAV = [
-  { key:'dashboard',  label:'📊 Home',       roles:['admin','teacher','staff','member'] },
-  { key:'attendance', label:'📋 Attendance', roles:['admin','teacher'] },
-  { key:'timetable',  label:'📅 Timetable',  roles:['admin','teacher','staff'] },
-  { key:'duties',     label:'🎖️ Duties',      roles:['admin','teacher','staff'] },
-  { key:'performance',label:'📈 Performance',roles:['admin','teacher'] },
-  { key:'learners',   label:'🎓 Learners',   roles:['admin','teacher'] },
-  { key:'grades',     label:'📊 Grades',     roles:['admin','teacher'] },
-  { key:'merit-list', label:'🏆 Merit List', roles:['admin','teacher'] },
-  { key:'allocations',label:'🗓️ Allocations',roles:['admin'] },
-  { key:'salary',     label:'💵 Salary',      roles:['admin'] },
-  { key:'templates',  label:'📄 Templates',  roles:['admin'] },
-  { key:'fees',       label:'💰 Fees',       roles:['admin','staff']   },
-  { key:'teachers',   label:'👔 Staff',      roles:['admin']           },
-  { key:'settings',   label:'⚙ Settings',   roles:['admin']           },
-  { key:'messages',   label:'💬 Messages',   roles:['admin','teacher','staff','parent'] },
+  { key:'dashboard',  label:'📊 Home',        roles:['admin','teacher','staff','member','parent'] },
+  { key:'attendance', label:'📋 Attendance',  roles:['admin','teacher'] },
+  { key:'timetable',  label:'📅 Timetable',   roles:['admin','teacher','staff'] },
+  { key:'duties',     label:'🎖️ Duties',       roles:['admin','teacher','staff'] },
+  { key:'performance',label:'📈 Performance', roles:['admin','teacher'] },
+  { key:'learners',   label:'🎓 Learners',    roles:['admin','teacher'] },
+  { key:'grades',     label:'📊 Grades',      roles:['admin','teacher'] },
+  { key:'merit-list', label:'🏆 Merit List',  roles:['admin','teacher'] },
+  { key:'allocations',label:'🗓️ Allocations', roles:['admin'] },
+  { key:'salary',     label:'💵 Salary',       roles:['admin'] },
+  { key:'templates',  label:'📄 Templates',   roles:['admin'] },
+  { key:'fees',       label:'💰 Fees',        roles:['admin'] },
+  { key:'teachers',   label:'👔 Staff',       roles:['admin'] },
+  { key:'settings',   label:'⚙ Settings',    roles:['admin'] },
+  { key:'messages',   label:'💬 Messages',    roles:['admin','teacher','staff','parent'] },
+  { key:'profile',    label:'👤 Profile',     roles:['admin','teacher','staff','member','parent'] },
+  { key:'sms',        label:'📱 SMS',         roles:['admin'] },
 ];
 
 export default function Navbar({ user, unreadCount = 0 }) {

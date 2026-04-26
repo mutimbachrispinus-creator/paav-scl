@@ -10,7 +10,6 @@
  *   • Bottom mobile nav
  */
 
-'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -41,6 +40,7 @@ export default function PortalShell({ children }) {
   const idleTimer    = useRef(null);
   const warnTimer    = useRef(null);
   const countdownRef = useRef(null);
+  const heroFileRef  = useRef(null);
 
   const showNav = !NO_NAV_PATHS.includes(pathname);
 
@@ -55,6 +55,7 @@ export default function PortalShell({ children }) {
           body:    JSON.stringify({ requests: [
             { type: 'get', key: 'paav_announcement' },
             { type: 'get', key: 'paav6_msgs'        },
+            { type: 'get', key: 'paav_hero_img'     },
           ]}),
         }),
       ]);
@@ -72,6 +73,10 @@ export default function PortalShell({ children }) {
 
       const ann = db.results[0]?.value;
       if (ann?.text && ann?.active) setAnnouncement(ann.text);
+
+      // Load hero image
+      const heroDb = db.results[2]?.value;
+      if (heroDb) setHeroUrl(heroDb);
 
       const msgs = db.results[1]?.value || [];
       setUnreadCount(msgs.filter(m =>
@@ -148,8 +153,28 @@ export default function PortalShell({ children }) {
     } catch(e) { alert('Failed to save announcement'); }
   }
 
+  async function uploadHero(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const b64 = ev.target.result;
+      setHeroUrl(b64);
+      try {
+        await fetch('/api/db', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_hero_img', value: b64 }] })
+        });
+      } catch {}
+    };
+    reader.readAsDataURL(file);
+  }
+
   return (
     <>
+      {/* ── Hero file input (hidden) ── */}
+      <input ref={heroFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadHero} />
+
       {/* ── Topbar ── */}
       {showNav && user && (
         <Navbar user={user} unreadCount={unreadCount} />
@@ -202,6 +227,7 @@ export default function PortalShell({ children }) {
 
       {/* ── Main content ── */}
       <div id="main" style={showNav ? {} : { padding: 0, maxWidth: 'none' }}>
+        {/* Pass heroUrl + uploadTrigger as a data attribute on a context div */}
         {children}
       </div>
 

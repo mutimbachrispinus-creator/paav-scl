@@ -32,6 +32,8 @@ export default function DashboardPage() {
   const [feeCfg,   setFeeCfg]   = useState({});
   const [loading,  setLoading]  = useState(true);
   const [busy,     setBusy]     = useState(false);
+  const [heroUrl,  setHeroUrl]  = useState('');
+  const heroFileRef = useRef(null);
 
   /* ── Load current user + data ── */
   const load = useCallback(async () => {
@@ -58,6 +60,7 @@ export default function DashboardPage() {
             { type: 'get', key: 'paav6_paylog'   },
             { type: 'get', key: 'paav6_msgs'      },
             { type: 'get', key: 'paav6_feecfg'   },
+            { type: 'get', key: 'paav_hero_img'   },
           ],
         }),
       });
@@ -116,10 +119,50 @@ export default function DashboardPage() {
     reader.readAsDataURL(file);
   }
 
+  async function uploadHero(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const b64 = ev.target.result;
+      setHeroUrl(b64);
+      try {
+        await fetch('/api/db', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_hero_img', value: b64 }] })
+        });
+      } catch {}
+    };
+    reader.readAsDataURL(file);
+  }
+
   if (loading) return <div className="page on"><p>Loading dashboard...</p></div>;
 
   return (
     <div className="page on" id="pg-dashboard">
+      {/* ── Hero Banner ── */}
+      <div className="hero-banner" style={{ marginBottom: 22 }}>
+        {heroUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={heroUrl} alt="School Hero" />
+        )}
+        <div className="hero-banner-overlay" />
+        <div className="hero-banner-content">
+          <div style={{ fontFamily: 'Sora, sans-serif', fontSize: 22, fontWeight: 800 }}>
+            PAAV Gitombo Community School
+          </div>
+          <div style={{ fontSize: 13, opacity: 0.7, marginTop: 3 }}>More Than Academics!</div>
+        </div>
+        {user?.role === 'admin' && (
+          <>
+            <input ref={heroFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadHero} />
+            <button className="hero-upload-btn no-print" onClick={() => heroFileRef.current?.click()}>
+              🖼️ {heroUrl ? 'Change Hero Photo' : 'Upload Hero Photo'}
+            </button>
+          </>
+        )}
+      </div>
+
       <div className="page-hdr">
         <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
           <div 

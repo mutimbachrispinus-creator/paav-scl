@@ -196,12 +196,9 @@ export default function TemplatesPage() {
 function PrintHeader({ title, grade }) {
   return (
     <div style={{ textAlign: 'center', borderBottom: '3px double #8B1A1A', paddingBottom: 12, marginBottom: 16 }}>
-      {/* School crest circle */}
-      <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,#8B1A1A,#6B1212)', margin: '0 auto 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 8, fontWeight: 800, letterSpacing: 1, border: '2px solid #D97706' }}>
-        <span style={{ fontSize: 20 }}>🎓</span>
-        <span style={{ fontSize: 6, marginTop: 2 }}>PAAV</span>
-        <span style={{ fontSize: 5 }}>GITOMBO</span>
-      </div>
+      {/* School logo */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.png" alt="PAAV Logo" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'contain', margin: '0 auto 8px', border: '2px solid #D97706', background: '#fff', padding: 4 }} />
       <h1 style={{ fontFamily: 'Sora', fontSize: 17, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>PAAV-GITOMBO COMMUNITY SCHOOL</h1>
       <p style={{ fontSize: 10, margin: '2px 0', color: '#555' }}>P.O BOX 4091-00100 Nairobi | 0758 922 915 | paavgitomboschool@gmail.com</p>
       <p style={{ fontSize: 10, fontStyle: 'italic', color: '#D97706', fontWeight: 700, margin: '2px 0' }}>✝ More Than Academics!</p>
@@ -405,7 +402,8 @@ function ReceiptTemplate({ learners, fees, grade, selLearner }) {
         return (
           <div key={f.id || i} className="receipt-preview-card" style={{ pageBreakInside: 'avoid' }}>
             <div style={{ textAlign: 'center', marginBottom: 10, borderBottom: '2px dashed #8B1A1A', paddingBottom: 8 }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#8B1A1A', margin: '0 auto 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18 }}>🎓</div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="Logo" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'contain', margin: '0 auto 6px', border: '1px solid #ddd', background: '#fff', padding: 2 }} />
               <div style={{ fontWeight: 800, fontSize: 11, color: '#8B1A1A' }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
               <div style={{ fontSize: 9, color: '#888' }}>✝ More Than Academics!</div>
               <div style={{ fontWeight: 700, fontSize: 12, marginTop: 4, background: '#8B1A1A', color: '#fff', padding: '2px 10px', borderRadius: 20, display: 'inline-block' }}>OFFICIAL RECEIPT</div>
@@ -476,7 +474,8 @@ function IDCardTemplate({ learners, grade }) {
             </div>
           </div>
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 40, background: 'linear-gradient(to top, #eee, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <img src={LOGO} style={{ width: 24, opacity: 0.5 }} />
+             {/* eslint-disable-next-line @next/next/no-img-element */}
+             <img src="/logo.png" alt="Logo" style={{ width: 24, opacity: 0.5 }} />
           </div>
         </div>
       ))}

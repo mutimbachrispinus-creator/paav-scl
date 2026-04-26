@@ -17,6 +17,7 @@ export default function SalaryPage() {
   const [staff, setStaff] = useState([]);
   const [payroll, setPayroll] = useState([]);
   const [modal, setModal] = useState(null); // 'add' | null
+  const [printSlip, setPrintSlip] = useState(null); // payroll record to print
 
   const load = useCallback(async () => {
     try {
@@ -133,7 +134,7 @@ export default function SalaryPage() {
                       {p.status === 'pending' && (
                         <button className="btn btn-sm btn-success" onClick={() => markPaid(p.id)}>Mark Paid</button>
                       )}
-                      <button className="btn btn-sm btn-ghost" style={{ marginLeft: 5 }} onClick={() => window.print()}>🖨️</button>
+                      <button className="btn btn-sm btn-gold" style={{ marginLeft: 5 }} onClick={() => setPrintSlip(p)}>🖨️ Payslip</button>
                       <button className="btn btn-danger btn-sm" style={{ marginLeft: 5 }}
                         onClick={async () => {
                           if(!confirm('Delete this salary record?')) return;
@@ -152,6 +153,10 @@ export default function SalaryPage() {
           </table>
         </div>
       </div>
+
+      {printSlip && (
+        <PayslipModal rec={printSlip} onClose={() => setPrintSlip(null)} />
+      )}
 
       {modal === 'add' && (
         <SalaryAddModal 
@@ -243,3 +248,94 @@ function SalaryAddModal({ staff, onSave, onClose, busy }) {
     </div>
   );
 }
+
+function PayslipModal({ rec, onClose }) {
+  function doPrint() {
+    const el = document.getElementById('payslip-print-area');
+    const w = window.open('', '_blank', 'width=680,height=900');
+    w.document.write(`<!DOCTYPE html><html><head>
+      <title>Payslip — ${rec.staffName}</title>
+      <style>
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif}
+        body{background:#fff;padding:30px}
+        .ps-wrap{border:2px solid #ddd;border-radius:10px;padding:28px;max-width:500px;margin:0 auto;position:relative;overflow:hidden}
+        .ps-wrap::before{content:'PAYSLIP';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:60px;font-weight:900;color:rgba(139,26,26,.04);pointer-events:none;white-space:nowrap}
+        .ps-hdr{text-align:center;border-bottom:3px double #8B1A1A;padding-bottom:14px;margin-bottom:18px}
+        .ps-school{font-size:17px;font-weight:800;color:#8B1A1A}
+        .ps-title{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#666;margin-top:3px}
+        table{width:100%;border-collapse:collapse}
+        th{background:#F5E6E6;color:#8B1A1A;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.7px;text-align:left}
+        td{padding:8px 12px;border-bottom:1px dashed #eee;font-size:12.5px}
+        .net-row td{background:linear-gradient(135deg,#8B1A1A,#6B1212);color:#fff;font-weight:800;font-size:14px;border:none;padding:12px}
+        .footer{text-align:center;font-size:10.5px;color:#999;margin-top:14px;border-top:1px solid #eee;padding-top:10px}
+        @media print{@page{size:A4 portrait;margin:10mm}.no-print{display:none!important}}
+      </style>
+    </head><body>
+      <div class="ps-wrap">
+        <div class="ps-hdr">
+          <div class="ps-school">PAAV GITOMBO COMMUNITY SCHOOL</div>
+          <div class="ps-title">More Than Academics! — Official Payslip</div>
+        </div>
+        <table>
+          <tbody>
+            <tr><th colspan="2">EMPLOYEE DETAILS</th></tr>
+            <tr><td>Name</td><td><strong>${rec.staffName}</strong></td></tr>
+            <tr><td>Month</td><td>${rec.month}</td></tr>
+            <tr><td colspan="2" style="padding:6px 12px;background:#f9f9f9"><strong>EARNINGS</strong></td></tr>
+            <tr><td>Basic Salary</td><td>KES ${rec.basic.toLocaleString()}</td></tr>
+            <tr><td>Allowances</td><td>KES ${rec.allowances.toLocaleString()}</td></tr>
+            <tr><td colspan="2" style="padding:6px 12px;background:#f9f9f9"><strong>DEDUCTIONS</strong></td></tr>
+            <tr><td>NHIF / NSSF / Advance</td><td>KES ${rec.deductions.toLocaleString()}</td></tr>
+            <tr class="net-row"><td>NET PAY</td><td>KES ${rec.net.toLocaleString()}</td></tr>
+          </tbody>
+        </table>
+        <div class="footer">Status: ${rec.status.toUpperCase()} | Generated: ${new Date().toLocaleDateString()}<br/>PAAV Gitombo Community School — More Than Academics!</div>
+      </div>
+      <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),800)}<\/script>
+    </body></html>`);
+    w.document.close();
+  }
+
+  return (
+    <div className="modal-overlay open">
+      <div className="modal modal-lg">
+        <div className="modal-hdr">
+          <h3>🖨️ Payslip — {rec.staffName}</h3>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body" id="payslip-print-area">
+          <div className="payslip-print-wrap">
+            <div className="payslip-header">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="Logo" style={{ width: 54, height: 54, objectFit: 'contain', borderRadius: '50%', marginBottom: 6 }} />
+              <div className="payslip-school">PAAV GITOMBO COMMUNITY SCHOOL</div>
+              <div className="payslip-title">More Than Academics! — Official Payslip</div>
+            </div>
+            <table className="payslip-table">
+              <tbody>
+                <tr><th colSpan={2}>Employee Details</th></tr>
+                <tr><td><strong>Name</strong></td><td>{rec.staffName}</td></tr>
+                <tr><td><strong>Month</strong></td><td>{rec.month}</td></tr>
+                <tr><td colSpan={2} style={{ background: '#F8FAFF', fontWeight: 700, paddingTop: 10 }}>EARNINGS</td></tr>
+                <tr><td>Basic Salary</td><td>KES {rec.basic.toLocaleString()}</td></tr>
+                <tr><td>Allowances</td><td>KES {rec.allowances.toLocaleString()}</td></tr>
+                <tr><td colSpan={2} style={{ background: '#FFF5F5', fontWeight: 700, paddingTop: 10 }}>DEDUCTIONS</td></tr>
+                <tr><td>NHIF / NSSF / Advance</td><td>KES {rec.deductions.toLocaleString()}</td></tr>
+                <tr className="payslip-net-row"><td>NET PAY</td><td>KES {rec.net.toLocaleString()}</td></tr>
+              </tbody>
+            </table>
+            <div className="payslip-footer">
+              Status: <strong>{rec.status.toUpperCase()}</strong> | Generated: {new Date().toLocaleDateString()}<br/>
+              PAAV Gitombo Community School — More Than Academics!
+            </div>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-ghost" onClick={onClose}>Close</button>
+          <button className="btn btn-primary" onClick={doPrint}>🖨️ Print Payslip</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+

@@ -18,7 +18,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { kvGet, kvSet, kvDelete, kvTimestamps, query, ensureSchema } from '@/lib/db';
+import { kvGet, kvSet, kvDelete, kvTimestamps } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
 /* ─── Auth check ────────────────────────────────────────────────────────── */
@@ -42,8 +42,6 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
     }
 
-    await ensureSchema();
-
     const body = await request.json();
     const { requests } = body;
 
@@ -65,8 +63,6 @@ export async function GET(request) {
   try {
     const auth = await authenticate(request);
     if (!auth) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
-
-    await ensureSchema();
 
     const { searchParams } = new URL(request.url);
     const key = searchParams.get('key');
