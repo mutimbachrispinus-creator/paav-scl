@@ -75,7 +75,7 @@ export default function LearnersPage() {
             <p>All enrolled learners — KG to Grade 12</p>
           </div>
           <div className="page-hdr-acts">
-            <button className="btn btn-ghost btn-sm" onClick={() => setModal('bulk')}>
+            <button className="btn btn-ghost btn-sm" onClick={() => router.push('/learners/bulk')}>
               📋 Bulk Add
             </button>
             {user?.role === 'admin' && (
@@ -163,11 +163,26 @@ export default function LearnersPage() {
                           👁 View
                         </button>
                         {user?.role === 'admin' && (
-                          <button className="btn btn-gold btn-sm"
-                            style={{ marginLeft: 4 }}
-                            onClick={() => router.push(`/fees/${l.adm}/receipt`)}>
-                            🧾
-                          </button>
+                          <>
+                            <button className="btn btn-gold btn-sm"
+                              style={{ marginLeft: 4 }}
+                              onClick={() => router.push(`/fees/${l.adm}/receipt`)}>
+                              🧾
+                            </button>
+                            <button className="btn btn-danger btn-sm"
+                              style={{ marginLeft: 4 }}
+                              onClick={async () => {
+                                if(!confirm(`Delete learner ${l.name}?`)) return;
+                                const updated = learners.filter(x => x.adm !== l.adm);
+                                await fetch('/api/db', {
+                                  method:'POST', headers:{'Content-Type':'application/json'},
+                                  body: JSON.stringify({ requests:[{ type:'set', key:'paav6_learners', value: updated }] })
+                                });
+                                load();
+                              }}>
+                              🗑️
+                            </button>
+                          </>
                         )}
                       </td>
                     </tr>

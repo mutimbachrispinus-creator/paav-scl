@@ -129,6 +129,16 @@ export default function TeachersPage() {
                         <button className="btn btn-teal btn-sm" style={{ marginLeft: 4 }}
                           onClick={() => sendCreds(s.id)}>📱</button>
                       )}
+                      <button className="btn btn-danger btn-sm" style={{ marginLeft: 4 }}
+                        onClick={async () => {
+                          if(!confirm(`Permanently delete user ${s.name}?`)) return;
+                          const updated = staff.filter(x => x.id !== s.id);
+                          await fetch('/api/db', {
+                            method:'POST', headers:{'Content-Type':'application/json'},
+                            body: JSON.stringify({ requests:[{ type:'set', key:'paav6_staff', value: updated }] })
+                          });
+                          load();
+                        }}>🗑️</button>
                     </td>
                   </tr>
                 ))}

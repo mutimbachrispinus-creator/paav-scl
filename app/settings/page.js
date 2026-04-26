@@ -40,6 +40,8 @@ export default function SettingsHubPage() {
     { title: '📊 Grading Scale', desc: 'Configure EE/ME/AE/BE score thresholds', href: '/settings/grading', icon: '📈' },
     { title: '📚 Subjects', desc: 'Add or remove subjects per grade level', href: '/settings/subjects', icon: '📖' },
     { title: '🏫 Streams & Classes', desc: 'Manage class streams and identifiers', href: '/settings/streams', icon: '🏢' },
+    { title: '📅 Timetable', desc: 'Configure lesson times and breaks', href: '/settings/timetable', icon: '⏰' },
+    { title: '🎨 Portal Branding', desc: 'Hero images and announcements', href: '/settings/portal', icon: '✨' },
     { title: '👤 My Profile', desc: 'Update your personal info and security', href: '/dashboard?tab=profile', icon: '🔑' },
   ];
 

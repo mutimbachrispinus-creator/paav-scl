@@ -23,6 +23,7 @@ const ALL_NAV = [
   { key:'grades',     label:'📊 Grades',     roles:['admin','teacher'] },
   { key:'merit-list', label:'🏆 Merit List', roles:['admin','teacher'] },
   { key:'allocations',label:'🗓️ Allocations',roles:['admin'] },
+  { key:'salary',     label:'💵 Salary',      roles:['admin'] },
   { key:'templates',  label:'📄 Templates',  roles:['admin'] },
   { key:'fees',       label:'💰 Fees',       roles:['admin','staff']   },
   { key:'teachers',   label:'👔 Staff',      roles:['admin']           },
