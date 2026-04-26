@@ -131,7 +131,7 @@ export default function GradesPage() {
   /* ── Grade scale pills ── */
   const scale = isJSSGrade(grade) ? JSS_SCALE : PRIMARY_SCALE;
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading marks…</div>;
+  if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading marks…</div>;
 
   return (
     <div className="page on">

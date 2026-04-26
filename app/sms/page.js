@@ -91,7 +91,7 @@ export default function SMSPage() {
   const phones = getPhones();
   const segments = smsSegments(message);
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading…</div>;
+  if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading…</div>;
 
   return (
     <div className="page on">

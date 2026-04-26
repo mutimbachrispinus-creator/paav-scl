@@ -46,7 +46,7 @@ export default function ParentMarksPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  if (loading) return <div className="page on" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>Loading report...</div>;
+  if (loading || !user) return <div className="page on" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>Loading report...</div>;
 
   if (!child) {
     return (

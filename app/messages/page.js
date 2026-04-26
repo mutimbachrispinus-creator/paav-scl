@@ -118,7 +118,7 @@ export default function MessagesPage() {
     setCmpBody('');
   };
 
-  if (loading) return <LoadingSkeleton />;
+  if (loading || !user) return <LoadingSkeleton />;
 
   const myMsgs = allMessages.filter(m => 
     m.from === user.username || 

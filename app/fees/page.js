@@ -71,7 +71,7 @@ export default function FeesPage() {
   const totalBalance = totalExp - totalPaid;
   const cleared      = learners.filter(l => getBal(l) <= 0).length;
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading fees…</div>;
+  if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading fees…</div>;
 
   return (
     <>

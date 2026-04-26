@@ -131,7 +131,7 @@ export default function TimetablePage() {
     ...(isAdmin   ? [{ id:'edit', label:'⚙️ Edit Timetable' }] : []),
   ];
 
-  if (loading) return (
+  if (loading || !user) return (
     <div className="page on" style={{padding:60,textAlign:'center',color:'var(--muted)'}}>
       <div style={{fontSize:32,marginBottom:10}}>📅</div>Loading…
     </div>

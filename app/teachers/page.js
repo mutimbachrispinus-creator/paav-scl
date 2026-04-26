@@ -70,7 +70,7 @@ export default function TeachersPage() {
     alert(data.ok ? '✅ Credentials sent via SMS!' : `❌ ${data.error}`);
   }
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading staff…</div>;
+  if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading staff…</div>;
 
   return (
     <>

@@ -104,7 +104,7 @@ export default function TemplatesPage() {
     { id: 'id',      label: '🆔 Student IDs' },
   ];
 
-  if (loading) return <div className="page on"><p style={{padding:40,color:'var(--muted)'}}>Loading templates…</p></div>;
+  if (loading || !user) return <div className="page on"><p style={{padding:40,color:'var(--muted)'}}>Loading templates…</p></div>;
 
   return (
     <div className="page on" id="pg-templates">

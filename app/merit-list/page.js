@@ -65,7 +65,7 @@ export default function MeritListPage() {
   const subjects = DEFAULT_SUBJECTS[grade] || [];
   const max = maxPts(grade, subjects);
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading merit list…</div>;
+  if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading merit list…</div>;
 
   return (
     <div className="page on">

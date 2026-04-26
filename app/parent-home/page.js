@@ -96,7 +96,7 @@ export default function ParentHome() {
     reader.readAsDataURL(file);
   }
 
-  if (loading) return <div className="page on" style={{padding:60,textAlign:'center',color:'var(--muted)'}}>Loading…</div>;
+  if (loading || !user) return <div className="page on" style={{padding:60,textAlign:'center',color:'var(--muted)'}}>Loading…</div>;
   if (!user) return null;
 
   const child = children.find(c=>c.adm===selAdm) || children[0];

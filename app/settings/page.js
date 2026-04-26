@@ -34,7 +34,7 @@ export default function SettingsHubPage() {
     checkAuth();
   }, [router]);
 
-  if (loading) return <div className="page on"><p>Loading settings...</p></div>;
+  if (loading || !user) return <div className="page on"><p>Loading settings...</p></div>;
 
   const SETTINGS_LINKS = [
     { title: '📊 Grading Scale', desc: 'Configure EE/ME/AE/BE score thresholds', href: '/settings/grading', icon: '📈' },

@@ -64,7 +64,7 @@ export default function LearnersPage() {
     return getAnnualFee(l.grade) - (l.t1||0) - (l.t2||0) - (l.t3||0);
   }
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading learners…</div>;
+  if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading learners…</div>;
 
   return (
     <>

@@ -50,7 +50,7 @@ export default function PredictorPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  if (loading) return <div className="page on" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>Loading predictor...</div>;
+  if (loading || !user) return <div className="page on" style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>Loading predictor...</div>;
 
   const subjects = DEFAULT_SUBJECTS[selGrade] || [];
   

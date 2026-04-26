@@ -202,7 +202,7 @@ export default function ProfilePage() {
   const filteredStaff = allStaff.filter(s => !staffQ || s.name?.toLowerCase().includes(staffQ.toLowerCase()) || s.role?.toLowerCase().includes(staffQ.toLowerCase()));
   const filteredLearners = learnerQ.length >= 2 ? allLearners.filter(l => l.name?.toLowerCase().includes(learnerQ.toLowerCase()) || l.adm?.toLowerCase().includes(learnerQ.toLowerCase())) : [];
 
-  if (loading) return <div className="page on"><p style={{ padding: 30 }}>Loading profile…</p></div>;
+  if (loading || !user) return <div className="page on"><p style={{ padding: 30 }}>Loading profile…</p></div>;
 
   const TABS = [
     { key: 'me', label: '👤 My Profile' },

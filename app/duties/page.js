@@ -113,7 +113,7 @@ export default function DutiesPage() {
     setRequests(updated);
   }
 
-  if (loading) return (
+  if (loading || !user) return (
     <div className="page on">
       <div style={{ padding: 60, textAlign: 'center' }}>
         <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>

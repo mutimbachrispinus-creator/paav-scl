@@ -78,7 +78,7 @@ export default function SalaryPage() {
     setPayroll(updated);
   }
 
-  if (loading) return <div className="page on"><p>Loading salary records...</p></div>;
+  if (loading || !user) return <div className="page on"><p>Loading salary records...</p></div>;
 
   return (
     <div className="page on">

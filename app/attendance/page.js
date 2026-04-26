@@ -68,7 +68,7 @@ export default function AttendancePage() {
 
   const list = learners.filter(l => l.grade === grade);
 
-  if (loading) return <div className="page on"><p>Loading attendance...</p></div>;
+  if (loading || !user) return <div className="page on"><p>Loading attendance...</p></div>;
 
   return (
     <div className="page on">

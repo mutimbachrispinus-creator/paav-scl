@@ -137,7 +137,7 @@ export default function DashboardPage() {
     reader.readAsDataURL(file);
   }
 
-  if (loading) return <div className="page on"><p>Loading dashboard...</p></div>;
+  if (loading || !user) return <div className="page on"><p>Loading dashboard...</p></div>;
 
   return (
     <div className="page on" id="pg-dashboard">
