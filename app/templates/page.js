@@ -206,15 +206,17 @@ function PrintHeader({ title, grade }) {
 function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gradCfg }) {
   const data = learners.map(l => {
     let total = 0;
+    let totalMarks = 0;
     let count = 0;
     subjects.forEach(s => {
       const score = marks[`${term}:${grade}|${s}|${assess}`]?.[l.adm];
       if (score !== undefined) {
         total += gInfo(score, grade).pts;
+        totalMarks += Number(score);
         count++;
       }
     });
-    return { ...l, total, count, avg: count > 0 ? (total / (subjects.length * (grade.includes('GRADE 7') || grade.includes('GRADE 8') || grade.includes('GRADE 9') || grade.includes('GRADE 1') ? (grade.includes('GRADE 10')||grade.includes('GRADE 11')||grade.includes('GRADE 12')?8:8) : 4)) * 100).toFixed(1) : 0 };
+    return { ...l, total, totalMarks, count, avg: count > 0 ? (total / (subjects.length * (grade.includes('GRADE 7') || grade.includes('GRADE 8') || grade.includes('GRADE 9') || grade.includes('GRADE 1') ? (grade.includes('GRADE 10')||grade.includes('GRADE 11')||grade.includes('GRADE 12')?8:8) : 4)) * 100).toFixed(1) : 0 };
   }).sort((a, b) => b.total - a.total);
 
   const colStats = subjects.map(s => {
@@ -234,6 +236,8 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
 
   const totalPtsSum = data.reduce((acc, l) => acc + l.total, 0);
   const totalAvgPts = data.length > 0 ? Math.round(totalPtsSum / data.length) : 0;
+  const totalMarksSum = data.reduce((acc, l) => acc + l.totalMarks, 0);
+  const totalAvgMarks = data.length > 0 ? Math.round(totalMarksSum / data.length) : 0;
   const avgPct = data.length > 0 ? (data.reduce((acc, l) => acc + parseFloat(l.avg), 0) / data.length).toFixed(1) : 0;
 
   return (
@@ -246,8 +250,9 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
             <th style={{ border: '1px solid #ddd', padding: 8 }}>ADM</th>
             <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Name</th>
             {subjects.map(s => <th key={s} style={{ border: '1px solid #ddd', padding: 8, fontSize: 9 }}>{s.slice(0,5)}</th>)}
-            <th style={{ border: '1px solid #ddd', padding: 8 }}>Total Pts</th>
-            <th style={{ border: '1px solid #ddd', padding: 8 }}>%</th>
+            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A' }}>Total Marks</th>
+            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A' }}>Total Pts</th>
+            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A' }}>%</th>
           </tr>
         </thead>
         <tbody>
@@ -270,7 +275,8 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                   </td>
                 );
               })}
-              <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{l.total}</td>
+              <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700, color: '#059669' }}>{l.totalMarks}</td>
+              <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800, color: 'var(--navy)' }}>{l.total}</td>
               <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>{l.avg}%</td>
             </tr>
           ))}
@@ -283,6 +289,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                     {stat.avgScore !== null ? stat.avgScore : '—'}
                   </td>
                 ))}
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{totalAvgMarks}</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{avgPct}%</td>
               </tr>
@@ -295,6 +302,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                 ))}
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
               </tr>
               <tr style={{ background: '#f9f9f9' }}>
                 <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>AVERAGE POINTS</td>
@@ -303,6 +311,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                     {stat.avgInfo ? stat.avgInfo.pts : '—'}
                   </td>
                 ))}
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800, color: '#8B1A1A' }}>{totalAvgPts}</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
               </tr>
