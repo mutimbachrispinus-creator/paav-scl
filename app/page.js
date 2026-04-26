@@ -102,7 +102,7 @@ export default function LoginPage() {
         <div className="auth-pills">
           <div className="auth-pill"><div className="auth-pill-i">📝</div>CBC marks entry per subject — Senior/JSS 72pts · Primary 4pts/subject</div>
           <div className="auth-pill"><div className="auth-pill-i">💰</div>Configurable fee structure — admin sets termly amounts</div>
-          <div className="auth-pill"><div className="auth-pill-i">👨‍👩‍👧</div>Parent portal — child's fees, grades & school messages</div>
+          <div className="auth-pill"><div className="auth-pill-i">👨‍👩‍👧</div>Parent portal — child&apos;s fees, grades & school messages</div>
           <div className="auth-pill"><div className="auth-pill-i">💬</div>Direct messaging between staff and parents</div>
         </div>
 
@@ -158,7 +158,7 @@ export default function LoginPage() {
 
                 {form.role === 'parent' && (
                    <div className="field">
-                     <label>Child's Admission Number</label>
+                     <label>Child&apos;s Admission Number</label>
                      <input required value={form.childAdm} onChange={e => F('childAdm', e.target.value)} placeholder="e.g. ADM001" />
                    </div>
                 )}

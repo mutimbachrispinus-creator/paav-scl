@@ -55,7 +55,7 @@ export default function MeritListPage() {
     setMarks(   db.results[1]?.value || {});
     setGradCfg( db.results[2]?.value || null);
     setLoading(false);
-  }, [router]);
+  }, [router, setGrade]);
 
   useEffect(() => { load(); }, [load]);
 

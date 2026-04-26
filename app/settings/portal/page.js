@@ -89,7 +89,7 @@ export default function PortalSettingsPage() {
               />
             </div>
             <div style={{ marginTop: 15, borderRadius: 10, overflow: 'hidden', border: '2px solid var(--border)', height: 160, background: '#f8f8f8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-               {form.heroImg ? <img src={form.heroImg} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'var(--muted)', fontSize: 12 }}>No image preview</span>}
+               {form.heroImg ? <img src={form.heroImg} alt="Hero Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'var(--muted)', fontSize: 12 }}>No image preview</span>}
             </div>
             <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10 }}>Paste a direct link to an image. This will be the login page background.</p>
           </div>
