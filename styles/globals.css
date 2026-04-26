@@ -883,7 +883,7 @@ tr:hover td{background:#F8FAFF}
 
 /* Precise A4 Portrait for report cards */
 @media print {
-  html, body { width: 210mm; }
+  /* html, body { width: 210mm; } - Removed to fix landscape printing */
   .rc-page {
     width: 190mm !important;
     min-height: 267mm !important;
