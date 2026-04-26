@@ -193,6 +193,16 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
   async function save() {
     if (!form.name || !form.username) { setErr('Name and username are required'); return; }
     if (!isEdit && !form.password)    { setErr('Password is required for new users'); return; }
+    
+    // Enforce 4 admin limit
+    if (form.role === 'admin') {
+      const adminCount = allStaff.filter(s => s.role === 'admin').length;
+      if (adminCount >= MAX_ADMINS && !(isEdit && user.role === 'admin')) {
+        setErr(`Limit reached: Maximum of ${MAX_ADMINS} admins allowed.`);
+        return;
+      }
+    }
+
     setBusy(true);
     const res = await fetch('/api/auth', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
