@@ -76,17 +76,12 @@ export default function FeesPage() {
   return (
     <>
       <div className="page on">
-        <div className="page-hdr">
+        <div className="page-hdr no-print">
           <div>
             <h2>💰 Fees</h2>
             <p style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               Manage school fee payments and receipts
-              {user?.role === 'staff' && (
-                <span style={{ background: '#F0FDFA', color: '#0D9488', fontWeight: 700,
-                  fontSize: 11, padding: '2px 9px', borderRadius: 20, border: '1.5px solid #A7F3D0' }}>
-                  Staff — record payments &amp; receipts
-                </span>
-              )}
+              
               {user?.role === 'admin' && (
                 <span style={{ background: '#FDF2F2', color: '#8B1A1A', fontWeight: 700,
                   fontSize: 11, padding: '2px 9px', borderRadius: 20, border: '1.5px solid #FECACA' }}>
@@ -108,7 +103,7 @@ export default function FeesPage() {
         </div>
 
         {/* ── Summary cards ── */}
-        <div className="sg sg4" style={{ marginBottom: 18 }}>
+        <div className="sg sg4 no-print" style={{ marginBottom: 18 }}>
           <SCard icon="🎯" label="Expected" value={fmtK(totalExp)}    bg="#EFF6FF" />
           <SCard icon="✅" label="Collected" value={fmtK(totalPaid)}  bg="#ECFDF5" />
           <SCard icon="⚠" label="Balance"   value={fmtK(totalBalance)} bg="#FEF2F2" />
@@ -116,7 +111,7 @@ export default function FeesPage() {
         </div>
 
         {/* ── Payment log ── */}
-        <div className="panel" style={{ marginBottom: 18 }}>
+        <div className="panel no-print" style={{ marginBottom: 18 }}>
           <div className="panel-hdr">
             <h3>📥 Recent Payments</h3>
           </div>
@@ -125,7 +120,7 @@ export default function FeesPage() {
               <thead>
                 <tr>
                   <th>Date</th><th>Adm</th><th>Name</th><th>Term</th>
-                  <th>Amount</th><th>Method</th><th>Ref</th><th>By</th><th>Actions</th>
+                  <th>Amount</th><th>Method</th><th>Ref</th><th>By</th><th className="no-print">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -163,7 +158,8 @@ export default function FeesPage() {
         <div className="panel">
           <div className="panel-hdr">
             <h3>📋 Learner Fee Balances</h3>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="print-only" style={{ display: 'none' }}>PAAV Gitombo - Fee Balances Report</div>
+            <div className="no-print" style={{ display: 'flex', gap: 8 }}>
               <input
                 placeholder="🔍 Search…"
                 value={query}
@@ -185,7 +181,7 @@ export default function FeesPage() {
                 <tr>
                   <th>Adm</th><th>Name</th><th>Grade</th>
                   <th>Annual Fee</th><th>T1</th><th>T2</th><th>T3</th>
-                  <th>Total Paid</th><th>Balance</th><th>Actions</th>
+                  <th>Total Paid</th><th>Balance</th><th className="no-print">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -208,7 +204,7 @@ export default function FeesPage() {
                           ? <span className="badge bg-green">Cleared</span>
                           : <span className="badge bg-amber">{fmtK(bal)}</span>}
                       </td>
-                      <td style={{ whiteSpace: 'nowrap' }}>
+                      <td className="no-print" style={{ whiteSpace: 'nowrap' }}>
                         <button className="btn btn-success btn-sm"
                           onClick={() => { setSelLearner(l); setModal('pay'); }}>
                           + Pay

@@ -102,6 +102,8 @@ export default function AllocationsPage() {
     return staff.find(s => s.id === id)?.name || '—';
   }
 
+  const teachingStaff = staff.filter(s => s.role === 'teacher' || s.role === 'admin');
+
   if (loading) return (
     <div className="page on" style={{ padding: 40 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: 'var(--muted)' }}>
@@ -195,7 +197,7 @@ export default function AllocationsPage() {
                             onChange={e => setClassTeachers({ ...classTeachers, [grade]: e.target.value })}
                           >
                             <option value="">(Not Assigned)</option>
-                            {staff.map(st => <option key={st.id} value={st.id}>{st.name} {teacherCodes[st.id] ? `[${teacherCodes[st.id]}]` : ''}</option>)}
+                            {teachingStaff.map(st => <option key={st.id} value={st.id}>{st.name} {teacherCodes[st.id] ? `[${teacherCodes[st.id]}]` : ''}</option>)}
                           </select>
                         </div>
                         {/* Per-stream class teachers */}
@@ -210,7 +212,7 @@ export default function AllocationsPage() {
                               onChange={e => setClassTeachers({ ...classTeachers, [`${grade}|${stream}`]: e.target.value })}
                             >
                               <option value="">(Not Assigned)</option>
-                              {staff.map(st => <option key={st.id} value={st.id}>{st.name} {teacherCodes[st.id] ? `[${teacherCodes[st.id]}]` : ''}</option>)}
+                              {teachingStaff.map(st => <option key={st.id} value={st.id}>{st.name} {teacherCodes[st.id] ? `[${teacherCodes[st.id]}]` : ''}</option>)}
                             </select>
                           </div>
                         ))}
@@ -257,7 +259,7 @@ export default function AllocationsPage() {
                         onChange={e => setAllocs({ ...allocs, [`${grade}|${s}`]: e.target.value })}
                       >
                         <option value="">(Not Assigned)</option>
-                        {staff.map(st => (
+                        {teachingStaff.map(st => (
                           <option key={st.id} value={st.id}>
                             {teacherCodes[st.id] ? `[${teacherCodes[st.id]}] ` : ''}{st.name}
                           </option>
@@ -281,7 +283,7 @@ export default function AllocationsPage() {
           </div>
           <div className="panel-body">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-              {staff.map(st => (
+              {teachingStaff.map(st => (
                 <div key={st.id} style={{
                   display: 'grid',
                   gridTemplateColumns: '1fr auto',
@@ -324,7 +326,7 @@ export default function AllocationsPage() {
                   </div>
                 </div>
               ))}
-              {staff.length === 0 && (
+              {teachingStaff.length === 0 && (
                 <div style={{ gridColumn: '1 / -1', padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
                   No staff members found. Add staff in the Staff module first.
                 </div>

@@ -1006,3 +1006,4 @@ input:focus, select:focus, textarea:focus {
   0%,100% { box-shadow: 0 2px 0 rgba(217,119,6,.3); }
   50% { box-shadow: 0 3px 18px rgba(217,119,6,.55); }
 }
+@media print { .print-only { display: block !important; font-size: 24px; font-weight: bold; margin-bottom: 20px; text-align: center; color: black; } }

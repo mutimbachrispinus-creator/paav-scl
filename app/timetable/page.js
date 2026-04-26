@@ -391,6 +391,71 @@ function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave })
     }));
   }
 
+  
+  async function autoGenerate() {
+    setSaving(true);
+    try {
+      // Fetch allocations, subjects, codes
+      const dbRes = await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [
+          { type: 'get', key: 'paav_allocations' },
+          { type: 'get', key: 'paav8_subj' },
+          { type: 'get', key: 'paav_teacher_codes' }
+        ]})
+      });
+      const db = await dbRes.json();
+      const allocs = db.results[0]?.value || {};
+      const subjCfg = db.results[1]?.value || {};
+      const codes = db.results[2]?.value || {};
+
+      const lvl = gradeLevel(selGrade);
+      const gradeSubjects = subjCfg[selGrade] || []; // usually empty unless customized, fallback handled
+      
+      // Build subjects array for generator
+      // We will look at paav_allocations for selGrade to see what is assigned
+      const assignedSubjects = Object.keys(allocs).filter(k => k.startsWith(selGrade + '|')).map(k => k.split('|')[1]);
+      
+      if(assignedSubjects.length === 0) {
+        alert('No subjects allocated for ' + selGrade + '. Please assign subjects in Allocations module first.');
+        setSaving(false); return;
+      }
+
+      const subjectsForGen = assignedSubjects.map(subjName => {
+        const staffId = allocs[`${selGrade}|${subjName}`];
+        const tCode = codes[staffId];
+        const tName = staff.find(s=>s.id===staffId)?.name;
+        const displayTeacher = tCode ? tCode : tName;
+        const config = getDefaultSubjectConfig(subjName, lvl);
+        return { name: subjName, teacher: displayTeacher, lessons: config.lessons, dbl: config.dbl, priority: config.priority };
+      });
+
+      const result = generateTimetableData(subjectsForGen, cfg, DAYS);
+      if(result.unplaced && result.unplaced.length > 0) {
+        alert(`Warning: ${result.unplaced.length} lessons could not be placed automatically. Resolving remaining slots manually.`);
+      }
+
+      // Format to localTT structure
+      const newGradeTT = {};
+      DAYS.forEach(d => {
+        newGradeTT[d] = {};
+        for(let p=1; p<=maxPeriods; p++) {
+          if (result.grid[d][p] && !result.grid[d][p].cont) {
+             newGradeTT[d][p] = { subject: result.grid[d][p].subject, teacher: result.grid[d][p].teacher || '' };
+          }
+        }
+      });
+
+      setLocalTT(tt => ({ ...tt, [selGrade]: newGradeTT }));
+      alert('⚡ Auto-generation complete. Review and click Save Timetable.');
+
+    } catch (e) {
+      alert('Error auto-generating: ' + e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function save() {
     setSaving(true);
     await onSave(localTT);
@@ -408,7 +473,10 @@ function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave })
               {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
             </select>
           </div>
-          <a href="/timetable-generator.html" target="_blank" className="btn btn-gold btn-sm">🛠 Open Generator Tool</a>
+          <button className="btn btn-gold btn-sm" onClick={autoGenerate} disabled={saving}>
+            {saving ? '⏳...' : '⚡ Auto-Generate'}
+          </button>
+          <a href="/timetable-generator.html" target="_blank" className="btn btn-ghost btn-sm">🛠 Generator</a>
           <button className="btn btn-maroon btn-sm" onClick={save} disabled={saving}>
             {saving ? '⏳ Saving…' : '💾 Save Timetable'}
           </button>
