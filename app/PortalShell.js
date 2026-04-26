@@ -177,7 +177,7 @@ export default function PortalShell({ children }) {
   }
 
   return (
-    <ProfileContext.Provider value={{ openProfile: () => setShowProfile(true) }}>
+    <ProfileContext.Provider value={{ openProfile: () => setShowProfile(true), setUser }}>
       {/* ── Hero file input (hidden) ── */}
       <input ref={heroFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadHero} />
 

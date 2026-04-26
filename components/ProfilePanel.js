@@ -1,7 +1,9 @@
-'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useProfile } from '@/app/PortalShell';
 
 export default function ProfilePanel({ user, onClose }) {
+  const { setUser } = useProfile();
+  const fileRef = useRef(null);
   const [form, setForm]     = useState({ 
     phone: user?.phone || '', newPw: '', address: '', id_num: '', 
     gender: '', tribe: '', medical: '', blood: '', 
@@ -41,6 +43,41 @@ export default function ProfilePanel({ user, onClose }) {
   }, [user?.id, user?.phone]);
 
   const F = (k,v) => setForm(f => ({...f,[k]:v}));
+
+  async function handlePhotoPick(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSaving(true);
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const dataUrl = ev.target.result;
+      try {
+        const table = 'paav6_staff';
+        const res = await fetch('/api/db', { 
+          method:'POST', 
+          headers:{'Content-Type':'application/json'}, 
+          body: JSON.stringify({ requests: [{type:'get', key: table}] }) 
+        });
+        const db = await res.json();
+        const list = db.results[0]?.value || [];
+        const idx = list.findIndex(u => u.id === user.id);
+        if (idx >= 0) {
+          list[idx].avatar = dataUrl;
+          await fetch('/api/db', { 
+            method:'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body: JSON.stringify({ requests: [{type:'set', key: table, value: list}] }) 
+          });
+          setUser(u => ({ ...u, avatar: dataUrl }));
+          setMsg('✅ Photo updated!');
+        } else {
+          throw new Error('Profile not found in staff list');
+        }
+      } catch(err) { setMsg('❌ Photo failed'); }
+      finally { setSaving(false); setTimeout(()=>setMsg(''), 3000); }
+    };
+    reader.readAsDataURL(file);
+  }
 
   async function saveProfile() {
     setSaving(true);
@@ -89,12 +126,15 @@ export default function ProfilePanel({ user, onClose }) {
   return (
     <div onClick={e=>e.target===e.currentTarget&&onClose()}
       style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:10000, display:'flex', justifyContent:'flex-end' }}>
+      <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoPick} />
       <div style={{ width: 360, background:'#fff', height:'100%', overflowY:'auto', boxShadow:'-8px 0 40px rgba(0,0,0,.2)', display:'flex', flexDirection:'column' }}>
         <div style={{ background:'linear-gradient(135deg,#8B1A1A,#6B1212)', padding:'28px 24px 20px', color:'#fff', position:'relative' }}>
           <button onClick={onClose} style={{ position:'absolute', top:16, right:16, background:'rgba(255,255,255,.2)', border:'none', borderRadius:'50%', width:30, height:30, color:'#fff', cursor:'pointer', fontSize:16 }}>✕</button>
-          <div style={{ width:80, height:80, borderRadius:'50%', background: user.color||'#2563EB', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, margin:'0 auto 12px', overflow:'hidden', border:'3px solid rgba(255,255,255,.4)' }}>
+          <div onClick={() => fileRef.current?.click()} 
+            style={{ width:80, height:80, borderRadius:'50%', background: user.color||'#2563EB', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, margin:'0 auto 12px', overflow:'hidden', border:'3px solid rgba(255,255,255,.4)', cursor:'pointer' }}>
             {user.avatar ? <img src={user.avatar} style={{width:'100%',height:'100%',objectFit:'cover'}} alt="" /> : (user.emoji||'👤')}
           </div>
+          <p style={{textAlign:'center',fontSize:10,opacity:.6,marginTop:-8,marginBottom:12}}>Click to change photo</p>
           <h3 style={{textAlign:'center',margin:0,fontFamily:'Sora,sans-serif'}}>{user.name}</h3>
           <p style={{textAlign:'center',fontSize:13,opacity:.75,marginTop:4}}>{user.role}{user.grade ? ` · ${user.grade}` : ''}</p>
         </div>

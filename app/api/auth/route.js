@@ -185,6 +185,22 @@ async function handleGoogle({ idToken }, request) {
 async function handleWhoami() {
   const session = await getSession();
   if (!session) return NextResponse.json({ ok: false, user: null }, { status: 401 });
+
+  // Fetch fresh user data from DB to include avatar, color, etc.
+  const staff = await getStaffList();
+  const user  = staff.find(s => s.id === session.id);
+  
+  if (user) {
+    return NextResponse.json({ ok: true, user: publicUser(user) });
+  }
+
+  // Fallback if not found in staff (e.g. parent/learner logic)
+  if (session.role === 'parent') {
+    const learners = (await kvGet('paav6_learners')) || [];
+    const learner = learners.find(l => l.adm === session.username); // parents use child adm as username usually
+    if (learner) return NextResponse.json({ ok: true, user: { ...session, avatar: learner.avatar, emoji: ROLE_EMOJI.parent, color: ROLE_COLOR.parent } });
+  }
+
   return NextResponse.json({ ok: true, user: session });
 }
 
