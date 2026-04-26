@@ -10,10 +10,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ALL_GRADES } from '@/lib/cbe';
 
-const ROLES  = ['admin','teacher','staff','parent'];
+const ROLES  = ['teacher','senior-teacher','staff','parent'];
+const ADMIN_ROLES = ['admin','teacher','senior-teacher','staff','parent']; // super_admin can set admin
+const MAX_ADMINS = 4;
 const COLORS = {
-  admin:'#8B1A1A', teacher:'#059669', staff:'#0D9488',
-  parent:'#7C3AED', member:'#64748B',
+  admin:'#8B1A1A', 'super_admin':'#D97706', teacher:'#059669',
+  'senior-teacher':'#0D9488', staff:'#2563EB', parent:'#7C3AED', member:'#64748B',
 };
 
 export default function TeachersPage() {
@@ -107,7 +109,7 @@ export default function TeachersPage() {
                     <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{s.username}</td>
                     <td>
                       <span className="badge"
-                        style={{ background: COLORS[s.role]+'22', color: COLORS[s.role] }}>
+                        style={{ background: (COLORS[s.role]||'#64748B')+'22', color: COLORS[s.role]||'#64748B', fontWeight:700 }}>
                         {s.role}
                       </span>
                     </td>
@@ -155,6 +157,8 @@ export default function TeachersPage() {
       {(modal === 'add' || modal === 'edit') && (
         <UserModal
           user={sel}
+          currentUser={user}
+          allStaff={staff}
           onClose={() => { setModal(null); setSel(null); load(); }}
         />
       )}
@@ -163,7 +167,7 @@ export default function TeachersPage() {
 }
 
 /* ─── Add / Edit User Modal ─────────────────────────────────────────────── */
-function UserModal({ user, onClose }) {
+function UserModal({ user, currentUser, allStaff, onClose }) {
   const isEdit = !!user;
   const [form, setForm] = useState({
     name:     user?.name     || '',
@@ -182,6 +186,13 @@ function UserModal({ user, onClose }) {
   async function save() {
     if (!form.name || !form.username) { setErr('Name and username are required'); return; }
     if (!isEdit && !form.password)    { setErr('Password is required for new users'); return; }
+    if (form.role === 'admin' && currentUser?.role !== 'super_admin') {
+      setErr('Only Super Admin can register Admin accounts'); return;
+    }
+    const adminCount = allStaff.filter(s=>s.role==='admin' && s.id !== user?.id).length;
+    if (form.role === 'admin' && !isEdit && adminCount >= MAX_ADMINS) {
+      setErr(`Maximum ${MAX_ADMINS} admin accounts allowed`); return;
+    }
     setBusy(true);
 
     const action = isEdit ? 'edit_user' : 'register';
@@ -218,8 +229,17 @@ function UserModal({ user, onClose }) {
           <div className="field-row">
             <div className="field"><label>Role</label>
               <select value={form.role} onChange={e => F('role', e.target.value)}>
-                {ROLES.map(r => <option key={r}>{r}</option>)}
-              </select></div>
+                {(currentUser?.role === 'super_admin' ? ADMIN_ROLES : ROLES).map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              {form.role === 'admin' && currentUser?.role !== 'super_admin' && (
+                <div style={{fontSize:10,color:'#DC2626',marginTop:3}}>⚠ Only Super Admin can create Admin accounts</div>
+              )}
+              {form.role === 'senior-teacher' && (
+                <div style={{fontSize:10,color:'#059669',marginTop:3}}>✅ Senior School Teacher — can manage Gr 10–12</div>
+              )}
+            </div>
             <div className="field"><label>Class Grade</label>
               <select value={form.grade} onChange={e => F('grade', e.target.value)}>
                 <option value="">None</option>

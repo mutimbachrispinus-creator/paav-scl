@@ -723,3 +723,89 @@ tr:hover td{background:#F8FAFF}
   font-size: 24px;
   display: block;
 }
+
+/* ═══════════════════════════════════════════
+   ROUND 4: Landscape print, A4 portrait exact,
+   photo upload, report card colors
+   ═══════════════════════════════════════════ */
+
+/* Landscape print for merit & class lists */
+@media print {
+  body.print-landscape { }
+  .print-landscape-page @page { size: A4 landscape !important; margin: 6mm; }
+}
+@page :blank {}
+
+/* Precise A4 Portrait for report cards */
+@media print {
+  html, body { width: 210mm; }
+  .rc-page {
+    width: 190mm !important;
+    min-height: 267mm !important;
+    max-height: 277mm !important;
+    padding: 8mm 10mm !important;
+    margin: 0 auto !important;
+    font-size: 8.5pt !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    page-break-after: always !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .rc-page table { font-size: 7.5pt !important; border-collapse: collapse !important; }
+  .rc-page th, .rc-page td { padding: 3px 5px !important; }
+  .rc-page h1 { font-size: 11pt !important; margin:2px 0 !important; }
+  .rc-page .rc-header-crest { width: 50px !important; height: 50px !important; }
+  .rc-page:last-child { page-break-after: avoid !important; }
+}
+
+/* Report card colored rows */
+.rc-row-ee  { background: #F0FFF4 !important; }
+.rc-row-me  { background: #EFF6FF !important; }
+.rc-row-ae  { background: #FFFBEB !important; }
+.rc-row-be  { background: #FEF2F2 !important; }
+
+/* Profile photo upload button */
+.photo-upload-btn {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #8B1A1A;
+  border: 2px solid #fff;
+  color: #fff;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  transition: all .2s;
+}
+.photo-upload-btn:hover { background: #6B1212; transform: scale(1.1); }
+.photo-upload-wrapper { position: relative; display: inline-block; }
+
+/* Merit list landscape print */
+.merit-print-landscape {
+  page-break-inside: avoid;
+}
+@media print {
+  .merit-landscape-page {
+    width: 100%;
+  }
+}
+
+/* Landscape @page for merit/class print */
+@media print {
+  body.print-landscape {
+    width: 297mm;
+  }
+  body.print-landscape .rc-page,
+  body.print-landscape .print-container {
+    width: 277mm !important;
+  }
+}
+@page { size: A4 portrait; margin: 8mm; }
+.print-landscape-active @page { size: A4 landscape !important; margin: 6mm; }

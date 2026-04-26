@@ -11,6 +11,8 @@
  */
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
+
+const ASSESS_LABELS = { op1:'Opener Exam', mt1:'Mid-Term Exam', et1:'End-Term Exam' };
 import { useRouter } from 'next/navigation';
 import { buildMeritList, ALL_GRADES, maxPts, DEFAULT_SUBJECTS } from '@/lib/cbe';
 
@@ -70,12 +72,10 @@ export default function MeritListPage() {
       <div className="page-hdr">
         <div>
           <h2>🏆 Merit List</h2>
-          <p>CBC top performers — ranked by total points</p>
+          <p>CBC top performers — ranked by total points · <span style={{fontWeight:700,color:'#8B1A1A'}}>{ASSESS_LABELS[assess]}</span></p>
         </div>
         <div className="page-hdr-acts">
-          <button className="btn btn-ghost btn-sm no-print" onClick={() => window.print()}>
-            🖨️ Print
-          </button>
+          <button className="btn btn-ghost btn-sm no-print" onClick={() => window.print()}>🖨️ Print Landscape</button>
         </div>
       </div>
 
@@ -148,7 +148,7 @@ export default function MeritListPage() {
           {/* ── Full ranked table ── */}
           <div className="panel">
             <div className="panel-hdr">
-              <h3>📋 Full Rankings — {grade} · Term {term.replace('T','')} · {ASSESSMENTS.find(a=>a.key===assess)?.label}</h3>
+              <h3>📋 Full Rankings — {grade} · Term {term.replace('T','')} · {ASSESSMENTS.find(a=>a.key===assess)?.label} ({ASSESS_LABELS[assess]})</h3>
             </div>
             <div className="tbl-wrap">
               <table>
@@ -162,9 +162,10 @@ export default function MeritListPage() {
                         {s.length > 6 ? s.slice(0,6)+'…' : s}
                       </th>
                     ))}
-                    <th style={{ textAlign: 'center' }}>Total Pts</th>
-                    <th style={{ textAlign: 'center' }}>/ {max}</th>
-                    <th style={{ textAlign: 'center' }}>%</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A' }}>Total Marks</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A' }}>Total Pts</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A' }}>/ {max}</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A' }}>%</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -183,15 +184,18 @@ export default function MeritListPage() {
                       <td style={{ fontWeight: 700, fontSize: 11.5 }}>{l.adm}</td>
                       <td style={{ fontWeight: 600 }}>{l.name}</td>
                       {l.detail.map(d => (
-                        <td key={d.subj} style={{ textAlign: 'center' }}>
+                        <td key={d.subj} style={{ textAlign: 'center', padding: '3px 2px' }}>
                           {d.score !== null ? (
-                            <span className="badge"
-                              style={{ background: d.bg, color: d.c, fontSize: 9 }}>
-                              {d.lv}
-                            </span>
+                            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:1 }}>
+                              <span style={{ fontWeight:700, fontSize:12 }}>{d.score}</span>
+                              <span style={{ padding:'1px 5px', borderRadius:10, fontSize:9, fontWeight:800, background:d.bg||'#eee', color:d.c||'#333' }}>{d.lv}</span>
+                            </div>
                           ) : '—'}
                         </td>
                       ))}
+                      <td style={{ textAlign: 'center', fontWeight: 700, fontSize: 13, color: '#059669' }}>
+                        {l.detail.reduce((s,d)=>s+(d.score||0),0)}
+                      </td>
                       <td style={{ textAlign: 'center', fontWeight: 800, fontSize: 14,
                         color: 'var(--navy)' }}>
                         {l.totalPts}

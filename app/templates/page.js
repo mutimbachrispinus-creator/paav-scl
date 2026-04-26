@@ -81,10 +81,19 @@ export default function TemplatesPage() {
     (subjCfg[grade] && subjCfg[grade].length > 0) ? subjCfg[grade] : (DEFAULT_SUBJECTS[grade] || []),
   [subjCfg, grade]);
 
-  function printGrade() { setSelLearner(''); setTimeout(() => window.print(), 150); }
+  function printGrade() {
+    setSelLearner('');
+    const landscape = tab === 'merit' || tab === 'class';
+    if (landscape) document.body.classList.add('print-landscape');
+    else document.body.classList.remove('print-landscape');
+    setTimeout(() => { window.print(); document.body.classList.remove('print-landscape'); }, 150);
+  }
   function printLearner() {
     if (!selLearner) { alert('Please select a learner first'); return; }
-    setTimeout(() => window.print(), 150);
+    const landscape = tab === 'merit' || tab === 'class';
+    if (landscape) document.body.classList.add('print-landscape');
+    else document.body.classList.remove('print-landscape');
+    setTimeout(() => { window.print(); document.body.classList.remove('print-landscape'); }, 150);
   }
 
   const TABS = [
