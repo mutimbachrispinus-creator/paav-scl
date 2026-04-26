@@ -11,12 +11,14 @@ import { useRouter } from 'next/navigation';
 import { ALL_GRADES } from '@/lib/cbe';
 
 const EMPTY_ROW = { adm: '', name: '', dob: '', grade: 'GRADE 7', stream: '', parent: '', phone: '' };
+const GENDERS = ['M', 'F'];
 
 export default function BulkLearnersPage() {
   const router = useRouter();
-  const [rows, setRows] = useState(Array(20).fill(EMPTY_ROW));
+  const [rows, setRows] = useState(() => Array(20).fill(null).map(() => ({ ...EMPTY_ROW })));
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [bulkGrade, setBulkGrade] = useState('GRADE 7');
 
   useEffect(() => {
     async function check() {
@@ -34,6 +36,15 @@ export default function BulkLearnersPage() {
     const newRows = [...rows];
     newRows[idx] = { ...newRows[idx], [field]: val };
     setRows(newRows);
+  }
+
+  function applyGradeToAll() {
+    setRows(rows.map(r => ({ ...r, grade: bulkGrade })));
+  }
+
+  function fillGradeRows() {
+    const fresh = Array(30).fill(null).map(() => ({ ...EMPTY_ROW, grade: bulkGrade }));
+    setRows(fresh);
   }
 
   async function handleSave() {
@@ -77,10 +88,30 @@ export default function BulkLearnersPage() {
           <p>Fill the grid below to register multiple students at once</p>
         </div>
         <div className="page-hdr-acts">
-          <button className="btn btn-ghost" onClick={() => setRows([...rows, ...Array(10).fill(EMPTY_ROW)])}>➕ Add 10 More Rows</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setRows([...rows, ...Array(10).fill(null).map(() => ({...EMPTY_ROW}))])}>➕ Add 10 Rows</button>
           <button className="btn btn-primary" onClick={handleSave} disabled={busy}>
             {busy ? 'Saving...' : '💾 Save All Learners'}
           </button>
+        </div>
+      </div>
+
+      {/* ── Entry by Grade ── */}
+      <div className="panel" style={{ marginBottom: 12 }}>
+        <div className="panel-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)', marginBottom: 2 }}>📚 Entry by Grade</div>
+          <div className="field" style={{ marginBottom: 0, minWidth: 180 }}>
+            <label>Select Grade</label>
+            <select value={bulkGrade} onChange={e => setBulkGrade(e.target.value)}>
+              {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
+            </select>
+          </div>
+          <button className="btn btn-gold btn-sm" onClick={fillGradeRows} title="Clear table and set 30 fresh rows for this grade">
+            🎓 New Class Entry ({bulkGrade})
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={applyGradeToAll} title="Apply this grade to all existing rows">
+            ✏️ Apply Grade to All Rows
+          </button>
+          <div style={{ fontSize: 11, color: 'var(--muted)', paddingBottom: 2 }}>Sets grade for all rows at once</div>
         </div>
       </div>
 

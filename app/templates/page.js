@@ -20,13 +20,12 @@ const LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0Z
 
 export default function TemplatesPage() {
   const router = useRouter();
-  const [tab, setTab] = useState('merit'); // merit | report | class | receipt | id
+  const [tab, setTab] = useState('merit');
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
   const [marks, setMarks] = useState({});
   const [subjCfg, setSubjCfg] = useState({});
   const [fees, setFees] = useState([]);
-  
   const [grade, setGrade] = useState('GRADE 7');
   const [term, setTerm] = useState('T1');
   const [assess, setAssess] = useState('et1');
@@ -50,17 +49,13 @@ export default function TemplatesPage() {
         ]);
         const auth = await authRes.json();
         if (!auth.ok) { router.push('/'); return; }
-        
         const db = await dbRes.json();
         setLearners(db.results[0]?.value || []);
         setMarks(db.results[1]?.value || {});
         setSubjCfg(db.results[2]?.value || {});
         setFees(db.results[3]?.value || []);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
+      } catch (e) { console.error(e); }
+      finally { setLoading(false); }
     }
     load();
   }, [router]);
@@ -71,43 +66,58 @@ export default function TemplatesPage() {
     return list.sort((a, b) => a.name.localeCompare(b.name));
   }, [learners, grade, selLearner]);
 
-  const subjects = useMemo(() => 
+  const allGradeLearners = useMemo(() =>
+    learners.filter(l => l.grade === grade).sort((a,b) => a.name.localeCompare(b.name)),
+  [learners, grade]);
+
+  const subjects = useMemo(() =>
     (subjCfg[grade] && subjCfg[grade].length > 0) ? subjCfg[grade] : (DEFAULT_SUBJECTS[grade] || []),
   [subjCfg, grade]);
 
-  if (loading) return <div className="page on"><p>Loading templates...</p></div>;
+  function printGrade() { setSelLearner(''); setTimeout(() => window.print(), 150); }
+  function printLearner() {
+    if (!selLearner) { alert('Please select a learner first'); return; }
+    setTimeout(() => window.print(), 150);
+  }
+
+  const TABS = [
+    { id: 'merit',   label: '🏆 Merit List' },
+    { id: 'report',  label: '📋 Report Cards' },
+    { id: 'class',   label: '🏫 Class List' },
+    { id: 'receipt', label: '💰 Fee Receipts' },
+    { id: 'id',      label: '🆔 Student IDs' },
+  ];
+
+  if (loading) return <div className="page on"><p style={{padding:40,color:'var(--muted)'}}>Loading templates…</p></div>;
 
   return (
     <div className="page on" id="pg-templates">
       <div className="page-hdr no-print">
         <div>
           <h2>📄 Report Templates</h2>
-          <p>Printable assets for {grade} — {term}</p>
+          <p>Printable assets — {grade} · Term {term.replace('T','')}</p>
         </div>
         <div className="page-hdr-acts">
-          <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Print View</button>
+          <button className="btn btn-ghost btn-sm" onClick={printLearner}>🖨️ Print Learner</button>
+          <button className="btn btn-primary btn-sm" onClick={printGrade}>🖨️ Print Whole Grade</button>
         </div>
       </div>
 
-      <div className="tabs no-print" style={{ marginBottom: 20 }}>
-        {[
-          { id: 'merit', label: '🏆 Merit List', icon: '📊' },
-          { id: 'report', label: '📋 Report Cards', icon: '📝' },
-          { id: 'class', label: '🏫 Class List', icon: '👥' },
-          { id: 'receipt', label: '💰 Fee Receipts', icon: '🧾' },
-          { id: 'id', label: '🆔 Student IDs', icon: '🪪' }
-        ].map(t => (
-          <button key={t.id} className={`tab-btn ${tab === t.id ? 'on' : ''}`} onClick={() => setTab(t.id)}>
-            {t.icon} {t.label}
+      <div className="tabs no-print" style={{ marginBottom: 16 }}>
+        {TABS.map(t => (
+          <button key={t.id}
+            className={`tab-btn ${tab === t.id ? 'on' : ''}`}
+            onClick={() => setTab(t.id)}>
+            {t.label}
           </button>
         ))}
       </div>
 
-      <div className="panel no-print" style={{ marginBottom: 20 }}>
-        <div className="panel-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      <div className="panel no-print" style={{ marginBottom: 16 }}>
+        <div className="panel-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div className="field" style={{ marginBottom: 0 }}>
             <label>Grade</label>
-            <select value={grade} onChange={e => setGrade(e.target.value)}>
+            <select value={grade} onChange={e => { setGrade(e.target.value); setSelLearner(''); }}>
               {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
             </select>
           </div>
@@ -130,32 +140,37 @@ export default function TemplatesPage() {
             </div>
           )}
           <div className="field" style={{ marginBottom: 0 }}>
-            <label>Filter: Learner</label>
+            <label>Learner</label>
             <select value={selLearner} onChange={e => setSelLearner(e.target.value)}>
-              <option value="">— ALL LEARNERS (Batch) —</option>
-              {learners.filter(l => l.grade === grade).map(l => <option key={l.adm} value={l.adm}>{l.name} ({l.adm})</option>)}
+              <option value="">— ALL ({allGradeLearners.length}) —</option>
+              {allGradeLearners.map(l => <option key={l.adm} value={l.adm}>{l.name} ({l.adm})</option>)}
             </select>
+          </div>
+          <div style={{ display: 'flex', gap: 8, paddingBottom: 2 }}>
+            <button className="btn btn-ghost btn-sm" onClick={printLearner}>🖨️ By Learner</button>
+            <button className="btn btn-gold btn-sm" onClick={printGrade}>🖨️ By Grade</button>
           </div>
         </div>
       </div>
 
-      {/* ── PRINT AREA ── */}
+      {/* Instant tab switching — all tabs rendered, only active is shown */}
       <div className="print-container">
-        {tab === 'merit' && <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} />}
-        {tab === 'report' && <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} />}
-        {tab === 'class' && <ClassListTemplate learners={filteredLearners} grade={grade} />}
-        {tab === 'receipt' && <ReceiptTemplate learners={filteredLearners} fees={fees} grade={grade} />}
-        {tab === 'id' && <IDCardTemplate learners={filteredLearners} grade={grade} />}
+        <div style={{ display: tab === 'merit'   ? 'block' : 'none' }}>
+          <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} />
+        </div>
+        <div style={{ display: tab === 'report'  ? 'block' : 'none' }}>
+          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} />
+        </div>
+        <div style={{ display: tab === 'class'   ? 'block' : 'none' }}>
+          <ClassListTemplate learners={filteredLearners} grade={grade} />
+        </div>
+        <div style={{ display: tab === 'receipt' ? 'block' : 'none' }}>
+          <ReceiptTemplate learners={filteredLearners} fees={fees} grade={grade} />
+        </div>
+        <div style={{ display: tab === 'id'      ? 'block' : 'none' }}>
+          <IDCardTemplate learners={filteredLearners} grade={grade} />
+        </div>
       </div>
-
-      <style jsx>{`
-        @media print {
-          .no-print { display: none !important; }
-          body { background: #fff !important; }
-          .print-container { padding: 0; }
-        }
-        .print-container { background: #fff; padding: 20px; border-radius: var(--r); border: 1.5px solid var(--border); min-height: 600px; }
-      `}</style>
     </div>
   );
 }
@@ -239,7 +254,7 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term }) {
   return (
     <div className="rc-batch">
       {rankedData.map(l => (
-        <div key={l.adm} style={{ pageBreakAfter: 'always', padding: 25, border: '2px solid #333', marginBottom: 40, background: '#fff', position: 'relative', minHeight: '1000px' }}>
+        <div key={l.adm} className="rc-page">
           <PrintHeader title="STUDENT PROGRESS REPORT" grade={grade} />
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 15, marginBottom: 25, border: '1.5px solid #8B1A1A', padding: 15, borderRadius: 8 }}>

@@ -275,13 +275,20 @@ tr:hover td{background:#F8FAFF}
   .auth-right{padding:20px 16px}
 }
 @media print{
+  @page { size: A4 portrait; margin: 10mm; }
   #topbar,.no-print{display:none!important}
-  body{background:#fff}
+  body{background:#fff!important}
   .timetable-grade-block{page-break-inside:avoid;margin-bottom:20px}
   .timetable-grade-block table{width:100%!important;border-collapse:collapse!important}
   .timetable-grade-block td,.timetable-grade-block th{border:1px solid #333!important;padding:6px!important;font-size:10px!important}
   .timetable-grade-block thead{background:#f0f0f0!important;font-weight:bold!important}
   .merit-list-container{max-height:none!important;overflow:visible!important}
+  /* Report card A4 page */
+  .rc-page{page-break-after:always;width:100%;min-height:270mm;box-sizing:border-box;padding:12mm;border:none!important;box-shadow:none!important}
+  .rc-page:last-child{page-break-after:avoid}
+  .print-container{padding:0!important;border:none!important;background:#fff!important}
+  /* Templates print area */
+  .templates-print-area{width:210mm;margin:0 auto}
 }
 .merit-list-container{
   max-height:600px;
@@ -296,6 +303,25 @@ tr:hover td{background:#F8FAFF}
 .merit-list-container::-webkit-scrollbar-track{background:#f1f5f9;border-radius:10px}
 .merit-list-container::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
 .merit-list-container::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+
+/* ── MERIT RANK MEDALS ── */
+.merit-rank-1{background:linear-gradient(135deg,#FFFBEB,#FEF3C7)!important;border-color:#F59E0B!important}
+.merit-rank-2{background:linear-gradient(135deg,#F8FAFC,#F1F5F9)!important;border-color:#94A3B8!important}
+.merit-rank-3{background:linear-gradient(135deg,#FFF7ED,#FFEDD5)!important;border-color:#FB923C!important}
+
+/* ── AUTH LOGO CENTERED ── */
+.auth-logo{width:100%;display:flex;align-items:center;justify-content:center;margin-bottom:28px}
+.auth-logo img{width:90px;height:90px;object-fit:contain;border-radius:50%;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+
+/* ── ANNOUNCEMENT BANNER ── */
+.announcement-bar{background:linear-gradient(135deg,var(--maroon),var(--maroon2));padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:2px solid var(--gold);color:#fff;flex-wrap:wrap}
+.announcement-bar-text{font-size:12.5px;color:rgba(255,255,255,.85);line-height:1.4}
+
+/* ── TEMPLATES PRINT CONTAINER ── */
+.print-container{background:#fff;padding:20px;border-radius:var(--r);border:1.5px solid var(--border);min-height:600px}
+.rc-page{background:#fff;padding:25px;border:2px solid #333;margin-bottom:40px;position:relative;min-height:260mm;box-sizing:border-box;page-break-after:always}
+.rc-page:last-child{page-break-after:avoid}
+.templates-print-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
 /* ══ V7 ADDITIONS ══ */
 /* ── STREAM BADGE ── */
