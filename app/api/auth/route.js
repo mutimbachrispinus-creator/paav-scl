@@ -95,7 +95,7 @@ async function handleLogout() {
 }
 
 /* ─── register ──────────────────────────────────────────────────────────── */
-async function handleRegister({ role, name, phone, password, childAdm, secQ, secA }) {
+async function handleRegister({ role, name, phone, password, childAdm, teachingLevels, secQ, secA }) {
   if (!role || !name || !phone || !password) {
     return err('role, name, phone and password are required');
   }
@@ -117,12 +117,20 @@ async function handleRegister({ role, name, phone, password, childAdm, secQ, sec
     return err(`Username "${username}" is already taken`);
   }
 
-  // Parents must link to a valid learner
+  // Parents must link to valid learner(s)
+  let childAdmString = '';
   if (role === 'parent') {
     if (!childAdm) return err('Admission number is required for parent registration');
+    
+    const adms = String(childAdm).split(',').map(s => s.trim()).filter(Boolean);
+    if (!adms.length) return err('Invalid admission number format');
+
     const learners = (await kvGet('paav6_learners')) || [];
-    const learner  = learners.find(l => l.adm === String(childAdm).trim());
-    if (!learner) return err(`Learner with admission number ${childAdm} not found`);
+    for (const adm of adms) {
+      const learner = learners.find(l => l.adm === adm);
+      if (!learner) return err(`Learner with admission number ${adm} not found`);
+    }
+    childAdmString = adms.join(',');
   }
 
   const newUser = {
@@ -133,9 +141,9 @@ async function handleRegister({ role, name, phone, password, childAdm, secQ, sec
     username,
     password: await hashPassword(password),
     status:   role === 'parent' ? 'active' : 'pending',  // parents auto-active
-    childAdm: role === 'parent' ? String(childAdm).trim() : '',
+    childAdm: childAdmString,
     grade:    '',
-    teachingAreas: [],
+    teachingAreas: teachingLevels || [],
     secQ: secQ || '',
     secA: secA || '',
     createdAt: new Date().toISOString(),

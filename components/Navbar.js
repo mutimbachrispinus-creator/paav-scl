@@ -15,20 +15,20 @@ import Link from 'next/link';
 
 const ALL_NAV = [
   { key:'dashboard',  label:'📊 Home',        roles:['admin','teacher','staff','member','parent'] },
-  { key:'attendance', label:'📋 Attendance',  roles:['admin','teacher'] },
+  { key:'attendance', label:'📋 Attendance',  roles:['admin','teacher','jss_teacher','senior_teacher'] },
   { key:'timetable',  label:'📅 Timetable',   roles:['admin','teacher','staff'] },
   { key:'duties',     label:'🎖️ Duties',       roles:['admin','teacher','staff'] },
-  { key:'performance',label:'📈 Performance', roles:['admin','teacher'] },
-  { key:'learners',   label:'🎓 Learners',    roles:['admin','teacher'] },
-  { key:'grades',     label:'📊 Grades',      roles:['admin','teacher'] },
-  { key:'merit-list', label:'🏆 Merit List',  roles:['admin','teacher'] },
+  { key:'performance',label:'📈 Performance', roles:['admin','teacher','jss_teacher','senior_teacher'] },
+  { key:'learners',   label:'🎓 Learners',    roles:['admin','teacher','jss_teacher','senior_teacher'] },
+  { key:'grades',     label:'📊 Grades',      roles:['admin','teacher','jss_teacher','senior_teacher'] },
+  { key:'merit-list', label:'🏆 Merit List',  roles:['admin','teacher','jss_teacher','senior_teacher'] },
   { key:'allocations',label:'🗓️ Allocations', roles:['admin'] },
   { key:'salary',     label:'💵 Salary',       roles:['admin'] },
   { key:'templates',  label:'📄 Templates',   roles:['admin'] },
-  { key:'fees',       label:'💰 Fees',        roles:['admin'] },
+  { key:'fees',       label:'💰 Fees',        roles:['admin','staff'] },
   { key:'teachers',   label:'👔 Staff',       roles:['admin'] },
   { key:'settings',   label:'⚙ Settings',    roles:['admin'] },
-  { key:'messages',   label:'💬 Messages',    roles:['admin','teacher','staff','parent'] },
+  { key:'messages',   label:'💬 Messages',    roles:['admin','teacher','jss_teacher','senior_teacher','staff','parent'] },
   { key:'profile',    label:'👤 Profile',     roles:['admin'] },
   { key:'sms',        label:'📱 SMS',         roles:['admin'] },
 ];
@@ -118,8 +118,12 @@ export default function Navbar({ user, unreadCount = 0, onProfileClick }) {
         {/* User pill */}
         <div className="tb-user" onClick={onProfileClick} style={{ cursor: 'pointer' }}>
           <div className="tb-avatar"
-            style={{ background: user.color || '#2563EB' }}>
-            {user.emoji || user.name?.charAt(0) || '?'}
+            style={{ background: user.color || '#2563EB', overflow: 'hidden' }}>
+            {user.avatar ? (
+              <img src={user.avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+            ) : (
+              user.emoji || user.name?.charAt(0) || '?'
+            )}
           </div>
           <div>
             <div className="tb-uname">{user.name?.split(' ')[0] || user.username}</div>

@@ -10,12 +10,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ALL_GRADES } from '@/lib/cbe';
 
-const ROLES       = ['teacher','senior-teacher','staff','parent'];
-const ADMIN_ROLES = ['admin','teacher','senior-teacher','staff','parent'];
+const ROLES       = ['teacher','jss_teacher','senior_teacher','staff','parent'];
+const ADMIN_ROLES = ['admin','teacher','jss_teacher','senior_teacher','staff','parent'];
 const MAX_ADMINS  = 4;
 const COLORS = {
   admin:'#8B1A1A', 'super_admin':'#D97706', teacher:'#059669',
-  'senior-teacher':'#0D9488', staff:'#2563EB', parent:'#7C3AED', member:'#64748B',
+  'jss_teacher':'#2563EB', 'senior_teacher':'#EA580C', staff:'#0D9488', parent:'#7C3AED', member:'#64748B',
 };
 
 export default function TeachersPage() {
@@ -105,7 +105,12 @@ export default function TeachersPage() {
               <tbody>
                 {filtered.map(s => (
                   <tr key={s.id}>
-                    <td style={{ fontWeight: 600 }}>{s.name}</td>
+                    <td style={{ display:'flex', alignItems:'center', gap:10, fontWeight: 600 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: (COLORS[s.role]||'#64748B')+'22', display:'flex', alignItems:'center', justifyContent:'center', fontSize: 16, overflow:'hidden', border:'1px solid var(--border)' }}>
+                        {s.avatar ? <img src={s.avatar} style={{width:'100%',height:'100%',objectFit:'cover'}} alt="" /> : (s.name?.charAt(0) || '?')}
+                      </div>
+                      {s.name}
+                    </td>
                     <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{s.username}</td>
                     <td>
                       <span className="badge"

@@ -79,7 +79,7 @@ export default function ProfilePage() {
       const myStaff = staff.find(s => s.id === auth.user.id) || {};
       const myExtra = profiles[auth.user.id] || {};
       setProfileData({ ...myStaff, ...auth.user, ...myExtra });
-      if (myExtra.photo) setPhotoPreview(myExtra.photo);
+      if (myStaff.avatar || myExtra.photo) setPhotoPreview(myStaff.avatar || myExtra.photo);
     } catch (e) {
       console.error(e);
     } finally {
@@ -112,8 +112,9 @@ export default function ProfilePage() {
       // Update staff table as well (for name, phone)
       const staffList = [...allStaff];
       const idx = staffList.findIndex(s => s.id === user.id);
+      const finalPhoto = newPhoto || photoPreview || '';
       if (idx >= 0) {
-        staffList[idx] = { ...staffList[idx], name: profileData.name, phone: profileData.phone };
+        staffList[idx] = { ...staffList[idx], name: profileData.name, phone: profileData.phone, avatar: finalPhoto };
       }
 
       await fetch('/api/db', {
@@ -333,8 +334,12 @@ export default function ProfilePage() {
               {filteredStaff.map(s => (
                 <div key={s.id} className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setSelectedStaff(s)}>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 14, background: `linear-gradient(135deg, ${M}, #6B1212)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: '#fff', fontWeight: 800, flexShrink: 0 }}>
-                      {s.name?.charAt(0) || '?'}
+                    <div style={{ width: 48, height: 48, borderRadius: 14, background: `linear-gradient(135deg, ${M}, #6B1212)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: '#fff', fontWeight: 800, flexShrink: 0, overflow: 'hidden' }}>
+                      {s.avatar ? (
+                        <img src={s.avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                      ) : (
+                        s.name?.charAt(0) || '?'
+                      )}
                     </div>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 13 }}>{s.name}</div>

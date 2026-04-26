@@ -48,10 +48,10 @@ export default function ParentHome() {
       const fees = db.results[2]?.value || {};
       const mks = db.results[3]?.value || {};
 
-      // Support multiple children — user.childAdm can be string or array
+      // Support multiple children — user.childAdm can be string (comma-separated) or array
       const admList = Array.isArray(auth.user.childAdm)
         ? auth.user.childAdm
-        : auth.user.childAdm ? [auth.user.childAdm] : [];
+        : auth.user.childAdm ? String(auth.user.childAdm).split(',').map(s => s.trim()).filter(Boolean) : [];
 
       const myKids = learners.filter(l => admList.includes(l.adm));
       setChildren(myKids);

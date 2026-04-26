@@ -30,7 +30,8 @@ export default function LoginPage() {
   // Form states
   const [form, setForm] = useState({
     username: '', password: '', 
-    name: '', phone: '', role: 'teacher', childAdm: '', adminCode: ''
+    name: '', phone: '', role: 'teacher', childAdm: '', adminCode: '',
+    teachingLevels: []
   });
 
   useEffect(() => {
@@ -105,6 +106,11 @@ export default function LoginPage() {
       
       if (data.ok) {
         if (tab === 'login') {
+          if (rememberMe) {
+            localStorage.setItem('paav_remember', JSON.stringify({ u: form.username }));
+          } else {
+            localStorage.removeItem('paav_remember');
+          }
           router.push('/dashboard');
         } else if (tab === 'otp' || tab === 'register') {
           setOkMsg(`✅ Registered! Your username is: ${data.username}. Please login.`);
@@ -190,6 +196,7 @@ export default function LoginPage() {
                   <select value={form.role} onChange={e => F('role', e.target.value)}>
                     <option value="teacher">Primary Teacher</option>
                     <option value="jss_teacher">JSS Teacher</option>
+                    <option value="senior_teacher">Senior School Teacher</option>
                     <option value="parent">Parent / Guardian</option>
                     <option value="staff">Non-Teaching Staff</option>
                     <option value="admin">Administrator (Requires Code)</option>
@@ -208,8 +215,33 @@ export default function LoginPage() {
 
                 {form.role === 'parent' && (
                    <div className="field">
-                     <label>Child&apos;s Admission Number</label>
-                     <input required value={form.childAdm} onChange={e => F('childAdm', e.target.value)} placeholder="e.g. ADM001" />
+                     <label>Child(ren) Admission Numbers</label>
+                     <input required value={form.childAdm} onChange={e => F('childAdm', e.target.value)} placeholder="e.g. ADM001, ADM002" />
+                     <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4 }}>For multiple children, separate with commas</div>
+                   </div>
+                )}
+
+                {(form.role === 'teacher' || form.role === 'jss_teacher' || form.role === 'senior_teacher') && (
+                   <div className="field">
+                     <label>Teaching Levels (Select all that apply)</label>
+                     <div style={{ display: 'flex', gap: 15, marginTop: 5 }}>
+                       {['Primary', 'JSS', 'Senior School'].map(lvl => (
+                         <label key={lvl} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', textTransform: 'none', letterSpacing: 0 }}>
+                           <input 
+                             type="checkbox" 
+                             style={{ width: 'auto' }}
+                             checked={form.teachingLevels.includes(lvl)}
+                             onChange={e => {
+                               const levels = e.target.checked 
+                                 ? [...form.teachingLevels, lvl]
+                                 : form.teachingLevels.filter(l => l !== lvl);
+                               F('teachingLevels', levels);
+                             }}
+                           />
+                           {lvl}
+                         </label>
+                       ))}
+                     </div>
                    </div>
                 )}
 
@@ -239,6 +271,19 @@ export default function LoginPage() {
                 {showPass ? '🙈' : '👁️'}
               </button>
             </div>
+
+            {tab === 'login' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 15 }}>
+                <input 
+                  type="checkbox" 
+                  id="rem" 
+                  checked={rememberMe} 
+                  onChange={e => setRememberMe(e.target.checked)} 
+                  style={{ width: 'auto', cursor: 'pointer' }}
+                />
+                <label htmlFor="rem" style={{ fontSize: 12, cursor: 'pointer', marginBottom: 0, textTransform: 'none', letterSpacing: 0 }}>Remember my username</label>
+              </div>
+            )}
 
             {err && <div className="alert alert-err show">{err}</div>}
             {okMsg && <div className="alert alert-ok show">{okMsg}</div>}

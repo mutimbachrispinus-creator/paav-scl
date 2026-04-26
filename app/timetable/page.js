@@ -119,7 +119,7 @@ export default function TimetablePage() {
   }, [timetable, user]);
 
   const isAdmin = user?.role === 'admin';
-  const isTeacher = user?.role === 'teacher' || user?.role === 'admin';
+  const isTeacher = ['admin','teacher','jss_teacher','senior_teacher'].includes(user?.role);
   const sorted = [...events].sort((a,b) => a.date.localeCompare(b.date));
   const today0 = new Date().toISOString().split('T')[0];
   const upcoming = sorted.filter(e => e.date >= today0);

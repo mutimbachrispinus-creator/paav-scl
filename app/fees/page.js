@@ -34,7 +34,7 @@ export default function FeesPage() {
     const authRes = await fetch('/api/auth');
     const auth    = await authRes.json();
     if (!auth.ok) { router.push('/'); return; }
-    if (!['admin'].includes(auth.user?.role)) { router.push('/dashboard'); return; }
+    if (!['admin','staff'].includes(auth.user?.role)) { router.push('/dashboard'); return; }
     setUser(auth.user);
 
     const dbRes = await fetch('/api/db', {
@@ -102,13 +102,15 @@ export default function FeesPage() {
           </div>
         </div>
 
-        {/* ── Summary cards ── */}
-        <div className="sg sg4 no-print" style={{ marginBottom: 18 }}>
-          <SCard icon="🎯" label="Expected" value={fmtK(totalExp)}    bg="#EFF6FF" />
-          <SCard icon="✅" label="Collected" value={fmtK(totalPaid)}  bg="#ECFDF5" />
-          <SCard icon="⚠" label="Balance"   value={fmtK(totalBalance)} bg="#FEF2F2" />
-          <SCard icon="🟢" label="Cleared"  value={`${cleared} / ${learners.length}`} bg="#F5F3FF" />
-        </div>
+        {/* ── Summary cards (Admin Only) ── */}
+        {user?.role === 'admin' && (
+          <div className="sg sg4 no-print" style={{ marginBottom: 18 }}>
+            <SCard icon="🎯" label="Expected" value={fmtK(totalExp)}    bg="#EFF6FF" />
+            <SCard icon="✅" label="Collected" value={fmtK(totalPaid)}  bg="#ECFDF5" />
+            <SCard icon="⚠" label="Balance"   value={fmtK(totalBalance)} bg="#FEF2F2" />
+            <SCard icon="🟢" label="Cleared"  value={`${cleared} / ${learners.length}`} bg="#F5F3FF" />
+          </div>
+        )}
 
         {/* ── Payment log ── */}
         <div className="panel no-print" style={{ marginBottom: 18 }}>
