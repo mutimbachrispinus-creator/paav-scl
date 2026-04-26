@@ -203,6 +203,13 @@ async function handleRequest(req, auth) {
       }));
       return { type: 'getAll', data };
     }
+    
+    case 'storageUsage': {
+      if (auth.role !== 'admin') return { error: 'Unauthorized' };
+      const { getStorageUsage } = await import('@/lib/db');
+      const usage = await getStorageUsage();
+      return { type: 'storageUsage', usage };
+    }
 
     default:
       return { error: `Unknown request type: ${req.type}` };

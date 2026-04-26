@@ -14,6 +14,7 @@ export default function SettingsHubPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [usage, setUsage] = useState(null);
 
   useEffect(() => {
     async function checkAuth() {
@@ -25,6 +26,16 @@ export default function SettingsHubPage() {
           return;
         }
         setUser(data.user);
+        
+        // Fetch DB usage
+        const dbRes = await fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requests: [{ type: 'storageUsage' }] })
+        });
+        const dbData = await dbRes.json();
+        setUsage(dbData.results[0]?.usage || null);
+        
       } catch (e) {
         router.push('/');
       } finally {
@@ -43,6 +54,7 @@ export default function SettingsHubPage() {
     { title: '📅 Timetable', desc: 'Configure lesson times and breaks', href: '/settings/timetable', icon: '⏰' },
     { title: '🎨 Portal Branding', desc: 'Hero images and announcements', href: '/settings/portal', icon: '✨' },
     { title: '👤 My Profile', desc: 'Update your personal info and security', href: '/dashboard?tab=profile', icon: '🔑' },
+    { title: '🗄️ Database Storage', desc: usage ? `Usage: ${usage.percent.toFixed(2)}% (${(usage.totalBytes / 1024 / 1024).toFixed(1)} MB / 9 GB)` : 'Loading database stats...', href: '#', icon: '💾' },
   ];
 
   return (
