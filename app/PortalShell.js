@@ -33,10 +33,22 @@ export default function PortalShell({ children }) {
   const router   = useRouter();
   const pathname = usePathname();
 
-  const [user,         setUser]         = useState(null);
+  const [user, setUser] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = sessionStorage.getItem('paav_cache_user');
+        if (raw) {
+          const { v } = JSON.parse(raw);
+          return v;
+        }
+      } catch {}
+    }
+    return null;
+  });
+
   const [announcement, setAnnouncement] = useState('');
   const [unreadCount,  setUnreadCount]  = useState(0);
-  const [showBanner,   setShowBanner]   = useState(false);   // inactivity warning
+  const [showBanner,   setShowBanner]   = useState(false);
   const [countdown,    setCountdown]    = useState(60);
   const [editAnn,      setEditAnn]      = useState(false);
   const [annDraft,     setAnnDraft]     = useState('');
@@ -50,66 +62,43 @@ export default function PortalShell({ children }) {
 
   const showNav = !NO_NAV_PATHS.includes(pathname);
 
-  /* ── Load session + announcement ── */
   const loadSession = useCallback(async () => {
     try {
-      const [authRes, dbRes] = await Promise.all([
-        fetch('/api/auth'),
-        fetch('/api/db', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ requests: [
-            { type: 'get', key: 'paav_announcement' },
-            { type: 'get', key: 'paav6_msgs'        },
-            { type: 'get', key: 'paav_hero_img'     },
-          ]}),
-        }),
-      ]);
+      const u = await getCachedUser();
+      if (u) {
+        setUser(u);
+        const db = await getCachedDBMulti([
+          'paav_announcement',
+          'paav6_msgs',
+          'paav_hero_img'
+        ]);
 
-      const auth = await authRes.json();
-      const db   = await dbRes.json();
+        const ann = db.paav_announcement;
+        if (ann?.text && ann?.active) setAnnouncement(ann.text);
+        if (db.paav_hero_img) setHeroUrl(db.paav_hero_img);
 
-      if (auth.ok && auth.user) {
-        // avatar comes from the staff record via publicUser() in /api/auth
-        // persist it in sessionStorage so it survives client-side navigations
-        try {
-          if (auth.user.avatar) {
-            sessionStorage.setItem('paav_avatar_' + auth.user.id, auth.user.avatar);
-          } else {
-            // try to restore from cache if the session didn't include it
-            const cached = sessionStorage.getItem('paav_avatar_' + auth.user.id);
-            if (cached) auth.user.avatar = cached;
-          }
-        } catch {}
-        setUser(auth.user);
-        try { localStorage.setItem('paav_last_path', pathname); } catch {}
-
-        // Warm up common DB keys in the background immediately after auth
-        // so subsequent page loads find them already cached
+        const msgs = db.paav6_msgs || [];
+        setUnreadCount(msgs.filter(m => m.to === 'ALL' || m.to === 'ALL_STAFF').length);
+        
         prefetchKeys([
           'paav6_learners', 'paav6_staff', 'paav6_marks',
-          'paav6_feecfg',   'paav6_msgs',  'paav_calendar_events',
+          'paav6_feecfg',  'paav_calendar_events',
         ]);
       }
-
-      const ann = db.results[0]?.value;
-      if (ann?.text && ann?.active) setAnnouncement(ann.text);
-
-      const heroDb = db.results[2]?.value;
-      if (heroDb) setHeroUrl(heroDb);
-
-      const msgs = db.results[1]?.value || [];
-      setUnreadCount(msgs.filter(m =>
-        m.to === 'ALL' || m.to === 'ALL_STAFF'
-      ).length);
     } catch (e) {
       console.error('[PortalShell] session load error:', e);
     }
-  }, [pathname]);
+  }, []);
 
   useEffect(() => {
     if (showNav) loadSession();
   }, [showNav, loadSession]);
+
+  useEffect(() => {
+    if (pathname && !NO_NAV_PATHS.includes(pathname)) {
+      try { localStorage.setItem('paav_last_path', pathname); } catch {}
+    }
+  }, [pathname]);
 
   /* ── Inactivity logout ── */
   function resetIdleTimers() {

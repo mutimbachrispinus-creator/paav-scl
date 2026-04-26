@@ -311,8 +311,21 @@ export default function ReportCardPage() {
             </div>
           </div>
 
+          {/* ── REMARKS ── */}
+          <div className="rc-remarks" style={{ position: 'relative', zIndex: 1, marginTop: 12, display: 'grid', gap: 10 }}>
+            <div style={{ border: '1.5px solid #e2e8f0', borderRadius: 8, padding: 8 }}>
+              <div style={{ fontSize: 8, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Head Teacher's Remarks</div>
+              <div style={{ borderBottom: '1px dotted #cbd5e1', height: 20, marginBottom: 8 }} />
+              <div style={{ borderBottom: '1px dotted #cbd5e1', height: 20 }} />
+            </div>
+            <div style={{ border: '1.5px solid #e2e8f0', borderRadius: 8, padding: 8 }}>
+              <div style={{ fontSize: 8, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Parent / Guardian Remarks</div>
+              <div style={{ borderBottom: '1px dotted #cbd5e1', height: 20 }} />
+            </div>
+          </div>
+
           {/* ── SIGNATURES ── */}
-          <div className="rc-sigs" style={{ position:'relative', zIndex:1 }}>
+          <div className="rc-sigs" style={{ position:'relative', zIndex:1, marginTop: 20 }}>
             {['Class Teacher','Head Teacher','Parent / Guardian'].map(role => (
               <div key={role} className="rc-sig-box">
                 <div className="rc-sig-line" />
