@@ -49,7 +49,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'requests must be an array' }, { status: 400 });
     }
 
-    const results = await Promise.all(requests.map(req => handleRequest(req)));
+    const results = await Promise.all(requests.map(req => handleRequest(req, auth)));
     return NextResponse.json({ results });
 
   } catch (err) {
@@ -84,7 +84,7 @@ export async function GET(request) {
 }
 
 /* ─── Request dispatcher ────────────────────────────────────────────────── */
-async function handleRequest(req) {
+async function handleRequest(req, auth) {
   switch (req.type) {
     /* ── Read one key ── */
     case 'get': {

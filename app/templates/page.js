@@ -410,9 +410,16 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg })
               <p><strong>Performance:</strong> {l.report.overallInfo.desc}</p>
             </div>
             <div style={{ border: '1.5px solid #333', padding: 15, borderRadius: 8 }}>
-              <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #eee' }}>REMARKS</h4>
-              <div style={{ minHeight: 60, borderBottom: '1px dotted #333', marginBottom: 10 }}>Class Teacher: ________________________</div>
-              <div style={{ minHeight: 60 }}>Headteacher: ________________________</div>
+              <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #eee' }}>EXAM TOTALS (MARKS)</h4>
+              <div style={{ fontSize: 11, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+                <div>Opener: <strong>{l.report.subjects.reduce((acc, s) => acc + (s.op || 0), 0)}</strong></div>
+                <div>Mid-Term: <strong>{l.report.subjects.reduce((acc, s) => acc + (s.mt || 0), 0)}</strong></div>
+                <div>End-Term: <strong>{l.report.subjects.reduce((acc, s) => acc + (s.et || 0), 0)}</strong></div>
+                <div>Average: <strong>{l.report.subjects.reduce((acc, s) => acc + (s.avg || 0), 0)}</strong></div>
+              </div>
+              <div style={{ marginTop: 10, borderTop: '1px dotted #ccc', paddingTop: 10 }}>
+                <div style={{ minHeight: 30 }}>Class Teacher: ________________</div>
+              </div>
             </div>
           </div>
 
