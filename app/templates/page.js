@@ -26,6 +26,7 @@ export default function TemplatesPage() {
   const [marks, setMarks] = useState({});
   const [subjCfg, setSubjCfg] = useState({});
   const [fees, setFees] = useState([]);
+  const [gradCfg, setGradCfg] = useState(null);
   const [grade, setGrade] = useState('GRADE 7');
   const [term, setTerm] = useState('T1');
   const [assess, setAssess] = useState('et1');
@@ -43,7 +44,8 @@ export default function TemplatesPage() {
               { type: 'get', key: 'paav6_learners' },
               { type: 'get', key: 'paav6_marks' },
               { type: 'get', key: 'paav8_subj' },
-              { type: 'get', key: 'paav6_fees' }
+              { type: 'get', key: 'paav6_fees' },
+              { type: 'get', key: 'paav8_grad' }
             ]})
           })
         ]);
@@ -54,6 +56,7 @@ export default function TemplatesPage() {
         setMarks(db.results[1]?.value || {});
         setSubjCfg(db.results[2]?.value || {});
         setFees(db.results[3]?.value || []);
+        setGradCfg(db.results[4]?.value || null);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     }
@@ -156,10 +159,10 @@ export default function TemplatesPage() {
       {/* Instant tab switching — all tabs rendered, only active is shown */}
       <div className="print-container">
         <div style={{ display: tab === 'merit'   ? 'block' : 'none' }}>
-          <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} />
+          <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} gradCfg={gradCfg} />
         </div>
         <div style={{ display: tab === 'report'  ? 'block' : 'none' }}>
-          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} />
+          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} />
         </div>
         <div style={{ display: tab === 'class'   ? 'block' : 'none' }}>
           <ClassListTemplate learners={filteredLearners} grade={grade} />
@@ -180,17 +183,19 @@ export default function TemplatesPage() {
 function PrintHeader({ title, grade }) {
   return (
     <div style={{ textAlign: 'center', borderBottom: '3px double #8B1A1A', paddingBottom: 15, marginBottom: 20 }}>
-      <img src={LOGO} alt="PAAV Logo" style={{ width: 60, marginBottom: 10 }} />
-      <h1 style={{ fontFamily: 'Sora', fontSize: 22, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>PAAV-GITOMBO COMMUNITY SCHOOL</h1>
-      <p style={{ fontSize: 12, margin: '2px 0' }}>P.O BOX 4091-00100 Nairobi | 0758 922 915</p>
-      <div style={{ background: '#8B1A1A', color: '#fff', display: 'inline-block', padding: '4px 15px', borderRadius: 4, marginTop: 10, fontWeight: 700, fontSize: 14 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.png" alt="PAAV Gitombo Logo" style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 6 }} />
+      <h1 style={{ fontFamily: 'Sora', fontSize: 20, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>PAAV-GITOMBO COMMUNITY SCHOOL</h1>
+      <p style={{ fontSize: 11, margin: '2px 0', color: '#555' }}>P.O BOX 4091-00100 Nairobi | 0758 922 915 | paavgitomboschool@gmail.com</p>
+      <p style={{ fontSize: 11, fontStyle: 'italic', color: '#8B1A1A', fontWeight: 700, margin: '2px 0' }}>More Than Academics!</p>
+      <div style={{ background: '#8B1A1A', color: '#fff', display: 'inline-block', padding: '4px 18px', borderRadius: 4, marginTop: 8, fontWeight: 700, fontSize: 13 }}>
         {title} — {grade}
       </div>
     </div>
   );
 }
 
-function MeritListTemplate({ learners, subjects, marks, grade, term, assess }) {
+function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gradCfg }) {
   const data = learners.map(l => {
     let total = 0;
     let count = 0;
@@ -238,10 +243,10 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess }) {
   );
 }
 
-function ReportCardTemplate({ learners, subjects, marks, grade, term }) {
+function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg }) {
   // Pre-calculate ranks based on average points
   const rankedData = learners.map(l => {
-    const report = calcLearnerReportData(marks, l.adm, grade, term, subjects);
+    const report = calcLearnerReportData(marks, l.adm, grade, term, subjects, gradCfg);
     return { ...l, report };
   }).sort((a, b) => b.report.totalAvgPts - a.report.totalAvgPts);
 
@@ -282,12 +287,12 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term }) {
               {l.report.subjects.map(s => (
                 <tr key={s.subj}>
                   <td style={{ border: '1px solid #333', padding: 8, fontWeight: 600 }}>{s.subj}</td>
-                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>{s.op || '—'} <small style={{ display: 'block', fontSize: 9 }}>{s.opLv}</small></td>
-                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>{s.mt || '—'} <small style={{ display: 'block', fontSize: 9 }}>{s.mtLv}</small></td>
-                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>{s.et || '—'} <small style={{ display: 'block', fontSize: 9 }}>{s.etLv}</small></td>
+                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>{s.op || '—'} <small className={`grade-pill-${s.opLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.opLv}</small></td>
+                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>{s.mt || '—'} <small className={`grade-pill-${s.mtLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.mtLv}</small></td>
+                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>{s.et || '—'} <small className={`grade-pill-${s.etLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.etLv}</small></td>
                   <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center', background: '#f9f9f9', fontWeight: 700 }}>{s.avg}</td>
                   <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>
-                    <span style={{ padding: '2px 6px', borderRadius: 4, background: '#eee', fontSize: 11, fontWeight: 800 }}>{s.avgLv}</span>
+                    <span className={`grade-pill-${s.avgLv}`} style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 800, display:'inline-block' }}>{s.avgLv}</span>
                   </td>
                   <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>{s.pts}</td>
                 </tr>
@@ -356,7 +361,7 @@ function ClassListTemplate({ learners, grade }) {
 function ReceiptTemplate({ learners, fees, grade }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-      {fees.filter(f => f.grade === grade).slice(0, 10).map(f => {
+      {fees.filter(f => !grade || f.grade === grade || !f.grade).slice(0, 12).map(f => {
         const l = learners.find(x => x.adm === f.adm);
         return (
           <div key={f.id} style={{ border: '1.5px dashed #000', padding: 15, fontSize: 12 }}>
@@ -380,6 +385,11 @@ function ReceiptTemplate({ learners, fees, grade }) {
           </div>
         )
       })}
+      {fees.filter(f => !grade || f.grade === grade || !f.grade).length === 0 && (
+        <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)', fontSize: 13, gridColumn: '1 / -1' }}>
+          No fee receipts found for {grade}. Fee records are added in the Fees module.
+        </div>
+      )}
     </div>
   );
 }
