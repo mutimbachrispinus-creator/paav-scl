@@ -78,24 +78,27 @@ export default function DutiesPage() {
     if (!reqForm.text.trim()) { alert('Please describe your request'); return; }
     setBusy(true);
     try {
-      const newReqs = [...requests, {
-        id: Date.now(),
-        userId: user.id,
-        userName: user.name,
-        userRole: user.role,
-        type: reqForm.type,
-        text: reqForm.text,
-        reason: reqForm.reason,
-        date_needed: reqForm.date_needed,
-        date: today,
-        status: 'pending'
-      }];
-      await fetch('/api/db', {
+      const res = await fetch('/api/db', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_staff_reqs', value: newReqs }] })
+        body: JSON.stringify({
+          requests: [{
+            type: 'submitStaffRequest',
+            request: {
+              type: reqForm.type,
+              text: reqForm.text,
+              reason: reqForm.reason,
+              date_needed: reqForm.date_needed,
+            }
+          }]
+        })
       });
+      const data = await res.json();
+      const result = data.results[0];
+      if (result.error) throw new Error(result.error);
+
+      const newReq = result.request;
       invalidateDB('paav_staff_reqs');
-      setRequests(newReqs);
+      setRequests(prev => [...prev, newReq]);
       setReqSent(true);
       setShowReqForm(false);
       setReqForm({ type: 'permission', text: '', date_needed: '', reason: '' });
@@ -104,13 +107,20 @@ export default function DutiesPage() {
   }
 
   async function updateReqStatus(id, status) {
-    const updated = requests.map(r => r.id === id ? { ...r, status } : r);
-    await fetch('/api/db', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_staff_reqs', value: updated }] })
-    });
-    invalidateDB('paav_staff_reqs');
-    setRequests(updated);
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requests: [{ type: 'updateStaffRequestStatus', id, status }]
+        })
+      });
+      const data = await res.json();
+      const result = data.results[0];
+      if (result.error) throw new Error(result.error);
+
+      invalidateDB('paav_staff_reqs');
+      setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+    } catch (e) { alert('❌ ' + e.message); }
   }
 
   if (loading || !user) return (

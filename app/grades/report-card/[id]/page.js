@@ -77,15 +77,26 @@ export default function ReportCardPage() {
       const inf = sc !== undefined ? gInfo(Number(sc), learner.grade, gradCfg) : null;
       return { score: sc, inf };
     });
-    return { subj, cells };
+    
+    // Average calculation
+    const scores = cells.filter(c => c.score !== undefined).map(c => Number(c.score));
+    const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : undefined;
+    const avgInf = avgScore !== undefined ? gInfo(avgScore, learner.grade, gradCfg) : null;
+
+    return { subj, cells, avgCell: { score: avgScore, inf: avgInf } };
   });
 
-  const etRows   = rows.map(r => r.cells[2]);
-  const entered  = etRows.filter(c => c.score !== undefined);
-  const totalPts = entered.reduce((s, c) => s + (c.inf?.pts||0), 0);
+  const entered  = rows.filter(r => r.avgCell.score !== undefined);
+  const totalPts = entered.reduce((s, r) => s + (r.avgCell.inf?.pts||0), 0);
   const maxTotal = maxPts(learner.grade, subjects);
   const promoSt  = promotionStatus(totalPts, maxTotal);
   const pct      = maxTotal ? Math.round((totalPts/maxTotal)*100) : 0;
+
+  // Total Marks for every exam
+  const openerTotal = rows.reduce((s, r) => s + (Number(r.cells[0].score) || 0), 0);
+  const midTotal    = rows.reduce((s, r) => s + (Number(r.cells[1].score) || 0), 0);
+  const endTotal    = rows.reduce((s, r) => s + (Number(r.cells[2].score) || 0), 0);
+  const avgTotal    = rows.reduce((s, r) => s + (Number(r.avgCell.score) || 0), 0);
 
   const promoColor = promoSt === 'promote' ? '#059669' : promoSt === 'review' ? '#D97706' : '#DC2626';
   const promoText  = promoSt === 'promote' ? '✅ PROMOTED' : promoSt === 'review' ? '⚠ UNDER REVIEW' : '❌ RETAIN';
@@ -181,14 +192,14 @@ export default function ReportCardPage() {
                 <th>Opener<br/><span style={{fontWeight:400,fontSize:7.5,opacity:.8}}>(Score)</span></th>
                 <th>Mid-Term<br/><span style={{fontWeight:400,fontSize:7.5,opacity:.8}}>(Score)</span></th>
                 <th>End-Term<br/><span style={{fontWeight:400,fontSize:7.5,opacity:.8}}>(Score)</span></th>
+                <th style={{ background: 'rgba(255,255,255,0.1)' }}>Avg<br/><span style={{fontWeight:400,fontSize:7.5,opacity:.8}}>(Score)</span></th>
                 <th>Grade<br/><span style={{fontWeight:400,fontSize:7.5,opacity:.8}}>(Level)</span></th>
                 <th>Pts</th>
                 <th>Remarks</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ subj, cells }) => {
-                const etCell = cells[2];
+              {rows.map(({ subj, cells, avgCell }) => {
                 return (
                   <tr key={subj}>
                     <td>{subj}</td>
@@ -207,37 +218,53 @@ export default function ReportCardPage() {
                         ) : <span style={{color:'#cbd5e1'}}>—</span>}
                       </td>
                     ))}
+                    <td style={{ textAlign: 'center', background: 'rgba(0,0,0,0.02)', fontWeight: 800, fontSize: 12 }}>
+                      {avgCell.score !== undefined ? avgCell.score : <span style={{color:'#cbd5e1'}}>—</span>}
+                    </td>
                     <td style={{ textAlign: 'center' }}>
-                      {etCell.inf ? (
-                        <span style={{ fontWeight: 900, color: etCell.inf.c,
-                          background: etCell.inf.bg, padding: '2px 8px',
+                      {avgCell.inf ? (
+                        <span style={{ fontWeight: 900, color: avgCell.inf.c,
+                          background: avgCell.inf.bg, padding: '2px 8px',
                           borderRadius: 10, fontSize: 9, display:'inline-block' }}>
-                          {etCell.inf.lv}
+                          {avgCell.inf.lv}
                         </span>
                       ) : <span style={{color:'#cbd5e1'}}>—</span>}
                     </td>
                     <td style={{ textAlign: 'center', fontWeight: 900,
-                      color: etCell.inf ? etCell.inf.c : '#cbd5e1', fontSize: 12 }}>
-                      {etCell.inf ? etCell.inf.pts : '—'}
+                      color: avgCell.inf ? avgCell.inf.c : '#cbd5e1', fontSize: 12 }}>
+                      {avgCell.inf ? avgCell.inf.pts : '—'}
                     </td>
                     <td style={{ fontSize: 9, color: '#64748b' }}>
-                      {etCell.inf ? etCell.inf.desc.split(' — ')[0] : '—'}
+                      {avgCell.inf ? avgCell.inf.desc.split(' — ')[0] : '—'}
                     </td>
                   </tr>
                 );
               })}
 
-              {/* Total row */}
+              {/* Total Marks row */}
+              {entered.length > 0 && (
+                <tr style={{ background: '#f8fafc', fontWeight: 800, fontSize: 11 }}>
+                  <td style={{ paddingLeft: 12, textTransform: 'uppercase' }}>Total Marks</td>
+                  <td style={{ textAlign: 'center' }}>{openerTotal}</td>
+                  <td style={{ textAlign: 'center' }}>{midTotal}</td>
+                  <td style={{ textAlign: 'center' }}>{endTotal}</td>
+                  <td style={{ textAlign: 'center', background: 'rgba(0,0,0,0.05)' }}>{avgTotal}</td>
+                  <td colSpan={3} style={{ textAlign: 'right', paddingRight: 12, color: 'var(--muted)', fontSize: 9 }}>
+                    Sum of percentage scores
+                  </td>
+                </tr>
+              )}
+
+              {/* Total Points row */}
               {entered.length > 0 && (
                 <tr className="rc-total-row">
-                  <td colSpan={4} style={{ paddingLeft: 12 }}>
+                  <td colSpan={5} style={{ paddingLeft: 12 }}>
                     TOTAL POINTS &nbsp;·&nbsp; <span style={{fontWeight:500,fontSize:9,opacity:.7}}>({entered.length} of {subjects.length} subjects entered)</span>
                   </td>
-                  <td style={{ textAlign:'center' }}>—</td>
                   <td style={{ textAlign: 'center', fontSize: 14 }}>
                     {totalPts}<span style={{fontSize:9,opacity:.7,fontWeight:500}}>/{maxTotal}</span>
                   </td>
-                  <td style={{ fontSize: 10, fontWeight:700 }}>{pct}%</td>
+                  <td colSpan={2} style={{ textAlign: 'center', fontSize: 10, fontWeight:700 }}>{pct}%</td>
                 </tr>
               )}
             </tbody>

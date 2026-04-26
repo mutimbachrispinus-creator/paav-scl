@@ -68,7 +68,15 @@ export async function GET(request) {
     const key = searchParams.get('key');
     if (!key) return NextResponse.json({ error: 'key is required' }, { status: 400 });
 
-    const value = await kvGet(key);
+    let value = await kvGet(key);
+
+    // Security: Filter staff requests if not admin
+    if (key === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
+      if (Array.isArray(value)) {
+        value = value.filter(r => r.userId === auth.id);
+      }
+    }
+
     return NextResponse.json({ key, value });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -80,7 +88,15 @@ async function handleRequest(req) {
   switch (req.type) {
     /* ── Read one key ── */
     case 'get': {
-      const value = await kvGet(req.key, null);
+      let value = await kvGet(req.key, null);
+      
+      // Security: Filter staff requests if not admin
+      if (req.key === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
+        if (Array.isArray(value)) {
+          value = value.filter(r => r.userId === auth.id);
+        }
+      }
+      
       return { type: 'get', key: req.key, value };
     }
 
@@ -89,8 +105,42 @@ async function handleRequest(req) {
       if (req.key === undefined || req.value === undefined) {
         return { type: 'set', error: 'key and value are required' };
       }
+
+      // Security: Only admins can use 'set' for staff requests
+      if (req.key === 'paav_staff_reqs' && auth.role !== 'admin') {
+        return { type: 'set', error: 'Unauthorized. Use specific request types.' };
+      }
+
       await kvSet(req.key, req.value);
       return { type: 'set', key: req.key, ok: true };
+    }
+
+    /* ── Specialized Staff Request Handlers ── */
+    case 'submitStaffRequest': {
+      if (!req.request) return { type: req.type, error: 'request object is required' };
+      const oldReqs = await kvGet('paav_staff_reqs', []);
+      const newReq = {
+        ...req.request,
+        id: Date.now(),
+        userId: auth.id,
+        userName: auth.name,
+        userRole: auth.role,
+        status: 'pending',
+        date: new Date().toLocaleDateString('en-KE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      };
+      await kvSet('paav_staff_reqs', [...oldReqs, newReq]);
+      return { type: req.type, ok: true, request: newReq };
+    }
+
+    case 'updateStaffRequestStatus': {
+      if (auth.role !== 'admin') return { type: req.type, error: 'Only admins can update status' };
+      if (!req.id || !req.status) return { type: req.type, error: 'id and status are required' };
+      
+      const oldReqs = await kvGet('paav_staff_reqs', []);
+      const updated = oldReqs.map(r => r.id === req.id ? { ...r, status: req.status } : r);
+      
+      await kvSet('paav_staff_reqs', updated);
+      return { type: req.type, ok: true };
     }
 
     /* ── Delete one key ── */
@@ -142,7 +192,14 @@ async function handleRequest(req) {
 
       const data = {};
       await Promise.all(keys.map(async (k) => {
-        data[k] = await kvGet(k);
+        let value = await kvGet(k);
+        // Security: Filter staff requests if not admin
+        if (k === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
+          if (Array.isArray(value)) {
+            value = value.filter(r => r.userId === auth.id);
+          }
+        }
+        data[k] = value;
       }));
       return { type: 'getAll', data };
     }
