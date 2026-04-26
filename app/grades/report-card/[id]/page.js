@@ -1,15 +1,6 @@
 'use client';
 /**
- * app/grades/report-card/[id]/page.js — A4 printable CBC report card
- *
- * Renders the school report card for a single learner,
- * matching the rc-a4 layout from index-122.html.
- * Supports:
- *   • All three terms in one view (term selector)
- *   • All three assessments (Opener, Mid-Term, End-Term)
- *   • CBC grade levels + points per subject
- *   • Promotion recommendation
- *   • Print to PDF (window.print)
+ * app/grades/report-card/[id]/page.js — Premium A4 CBC Report Card
  */
 
 import { useEffect, useState } from 'react';
@@ -34,7 +25,7 @@ export default function ReportCardPage() {
   const [marks,   setMarks]   = useState({});
   const [feeCfg,  setFeeCfg]  = useState({});
   const [gradCfg, setGradCfg] = useState(null);
-  const [school,  setSchool]  = useState({ name: 'PAAV-GITOMBO COMMUNITY SCHOOL', motto: '"More Than Academics!"' });
+  const [school,  setSchool]  = useState({ name: 'PAAV-GITOMBO COMMUNITY SCHOOL', motto: '"More Than Academics!"', tel: '0758 922 915', location: 'Gitombo, Embu County, Kenya' });
   const [term,    setTerm]    = useState('T1');
   const [loading, setLoading] = useState(true);
 
@@ -78,7 +69,6 @@ export default function ReportCardPage() {
   const paid      = (learner.t1||0)+(learner.t2||0)+(learner.t3||0);
   const balance   = annualFee - paid;
 
-  /* ── Build rows: one per subject, 3 assessment columns ── */
   const rows = subjects.map(subj => {
     const cells = ASSESSMENTS.map(a => {
       const k1  = `${term}:${learner.grade}|${subj}|${a.key}`;
@@ -90,84 +80,109 @@ export default function ReportCardPage() {
     return { subj, cells };
   });
 
-  /* ── End-term totals (use et1 for overall) ── */
   const etRows   = rows.map(r => r.cells[2]);
   const entered  = etRows.filter(c => c.score !== undefined);
   const totalPts = entered.reduce((s, c) => s + (c.inf?.pts||0), 0);
   const maxTotal = maxPts(learner.grade, subjects);
   const promoSt  = promotionStatus(totalPts, maxTotal);
+  const pct      = maxTotal ? Math.round((totalPts/maxTotal)*100) : 0;
+
+  const promoColor = promoSt === 'promote' ? '#059669' : promoSt === 'review' ? '#D97706' : '#DC2626';
+  const promoText  = promoSt === 'promote' ? '✅ PROMOTED' : promoSt === 'review' ? '⚠ UNDER REVIEW' : '❌ RETAIN';
+
+  const dateStr = new Date().toLocaleDateString('en-KE', { day:'numeric', month:'long', year:'numeric' });
 
   return (
     <>
-      {/* ── Controls (hidden on print) ── */}
-      <div className="no-print" style={{ padding: '16px 22px', background: 'var(--navy)',
+      {/* ── Controls bar (hidden on print) ── */}
+      <div className="no-print" style={{ padding: '14px 22px', background: 'linear-gradient(135deg,#1e293b,#0f172a)',
         display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <span style={{ color: '#fff', fontWeight: 700, fontSize: 13 }}>
-          Report Card — {learner.name}
+          📄 Report Card — {learner.name}
         </span>
         <select value={term} onChange={e => setTerm(e.target.value)}
-          style={{ padding: '7px 11px', borderRadius: 8, border: 'none',
-            fontSize: 12, fontWeight: 700 }}>
-          {TERMS.map(t => <option key={t} value={t}>Term {t.replace('T','')}</option>)}
+          style={{ padding: '7px 14px', borderRadius: 8, border: 'none',
+            fontSize: 12, fontWeight: 700, background: 'rgba(255,255,255,.1)',
+            color: '#fff', cursor: 'pointer', outline: 'none' }}>
+          {TERMS.map(t => <option key={t} value={t} style={{ color: '#1e293b' }}>Term {t.replace('T','')}</option>)}
         </select>
         <button onClick={() => router.push(`/learners/${admNo}`)}
           className="btn btn-ghost btn-sm" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.3)' }}>
           ← Profile
         </button>
-        <button onClick={() => window.print()}
-          className="btn btn-gold btn-sm">
+        <button onClick={() => window.print()} className="btn btn-gold btn-sm" style={{ marginLeft: 'auto' }}>
           🖨️ Print / PDF
         </button>
       </div>
 
-      {/* ── A4 Report Card ── */}
-      <div style={{ background: '#F8FAFC', padding: '40px 0', minHeight: '100vh' }} className="no-print-bg">
-        <div className="rc-a4" style={{ background: '#fff', boxShadow: '0 0 40px rgba(0,0,0,0.1)', border: '1px solid #eee' }}>
-          {/* Watermark */}
-          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-30deg)', fontSize: 160, fontWeight: 900, color: 'rgba(139,26,26,0.03)', pointerEvents: 'none', zIndex: 0 }}>PAAV</div>
+      {/* ── A4 wrapper (screen only) ── */}
+      <div style={{ background: '#e8edf3', padding: '32px 0 48px', minHeight: '100vh' }} className="no-print-bg">
 
-          {/* Header */}
-          <div className="rc-hdr" style={{ borderBottom: '3px double var(--maroon)', position: 'relative', zIndex: 1 }}>
-            <div className="rc-school" style={{ fontSize: 22, color: 'var(--maroon)' }}>🏫 {school.name}</div>
-            <div style={{ fontSize: 13, color: 'var(--muted)', margin: '4px 0', fontWeight: 600 }}>
-              PAAV-Gitombo, Embu County, Kenya &nbsp;|&nbsp; Tel: 0758 922 915
+        {/* ══ A4 Card ══ */}
+        <div className="rc-a4" style={{
+          boxShadow: '0 8px 40px rgba(0,0,0,.18)',
+          border: '1px solid #e2e8f0',
+        }}>
+
+          {/* Watermark */}
+          <div style={{ position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%,-50%) rotate(-25deg)',
+            fontSize: 140, fontWeight: 900, color: 'rgba(139,26,26,0.035)',
+            pointerEvents: 'none', zIndex: 0, userSelect: 'none',
+            fontFamily: 'Sora,sans-serif', letterSpacing: 8 }}>PAAV</div>
+
+          {/* ── HEADER ── */}
+          <div className="rc-hdr" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="rc-hdr-logo">🏫</div>
+            <div className="rc-hdr-center">
+              <div className="rc-school">{school.name}</div>
+              <div className="rc-hdr-sub">{school.location} &nbsp;·&nbsp; Tel: {school.tel}</div>
+              <div>
+                <span className="rc-badge">
+                  ACADEMIC PROGRESS REPORT &nbsp;·&nbsp; TERM {term.replace('T','')} &nbsp;·&nbsp; {new Date().getFullYear()}
+                </span>
+              </div>
+              <div className="rc-motto">{school.motto}</div>
             </div>
-            <div style={{ fontFamily: 'Sora,sans-serif', fontSize: 16, fontWeight: 800,
-              color: 'var(--navy)', margin: '10px 0 4px', background: '#FDF2F2', padding: '8px 20px', borderRadius: 30, display: 'inline-block' }}>
-              ACADEMIC PROGRESS REPORT — TERM {term.replace('T','')} · {new Date().getFullYear()}
+            <div className="rc-hdr-stamp">
+              <div style={{ fontWeight: 700, fontSize: 9, color: '#8B1A1A', textTransform: 'uppercase', letterSpacing: .5 }}>Date Issued</div>
+              <div style={{ fontWeight: 600 }}>{dateStr}</div>
+              <div style={{ marginTop: 4, padding: '3px 8px', background: '#FDF2F2', borderRadius: 6,
+                border: '1px solid #FECACA', fontSize: 8.5, color: '#8B1A1A', fontWeight: 700 }}>
+                OFFICIAL COPY
+              </div>
             </div>
-            <div className="rc-motto" style={{ fontStyle: 'italic', color: 'var(--maroon)', marginTop: 4 }}>{school.motto}</div>
           </div>
 
-          {/* Learner info grid */}
-          <div className="rc-learner-info">
+          {/* ── LEARNER INFO ── */}
+          <div className="rc-learner-info" style={{ position: 'relative', zIndex: 1 }}>
             {[
-              ['Name',    learner.name ],
-              ['Adm No', learner.adm  ],
-              ['Grade',  learner.grade],
-              ['Sex',    learner.sex  ],
-              ['Stream', learner.stream || '—'],
-              ['Class Teacher', learner.teacher || '—'],
-              ['Parent/Guardian', learner.parent || '—'],
-              ['Phone', learner.phone || '—'],
+              ['Name',             learner.name ],
+              ['Admission No.',    learner.adm  ],
+              ['Grade',            learner.grade],
+              ['Sex',              learner.sex || '—'],
+              ['Stream',           learner.stream || '—'],
+              ['Class Teacher',    learner.teacher || '—'],
+              ['Parent/Guardian',  learner.parent || '—'],
+              ['Phone',            learner.phone || '—'],
             ].map(([label, val]) => (
               <div key={label} className="rc-info-row">
                 <span className="rc-info-label">{label}</span>
-                <strong style={{ fontSize: 11, color: 'var(--navy)' }}>{val}</strong>
+                <strong style={{ fontSize: 10, color: '#1e293b' }}>{val}</strong>
               </div>
             ))}
           </div>
 
-          {/* Subject marks table */}
-          <table className="rc-subj-table">
+          {/* ── MARKS TABLE ── */}
+          <table className="rc-subj-table" style={{ position: 'relative', zIndex: 1 }}>
             <thead>
               <tr>
                 <th>Learning Area / Subject</th>
-                <th style={{ textAlign: 'center' }}>Opener<br />(Score)</th>
-                <th style={{ textAlign: 'center' }}>Mid-Term<br />(Score)</th>
-                <th style={{ textAlign: 'center' }}>End-Term<br />(Score)</th>
-                <th style={{ textAlign: 'center' }}>Level</th>
-                <th style={{ textAlign: 'center' }}>Points</th>
+                <th>Opener<br/><span style={{fontWeight:400,fontSize:7.5,opacity:.8}}>(Score)</span></th>
+                <th>Mid-Term<br/><span style={{fontWeight:400,fontSize:7.5,opacity:.8}}>(Score)</span></th>
+                <th>End-Term<br/><span style={{fontWeight:400,fontSize:7.5,opacity:.8}}>(Score)</span></th>
+                <th>Grade<br/><span style={{fontWeight:400,fontSize:7.5,opacity:.8}}>(Level)</span></th>
+                <th>Pts</th>
                 <th>Remarks</th>
               </tr>
             </thead>
@@ -176,26 +191,36 @@ export default function ReportCardPage() {
                 const etCell = cells[2];
                 return (
                   <tr key={subj}>
-                    <td style={{ fontWeight: 600 }}>{subj}</td>
+                    <td>{subj}</td>
                     {cells.map((c, ci) => (
                       <td key={ci} style={{ textAlign: 'center', fontWeight: 700 }}>
-                        {c.score !== undefined ? c.score : '—'}
+                        {c.score !== undefined ? (
+                          <span>{c.score}
+                            {c.inf && (
+                              <span style={{ display:'inline-block', marginLeft:3, padding:'1px 5px',
+                                borderRadius:8, fontSize:8.5, fontWeight:900,
+                                background:c.inf.bg, color:c.inf.c }}>
+                                {c.inf.lv}
+                              </span>
+                            )}
+                          </span>
+                        ) : <span style={{color:'#cbd5e1'}}>—</span>}
                       </td>
                     ))}
                     <td style={{ textAlign: 'center' }}>
                       {etCell.inf ? (
-                        <span style={{ fontWeight: 800, color: etCell.inf.c,
-                          background: etCell.inf.bg, padding: '1px 6px', borderRadius: 4,
-                          fontSize: 9.5 }}>
+                        <span style={{ fontWeight: 900, color: etCell.inf.c,
+                          background: etCell.inf.bg, padding: '2px 8px',
+                          borderRadius: 10, fontSize: 9, display:'inline-block' }}>
                           {etCell.inf.lv}
                         </span>
-                      ) : '—'}
+                      ) : <span style={{color:'#cbd5e1'}}>—</span>}
                     </td>
-                    <td style={{ textAlign: 'center', fontWeight: 800,
-                      color: etCell.inf ? etCell.inf.c : 'var(--muted)' }}>
+                    <td style={{ textAlign: 'center', fontWeight: 900,
+                      color: etCell.inf ? etCell.inf.c : '#cbd5e1', fontSize: 12 }}>
                       {etCell.inf ? etCell.inf.pts : '—'}
                     </td>
-                    <td style={{ fontSize: 9, color: 'var(--muted)' }}>
+                    <td style={{ fontSize: 9, color: '#64748b' }}>
                       {etCell.inf ? etCell.inf.desc.split(' — ')[0] : '—'}
                     </td>
                   </tr>
@@ -205,83 +230,77 @@ export default function ReportCardPage() {
               {/* Total row */}
               {entered.length > 0 && (
                 <tr className="rc-total-row">
-                  <td colSpan="5" style={{ paddingLeft: 12 }}>
-                    TOTAL POINTS ({entered.length}/{subjects.length} subjects)
+                  <td colSpan={4} style={{ paddingLeft: 12 }}>
+                    TOTAL POINTS &nbsp;·&nbsp; <span style={{fontWeight:500,fontSize:9,opacity:.7}}>({entered.length} of {subjects.length} subjects entered)</span>
                   </td>
-                  <td style={{ textAlign: 'center', fontSize: 15 }}>
-                    {totalPts} / {maxTotal}
+                  <td style={{ textAlign:'center' }}>—</td>
+                  <td style={{ textAlign: 'center', fontSize: 14 }}>
+                    {totalPts}<span style={{fontSize:9,opacity:.7,fontWeight:500}}>/{maxTotal}</span>
                   </td>
-                  <td style={{ fontSize: 10 }}>
-                    {Math.round((totalPts/maxTotal)*100)}%
-                  </td>
+                  <td style={{ fontSize: 10, fontWeight:700 }}>{pct}%</td>
                 </tr>
               )}
             </tbody>
           </table>
 
-          {/* CBC grade scale legend */}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
-              color: 'var(--muted)', marginBottom: 4, letterSpacing: '.5px' }}>
-              CBC Grading Scale:
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-              {scale.map(s => (
-                <span key={s.lv} style={{ background: s.bg, color: s.c, fontWeight: 700,
-                  fontSize: 9, padding: '2px 7px', borderRadius: 4, border: `1px solid ${s.bg}` }}>
-                  {s.lv}: {s.min}–{(scale[scale.indexOf(s)-1]?.min-1) || 100} ({s.pts}pts)
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Promotion recommendation */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-            <div style={{ padding: '10px 12px', background: '#F8FAFF', borderRadius: 8,
-              border: '1.5px solid var(--border)' }}>
-              <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
-                color: 'var(--muted)', marginBottom: 3 }}>Recommendation</div>
-              <div style={{ fontWeight: 800, fontSize: 13, color: 
-                promoSt === 'promote' ? 'var(--green)'
-                : promoSt === 'review' ? 'var(--amber)'
-                : 'var(--red)' }}>
-                {promoSt === 'promote' ? '✅ PROMOTED'
-                 : promoSt === 'review' ? '⚠ UNDER REVIEW'
-                 : '❌ RETAIN'}
-              </div>
-            </div>
-            <div style={{ padding: '10px 12px', background: '#F8FAFF', borderRadius: 8,
-              border: '1.5px solid var(--border)' }}>
-              <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
-                color: 'var(--muted)', marginBottom: 3 }}>Fee Balance</div>
-              <div style={{ fontWeight: 800, fontSize: 13,
-                color: balance <= 0 ? 'var(--green)' : 'var(--red)' }}>
-                {balance <= 0 ? '✅ CLEARED' : `KSH ${balance.toLocaleString()} OWING`}
-              </div>
+          {/* ── CBC SCALE LEGEND ── */}
+          <div style={{ position:'relative', zIndex:1 }}>
+            <div style={{ fontSize: 8.5, fontWeight: 700, textTransform:'uppercase', color:'#94a3b8',
+              marginBottom: 5, letterSpacing: .6 }}>CBC Grading Scale:</div>
+            <div className="rc-scale-legend">
+              {scale.map((s, i) => {
+                const nextMin = scale[i-1]?.min ?? 100;
+                const upper   = i === 0 ? 100 : nextMin - 1;
+                return (
+                  <span key={s.lv} className="rc-scale-pip"
+                    style={{ background: s.bg, color: s.c, borderColor: s.c+'40' }}>
+                    {s.lv}: {s.min}–{upper} ({s.pts}pts)
+                  </span>
+                );
+              })}
             </div>
           </div>
 
-          {/* Signature lines */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20,
-            marginBottom: 12, marginTop: 18 }}>
+          {/* ── STATUS BOXES ── */}
+          <div className="rc-status-grid" style={{ position:'relative', zIndex:1 }}>
+            <div className="rc-status-box" style={{ borderColor: promoColor+'44', background: promoColor+'0a' }}>
+              <div className="rc-status-label">Promotion Recommendation</div>
+              <div className="rc-status-value" style={{ color: promoColor }}>{promoText}</div>
+              <div style={{ marginTop:4, fontSize:9, color:'#64748b' }}>
+                Score: {totalPts}/{maxTotal} pts &nbsp;({pct}%)
+              </div>
+            </div>
+            <div className="rc-status-box" style={{
+              borderColor: balance<=0 ? '#05966944':'#DC262644',
+              background:   balance<=0 ? '#05966906':'#DC262606',
+            }}>
+              <div className="rc-status-label">Fee Balance — {new Date().getFullYear()}</div>
+              <div className="rc-status-value" style={{ color: balance<=0 ? '#059669':'#DC2626' }}>
+                {balance<=0 ? '✅ CLEARED' : `KSH ${balance.toLocaleString()} OWING`}
+              </div>
+              <div style={{ marginTop:4, fontSize:9, color:'#64748b' }}>
+                Annual: KSH {annualFee.toLocaleString()} &nbsp;·&nbsp; Paid: KSH {paid.toLocaleString()}
+              </div>
+            </div>
+          </div>
+
+          {/* ── SIGNATURES ── */}
+          <div className="rc-sigs" style={{ position:'relative', zIndex:1 }}>
             {['Class Teacher','Head Teacher','Parent / Guardian'].map(role => (
-              <div key={role} style={{ textAlign: 'center' }}>
-                <div style={{ borderBottom: '1px solid #ccc', marginBottom: 4, height: 30 }} />
-                <div style={{ fontSize: 9, color: 'var(--muted)' }}>{role}</div>
+              <div key={role} className="rc-sig-box">
+                <div className="rc-sig-line" />
+                <div className="rc-sig-label">{role}</div>
               </div>
             ))}
           </div>
 
-          {/* Footer */}
-          <div className="rc-footer">
+          {/* ── FOOTER ── */}
+          <div className="rc-footer" style={{ position:'relative', zIndex:1 }}>
             <div>
-              <strong>{school.name}</strong> &nbsp;|&nbsp; {school.motto}
+              <strong>{school.name}</strong>
             </div>
-            <div style={{ marginTop: 3 }}>
-              Generated on {new Date().toLocaleDateString('en-KE', {
-                day:'numeric', month:'long', year:'numeric'
-              })} &nbsp;|&nbsp; PAAV School Portal
-            </div>
+            <div style={{ color:'#8B1A1A', fontStyle:'italic' }}>{school.motto}</div>
+            <div>Generated: {dateStr} &nbsp;·&nbsp; PAAV School Portal</div>
           </div>
         </div>
       </div>

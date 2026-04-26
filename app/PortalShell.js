@@ -70,17 +70,24 @@ export default function PortalShell({ children }) {
       const db   = await dbRes.json();
 
       if (auth.ok && auth.user) {
+        // avatar comes from the staff record via publicUser() in /api/auth
+        // persist it in sessionStorage so it survives client-side navigations
+        try {
+          if (auth.user.avatar) {
+            sessionStorage.setItem('paav_avatar_' + auth.user.id, auth.user.avatar);
+          } else {
+            // try to restore from cache if the session didn't include it
+            const cached = sessionStorage.getItem('paav_avatar_' + auth.user.id);
+            if (cached) auth.user.avatar = cached;
+          }
+        } catch {}
         setUser(auth.user);
-        // Persist last active path for session restore
         try { localStorage.setItem('paav_last_path', pathname); } catch {}
       }
-      // Note: if auth fails, we do NOT redirect here — each page does its own check.
-      // This prevents the shell from fighting with page-level guards.
 
       const ann = db.results[0]?.value;
       if (ann?.text && ann?.active) setAnnouncement(ann.text);
 
-      // Load hero image
       const heroDb = db.results[2]?.value;
       if (heroDb) setHeroUrl(heroDb);
 

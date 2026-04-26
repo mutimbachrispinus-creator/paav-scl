@@ -68,7 +68,9 @@ export default function ProfilePanel({ user, onClose }) {
             headers:{'Content-Type':'application/json'}, 
             body: JSON.stringify({ requests: [{type:'set', key: table, value: list}] }) 
           });
+          // Update in-memory user context + sessionStorage cache
           setUser(u => ({ ...u, avatar: dataUrl }));
+          try { sessionStorage.setItem('paav_avatar_' + user.id, dataUrl); } catch {}
           setMsg('✅ Photo updated!');
         } else {
           throw new Error('Profile not found in staff list');

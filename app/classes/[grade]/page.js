@@ -60,7 +60,11 @@ export default function ClassPage() {
           <button className="btn btn-ghost btn-sm" onClick={() => router.push('/learners')}>
             ← All Learners
           </button>
-          <button className="btn btn-ghost btn-sm no-print" onClick={() => window.print()}>
+          <button className="btn btn-ghost btn-sm no-print" onClick={() => {
+            document.body.classList.add('print-landscape');
+            window.print();
+            setTimeout(() => document.body.classList.remove('print-landscape'), 1000);
+          }}>
             🖨️ Print
           </button>
         </div>

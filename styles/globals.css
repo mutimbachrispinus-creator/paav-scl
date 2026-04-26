@@ -196,16 +196,147 @@ tr:hover td{background:#F8FAFF}
 /* ── RECEIPT ── */
 .receipt-card{background:#fff;border:2px solid var(--border);border-radius:var(--r);padding:24px;max-width:440px;margin:0 auto}
 
-/* ── REPORT CARD ── */
-.rc-preview{background:#fff;border:2px solid var(--border);border-radius:var(--r);padding:20px;font-size:11px;line-height:1.7}
-.rc-hdr{text-align:center;border-bottom:3px double var(--maroon,#8B1A1A);padding-bottom:12px;margin-bottom:12px}
-.rc-school{font-family:'Sora',sans-serif;font-size:16px;font-weight:800;color:#8B1A1A}
-.rc-badge{background:#8B1A1A;color:#fff;font-size:11.5px;font-weight:700;padding:3px 13px;border-radius:4px;display:inline-block;margin:6px 0}
+/* ══════════════════════════════════════════════
+   REPORT CARD  — Premium A4 Design
+   ══════════════════════════════════════════════ */
+.rc-a4 {
+  position:relative; width:210mm; min-height:280mm;
+  margin:0 auto; background:#fff;
+  font-family:'Inter','Segoe UI',sans-serif; font-size:10.5px;
+  padding:14mm 16mm 12mm; box-sizing:border-box; color:#1e293b;
+}
+
+/* Side accent stripe */
+.rc-a4::before {
+  content:''; position:absolute; left:0; top:0; bottom:0;
+  width:8px; background:linear-gradient(180deg,#8B1A1A 0%,#C2372D 50%,#E9A800 100%);
+  border-radius:0;
+}
+
+/* Header */
+.rc-hdr {
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:16px;
+  padding-bottom:10px; margin-bottom:12px;
+  border-bottom:3px solid #8B1A1A;
+  position:relative; z-index:1;
+}
+.rc-hdr-logo {
+  width:64px; height:64px; border-radius:50%;
+  background:linear-gradient(135deg,#8B1A1A,#6B1212);
+  display:flex; align-items:center; justify-content:center;
+  font-size:28px; color:#fff; flex-shrink:0;
+  box-shadow:0 4px 12px rgba(139,26,26,.35);
+}
+.rc-hdr-center { text-align:center; }
+.rc-school {
+  font-family:'Sora',sans-serif; font-size:15px; font-weight:900;
+  color:#8B1A1A; text-transform:uppercase; letter-spacing:.5px;
+}
+.rc-hdr-sub { font-size:9.5px; color:#64748b; margin:2px 0; font-weight:500; }
+.rc-badge {
+  display:inline-block; background:linear-gradient(135deg,#8B1A1A,#C2372D);
+  color:#fff; font-size:10px; font-weight:800; padding:4px 14px;
+  border-radius:20px; letter-spacing:.4px; margin-top:4px;
+}
+.rc-motto { font-style:italic; color:#8B1A1A; font-size:9px; margin-top:2px; }
+.rc-hdr-stamp {
+  text-align:center; font-size:8.5px; color:#94a3b8;
+  display:flex; flex-direction:column; gap:2px; align-items:flex-end;
+}
+
+/* Learner info grid */
+.rc-learner-info {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:0; border:1.5px solid #e2e8f0; border-radius:8px;
+  overflow:hidden; margin-bottom:12px; font-size:10px;
+}
+.rc-info-row {
+  display:flex; align-items:center; padding:5px 10px;
+  border-bottom:1px solid #f1f5f9;
+}
+.rc-info-row:nth-child(even){ background:#fafbff; }
+.rc-info-row:last-child, .rc-info-row:nth-last-child(2):nth-child(odd){ border-bottom:none; }
+.rc-info-label {
+  font-size:8.5px; color:#94a3b8; text-transform:uppercase;
+  letter-spacing:.5px; font-weight:700; width:80px; flex-shrink:0;
+}
+
+/* Subject marks table */
+.rc-subj-table {
+  width:100%; border-collapse:collapse; font-size:10px;
+  margin-bottom:10px; border:1.5px solid #e2e8f0; border-radius:8px; overflow:hidden;
+}
+.rc-subj-table thead tr {
+  background:linear-gradient(135deg,#8B1A1A,#C2372D); color:#fff;
+}
+.rc-subj-table th {
+  padding:7px 8px; text-align:center; font-size:8.5px;
+  text-transform:uppercase; letter-spacing:.4px; font-weight:700;
+  border:none;
+}
+.rc-subj-table th:first-child { text-align:left; padding-left:12px; }
+.rc-subj-table td { padding:5px 8px; border-bottom:1px solid #f1f5f9; }
+.rc-subj-table td:first-child { font-weight:600; padding-left:12px; }
+.rc-subj-table tbody tr:nth-child(even) td { background:#fafbff; }
+.rc-subj-table tbody tr:hover td { background:#FDF2F2; }
+.rc-total-row td {
+  background:linear-gradient(135deg,#1e293b,#334155)!important;
+  color:#fff!important; font-weight:800!important; font-size:11px!important;
+  padding:7px 8px!important; border:none!important;
+}
+
+/* CBC legend */
+.rc-scale-legend {
+  display:flex; flex-wrap:wrap; gap:4px;
+  margin-bottom:10px; padding:8px 10px;
+  background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0;
+}
+.rc-scale-pip {
+  font-weight:700; font-size:8.5px; padding:2px 8px;
+  border-radius:12px; border:1px solid transparent;
+}
+
+/* Promotion + fee box */
+.rc-status-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;
+}
+.rc-status-box {
+  padding:10px 12px; border-radius:8px;
+  border:1.5px solid #e2e8f0; background:#f8fafc;
+}
+.rc-status-label {
+  font-size:8px; font-weight:800; text-transform:uppercase;
+  letter-spacing:.6px; color:#94a3b8; margin-bottom:3px;
+}
+.rc-status-value { font-weight:900; font-size:13px; }
+
+/* Signature area */
+.rc-sigs {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
+  margin-top:14px; margin-bottom:10px;
+}
+.rc-sig-box { text-align:center; }
+.rc-sig-line {
+  border-bottom:1.5px solid #cbd5e1; height:28px; margin-bottom:4px;
+}
+.rc-sig-label { font-size:8.5px; color:#94a3b8; font-weight:600; }
+
+/* Footer stripe */
+.rc-footer {
+  border-top:2px solid #8B1A1A; padding-top:6px;
+  font-size:9px; color:#64748b; text-align:center;
+  display:flex; justify-content:space-between; align-items:center;
+}
+
+/* Preview mode (on-screen) */
+.rc-preview{ background:#fff;border:2px solid var(--border);border-radius:var(--r);padding:20px;font-size:11px;line-height:1.7 }
 .rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:#F8FAFF;border-radius:8px;padding:10px;margin-bottom:12px;font-size:11.5px}
 .rc-tbl{width:100%;border-collapse:collapse;font-size:10.5px}
 .rc-tbl th{background:#8B1A1A;color:#fff;padding:6px 8px;text-align:center;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px}
 .rc-tbl td{border:1px solid var(--border);padding:5px 8px}
 .rc-tbl tr:nth-child(even) td{background:#F8FAFC}
+
 
 /* ── FEE CONFIG ── */
 .fee-cfg-row{display:grid;grid-template-columns:160px repeat(4,1fr);gap:10px;align-items:center;padding:12px;background:#F8FAFF;border-radius:var(--r2);margin-bottom:8px;border:1.5px solid var(--border)}
@@ -275,21 +406,32 @@ tr:hover td{background:#F8FAFF}
   .auth-right{padding:20px 16px}
 }
 @media print{
-  @page { size: A4 portrait; margin: 0; }
-  #topbar,.no-print,.no-print-bg{display:none!important}
-  body{background:#fff!important;margin:0!important;padding:0!important}
-  .rc-a4{box-shadow:none!important;border:none!important;margin:0!important;width:100%!important;padding:12mm!important;page-break-after:always}
-  .timetable-grade-block{page-break-inside:avoid;margin-bottom:20px}
-  .timetable-grade-block table{width:100%!important;border-collapse:collapse!important}
-  .timetable-grade-block td,.timetable-grade-block th{border:1px solid #333!important;padding:6px!important;font-size:10px!important}
-  .timetable-grade-block thead{background:#f0f0f0!important;font-weight:bold!important}
-  .merit-list-container{max-height:none!important;overflow:visible!important}
-  /* Report card A4 page */
-  .rc-page{page-break-after:always;width:100%;min-height:270mm;box-sizing:border-box;padding:12mm;border:none!important;box-shadow:none!important}
-  .rc-page:last-child{page-break-after:avoid}
-  .print-container{padding:0!important;border:none!important;background:#fff!important}
-  /* Templates print area */
-  .templates-print-area{width:210mm;margin:0 auto}
+  /* Hide ALL portal chrome — navbar, sidebar, announcements, bottom nav, modals */
+  #topbar, .no-print, .no-print-bg,
+  nav, .announcement-bar-live, .mobile-bottom-nav,
+  .inactivity-banner, .modal-overlay { display:none!important }
+
+  body { background:#fff!important; margin:0!important; padding:0!important; }
+  #main { padding:0!important; max-width:none!important; }
+
+  /* Default portrait */
+  @page { size: A4 portrait; margin: 10mm 12mm; }
+
+  .rc-a4 { box-shadow:none!important; border:none!important; margin:0!important; width:100%!important; padding:0!important; page-break-after:always; }
+
+  /* Landscape pages (merit list, class list) */
+  .print-landscape { }
+  .print-landscape @page { size: A4 landscape; margin: 8mm 10mm; }
+  body.merit-print, body.classlist-print { }
+  @page merit-print { size: A4 landscape; margin: 8mm; }
+
+  .merit-list-container { max-height:none!important; overflow:visible!important; }
+  .rc-page { page-break-after:always; width:100%; min-height:270mm; box-sizing:border-box; padding:12mm; border:none!important; box-shadow:none!important; }
+  .rc-page:last-child { page-break-after:avoid; }
+  .print-container { padding:0!important; border:none!important; background:#fff!important; }
+  .templates-print-area { width:210mm; margin:0 auto; }
+  .page { padding:0!important; }
+  .panel { box-shadow:none!important; border:1px solid #e5e7eb!important; }
 }
 .merit-list-container{
   max-height:600px;
@@ -800,16 +942,15 @@ tr:hover td{background:#F8FAFF}
 
 /* Landscape @page for merit/class print */
 @media print {
-  body.print-landscape {
-    width: 297mm;
-  }
-  body.print-landscape .rc-page,
-  body.print-landscape .print-container {
-    width: 277mm !important;
-  }
+  body.print-landscape * { }
 }
-@page { size: A4 portrait; margin: 8mm; }
-.print-landscape-active @page { size: A4 landscape !important; margin: 6mm; }
+@page { size: A4 portrait; margin: 10mm; }
+
+/* This selector is the only reliable way to trigger landscape in modern browsers */
+@media print {
+  body.print-landscape { }
+}
+/* Applied via JS: document.body.classList.add('print-landscape') before window.print() */
 
 /* ═══════════════════════════════════════════
    ROUND 5: Nav animation, maroon polish,
