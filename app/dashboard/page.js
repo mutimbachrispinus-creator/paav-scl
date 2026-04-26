@@ -226,6 +226,7 @@ export default function DashboardPage() {
               { href:'/allocations', icon:'🗓️', label:'Allocations', roles:['admin'] },
               { href:'/sms',         icon:'📱', label:'SMS',         roles:['admin'] },
               { href:'/messages',    icon:'💬', label:'Messages',    roles:['admin','teacher','staff','member'] },
+              { href:'/profile',     icon:'👤', label:'Profile',     roles:['admin'] },
               { href:'/settings',    icon:'⚙️', label:'Settings',    roles:['admin'] },
             ].filter(t => t.roles.includes(user?.role || 'member'));
             return allTabs.map(t => (
