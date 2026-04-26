@@ -46,6 +46,7 @@ export async function POST(request) {
     case 'login':    return handleLogin(body, request);
     case 'logout':   return handleLogout(request);
     case 'register': return handleRegister(body, request);
+    case 'edit_user': return handleEditUser(body, request);
     case 'google':   return handleGoogle(body, request);
     case 'whoami':   return handleWhoami(request);
     case 'forgot':   return handleForgot(body);
@@ -221,6 +222,31 @@ async function handleResetPw({ username, newPassword, secA }) {
   staff[idx].password = await hashPassword(newPassword);
   await kvSet('paav6_staff', staff);
   return NextResponse.json({ ok: true });
+}
+
+/* ─── Admin edit user ───────────────────────────────────────────────────── */
+async function handleEditUser({ id, name, role, grade, phone, status, password }, request) {
+  // Must be called by an admin session
+  const session = await getSession();
+  if (!session || session.role !== 'admin') return err('Admin only', 403);
+
+  const staff = await getStaffList();
+  const idx   = staff.findIndex(s => s.id === id);
+  if (idx === -1) return err('User not found');
+
+  if (name)   staff[idx].name   = name.toUpperCase();
+  if (role)   staff[idx].role   = role;
+  if (grade !== undefined) staff[idx].grade  = grade;
+  if (phone)  staff[idx].phone  = phone;
+  if (status) staff[idx].status = status;
+
+  // Admin force-reset password — no old password required
+  if (password && password.length >= 6) {
+    staff[idx].password = await hashPassword(password);
+  }
+
+  await kvSet('paav6_staff', staff);
+  return NextResponse.json({ ok: true, user: publicUser(staff[idx]) });
 }
 
 /* ─── Utilities ─────────────────────────────────────────────────────────── */

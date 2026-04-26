@@ -18,6 +18,7 @@ export default function MessagesPage() {
   const [cmpSub, setCmpSub] = useState('');
   const [cmpBody, setCmpBody] = useState('');
   const [cmpPri, setCmpPri] = useState('normal');
+  const [activeTab, setActiveTab] = useState('inbox');
 
   const load = useCallback(async () => {
     try {
@@ -120,13 +121,19 @@ export default function MessagesPage() {
 
   if (loading || !user) return <LoadingSkeleton />;
 
-  const myMsgs = allMessages.filter(m => 
-    m.from === user.username || 
-    m.to === user.username || 
-    m.to === 'ALL' || 
-    (m.to === 'ALL_PARENTS' && user.role === 'parent') || 
-    (m.to === 'ALL_STAFF' && ['admin','teacher','staff'].includes(user.role))
-  ).sort((a,b) => b.date.localeCompare(a.date));
+  const filteredMsgs = allMessages.filter(m => {
+    if (activeTab === 'inbox') {
+      return (
+        m.to === user.username || 
+        m.to === 'ALL' || 
+        (m.to === 'ALL_PARENTS' && user.role === 'parent') || 
+        (m.to === 'ALL_STAFF' && ['admin','teacher','staff'].includes(user.role))
+      );
+    } else if (activeTab === 'sent') {
+      return m.from === user.username;
+    }
+    return false;
+  }).sort((a,b) => b.date.localeCompare(a.date));
 
   return (
     <div className="page on" id="pg-messages">
@@ -142,13 +149,22 @@ export default function MessagesPage() {
         </div>
       </div>
 
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+        <button className={`btn btn-sm ${activeTab === 'inbox' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setActiveTab('inbox'); setActiveThread(null); }}>
+          📥 Inbox
+        </button>
+        <button className={`btn btn-sm ${activeTab === 'sent' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setActiveTab('sent'); setActiveThread(null); }}>
+          📤 Sent
+        </button>
+      </div>
+
       <div className="sg sg2">
         <div className="panel">
           <div className="panel-hdr">
-            <h3>Inbox</h3>
+            <h3>{activeTab === 'inbox' ? 'Inbox' : 'Sent'}</h3>
           </div>
           <div className="panel-body" style={{ padding: 0 }}>
-            {myMsgs.length > 0 ? myMsgs.map(m => {
+            {filteredMsgs.length > 0 ? filteredMsgs.map(m => {
               const unr = !m.read.includes(user.username) && m.from !== user.username;
               const pC = m.priority === 'urgent' ? '#EF4444' : m.priority === 'important' ? 'var(--amber)' : 'transparent';
               return (

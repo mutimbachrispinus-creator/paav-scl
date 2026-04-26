@@ -10,9 +10,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ALL_GRADES } from '@/lib/cbe';
 
-const ROLES  = ['teacher','senior-teacher','staff','parent'];
-const ADMIN_ROLES = ['admin','teacher','senior-teacher','staff','parent']; // super_admin can set admin
-const MAX_ADMINS = 4;
+const ROLES       = ['teacher','senior-teacher','staff','parent'];
+const ADMIN_ROLES = ['admin','teacher','senior-teacher','staff','parent'];
+const MAX_ADMINS  = 4;
 const COLORS = {
   admin:'#8B1A1A', 'super_admin':'#D97706', teacher:'#059669',
   'senior-teacher':'#0D9488', staff:'#2563EB', parent:'#7C3AED', member:'#64748B',
@@ -178,24 +178,16 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
     password: '',
     status:   user?.status   || 'active',
   });
-  const [busy, setBusy] = useState(false);
-  const [err,  setErr]  = useState('');
+  const [busy, setBusy]       = useState(false);
+  const [err,  setErr]        = useState('');
+  const [showPw, setShowPw]   = useState(false);
 
   const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   async function save() {
     if (!form.name || !form.username) { setErr('Name and username are required'); return; }
     if (!isEdit && !form.password)    { setErr('Password is required for new users'); return; }
-    if (form.role === 'admin' && currentUser?.role !== 'super_admin') {
-      setErr('Only Super Admin can register Admin accounts'); return;
-    }
-    const adminCount = allStaff.filter(s=>s.role==='admin' && s.id !== user?.id).length;
-    if (form.role === 'admin' && !isEdit && adminCount >= MAX_ADMINS) {
-      setErr(`Maximum ${MAX_ADMINS} admin accounts allowed`); return;
-    }
     setBusy(true);
-
-    const action = isEdit ? 'edit_user' : 'register';
     const res = await fetch('/api/auth', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -214,7 +206,7 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
     <div className="modal-overlay open" onClick={e => e.target===e.currentTarget && onClose()}>
       <div className="modal">
         <div className="modal-hdr">
-          <h3>{isEdit ? `✏ Edit — ${user.name}` : '➕ Add User'}</h3>
+          <h3>{isEdit ? `✏️ Edit — ${user.name}` : '➕ Add User'}</h3>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
@@ -229,16 +221,10 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
           <div className="field-row">
             <div className="field"><label>Role</label>
               <select value={form.role} onChange={e => F('role', e.target.value)}>
-                {(currentUser?.role === 'super_admin' ? ADMIN_ROLES : ROLES).map(r => (
+                {(currentUser?.role === 'admin' ? ADMIN_ROLES : ROLES).map(r => (
                   <option key={r} value={r}>{r}</option>
                 ))}
               </select>
-              {form.role === 'admin' && currentUser?.role !== 'super_admin' && (
-                <div style={{fontSize:10,color:'#DC2626',marginTop:3}}>⚠ Only Super Admin can create Admin accounts</div>
-              )}
-              {form.role === 'senior-teacher' && (
-                <div style={{fontSize:10,color:'#059669',marginTop:3}}>✅ Senior School Teacher — can manage Gr 10–12</div>
-              )}
             </div>
             <div className="field"><label>Class Grade</label>
               <select value={form.grade} onChange={e => F('grade', e.target.value)}>
@@ -249,10 +235,36 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
           <div className="field"><label>Phone</label>
             <input value={form.phone} onChange={e => F('phone', e.target.value)} type="tel"
               placeholder="07XXXXXXXX" /></div>
-          <div className="field">
-            <label>{isEdit ? 'New Password (blank = keep existing)' : 'Password *'}</label>
-            <input value={form.password} onChange={e => F('password', e.target.value)}
-              type="password" placeholder="Min 6 characters" /></div>
+
+          {/* Password section */}
+          <div className="field" style={{ position: 'relative' }}>
+            <label style={{ display:'flex', alignItems:'center', gap:6 }}>
+              {isEdit
+                ? <><span>🔑 Reset Password</span><span style={{fontSize:10,color:'#6B7280',fontWeight:400}}>(leave blank to keep current)</span></>
+                : 'Password *'}
+            </label>
+            <input
+              value={form.password}
+              onChange={e => F('password', e.target.value)}
+              type={showPw ? 'text' : 'password'}
+              placeholder={isEdit ? 'Enter new password for this user…' : 'Min 6 characters'}
+              style={{ paddingRight: 40 }}
+            />
+            <button type="button" onClick={() => setShowPw(!showPw)}
+              style={{ position:'absolute', right:10, top:28, background:'none', border:'none', cursor:'pointer', fontSize:16 }}>
+              {showPw ? '🙈' : '👁️'}
+            </button>
+          </div>
+
+          {isEdit && (
+            <div className="field"><label>Status</label>
+              <select value={form.status} onChange={e => F('status', e.target.value)}>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="pending">Pending</option>
+              </select></div>
+          )}
+
           <div style={{ display:'flex', justifyContent:'flex-end', gap:8, marginTop:8 }}>
             <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
             <button className="btn btn-primary btn-sm" onClick={save} disabled={busy}

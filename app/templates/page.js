@@ -28,6 +28,7 @@ export default function TemplatesPage() {
   const [marks, setMarks] = useState({});
   const [subjCfg, setSubjCfg] = useState({});
   const [fees, setFees] = useState([]);
+  const [feeCfg, setFeeCfg] = useState({});
   const [gradCfg, setGradCfg] = useState(null);
   const [grade, setGrade] = useState('GRADE 7');
   const [term, setTerm] = useState('T1');
@@ -42,13 +43,14 @@ export default function TemplatesPage() {
         setUser(auth);
         
         const db = await getCachedDBMulti([
-          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog'
+          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog', 'paav6_feecfg'
         ]);
         
         setLearners(db.paav6_learners || []);
         setMarks(db.paav6_marks || {});
         setSubjCfg(db.paav8_subj || {});
         setGradCfg(db.paav8_grad || null);
+        setFeeCfg(db.paav6_feecfg || {});
         
         const feeList = db.paav6_fees || [];
         const paylogList = db.paav6_paylog || [];
@@ -173,7 +175,7 @@ export default function TemplatesPage() {
           <ClassListTemplate learners={filteredLearners} grade={grade} />
         </div>
         <div style={{ display: tab === 'receipt' ? 'block' : 'none' }}>
-          <ReceiptTemplate learners={filteredLearners} fees={fees} grade={grade} selLearner={selLearner} />
+          <ReceiptTemplate learners={filteredLearners} fees={fees} grade={grade} selLearner={selLearner} feeCfg={feeCfg} />
         </div>
         <div style={{ display: tab === 'id'      ? 'block' : 'none' }}>
           <IDCardTemplate learners={filteredLearners} grade={grade} />
@@ -364,80 +366,95 @@ function ClassListTemplate({ learners, grade }) {
   );
 }
 
-function ReceiptTemplate({ learners, fees, grade, selLearner }) {
-  const filtered = fees.filter(f => {
-    const gradeMatch = !grade || f.grade === grade || !f.grade;
-    const learnerMatch = !selLearner || f.adm === selLearner;
-    return gradeMatch && learnerMatch;
-  }).slice(0, 20);
+function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
+  const getAnnualFee = g => feeCfg[g]?.annual || 5000;
+  
+  const targetLearners = learners.filter(l => {
+    if (grade && l.grade !== grade) return false;
+    if (selLearner && l.adm !== selLearner) return false;
+    return true;
+  });
 
-  if (filtered.length === 0) {
+  if (targetLearners.length === 0) {
     return (
       <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
         <div style={{ fontSize: 36, marginBottom: 12 }}>🧾</div>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>No fee receipts found</div>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>No learners found</div>
         <div style={{ fontSize: 12 }}>
-          {grade ? `No payments recorded for ${grade}` : 'No payments recorded yet'}.<br/>
-          Record payments in the Fees module — they will appear here.
-        </div>
-        <div style={{ marginTop: 16, padding: '8px 16px', background: '#FDF2F2', borderRadius: 8, fontSize: 11, color: '#8B1A1A', display: 'inline-block' }}>
-          Tip: Go to 💰 Fees → select learner → click + Pay
+          Check your grade/learner selection.
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-      {filtered.map((f, i) => {
-        const l = learners.find(x => x.adm === f.adm);
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
+      {targetLearners.map((l, i) => {
+        const annualFee = getAnnualFee(l.grade);
+        const lfees = fees.filter(f => f.adm === l.adm).sort((a,b) => new Date(b.date) - new Date(a.date));
+        const paid = (l.t1||0) + (l.t2||0) + (l.t3||0);
+        const bal = annualFee - paid;
+
         return (
-          <div key={f.id || i} className="receipt-preview-card" style={{ pageBreakInside: 'avoid' }}>
-            <div style={{ textAlign: 'center', marginBottom: 10, borderBottom: '2px dashed #8B1A1A', paddingBottom: 8 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Logo" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'contain', margin: '0 auto 6px', border: '1px solid #ddd', background: '#fff', padding: 2 }} />
-              <div style={{ fontWeight: 800, fontSize: 11, color: '#8B1A1A' }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
-              <div style={{ fontSize: 9, color: '#888' }}>✝ More Than Academics!</div>
-              <div style={{ fontWeight: 700, fontSize: 12, marginTop: 4, background: '#8B1A1A', color: '#fff', padding: '2px 10px', borderRadius: 20, display: 'inline-block' }}>OFFICIAL RECEIPT</div>
+          <div key={l.adm || i} className="receipt-preview-card" style={{ pageBreakInside: 'avoid', border: '2px solid #333', padding: '20px 30px', borderRadius: 8, background: '#fff' }}>
+            <div style={{ textAlign: 'center', marginBottom: 15, borderBottom: '2px dashed #8B1A1A', paddingBottom: 15 }}>
+              <div style={{ fontWeight: 900, fontSize: 16, color: '#8B1A1A', letterSpacing: 1 }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
+              <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>✝ More Than Academics!</div>
+              <div style={{ fontWeight: 800, fontSize: 14, marginTop: 8, background: '#8B1A1A', color: '#fff', padding: '4px 16px', borderRadius: 20, display: 'inline-block' }}>FEES BALANCE STATEMENT</div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
-              <span style={{ color: '#888' }}>Receipt No:</span>
-              <strong>#{(f.id || `R${i+1}`).slice(-8).toUpperCase()}</strong>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, fontSize: 13, borderBottom: '1px solid #ddd', paddingBottom: 10 }}>
+              <div style={{ lineHeight: 1.6 }}>
+                <div><span style={{color:'#666',display:'inline-block',width:60}}>Student:</span> <strong style={{fontSize:14}}>{l.name}</strong></div>
+                <div><span style={{color:'#666',display:'inline-block',width:60}}>Adm No:</span> <strong>{l.adm}</strong></div>
+                <div><span style={{color:'#666',display:'inline-block',width:60}}>Grade:</span> <strong>{l.grade}</strong></div>
+                <div><span style={{color:'#666',display:'inline-block',width:60}}>Date:</span> {new Date().toLocaleDateString()}</div>
+              </div>
+              <div style={{ textAlign: 'right', background: '#F8FAFF', padding: 12, borderRadius: 8, border: '1px solid #E2E8F0' }}>
+                <div style={{ fontSize: 11, color: '#666', textTransform: 'uppercase', letterSpacing: 0.5 }}>Expected Annual Fee</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: '#1E293B', marginTop: 2 }}>KES {annualFee.toLocaleString()}</div>
+              </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
-              <span style={{ color: '#888' }}>Date:</span>
-              <span>{f.date || new Date().toLocaleDateString()}</span>
+            
+            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, color: '#475569' }}>PAYMENT HISTORY</div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: '#F1F5F9', textAlign: 'left' }}>
+                  <th style={{ padding: '8px 12px', borderBottom: '2px solid #CBD5E1' }}>Date</th>
+                  <th style={{ padding: '8px 12px', borderBottom: '2px solid #CBD5E1' }}>Term</th>
+                  <th style={{ padding: '8px 12px', borderBottom: '2px solid #CBD5E1' }}>Method</th>
+                  <th style={{ padding: '8px 12px', borderBottom: '2px solid #CBD5E1' }}>Ref / Served By</th>
+                  <th style={{ padding: '8px 12px', borderBottom: '2px solid #CBD5E1', textAlign: 'right' }}>Amount Paid</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lfees.length > 0 ? lfees.map((f, idx) => (
+                  <tr key={idx}>
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #E2E8F0' }}>{f.date}</td>
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #E2E8F0' }}>{f.term || '—'}</td>
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #E2E8F0' }}>{f.method || '—'}</td>
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>{f.ref || f.by || '—'}</td>
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #E2E8F0', textAlign: 'right', fontWeight: 700, color: '#059669' }}>KES {(f.amount || f.amt || 0).toLocaleString()}</td>
+                  </tr>
+                )) : <tr><td colSpan={5} style={{ padding: '16px 12px', textAlign: 'center', color: '#94A3B8', fontStyle: 'italic' }}>No payments recorded.</td></tr>}
+              </tbody>
+            </table>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ width: 280 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 12px', fontSize: 13, borderBottom: '1px solid #E2E8F0' }}>
+                  <span style={{ color: '#475569' }}>Total Amount Paid:</span>
+                  <strong style={{ fontSize: 14 }}>KES {paid.toLocaleString()}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', fontSize: 15, background: bal > 0 ? '#FEF2F2' : '#ECFDF5', border: `2px solid ${bal > 0 ? '#DC2626' : '#059669'}`, borderRadius: 8, marginTop: 8 }}>
+                  <span style={{ color: bal > 0 ? '#DC2626' : '#059669', fontWeight: 800 }}>Current Balance:</span>
+                  <strong style={{ color: bal > 0 ? '#DC2626' : '#059669', fontSize: 18, fontWeight: 900 }}>KES {bal.toLocaleString()}</strong>
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
-              <span style={{ color: '#888' }}>Student:</span>
-              <strong>{l?.name || f.name || f.adm}</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
-              <span style={{ color: '#888' }}>Adm No:</span>
-              <span>{f.adm}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
-              <span style={{ color: '#888' }}>Grade:</span>
-              <span>{f.grade || grade}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
-              <span style={{ color: '#888' }}>Term:</span>
-              <span>{f.term || '—'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
-              <span style={{ color: '#888' }}>Method:</span>
-              <span>{f.method || f.desc || 'Payment'}</span>
-            </div>
-            {f.ref && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
-              <span style={{ color: '#888' }}>Ref:</span>
-              <span style={{ fontFamily: 'monospace', fontSize: 10 }}>{f.ref}</span>
-            </div>}
-            <div style={{ borderTop: '2px dashed #8B1A1A', marginTop: 8, paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: '#888' }}>Amount Paid:</span>
-              <span style={{ fontSize: 18, fontWeight: 900, color: '#059669' }}>KES {(f.amount || f.amt || 0).toLocaleString()}</span>
-            </div>
-            <div style={{ marginTop: 10, fontSize: 9, color: '#aaa', textAlign: 'center' }}>
-              Issued by: {f.by || 'Admin'} · This is an official receipt
+
+            <div style={{ marginTop: 30, fontSize: 10, color: '#94A3B8', textAlign: 'center', borderTop: '1px dotted #CBD5E1', paddingTop: 10 }}>
+              Official Document · PAAV-GITOMBO COMMUNITY SCHOOL · Generated on {new Date().toLocaleString()}
             </div>
           </div>
         );
