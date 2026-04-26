@@ -252,7 +252,7 @@ export default function ProfilePage() {
                   )}
                   <button type="button" className="photo-upload-btn" onClick={() => photoRef.current?.click()} title="Upload photo">📷</button>
                 </div>
-                <input ref={photoRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handlePhotoChange} />
+                <input ref={photoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>{profileData.name}</div>
                   <span className="badge bg-purple" style={{ marginTop: 4 }}>{profileData.role}</span>

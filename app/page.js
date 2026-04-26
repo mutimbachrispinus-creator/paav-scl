@@ -210,9 +210,12 @@ export default function LoginPage() {
                 )}
 
                 {form.role === 'admin' && (
-                   <div className="field">
+                   <div className="field" style={{ position: 'relative' }}>
                      <label>Administrator Code</label>
-                     <input required type="password" value={form.adminCode} onChange={e => F('adminCode', e.target.value)} placeholder="Enter secret code" />
+                     <input required type={showPass ? "text" : "password"} value={form.adminCode} onChange={e => F('adminCode', e.target.value)} placeholder="Enter secret code" style={{ paddingRight: 40 }} />
+                     <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: 10, top: 28, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16 }}>
+                       {showPass ? '🙈' : '👁️'}
+                     </button>
                    </div>
                 )}
               </>
@@ -225,9 +228,12 @@ export default function LoginPage() {
               </div>
             )}
 
-            <div className="field">
+            <div className="field" style={{ position: 'relative' }}>
               <label>Password</label>
-              <input required type="password" value={form.password} onChange={e => F('password', e.target.value)} placeholder="••••••••" />
+              <input required type={showPass ? "text" : "password"} value={form.password} onChange={e => F('password', e.target.value)} placeholder="••••••••" style={{ paddingRight: 40 }} />
+              <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: 10, top: 28, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16 }}>
+                {showPass ? '🙈' : '👁️'}
+              </button>
             </div>
 
             {err && <div className="alert alert-err show">{err}</div>}
