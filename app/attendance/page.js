@@ -12,6 +12,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ALL_GRADES } from '@/lib/cbe';
+import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
 const TERMS = ['T1','T2','T3'];
 const STATUS_COLORS = { P:'#059669', A:'#DC2626', L:'#D97706', E:'#7C3AED' };
@@ -60,39 +61,38 @@ export default function AttendancePage() {
 
   const load = useCallback(async () => {
     try {
-      const [authRes, dbRes] = await Promise.all([
-        fetch('/api/auth'),
-        fetch('/api/db', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ requests: [
-            { type:'get', key:'paav6_learners' },
-            { type:'get', key:'paav_student_attendance' },
-            { type:'get', key:'paav_class_teachers' },
-          ]})
-        })
+      const [u, db] = await Promise.all([
+        getCachedUser(),
+        getCachedDBMulti([
+          'paav6_learners',
+          'paav_student_attendance',
+          'paav_class_teachers'
+        ])
       ]);
-      const auth = await authRes.json();
-      if (!auth.ok) { router.push('/'); return; }
-      setUser(auth.user);
 
-      const db = await dbRes.json();
-      const allLearners   = db.results[0]?.value || [];
-      const attData       = db.results[1]?.value || {};
-      const ctData        = db.results[2]?.value || {};
+      if (!u) { router.push('/'); return; }
+      setUser(u);
+
+      const allLearners = db.paav6_learners || [];
+      const attData     = db.paav_student_attendance || {};
+      const ctData      = db.paav_class_teachers || {};
+      
       setLearners(allLearners);
       setAtt(attData);
       setClassTeachers(ctData);
 
       // Determine which grade this teacher owns
-      if (auth.user.role !== 'admin') {
-        // find grade where class teacher is this user
-        const myGrade = Object.entries(ctData).find(([g, id]) => id === auth.user.id)?.[0] || '';
-        setGrade(myGrade || auth.user.grade || '');
+      if (u.role !== 'admin') {
+        const myGrade = Object.entries(ctData).find(([g, id]) => id === u.id)?.[0] || '';
+        setGrade(myGrade || u.grade || '');
       } else {
         setGrade(g => g || ALL_GRADES[0]);
       }
-    } catch(e) { console.error(e); }
-    finally { setLoading(false); }
+    } catch(e) { 
+      console.error('Attendance load error:', e); 
+    } finally { 
+      setLoading(false); 
+    }
   }, [router]);
 
   useEffect(() => { load(); }, [load]);

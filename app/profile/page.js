@@ -1,4 +1,5 @@
 'use client';
+'use client';
 /**
  * app/profile/page.js — Learner & Staff Profile Viewer
  *

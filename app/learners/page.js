@@ -27,20 +27,22 @@ export default function LearnersPage() {
   const [modal,    setModal]    = useState(null); // 'add' | 'bulk' | 'promote' | null
 
   const load = useCallback(async () => {
-    const authRes  = await fetch('/api/auth');
-    const auth     = await authRes.json();
+    const [authRes, dbRes] = await Promise.all([
+      fetch('/api/auth'),
+      fetch('/api/db', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ requests: [
+          { type: 'get', key: 'paav6_learners' },
+          { type: 'get', key: 'paav6_feecfg'  },
+        ]}),
+      }),
+    ]);
+    const auth = await authRes.json();
     if (!auth.ok)  { router.push('/'); return; }
-    if (!['admin','teacher'].includes(auth.user?.role)) { router.push('/dashboard'); return; }
+    if (!['admin','teacher','jss_teacher','senior_teacher'].includes(auth.user?.role)) { router.push('/dashboard'); return; }
     setUser(auth.user);
 
-    const dbRes = await fetch('/api/db', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ requests: [
-        { type: 'get', key: 'paav6_learners' },
-        { type: 'get', key: 'paav6_feecfg'  },
-      ]}),
-    });
     const db = await dbRes.json();
     setLearners(db.results[0]?.value || []);
     setFeeCfg(  db.results[1]?.value || {});

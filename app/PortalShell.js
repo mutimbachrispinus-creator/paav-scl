@@ -1,5 +1,5 @@
 'use client';
-import { getCachedUser, invalidateUser } from '@/lib/client-cache';
+import { getCachedUser, invalidateUser, prefetchKeys } from '@/lib/client-cache';
 /**
  * app/PortalShell.js — Client-side portal shell
  *
@@ -83,6 +83,13 @@ export default function PortalShell({ children }) {
         } catch {}
         setUser(auth.user);
         try { localStorage.setItem('paav_last_path', pathname); } catch {}
+
+        // Warm up common DB keys in the background immediately after auth
+        // so subsequent page loads find them already cached
+        prefetchKeys([
+          'paav6_learners', 'paav6_staff', 'paav6_marks',
+          'paav6_feecfg',   'paav6_msgs',  'paav_calendar_events',
+        ]);
       }
 
       const ann = db.results[0]?.value;

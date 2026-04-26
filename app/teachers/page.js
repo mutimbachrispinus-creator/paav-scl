@@ -1,4 +1,5 @@
 'use client';
+'use client';
 /**
  * app/teachers/page.js — Teacher & Staff List
  *

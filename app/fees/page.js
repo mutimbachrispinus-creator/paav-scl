@@ -1,4 +1,5 @@
 'use client';
+'use client';
 /**
  * app/fees/page.js — Fee management (all receipts)
  *

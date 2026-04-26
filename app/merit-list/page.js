@@ -1,4 +1,5 @@
 'use client';
+'use client';
 /**
  * app/merit-list/page.js — Merit List (Top Learners, CBC-based)
  *

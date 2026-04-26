@@ -17,6 +17,7 @@ import {
   JSS_SCALE, PRIMARY_SCALE, isJSSGrade,
 } from '@/lib/cbe';
 import { usePersistedState } from '@/components/TabState';
+import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
 const TERMS      = ['T1','T2','T3'];
 const ASSESSMENTS = [
@@ -43,33 +44,35 @@ export default function GradesPage() {
 
   /* ── Load data ── */
   const load = useCallback(async () => {
-    const authRes = await fetch('/api/auth');
-    const auth    = await authRes.json();
-    if (!auth.ok) { router.push('/'); return; }
-    if (!['admin','teacher'].includes(auth.user?.role)) {
-      router.push('/dashboard'); return;
-    }
-    setUser(auth.user);
-    if (auth.user.grade) setGrade(auth.user.grade);
+    try {
+      const [u, db] = await Promise.all([
+        getCachedUser(),
+        getCachedDBMulti([
+          'paav6_learners',
+          'paav6_marks',
+          'paav_marks_locked',
+          'paav8_grad',
+          'paav8_subj'
+        ])
+      ]);
 
-    const dbRes = await fetch('/api/db', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ requests: [
-        { type: 'get', key: 'paav6_learners'  },
-        { type: 'get', key: 'paav6_marks'     },
-        { type: 'get', key: 'paav_marks_locked' },
-        { type: 'get', key: 'paav8_grad'      },
-        { type: 'get', key: 'paav8_subj'      },
-      ]}),
-    });
-    const db = await dbRes.json();
-    setLearners(db.results[0]?.value || []);
-    setMarks(   db.results[1]?.value || {});
-    setLocked(  db.results[2]?.value || {});
-    setGradCfg( db.results[3]?.value || null);
-    setSubjCfg( db.results[4]?.value || {});
-    setLoading(false);
+      if (!u) { router.push('/'); return; }
+      if (!['admin', 'teacher', 'senior_teacher', 'jss_teacher'].includes(u.role)) {
+        router.push('/dashboard'); return;
+      }
+      setUser(u);
+      if (u.grade) setGrade(u.grade);
+
+      setLearners(db.paav6_learners || []);
+      setMarks(   db.paav6_marks    || {});
+      setLocked(  db.paav_marks_locked || {});
+      setGradCfg( db.paav8_grad     || null);
+      setSubjCfg( db.paav8_subj     || {});
+    } catch (e) {
+      console.error('Grades load error:', e);
+    } finally {
+      setLoading(false);
+    }
   }, [router]);
 
   useEffect(() => { load(); }, [load]);

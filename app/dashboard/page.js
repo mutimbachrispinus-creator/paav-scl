@@ -41,34 +41,31 @@ export default function DashboardPage() {
   /* ── Load current user + data ── */
   const load = useCallback(async () => {
     try {
-      // Get session
-      const authRes = await fetch('/api/auth');
-      const auth    = await authRes.json();
+      // Run auth + DB fetch in parallel using the cache
+      const [authRes, dbRes] = await Promise.all([
+        fetch('/api/auth'),
+        fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requests: [
+              { type: 'get', key: 'paav6_learners' },
+              { type: 'get', key: 'paav6_paylog'   },
+              { type: 'get', key: 'paav6_msgs'     },
+              { type: 'get', key: 'paav6_feecfg'   },
+              { type: 'get', key: 'paav7_hero_img'  },
+            ],
+          }),
+        }),
+      ]);
+
+      const auth = await authRes.json();
       if (!auth.ok || !auth.user) { router.push('/'); return; }
       setUser(auth.user);
 
-      // Parent → redirect to parent home
-      if (auth.user.role === 'parent') {
-        router.push('/parent-home');
-        return;
-      }
+      if (auth.user.role === 'parent') { router.push('/parent-home'); return; }
 
-      // Load data
-      const dbRes = await fetch('/api/db', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          requests: [
-            { type: 'get', key: 'paav6_learners' },
-            { type: 'get', key: 'paav6_paylog'   },
-            { type: 'get', key: 'paav6_msgs'      },
-            { type: 'get', key: 'paav6_feecfg'   },
-            { type: 'get', key: 'paav7_hero_img'  },
-          ],
-        }),
-      });
       const db = await dbRes.json();
-
       setLearners(db.results[0]?.value || []);
       setPaylog(  db.results[1]?.value || []);
       setMessages(db.results[2]?.value || []);
@@ -82,6 +79,7 @@ export default function DashboardPage() {
   }, [router]);
 
   useEffect(() => { load(); }, [load]);
+
 
   /* ── Derived stats ── */
   function getAnnualFee(grade) {
@@ -140,7 +138,28 @@ export default function DashboardPage() {
     reader.readAsDataURL(file);
   }
 
-  if (loading || !user) return <div className="page on"><p>Loading dashboard...</p></div>;
+  if (loading || !user) return (
+    <div className="page on" id="pg-dashboard">
+      <div className="skeleton" style={{ height: 140, borderRadius: 12, marginBottom: 22 }} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 18 }}>
+        {[1,2,3,4].map(i => (
+          <div key={i} className="stat-card" style={{ height: 88 }}>
+            <div style={{ display:'flex', gap:12, alignItems:'center', padding:'0 16px', height:'100%' }}>
+              <div className="skeleton" style={{ width:44, height:44, borderRadius:12, flexShrink:0 }} />
+              <div style={{ flex:1 }}>
+                <div className="skeleton" style={{ height:18, marginBottom:8, width:'55%' }} />
+                <div className="skeleton" style={{ height:12, width:'75%' }} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+        {[1,2].map(i => <div key={i} className="skeleton" style={{ height:220, borderRadius:12 }} />)}
+      </div>
+    </div>
+  );
+
 
   return (
     <div className="page on" id="pg-dashboard">
