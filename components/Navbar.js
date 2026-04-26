@@ -29,7 +29,7 @@ const ALL_NAV = [
   { key:'teachers',   label:'👔 Staff',       roles:['admin'] },
   { key:'settings',   label:'⚙ Settings',    roles:['admin'] },
   { key:'messages',   label:'💬 Messages',    roles:['admin','teacher','staff','parent'] },
-  { key:'profile',    label:'👤 Profile',     roles:['admin','teacher','staff','member','parent'] },
+  { key:'profile',    label:'👤 Profile',     roles:['admin'] },
   { key:'sms',        label:'📱 SMS',         roles:['admin'] },
 ];
 

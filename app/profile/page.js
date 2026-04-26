@@ -64,7 +64,7 @@ export default function ProfilePage() {
         })
       ]);
       const auth = await authRes.json();
-      if (!auth.ok) { router.push('/'); return; }
+      if (!auth.ok || auth.user?.role !== 'admin') { router.push('/'); return; }
       setUser(auth.user);
 
       const db = await dbRes.json();

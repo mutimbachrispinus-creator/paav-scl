@@ -18,6 +18,8 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [expectedOtp, setExpectedOtp] = useState('');
+  const [enteredOtp, setEnteredOtp] = useState('');
   const [err, setErr] = useState('');
   const [okMsg, setOkMsg] = useState('');
   
@@ -68,11 +70,30 @@ export default function LoginPage() {
         throw new Error('Invalid administrator registration code');
       }
 
+      // OTP Generation
+      if (tab === 'register') {
+        const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+        setExpectedOtp(generatedOtp);
+        setTab('otp');
+        setOkMsg(`OTP sent to ${form.phone}. (For testing, your code is: ${generatedOtp})`);
+        setBusy(false);
+        return;
+      }
+      
+      // OTP Verification
+      if (tab === 'otp') {
+        if (enteredOtp !== expectedOtp) {
+          throw new Error('Invalid OTP code. Please try again.');
+        }
+      }
+
+      const actionPayload = tab === 'otp' ? 'register' : tab;
+
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          action: tab, 
+          action: actionPayload, 
           ...form 
         })
       });
@@ -81,10 +102,13 @@ export default function LoginPage() {
       if (data.ok) {
         if (tab === 'login') {
           router.push('/dashboard');
-        } else {
+        } else if (tab === 'otp' || tab === 'register') {
           setOkMsg(`✅ Registered! Your username is: ${data.username}. Please login.`);
           setTab('login');
           setForm(f => ({ ...f, username: data.username, password: '' }));
+        } else {
+          setOkMsg('✅ Success! Check your messages/email.');
+          setTab('login');
         }
       } else {
         setErr(data.error || 'Operation failed');
@@ -142,6 +166,19 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleAction}>
+
+            {tab === 'otp' && (
+              <>
+                <div className="field">
+                  <label>Enter 4-Digit OTP</label>
+                  <input required value={enteredOtp} onChange={e => setEnteredOtp(e.target.value)} placeholder="••••" maxLength={4} style={{ textAlign: 'center', fontSize: 24, letterSpacing: 8 }} />
+                </div>
+                <div style={{ textAlign: 'center', marginBottom: 15 }}>
+                  <button type="button" className="btn-link" onClick={() => { setTab('register'); setEnteredOtp(''); setOkMsg(''); }}>← Back to Register</button>
+                </div>
+              </>
+            )}
+
             {tab === 'register' && (
               <>
                 <div className="field">
@@ -197,7 +234,7 @@ export default function LoginPage() {
             {okMsg && <div className="alert alert-ok show">{okMsg}</div>}
 
             <button type="submit" className="btn btn-primary" disabled={busy} style={{ marginTop: 10, background: 'linear-gradient(135deg,#8B1A1A,#6B1212)' }}>
-              {busy ? 'Processing...' : tab === 'login' ? '🔐 Sign In' : '🚀 Create Account'}
+              {busy ? 'Processing...' : tab === 'login' ? '🔐 Sign In' : tab === 'otp' ? '✅ Verify & Complete' : '🚀 Create Account'}
             </button>
           </form>
 

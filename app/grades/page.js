@@ -103,13 +103,24 @@ export default function GradesPage() {
       return;
     }
     setSaving(true);
+    
+    let nextLocked = locked;
+    const reqs = [{ type: 'set', key: 'paav6_marks', value: marks }];
+    
+    // Auto-lock for non-admins
+    if (user?.role !== 'admin' && !isLocked) {
+      nextLocked = { ...locked, [lockKey]: true };
+      reqs.push({ type: 'set', key: 'paav_marks_locked', value: nextLocked });
+    }
+
     await fetch('/api/db', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ requests: [
-        { type: 'set', key: 'paav6_marks', value: marks },
-      ]}),
+      body:    JSON.stringify({ requests: reqs }),
     });
+
+    if (user?.role !== 'admin' && !isLocked) setLocked(nextLocked);
+
     setSaving(false);
     setAlert({ msg: '✅ Marks saved!', type: 'ok' });
     setTimeout(() => setAlert({ msg: '', type: '' }), 3000);
