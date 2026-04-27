@@ -202,8 +202,15 @@ export default function AttendancePage() {
               </button>
             </>
           )}
-          {(activeView === 'weekly'||activeView==='monthly') && (
-            <input type="date" value={selDate} onChange={e=>setSelDate(e.target.value)} className="sc-inp" />
+          {(activeView === 'weekly'||activeView==='monthly'||activeView==='termly'||activeView==='annual') && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              {(activeView === 'weekly'||activeView==='monthly') && (
+                <input type="date" value={selDate} onChange={e=>setSelDate(e.target.value)} className="sc-inp" />
+              )}
+              <button className="btn btn-ghost btn-sm no-print" onClick={() => window.print()}>
+                🖨️ Print Report
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -377,6 +384,21 @@ export default function AttendancePage() {
 
       <style jsx>{`
         .sc-inp { padding: 8px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; }
+        
+        @media print {
+          @page { size: landscape; margin: 10mm; }
+          body { -webkit-print-color-adjust: exact; background: white !important; }
+          .no-print, .btn, .page-hdr-acts, .sc-inp, select { display: none !important; }
+          .page { padding: 0 !important; margin: 0 !important; border: none !important; }
+          .panel { box-shadow: none !important; border: 1px solid #ddd !important; margin-bottom: 10px !important; }
+          table { width: 100% !important; border-collapse: collapse !important; }
+          th, td { padding: 6px 4px !important; font-size: 10px !important; border: 1px solid #eee !important; }
+          .stat-card, .sg { margin-bottom: 10px !important; }
+          .stat-card { border: 1px solid #eee !important; }
+          .badge { border: 1px solid currentColor !important; }
+          .page-hdr h2 { font-size: 18px !important; margin: 0 !important; }
+          .page-hdr p { font-size: 10px !important; margin: 0 !important; }
+        }
       `}</style>
     </div>
   );

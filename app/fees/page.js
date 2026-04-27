@@ -213,12 +213,16 @@ export default function FeesPage() {
               <thead>
                 <tr>
                   <th>Adm</th><th>Name</th><th>Grade</th>
-                  <th>Annual Fee</th><th>T1</th><th>T2</th><th>T3</th>
+                  <th>Annual Total</th>
+                  <th>Term 1 (Exp/Paid)</th>
+                  <th>Term 2 (Exp/Paid)</th>
+                  <th>Term 3 (Exp/Paid)</th>
                   <th>Total Paid</th><th>Balance</th><th className="no-print">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(l => {
+                  const cfg = feeCfg[l.grade] || {};
                   const fee = getAnnualFee(l.grade);
                   const tp  = (l.t1||0)+(l.t2||0)+(l.t3||0);
                   const bal = fee - tp;
@@ -227,10 +231,19 @@ export default function FeesPage() {
                       <td style={{ fontWeight: 700 }}>{l.adm}</td>
                       <td>{l.name}</td>
                       <td><span className="badge bg-blue" style={{ fontSize: 10 }}>{l.grade}</span></td>
-                      <td>{fmtK(fee)}</td>
-                      <td style={{ color: 'var(--green)', fontWeight: 700 }}>{fmtK(l.t1||0)}</td>
-                      <td style={{ color: 'var(--green)', fontWeight: 700 }}>{fmtK(l.t2||0)}</td>
-                      <td style={{ color: 'var(--green)', fontWeight: 700 }}>{fmtK(l.t3||0)}</td>
+                      <td style={{ fontWeight: 800 }}>{fmtK(fee)}</td>
+                      <td>
+                        <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t1||0)}</div>
+                        <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t1||0)}</div>
+                      </td>
+                      <td>
+                        <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t2||0)}</div>
+                        <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t2||0)}</div>
+                      </td>
+                      <td>
+                        <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t3||0)}</div>
+                        <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t3||0)}</div>
+                      </td>
                       <td style={{ fontWeight: 800 }}>{fmtK(tp)}</td>
                       <td>
                         {bal <= 0
@@ -554,6 +567,23 @@ function SCard({ icon, label, value, bg }) {
           <div className="sc-l">{label}</div>
         </div>
       </div>
+      <style jsx>{`
+        @media print {
+          @page { size: landscape; margin: 10mm; }
+          body { -webkit-print-color-adjust: exact; background: white !important; }
+          .no-print, .btn, .page-hdr-acts, input, select { display: none !important; }
+          .page { padding: 0 !important; margin: 0 !important; border: none !important; }
+          .panel { box-shadow: none !important; border: 1px solid #ddd !important; margin-bottom: 10px !important; }
+          table { width: 100% !important; border-collapse: collapse !important; }
+          th, td { padding: 6px 4px !important; font-size: 10px !important; border: 1px solid #eee !important; }
+          .stat-card, .sg { margin-bottom: 10px !important; }
+          .stat-card { border: 1px solid #eee !important; width: 25% !important; float: left !important; }
+          .badge { border: 1px solid currentColor !important; }
+          .page-hdr h2 { font-size: 18px !important; margin: 0 !important; }
+          .page-hdr p { font-size: 10px !important; margin: 0 !important; }
+          .panel-hdr h3 { font-size: 14px !important; margin: 0 !important; }
+        }
+      `}</style>
     </div>
   );
 }
