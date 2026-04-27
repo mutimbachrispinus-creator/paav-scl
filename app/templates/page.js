@@ -276,6 +276,9 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
   return (
     <div>
       <PrintHeader title="MERIT LIST" grade={grade} />
+      <div style={{ textAlign: 'center', marginBottom: 15, fontSize: 13, fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: 1 }}>
+        TERM {term.replace('T','')} — {assess === 'op1' ? 'OPENER' : assess === 'mt1' ? 'MID-TERM' : 'END-TERM'} EXAMINATION
+      </div>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
         <thead>
           <tr>
