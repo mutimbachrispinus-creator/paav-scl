@@ -30,6 +30,7 @@ export default function FeesPage() {
   const [loading,  setLoading]  = useState(true);
   const [query,    setQuery]    = useState('');
   const [gradeF,   setGradeF]   = usePersistedState('paav_fees_grade', '');
+  const [termF,    setTermF]    = useState(''); // '' | 'T1' | 'T2' | 'T3'
   const [modal,    setModal]    = useState(null); // 'pay' | 'config' | 'paybills' | null
   const [selLearner, setSelLearner] = useState(null);
   const [paybillAccounts, setPaybillAccounts] = useState([]);
@@ -71,7 +72,13 @@ export default function FeesPage() {
     const sum = (cfg.t1||0) + (cfg.t2||0) + (cfg.t3||0);
     return sum || cfg.annual || 5000;
   }
-  function getBal(l) {
+  function getBal(l, term = '') {
+    if (term) {
+      const cfg = feeCfg[l.grade] || {};
+      const exp = cfg[term.toLowerCase()] || 0;
+      const paid = l[term.toLowerCase()] || 0;
+      return exp - paid;
+    }
     return getAnnualFee(l.grade) - (l.t1||0) - (l.t2||0) - (l.t3||0);
   }
 
@@ -81,10 +88,16 @@ export default function FeesPage() {
     return hit && (!gradeF || l.grade === gradeF);
   });
 
-  const totalExp     = learners.reduce((s,l) => s + getAnnualFee(l.grade), 0);
-  const totalPaid    = learners.reduce((s,l) => s + (l.t1||0)+(l.t2||0)+(l.t3||0), 0);
+  const totalExp = learners.reduce((s, l) => {
+    if (termF) return s + ((feeCfg[l.grade] || {})[termF.toLowerCase()] || 0);
+    return s + getAnnualFee(l.grade);
+  }, 0);
+  const totalPaid = learners.reduce((s, l) => {
+    if (termF) return s + (l[termF.toLowerCase()] || 0);
+    return s + (l.t1 || 0) + (l.t2 || 0) + (l.t3 || 0);
+  }, 0);
   const totalBalance = totalExp - totalPaid;
-  const cleared      = learners.filter(l => getBal(l) <= 0).length;
+  const cleared = learners.filter(l => getBal(l, termF) <= 0).length;
 
   if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading fees…</div>;
 
@@ -125,9 +138,9 @@ export default function FeesPage() {
         {/* ── Summary cards (Admin Only) ── */}
         {user?.role === 'admin' && (
           <div className="sg sg4 no-print" style={{ marginBottom: 18 }}>
-            <SCard icon="🎯" label="Expected" value={fmtK(totalExp)}    bg="#EFF6FF" />
-            <SCard icon="✅" label="Collected" value={fmtK(totalPaid)}  bg="#ECFDF5" />
-            <SCard icon="⚠" label="Balance"   value={fmtK(totalBalance)} bg="#FEF2F2" />
+            <SCard icon="🎯" label={termF ? `${termF} Expected` : "Expected"} value={fmtK(totalExp)}    bg="#EFF6FF" />
+            <SCard icon="✅" label={termF ? `${termF} Collected` : "Collected"} value={fmtK(totalPaid)}  bg="#ECFDF5" />
+            <SCard icon="⚠" label={termF ? `${termF} Balance` : "Balance"}   value={fmtK(totalBalance)} bg="#FEF2F2" />
             <SCard icon="🟢" label="Cleared"  value={`${cleared} / ${learners.length}`} bg="#F5F3FF" />
           </div>
         )}
@@ -206,6 +219,12 @@ export default function FeesPage() {
                 <option value="">All Grades</option>
                 {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
               </select>
+              <select value={termF} onChange={e => setTermF(e.target.value)}
+                style={{ padding: '7px 11px', border: '2px solid var(--border)',
+                  borderRadius: 8, fontSize: 12, outline: 'none' }}>
+                <option value="">Full Year</option>
+                {TERMS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
           </div>
           <div className="tbl-wrap">
@@ -213,37 +232,55 @@ export default function FeesPage() {
               <thead>
                 <tr>
                   <th>Adm</th><th>Name</th><th>Grade</th>
-                  <th>Annual Total</th>
-                  <th>Term 1 (Exp/Paid)</th>
-                  <th>Term 2 (Exp/Paid)</th>
-                  <th>Term 3 (Exp/Paid)</th>
+                  {termF ? (
+                    <>
+                      <th>{termF} Expected</th>
+                      <th>{termF} Paid</th>
+                    </>
+                  ) : (
+                    <>
+                      <th>Annual Total</th>
+                      <th>Term 1 (Exp/Paid)</th>
+                      <th>Term 2 (Exp/Paid)</th>
+                      <th>Term 3 (Exp/Paid)</th>
+                    </>
+                  )}
                   <th>Total Paid</th><th>Balance</th><th className="no-print">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(l => {
                   const cfg = feeCfg[l.grade] || {};
-                  const fee = getAnnualFee(l.grade);
-                  const tp  = (l.t1||0)+(l.t2||0)+(l.t3||0);
+                  const fee = termF ? (cfg[termF.toLowerCase()] || 0) : getAnnualFee(l.grade);
+                  const tp  = termF ? (l[termF.toLowerCase()] || 0) : (l.t1||0)+(l.t2||0)+(l.t3||0);
                   const bal = fee - tp;
                   return (
                     <tr key={l.adm}>
                       <td style={{ fontWeight: 700 }}>{l.adm}</td>
                       <td>{l.name}</td>
                       <td><span className="badge bg-blue" style={{ fontSize: 10 }}>{l.grade}</span></td>
-                      <td style={{ fontWeight: 800 }}>{fmtK(fee)}</td>
-                      <td>
-                        <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t1||0)}</div>
-                        <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t1||0)}</div>
-                      </td>
-                      <td>
-                        <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t2||0)}</div>
-                        <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t2||0)}</div>
-                      </td>
-                      <td>
-                        <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t3||0)}</div>
-                        <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t3||0)}</div>
-                      </td>
+                      {termF ? (
+                        <>
+                          <td style={{ fontWeight: 800 }}>{fmtK(cfg[termF.toLowerCase()] || 0)}</td>
+                          <td style={{ color: 'var(--green)', fontWeight: 700 }}>{fmtK(l[termF.toLowerCase()] || 0)}</td>
+                        </>
+                      ) : (
+                        <>
+                          <td style={{ fontWeight: 800 }}>{fmtK(fee)}</td>
+                          <td>
+                            <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t1||0)}</div>
+                            <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t1||0)}</div>
+                          </td>
+                          <td>
+                            <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t2||0)}</div>
+                            <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t2||0)}</div>
+                          </td>
+                          <td>
+                            <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t3||0)}</div>
+                            <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t3||0)}</div>
+                          </td>
+                        </>
+                      )}
                       <td style={{ fontWeight: 800 }}>{fmtK(tp)}</td>
                       <td>
                         {bal <= 0

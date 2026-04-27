@@ -496,9 +496,12 @@ function FeeBalanceListTemplate({ learners, fees, grade, feeCfg }) {
             <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>#</th>
             <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>ADM</th>
             <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'left' }}>Full Name</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Expected (KES)</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Paid (KES)</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Balance (KES)</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Term 1 (Exp/Paid)</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Term 2 (Exp/Paid)</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Term 3 (Exp/Paid)</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Expected Total</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Paid Total</th>
+            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Balance</th>
           </tr>
         </thead>
         <tbody>
@@ -507,7 +510,16 @@ function FeeBalanceListTemplate({ learners, fees, grade, feeCfg }) {
               <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>{i + 1}</td>
               <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', fontWeight: 600 }}>{l.adm}</td>
               <td style={{ border: '1px solid #ddd', padding: 8, fontWeight: 700 }}>{l.name}</td>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>{l.expected.toLocaleString()}</td>
+              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', fontSize: 10 }}>
+                Exp: {((feeCfg[l.grade]||{}).t1||0).toLocaleString()} / Paid: {(l.t1||0).toLocaleString()}
+              </td>
+              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', fontSize: 10 }}>
+                Exp: {((feeCfg[l.grade]||{}).t2||0).toLocaleString()} / Paid: {(l.t2||0).toLocaleString()}
+              </td>
+              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', fontSize: 10 }}>
+                Exp: {((feeCfg[l.grade]||{}).t3||0).toLocaleString()} / Paid: {(l.t3||0).toLocaleString()}
+              </td>
+              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', fontWeight: 600 }}>{l.expected.toLocaleString()}</td>
               <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', color: '#059669', fontWeight: 600 }}>{l.paid.toLocaleString()}</td>
               <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', color: l.bal > 0 ? '#DC2626' : '#059669', fontWeight: 700 }}>
                 {l.bal.toLocaleString()}
@@ -516,6 +528,9 @@ function FeeBalanceListTemplate({ learners, fees, grade, feeCfg }) {
           ))}
           <tr style={{ background: '#f9f9f9', fontWeight: 800 }}>
             <td colSpan={3} style={{ border: '1px solid #ddd', padding: 10, textAlign: 'right' }}>TOTAL:</td>
+            <td style={{ border: '1px solid #ddd', padding: 10 }}></td>
+            <td style={{ border: '1px solid #ddd', padding: 10 }}></td>
+            <td style={{ border: '1px solid #ddd', padding: 10 }}></td>
             <td style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>{totalExpected.toLocaleString()}</td>
             <td style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center', color: '#059669' }}>{totalPaid.toLocaleString()}</td>
             <td style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center', color: totalBalance > 0 ? '#DC2626' : '#059669' }}>
@@ -575,6 +590,24 @@ function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
               <div style={{ textAlign: 'right', background: '#F8FAFF', padding: 12, borderRadius: 8, border: '1px solid #E2E8F0' }}>
                 <div style={{ fontSize: 11, color: '#666', textTransform: 'uppercase', letterSpacing: 0.5 }}>Expected Annual Fee</div>
                 <div style={{ fontSize: 20, fontWeight: 900, color: '#1E293B', marginTop: 2 }}>KES {annualFee.toLocaleString()}</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
+              <div style={{ background: '#fff', padding: '10px', borderRadius: 8, border: '1px solid #EDF2F7', textAlign: 'center' }}>
+                <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase', fontWeight: 700 }}>Term 1</div>
+                <div style={{ fontSize: 12, fontWeight: 800 }}>Exp: {((feeCfg[l.grade]||{}).t1||0).toLocaleString()}</div>
+                <div style={{ fontSize: 11, color: '#059669', fontWeight: 700 }}>Paid: {(l.t1||0).toLocaleString()}</div>
+              </div>
+              <div style={{ background: '#fff', padding: '10px', borderRadius: 8, border: '1px solid #EDF2F7', textAlign: 'center' }}>
+                <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase', fontWeight: 700 }}>Term 2</div>
+                <div style={{ fontSize: 12, fontWeight: 800 }}>Exp: {((feeCfg[l.grade]||{}).t2||0).toLocaleString()}</div>
+                <div style={{ fontSize: 11, color: '#059669', fontWeight: 700 }}>Paid: {(l.t2||0).toLocaleString()}</div>
+              </div>
+              <div style={{ background: '#fff', padding: '10px', borderRadius: 8, border: '1px solid #EDF2F7', textAlign: 'center' }}>
+                <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase', fontWeight: 700 }}>Term 3</div>
+                <div style={{ fontSize: 12, fontWeight: 800 }}>Exp: {((feeCfg[l.grade]||{}).t3||0).toLocaleString()}</div>
+                <div style={{ fontSize: 11, color: '#059669', fontWeight: 700 }}>Paid: {(l.t3||0).toLocaleString()}</div>
               </div>
             </div>
             
