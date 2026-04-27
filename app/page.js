@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { prefetchKeys } from '@/lib/client-cache';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -60,8 +61,8 @@ export default function LoginPage() {
         if (db.results[0]?.value) setAnnouncement(db.results[0].value);
         if (db.results[1]?.value) setHeroImg(db.results[1].value);
       } catch (e) {}
-    }
     loadStats();
+    prefetchKeys(['paav6_learners', 'paav6_staff', 'paav6_feecfg', 'paav7_hero_img']);
   }, []);
 
   const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -111,6 +112,8 @@ export default function LoginPage() {
           } else {
             localStorage.removeItem('paav_remember');
           }
+          // Start prefetching dashboard data immediately before navigation
+          prefetchKeys(['paav6_learners', 'paav6_paylog', 'paav6_msgs', 'paav6_feecfg', 'paav7_hero_img']);
           router.push('/dashboard');
         } else if (tab === 'otp' || tab === 'register') {
           setOkMsg(`✅ Registered! Your username is: ${data.username}. Please login.`);

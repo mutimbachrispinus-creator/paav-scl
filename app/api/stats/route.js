@@ -1,18 +1,16 @@
 import { NextResponse } from 'next/server';
-import { kvGet } from '@/lib/db';
+import { query } from '@/lib/db';
 
 export async function GET() {
   try {
-    const learners = (await kvGet('paav6_learners')) || [];
+    const [lRes, gRes] = await Promise.all([
+      query('SELECT COUNT(*) as count FROM learners'),
+      query('SELECT COUNT(DISTINCT grade) as count FROM learners')
+    ]);
     
-    const grades = new Set();
-    learners.forEach(l => {
-      if (l.grade) grades.add(l.grade);
-    });
-
     return NextResponse.json({
-      learners: learners.length,
-      classes: grades.size,
+      learners: lRes[0]?.count || 0,
+      classes: gRes[0]?.count || 0,
       year: new Date().getFullYear(),
     });
   } catch (err) {

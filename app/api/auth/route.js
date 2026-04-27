@@ -65,10 +65,9 @@ export async function GET(request) {
 async function handleLogin({ username, password }, request) {
   if (!username || !password) return err('Username and password are required');
 
-  const staff = await getStaffList();
-  const user  = staff.find(
-    s => s.username?.toLowerCase() === username.toLowerCase().trim()
-  );
+  const { query } = await import('@/lib/db');
+  const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
+  const user = rows[0];
 
   if (!user) return err('Invalid username or password');
   if (user.status === 'inactive') return err('Your account is deactivated. Contact admin.');
@@ -197,8 +196,9 @@ async function handleWhoami() {
   if (!session) return NextResponse.json({ ok: false, user: null }, { status: 401 });
 
   // Fetch fresh user data from DB to include avatar, color, etc.
-  const staff = await getStaffList();
-  const user  = staff.find(s => s.id === session.id);
+  const { query } = await import('@/lib/db');
+  const rows = await query('SELECT * FROM staff WHERE id = ?', [session.id]);
+  const user = rows[0];
   
   if (user) {
     return NextResponse.json({ ok: true, user: publicUser(user) });
@@ -217,8 +217,9 @@ async function handleWhoami() {
 /* ─── forgot password ───────────────────────────────────────────────────── */
 async function handleForgot({ username, secQ, secA }) {
   if (!username) return err('Username is required');
-  const staff = await getStaffList();
-  const user  = staff.find(s => s.username?.toLowerCase() === username.toLowerCase());
+  const { query } = await import('@/lib/db');
+  const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ?', [username.toLowerCase()]);
+  const user = rows[0];
   if (!user) return err('User not found');
 
   if (secQ && secA) {
