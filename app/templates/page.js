@@ -34,6 +34,7 @@ export default function TemplatesPage() {
   const [term, setTerm] = useState('T1');
   const [assess, setAssess] = useState('et1');
   const [selLearner, setSelLearner] = useState('');
+  const [regType, setRegType] = useState('monthly');
 
   useEffect(() => {
     async function load() {
@@ -108,6 +109,7 @@ export default function TemplatesPage() {
     { id: 'balance', label: '📊 Fee Balance List' },
     { id: 'receipt', label: '💰 Fee Receipts' },
     { id: 'id',      label: '🆔 Student IDs' },
+    { id: 'register',label: '📅 Attendance Register' },
   ];
 
   if (loading || !user) return <div className="page on"><p style={{padding:40,color:'var(--muted)'}}>Loading templates…</p></div>;
@@ -168,6 +170,17 @@ export default function TemplatesPage() {
               {allGradeLearners.map(l => <option key={l.adm} value={l.adm}>{l.name} ({l.adm})</option>)}
             </select>
           </div>
+          {tab === 'register' && (
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Period</label>
+              <select value={regType} onChange={e => setRegType(e.target.value)}>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="termly">Termly</option>
+                <option value="annually">Annually</option>
+              </select>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 8, paddingBottom: 2 }}>
             <button className="btn btn-ghost btn-sm" onClick={printLearner}>🖨️ By Learner</button>
             <button className="btn btn-gold btn-sm" onClick={printGrade}>🖨️ By Grade</button>
@@ -194,6 +207,9 @@ export default function TemplatesPage() {
         </div>
         <div style={{ display: tab === 'id'      ? 'block' : 'none' }}>
           <IDCardTemplate learners={filteredLearners} grade={grade} />
+        </div>
+        <div style={{ display: tab === 'register'? 'block' : 'none' }}>
+          <AttendanceRegisterTemplate learners={filteredLearners} grade={grade} type={regType} />
         </div>
       </div>
     </div>
@@ -709,3 +725,70 @@ function IDCardTemplate({ learners, grade }) {
     </div>
   );
 }
+
+function AttendanceRegisterTemplate({ learners, grade, type }) {
+  const days = type === 'weekly' ? 5 : type === 'monthly' ? 31 : type === 'termly' ? 15 : 12;
+  const label = type === 'weekly' ? 'WEEK' : type === 'monthly' ? 'DAY' : type === 'termly' ? 'WEEK' : 'MONTH';
+
+  return (
+    <div style={{ pageBreakInside: 'avoid' }}>
+      <PrintHeader title={`ATTENDANCE REGISTER (${type.toUpperCase()})`} grade={grade} />
+      <div style={{ marginBottom: 15, fontSize: 13, display: 'flex', gap: 30, borderBottom: '1px solid #eee', paddingBottom: 10 }}>
+        <div><strong>Month/Period:</strong> ____________________</div>
+        <div><strong>Year:</strong> {new Date().getFullYear()}</div>
+        <div><strong>Teacher:</strong> ____________________</div>
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
+        <thead>
+          <tr style={{ background: '#F1F5F9' }}>
+            <th style={{ border: '1px solid #333', padding: '6px 8px', width: 30 }}>#</th>
+            <th style={{ border: '1px solid #333', padding: '6px 8px', textAlign: 'left', width: 220 }}>Student Name / ADM</th>
+            {[...Array(days)].map((_, i) => (
+              <th key={i} style={{ border: '1px solid #333', padding: 2, width: 25, fontSize: 8 }}>
+                {label}<br/>{i + 1}
+              </th>
+            ))}
+            <th style={{ border: '1px solid #333', padding: 4, width: 50 }}>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {learners.map((l, idx) => (
+            <tr key={l.adm}>
+              <td style={{ border: '1px solid #333', padding: '6px 8px', textAlign: 'center' }}>{idx + 1}</td>
+              <td style={{ border: '1px solid #333', padding: '6px 8px' }}>
+                <div style={{ fontWeight: 700 }}>{l.name}</div>
+                <div style={{ fontSize: 8, color: '#666' }}>{l.adm}</div>
+              </td>
+              {[...Array(days)].map((_, i) => (
+                <td key={i} style={{ border: '1px solid #333', padding: 0, height: 32 }}></td>
+              ))}
+              <td style={{ border: '1px solid #333', padding: 0 }}></td>
+            </tr>
+          ))}
+          {/* Extra blank rows if list is short */}
+          {learners.length < 15 && [...Array(15 - learners.length)].map((_, idx) => (
+            <tr key={`blank-${idx}`}>
+              <td style={{ border: '1px solid #333', padding: '6px 8px', textAlign: 'center' }}>{learners.length + idx + 1}</td>
+              <td style={{ border: '1px solid #333', padding: '6px 8px', height: 32 }}></td>
+              {[...Array(days)].map((_, i) => (
+                <td key={i} style={{ border: '1px solid #333', padding: 0 }}></td>
+              ))}
+              <td style={{ border: '1px solid #333', padding: 0 }}></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div style={{ marginTop: 25, fontSize: 11, display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #ccc', paddingTop: 15 }}>
+        <div style={{ display: 'flex', gap: 15 }}>
+          <strong>KEY:</strong>
+          <span>[ P ] Present</span>
+          <span>[ A ] Absent</span>
+          <span>[ L ] Late</span>
+          <span>[ S ] Sick</span>
+        </div>
+        <div>Class Teacher's Signature: __________________________</div>
+      </div>
+    </div>
+  );
+}
+
