@@ -625,10 +625,26 @@ function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
             </div>
 
             <div style={{ marginBottom: 10 }}>
-              <div style={{ fontWeight: 700, borderBottom: '1px solid #000', marginBottom: 4 }}>PAYMENT HISTORY:</div>
-              {lfees.length > 0 ? lfees.slice(0, 8).map((f, idx) => (
-                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', marginBottom: 2 }}>
-                  <span>{f.date}</span>
+              <div style={{ fontWeight: 700, borderBottom: '1px solid #000', marginBottom: 4 }}>TERMLY PAYMENTS:</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
+                <span>TERM 1:</span>
+                <strong>{(l.t1 || 0).toLocaleString()}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
+                <span>TERM 2:</span>
+                <strong>{(l.t2 || 0).toLocaleString()}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
+                <span>TERM 3:</span>
+                <strong>{(l.t3 || 0).toLocaleString()}</strong>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontWeight: 700, borderBottom: '1px solid #000', marginBottom: 4 }}>RECENT PAYMENTS:</div>
+              {lfees.length > 0 ? lfees.slice(0, 5).map((f, idx) => (
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px', marginBottom: 1 }}>
+                  <span>{f.date} ({f.method || 'Cash'})</span>
                   <strong>{Number(f.amount || f.amt || 0).toLocaleString()}</strong>
                 </div>
               )) : <div style={{ fontSize: '9px', fontStyle: 'italic' }}>No payments</div>}
