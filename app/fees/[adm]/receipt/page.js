@@ -50,7 +50,11 @@ export default function LearnerReceiptPage() {
 
   if (loading || !user || !learner) return <div style={{ padding: 40 }}>Loading receipt...</div>;
 
-  const annualFee = feeCfg[learner.grade]?.annual || 5000;
+  const cfg = feeCfg[learner.grade] || {};
+  const t1Fee = cfg.t1 || 0;
+  const t2Fee = cfg.t2 || 0;
+  const t3Fee = cfg.t3 || 0;
+  const annualFee = (t1Fee + t2Fee + t3Fee) || cfg.annual || 5000;
   const paid = (learner.t1||0) + (learner.t2||0) + (learner.t3||0);
   const bal = annualFee - paid;
 
@@ -80,19 +84,41 @@ export default function LearnerReceiptPage() {
         </div>
       </div>
 
-      <div style={{ background: '#F8FAFF', padding: 20, borderRadius: 12, border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', marginBottom: 30 }}>
-        <div>
-          <div style={{ fontSize: 11, color: '#666' }}>EXPECTED ANNUAL FEE</div>
-          <div style={{ fontSize: 20, fontWeight: 900 }}>KES {annualFee.toLocaleString()}</div>
+      <div style={{ background: '#F8FAFF', padding: '20px 24px', borderRadius: 12, border: '1px solid #E2E8F0', marginBottom: 30 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 15, borderBottom: '1px solid #E2E8F0', paddingBottom: 10 }}>
+          <div>
+            <div style={{ fontSize: 11, color: '#666' }}>TOTAL ANNUAL FEE</div>
+            <div style={{ fontSize: 22, fontWeight: 900 }}>KES {annualFee.toLocaleString()}</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 11, color: '#666' }}>TOTAL PAID</div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: '#059669' }}>KES {paid.toLocaleString()}</div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 11, color: '#666' }}>CURRENT BALANCE</div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: bal > 0 ? '#DC2626' : '#059669' }}>KES {bal.toLocaleString()}</div>
+          </div>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: '#666' }}>TOTAL PAID</div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: '#059669' }}>KES {paid.toLocaleString()}</div>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 11, color: '#666' }}>CURRENT BALANCE</div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: bal > 0 ? '#DC2626' : '#059669' }}>KES {bal.toLocaleString()}</div>
-        </div>
+        
+        {(t1Fee > 0 || t2Fee > 0 || t3Fee > 0) && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+            <div style={{ background: '#fff', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDF2F7' }}>
+              <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase' }}>Term 1 Expected</div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{fmtK(t1Fee)}</div>
+              <div style={{ fontSize: 10, color: '#059669' }}>Paid: {fmtK(learner.t1||0)}</div>
+            </div>
+            <div style={{ background: '#fff', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDF2F7' }}>
+              <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase' }}>Term 2 Expected</div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{fmtK(t2Fee)}</div>
+              <div style={{ fontSize: 10, color: '#059669' }}>Paid: {fmtK(learner.t2||0)}</div>
+            </div>
+            <div style={{ background: '#fff', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDF2F7' }}>
+              <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase' }}>Term 3 Expected</div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{fmtK(t3Fee)}</div>
+              <div style={{ fontSize: 10, color: '#059669' }}>Paid: {fmtK(learner.t3||0)}</div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ fontWeight: 800, marginBottom: 10 }}>PAYMENT HISTORY</div>

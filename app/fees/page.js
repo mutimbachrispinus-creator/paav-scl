@@ -66,7 +66,11 @@ export default function FeesPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  function getAnnualFee(grade) { return feeCfg[grade]?.annual || 5000; }
+  function getAnnualFee(grade) {
+    const cfg = feeCfg[grade] || {};
+    const sum = (cfg.t1||0) + (cfg.t2||0) + (cfg.t3||0);
+    return sum || cfg.annual || 5000;
+  }
   function getBal(l) {
     return getAnnualFee(l.grade) - (l.t1||0) - (l.t2||0) - (l.t3||0);
   }
@@ -422,7 +426,12 @@ function PayModal({ learner, feeCfg, onClose, recordedBy }) {
           <span style={{ color:'var(--muted)' }}>Annual Fee</span>
           <strong>{fmtK(annualFee)}</strong>
         </div>
-        <div style={{ display:'flex', justifyContent:'space-between' }}>
+        {(feeCfg[learner.grade]?.t1 || feeCfg[learner.grade]?.t2 || feeCfg[learner.grade]?.t3) && (
+          <div style={{ fontSize: 11, color: 'var(--muted)', borderTop: '1px dashed var(--border)', paddingTop: 4, marginTop: 4 }}>
+            T1: {fmtK(feeCfg[learner.grade]?.t1 || 0)} · T2: {fmtK(feeCfg[learner.grade]?.t2 || 0)} · T3: {fmtK(feeCfg[learner.grade]?.t3 || 0)}
+          </div>
+        )}
+        <div style={{ display:'flex', justifyContent:'space-between', marginTop: 4 }}>
           <span style={{ color:'var(--muted)' }}>Balance</span>
           <strong style={{ color: balance<=0 ? 'var(--green)':'var(--red)' }}>
             {fmtK(balance)}
@@ -482,19 +491,43 @@ function FeeConfigModal({ feeCfg, onClose }) {
   return (
     <ModalOverlay title="⚙ Fee Configuration" onClose={onClose}>
       <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12 }}>
-        Set the annual fee amount for each grade.
+        Set the expected fees for each term per grade. The annual total is calculated automatically.
       </p>
-      <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+      <div style={{ maxHeight: 400, overflowY: 'auto', paddingRight: 5 }}>
         {ALL_GRADES.map(g => (
-          <div key={g} className="field-row" style={{ marginBottom: 6 }}>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label style={{ fontSize: 10, color: 'var(--muted)' }}>{g} — Annual Fee (KSH)</label>
-              <input
-                type="number"
-                value={cfg[g]?.annual || ''}
-                onChange={e => setCfg(prev => ({ ...prev, [g]: { ...(prev[g]||{}), annual: Number(e.target.value) } }))}
-                placeholder="5000"
-              />
+          <div key={g} style={{ padding: 12, border: '1.5px solid var(--border)', borderRadius: 10, marginBottom: 10, background: '#FAFBFF' }}>
+            <div style={{ fontWeight: 800, color: 'var(--navy)', fontSize: 11, marginBottom: 10 }}>{g}</div>
+            <div className="field-row">
+              <div className="field">
+                <label style={{ fontSize: 10 }}>Term 1</label>
+                <input
+                  type="number"
+                  value={cfg[g]?.t1 || ''}
+                  onChange={e => setCfg(prev => ({ ...prev, [g]: { ...(prev[g]||{}), t1: Number(e.target.value) } }))}
+                  placeholder="e.g. 5000"
+                />
+              </div>
+              <div className="field">
+                <label style={{ fontSize: 10 }}>Term 2</label>
+                <input
+                  type="number"
+                  value={cfg[g]?.t2 || ''}
+                  onChange={e => setCfg(prev => ({ ...prev, [g]: { ...(prev[g]||{}), t2: Number(e.target.value) } }))}
+                  placeholder="e.g. 3000"
+                />
+              </div>
+              <div className="field">
+                <label style={{ fontSize: 10 }}>Term 3</label>
+                <input
+                  type="number"
+                  value={cfg[g]?.t3 || ''}
+                  onChange={e => setCfg(prev => ({ ...prev, [g]: { ...(prev[g]||{}), t3: Number(e.target.value) } }))}
+                  placeholder="e.g. 2000"
+                />
+              </div>
+            </div>
+            <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4, textAlign: 'right' }}>
+              Annual Total: <strong>{fmtK((cfg[g]?.t1||0) + (cfg[g]?.t2||0) + (cfg[g]?.t3||0) || cfg[g]?.annual || 0)}</strong>
             </div>
           </div>
         ))}

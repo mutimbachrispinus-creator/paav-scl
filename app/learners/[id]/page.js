@@ -72,7 +72,11 @@ export default function LearnerProfilePage() {
   if (!learner) return null;
 
   const subjects   = DEFAULT_SUBJECTS[learner.grade] || [];
-  const annualFee  = feeCfg[learner.grade]?.annual || 5000;
+  const cfg        = feeCfg[learner.grade] || {};
+  const t1Fee      = cfg.t1 || 0;
+  const t2Fee      = cfg.t2 || 0;
+  const t3Fee      = cfg.t3 || 0;
+  const annualFee  = (t1Fee + t2Fee + t3Fee) || cfg.annual || 5000;
   const totalPaid  = (learner.t1||0) + (learner.t2||0) + (learner.t3||0);
   const balance    = annualFee - totalPaid;
 
@@ -150,10 +154,16 @@ export default function LearnerProfilePage() {
           </div>
           <div className="panel-body">
             {[
-              ['Annual Fee',  fmtK(annualFee)],
-              ['T1 Paid',     fmtK(learner.t1||0)],
-              ['T2 Paid',     fmtK(learner.t2||0)],
-              ['T3 Paid',     fmtK(learner.t3||0)],
+              ['Annual Total', fmtK(annualFee)],
+              ...(t1Fee || t2Fee || t3Fee ? [
+                [`T1 (Expected: ${fmtK(t1Fee)})`, `Paid: ${fmtK(learner.t1||0)}`],
+                [`T2 (Expected: ${fmtK(t2Fee)})`, `Paid: ${fmtK(learner.t2||0)}`],
+                [`T3 (Expected: ${fmtK(t3Fee)})`, `Paid: ${fmtK(learner.t3||0)}`],
+              ] : [
+                ['T1 Paid',     fmtK(learner.t1||0)],
+                ['T2 Paid',     fmtK(learner.t2||0)],
+                ['T3 Paid',     fmtK(learner.t3||0)],
+              ]),
               ['Total Paid',  fmtK(totalPaid)],
             ].map(([k, v]) => (
               <div key={k} style={{ display: 'flex', justifyContent: 'space-between',
