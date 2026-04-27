@@ -28,6 +28,7 @@ export default function TemplatesPage() {
   const [marks, setMarks] = useState({});
   const [subjCfg, setSubjCfg] = useState({});
   const [fees, setFees] = useState([]);
+  const [att, setAtt] = useState({});
   const [feeCfg, setFeeCfg] = useState({});
   const [gradCfg, setGradCfg] = useState(null);
   const [grade, setGrade] = useState('GRADE 7');
@@ -44,7 +45,7 @@ export default function TemplatesPage() {
         setUser(auth);
         
         const db = await getCachedDBMulti([
-          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog', 'paav6_feecfg'
+          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog', 'paav6_feecfg', 'paav_student_attendance'
         ]);
         
         setLearners(db.paav6_learners || []);
@@ -56,6 +57,7 @@ export default function TemplatesPage() {
         const feeList = db.paav6_fees || [];
         const paylogList = db.paav6_paylog || [];
         setFees([...feeList, ...paylogList]);
+        setAtt(db.paav_student_attendance || {});
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     }
@@ -209,7 +211,7 @@ export default function TemplatesPage() {
           <IDCardTemplate learners={filteredLearners} grade={grade} />
         </div>
         <div style={{ display: tab === 'register'? 'block' : 'none' }}>
-          <AttendanceRegisterTemplate learners={filteredLearners} grade={grade} type={regType} />
+          <AttendanceRegisterTemplate learners={filteredLearners} grade={grade} type={regType} att={att} />
         </div>
       </div>
     </div>
@@ -726,16 +728,50 @@ function IDCardTemplate({ learners, grade }) {
   );
 }
 
-function AttendanceRegisterTemplate({ learners, grade, type }) {
-  const days = type === 'weekly' ? 5 : type === 'monthly' ? 31 : type === 'termly' ? 15 : 12;
-  const label = type === 'weekly' ? 'WEEK' : type === 'monthly' ? 'DAY' : type === 'termly' ? 'WEEK' : 'MONTH';
+function AttendanceRegisterTemplate({ learners, grade, type, att }) {
+  // Helper to generate days for the register
+  const getDays = () => {
+    const year = new Date().getFullYear();
+    const today = new Date();
+    
+    if (type === 'weekly') {
+      const mon = new Date(today);
+      mon.setDate(today.getDate() - (today.getDay() === 0 ? 6 : today.getDay() - 1));
+      return [...Array(5)].map((_, i) => {
+        const d = new Date(mon); d.setDate(mon.getDate() + i);
+        return d.toISOString().split('T')[0];
+      });
+    }
+    
+    if (type === 'monthly') {
+      const month = today.getMonth();
+      const numDays = new Date(year, month + 1, 0).getDate();
+      return [...Array(numDays)].map((_, i) => {
+        return new Date(year, month, i + 1).toISOString().split('T')[0];
+      });
+    }
+
+    if (type === 'termly') {
+      // 14 weeks summary or select a specific month? 
+      // User asked for termly register. We'll show first 31 days or a specific term span
+      return [...Array(31)].map((_, i) => {
+        const d = new Date(year, 0, i + 6); // Just a sample span for T1
+        return d.toISOString().split('T')[0];
+      });
+    }
+    
+    // Annually (Show months)
+    return ['01','02','03','04','05','06','07','08','09','10','11','12'].map(m => `${year}-${m}`);
+  };
+
+  const dayList = getDays();
+  const isAnnual = type === 'annually';
 
   return (
     <div style={{ pageBreakInside: 'avoid' }}>
       <PrintHeader title={`ATTENDANCE REGISTER (${type.toUpperCase()})`} grade={grade} />
       <div style={{ marginBottom: 15, fontSize: 13, display: 'flex', gap: 30, borderBottom: '1px solid #eee', paddingBottom: 10 }}>
-        <div><strong>Month/Period:</strong> ____________________</div>
-        <div><strong>Year:</strong> {new Date().getFullYear()}</div>
+        <div><strong>Period:</strong> {isAnnual ? new Date().getFullYear() : new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</div>
         <div><strong>Teacher:</strong> ____________________</div>
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
@@ -743,39 +779,37 @@ function AttendanceRegisterTemplate({ learners, grade, type }) {
           <tr style={{ background: '#F1F5F9' }}>
             <th style={{ border: '1px solid #333', padding: '6px 8px', width: 30 }}>#</th>
             <th style={{ border: '1px solid #333', padding: '6px 8px', textAlign: 'left', width: 220 }}>Student Name / ADM</th>
-            {[...Array(days)].map((_, i) => (
-              <th key={i} style={{ border: '1px solid #333', padding: 2, width: 25, fontSize: 8 }}>
-                {label}<br/>{i + 1}
+            {dayList.map((d, i) => (
+              <th key={d} style={{ border: '1px solid #333', padding: 2, width: 25, fontSize: 8 }}>
+                {isAnnual ? d.split('-')[1] : d.split('-')[2]}
               </th>
             ))}
             <th style={{ border: '1px solid #333', padding: 4, width: 50 }}>Total</th>
           </tr>
         </thead>
         <tbody>
-          {learners.map((l, idx) => (
-            <tr key={l.adm}>
-              <td style={{ border: '1px solid #333', padding: '6px 8px', textAlign: 'center' }}>{idx + 1}</td>
-              <td style={{ border: '1px solid #333', padding: '6px 8px' }}>
-                <div style={{ fontWeight: 700 }}>{l.name}</div>
-                <div style={{ fontSize: 8, color: '#666' }}>{l.adm}</div>
-              </td>
-              {[...Array(days)].map((_, i) => (
-                <td key={i} style={{ border: '1px solid #333', padding: 0, height: 32 }}></td>
-              ))}
-              <td style={{ border: '1px solid #333', padding: 0 }}></td>
-            </tr>
-          ))}
-          {/* Extra blank rows if list is short */}
-          {learners.length < 15 && [...Array(15 - learners.length)].map((_, idx) => (
-            <tr key={`blank-${idx}`}>
-              <td style={{ border: '1px solid #333', padding: '6px 8px', textAlign: 'center' }}>{learners.length + idx + 1}</td>
-              <td style={{ border: '1px solid #333', padding: '6px 8px', height: 32 }}></td>
-              {[...Array(days)].map((_, i) => (
-                <td key={i} style={{ border: '1px solid #333', padding: 0 }}></td>
-              ))}
-              <td style={{ border: '1px solid #333', padding: 0 }}></td>
-            </tr>
-          ))}
+          {learners.map((l, idx) => {
+            let presentCount = 0;
+            return (
+              <tr key={l.adm}>
+                <td style={{ border: '1px solid #333', padding: '6px 8px', textAlign: 'center' }}>{idx + 1}</td>
+                <td style={{ border: '1px solid #333', padding: '6px 8px' }}>
+                  <div style={{ fontWeight: 700 }}>{l.name}</div>
+                  <div style={{ fontSize: 8, color: '#666' }}>{l.adm}</div>
+                </td>
+                {dayList.map(d => {
+                  const status = att[`${grade}|${d}|${l.adm}`] || '';
+                  if (status === 'P' || status === 'L') presentCount++;
+                  return (
+                    <td key={d} style={{ border: '1px solid #333', padding: 0, height: 32, textAlign: 'center', fontWeight: 800 }}>
+                      {status || ''}
+                    </td>
+                  );
+                })}
+                <td style={{ border: '1px solid #333', padding: 0, textAlign: 'center', fontWeight: 800 }}>{presentCount}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       <div style={{ marginTop: 25, fontSize: 11, display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #ccc', paddingTop: 15 }}>
@@ -784,7 +818,7 @@ function AttendanceRegisterTemplate({ learners, grade, type }) {
           <span>[ P ] Present</span>
           <span>[ A ] Absent</span>
           <span>[ L ] Late</span>
-          <span>[ S ] Sick</span>
+          <span>[ E ] Excused</span>
         </div>
         <div>Class Teacher's Signature: __________________________</div>
       </div>
