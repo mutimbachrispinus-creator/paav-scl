@@ -93,12 +93,12 @@ export default function TemplatesPage() {
 
   function printGrade() {
     setSelLearner('');
-    const landscape = tab === 'merit' || tab === 'class' || tab === 'balance';
+    const landscape = tab === 'merit' || tab === 'class' || tab === 'balance' || tab === 'register';
     triggerPrint(landscape);
   }
   function printLearner() {
     if (!selLearner) { alert('Please select a learner first'); return; }
-    const landscape = tab === 'merit' || tab === 'class' || tab === 'balance';
+    const landscape = tab === 'merit' || tab === 'class' || tab === 'balance' || tab === 'register';
     triggerPrint(landscape);
   }
 
