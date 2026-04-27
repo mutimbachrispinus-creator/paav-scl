@@ -791,6 +791,7 @@ function AttendanceRegisterTemplate({ learners, grade, type, att }) {
           </tr>
         </thead>
         <tbody>
+          {/* Dynamic learner rows */}
           {learners.map((l, idx) => {
             let presentCount = 0;
             return (
@@ -813,8 +814,8 @@ function AttendanceRegisterTemplate({ learners, grade, type, att }) {
               </tr>
             );
           })}
-          {/* Extra blank rows for consistent register look */}
-          {learners.length < 15 && [...Array(15 - learners.length)].map((_, idx) => (
+          {/* Always add 5 blank rows for manual entries/new students */}
+          {[...Array(5)].map((_, idx) => (
             <tr key={`blank-${idx}`}>
               <td style={{ border: '1px solid #333', padding: '6px 8px', textAlign: 'center' }}>{learners.length + idx + 1}</td>
               <td style={{ border: '1px solid #333', padding: '6px 8px', height: 32 }}></td>
