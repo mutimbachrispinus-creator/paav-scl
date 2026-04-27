@@ -594,86 +594,68 @@ function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
         const bal = annualFee - paid;
 
         return (
-          <div key={l.adm || i} className="receipt-preview-card" style={{ pageBreakInside: 'avoid', border: '2px solid #333', padding: '20px 30px', borderRadius: 8, background: '#fff' }}>
-            <div style={{ textAlign: 'center', marginBottom: 15, borderBottom: '2px dashed #8B1A1A', paddingBottom: 15 }}>
-              <div style={{ fontWeight: 900, fontSize: 16, color: '#8B1A1A', letterSpacing: 1 }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
-              <div style={{ fontSize: 11, color: '#666', marginTop: 2 }}>✝ More Than Academics!</div>
-              <div style={{ fontWeight: 800, fontSize: 14, marginTop: 8, background: '#8B1A1A', color: '#fff', padding: '4px 16px', borderRadius: 20, display: 'inline-block' }}>FEES BALANCE STATEMENT</div>
-            </div>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, fontSize: 13, borderBottom: '1px solid #ddd', paddingBottom: 10 }}>
-              <div style={{ lineHeight: 1.6 }}>
-                <div><span style={{color:'#666',display:'inline-block',width:60}}>Student:</span> <strong style={{fontSize:14}}>{l.name}</strong></div>
-                <div><span style={{color:'#666',display:'inline-block',width:60}}>Adm No:</span> <strong>{l.adm}</strong></div>
-                <div><span style={{color:'#666',display:'inline-block',width:60}}>Grade:</span> <strong>{l.grade}</strong></div>
-                <div><span style={{color:'#666',display:'inline-block',width:60}}>Date:</span> {new Date().toLocaleDateString()}</div>
-              </div>
-              <div style={{ textAlign: 'right', background: '#F8FAFF', padding: 12, borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: 11, color: '#666', textTransform: 'uppercase', letterSpacing: 0.5 }}>Expected Annual Fee</div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#1E293B', marginTop: 2 }}>KES {annualFee.toLocaleString()}</div>
-              </div>
+          <div key={l.adm || i} className="receipt-preview-card" style={{ 
+            pageBreakInside: 'avoid', 
+            width: '80mm', 
+            margin: '0 auto 30px',
+            padding: '8mm 4mm',
+            fontFamily: 'monospace',
+            fontSize: '11px',
+            lineHeight: '1.4',
+            border: '1px solid #ddd',
+            background: '#fff'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: 10 }}>
+              <div style={{ fontWeight: 900, fontSize: '13px' }}>PAAV-GITOMBO</div>
+              <div style={{ fontSize: '10px' }}>COMMUNITY SCHOOL</div>
+              <div style={{ fontSize: '9px', fontStyle: 'italic' }}>More Than Academics!</div>
+              <div style={{ fontSize: '9px', marginTop: 4 }}>P.O BOX 4091-00100 Nairobi</div>
+              <div style={{ fontSize: '9px' }}>TEL: 0758 922 915</div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
-              <div style={{ background: '#fff', padding: '10px', borderRadius: 8, border: '1px solid #EDF2F7', textAlign: 'center' }}>
-                <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase', fontWeight: 700 }}>Term 1</div>
-                <div style={{ fontSize: 12, fontWeight: 800 }}>Exp: {((feeCfg[l.grade]||{}).t1||0).toLocaleString()}</div>
-                <div style={{ fontSize: 11, color: '#059669', fontWeight: 700 }}>Paid: {(l.t1||0).toLocaleString()}</div>
-              </div>
-              <div style={{ background: '#fff', padding: '10px', borderRadius: 8, border: '1px solid #EDF2F7', textAlign: 'center' }}>
-                <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase', fontWeight: 700 }}>Term 2</div>
-                <div style={{ fontSize: 12, fontWeight: 800 }}>Exp: {((feeCfg[l.grade]||{}).t2||0).toLocaleString()}</div>
-                <div style={{ fontSize: 11, color: '#059669', fontWeight: 700 }}>Paid: {(l.t2||0).toLocaleString()}</div>
-              </div>
-              <div style={{ background: '#fff', padding: '10px', borderRadius: 8, border: '1px solid #EDF2F7', textAlign: 'center' }}>
-                <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase', fontWeight: 700 }}>Term 3</div>
-                <div style={{ fontSize: 12, fontWeight: 800 }}>Exp: {((feeCfg[l.grade]||{}).t3||0).toLocaleString()}</div>
-                <div style={{ fontSize: 11, color: '#059669', fontWeight: 700 }}>Paid: {(l.t3||0).toLocaleString()}</div>
-              </div>
+            <div style={{ borderTop: '1px dashed #000', borderBottom: '1px dashed #000', padding: '6px 0', marginBottom: 10, textAlign: 'center' }}>
+              <div style={{ fontWeight: 700, fontSize: '12px' }}>OFFICIAL FEE RECEIPT</div>
             </div>
-            
-            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 8, color: '#475569' }}>PAYMENT HISTORY</div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, fontSize: 12 }}>
-              <thead>
-                <tr style={{ background: '#F1F5F9', textAlign: 'left' }}>
-                  <th style={{ padding: '8px 12px', borderBottom: '2px solid #CBD5E1' }}>Date</th>
-                  <th style={{ padding: '8px 12px', borderBottom: '2px solid #CBD5E1' }}>Term</th>
-                  <th style={{ padding: '8px 12px', borderBottom: '2px solid #CBD5E1' }}>Method</th>
-                  <th style={{ padding: '8px 12px', borderBottom: '2px solid #CBD5E1' }}>Ref / Served By</th>
-                  <th style={{ padding: '8px 12px', borderBottom: '2px solid #CBD5E1', textAlign: 'right' }}>Amount Paid</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lfees.length > 0 ? lfees.map((f, idx) => (
-                  <tr key={idx}>
-                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #E2E8F0' }}>{f.date}</td>
-                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #E2E8F0' }}>{f.term || '—'}</td>
-                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #E2E8F0' }}>{f.method || '—'}</td>
-                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #E2E8F0', color: '#64748B' }}>{f.ref || f.by || '—'}</td>
-                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #E2E8F0', textAlign: 'right', fontWeight: 700, color: '#059669' }}>KES {(f.amount || f.amt || 0).toLocaleString()}</td>
-                  </tr>
-                )) : <tr><td colSpan={5} style={{ padding: '16px 12px', textAlign: 'center', color: '#94A3B8', fontStyle: 'italic' }}>No payments recorded.</td></tr>}
-              </tbody>
-            </table>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <div style={{ width: 280 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 12px', fontSize: 13, borderBottom: '1px solid #E2E8F0' }}>
-                  <span style={{ color: '#475569' }}>Total Amount Paid:</span>
-                  <strong style={{ fontSize: 14 }}>KES {paid.toLocaleString()}</strong>
+            <div style={{ marginBottom: 10 }}>
+              <div><strong>NAME:</strong> {l.name}</div>
+              <div><strong>ADM:</strong> {l.adm}</div>
+              <div><strong>GRADE:</strong> {l.grade}</div>
+              <div><strong>DATE:</strong> {new Date().toLocaleDateString('en-GB')}</div>
+            </div>
+
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontWeight: 700, borderBottom: '1px solid #000', marginBottom: 4 }}>PAYMENT HISTORY:</div>
+              {lfees.length > 0 ? lfees.slice(0, 8).map((f, idx) => (
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', marginBottom: 2 }}>
+                  <span>{f.date}</span>
+                  <strong>{Number(f.amount || f.amt || 0).toLocaleString()}</strong>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', fontSize: 15, background: bal > 0 ? '#FEF2F2' : '#ECFDF5', border: `2px solid ${bal > 0 ? '#DC2626' : '#059669'}`, borderRadius: 8, marginTop: 8 }}>
-                  <span style={{ color: bal > 0 ? '#DC2626' : '#059669', fontWeight: 800 }}>Current Balance:</span>
-                  <strong style={{ color: bal > 0 ? '#DC2626' : '#059669', fontSize: 18, fontWeight: 900 }}>KES {bal.toLocaleString()}</strong>
-                </div>
+              )) : <div style={{ fontSize: '9px', fontStyle: 'italic' }}>No payments</div>}
+            </div>
+
+            <div style={{ borderTop: '1px solid #000', paddingTop: 6, marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>ANNUAL FEE:</span>
+                <strong>{annualFee.toLocaleString()}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669' }}>
+                <span>TOTAL PAID:</span>
+                <strong>{paid.toLocaleString()}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: bal > 0 ? '#DC2626' : '#059669', fontSize: '12px', fontWeight: 900, marginTop: 4 }}>
+                <span>BALANCE:</span>
+                <span>KSH {bal.toLocaleString()}</span>
               </div>
             </div>
 
-            <div style={{ marginTop: 30, fontSize: 10, color: '#94A3B8', textAlign: 'center', borderTop: '1px dotted #CBD5E1', paddingTop: 10 }}>
-              Official Document · PAAV-GITOMBO COMMUNITY SCHOOL · Generated on {new Date().toLocaleString()}
+            <div style={{ textAlign: 'center', marginTop: 15, fontSize: '9px', borderTop: '1px dashed #ccc', paddingTop: 10 }}>
+              <div>*** Thank You ***</div>
+              <div>Generated: {new Date().toLocaleString()}</div>
             </div>
           </div>
         );
+
       })}
     </div>
   );
