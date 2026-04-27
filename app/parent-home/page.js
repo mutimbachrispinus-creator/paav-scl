@@ -37,6 +37,7 @@ export default function ParentHome() {
           { type: 'get', key: 'paav6_marks' },
           { type: 'get', key: 'paav_paybill_accounts' },
           { type: 'get', key: 'paav_calendar_events' },
+          { type: 'get', key: 'paav_documents' },
         ]})
       });
       const db = await dbRes.json();
@@ -57,10 +58,11 @@ export default function ParentHome() {
       setMessages(msgs);
       setFeeCfg(fees);
       setMarks(mks);
-      setEvents(db.results[6]?.value || []);
       setPayInfo({
         accounts: db.results[4]?.value || [],
+        documents: db.results[6]?.value || [],
       });
+      setEvents(db.results[5]?.value || []);
     } catch(e) { console.error(e); } finally { setLoading(false); }
   }, [router, selAdm]);
 
@@ -151,6 +153,7 @@ export default function ParentHome() {
     { id:'fees',    label:'💰 Pay Fees',         icon:'💰' },
     { id:'calendar',label:'📅 Calendar',         icon:'📅' },
     { id:'msgs',    label:`💬 Messages${unr>0?` (${unr})`:''}`, icon:'💬' },
+    { id:'docs',    label:'📂 Documents', icon:'📂' },
   ];
 
   const upcomingEvents = events
@@ -464,6 +467,45 @@ export default function ParentHome() {
             {messages.filter(m=>m.to==='ALL'||m.to==='ALL_PARENTS'||m.to===user.username).length===0&&(
               <div style={{color:'var(--muted)',fontSize:12,textAlign:'center',padding:30}}>No messages yet</div>
             )}
+          </div>
+        </div>
+      )}
+      {/* DOCUMENTS TAB */}
+      {tab==='docs' && (
+        <div className="panel" style={{border:`1.5px solid ${MB}`}}>
+          <div className="panel-hdr" style={{background:`linear-gradient(135deg,${M},${M2})`,color:'#fff'}}>
+            <h3 style={{color:'#fff'}}>📂 School Documents</h3>
+          </div>
+          <div className="panel-body">
+            {(payInfo.documents || [])
+              .filter(d => d.target === 'ALL' || d.target === 'parent')
+              .length === 0 ? (
+                <div style={{textAlign:'center',padding:40,color:'var(--muted)'}}>No documents available for download.</div>
+              ) : (
+                (payInfo.documents || [])
+                .filter(d => d.target === 'ALL' || d.target === 'parent')
+                .map(d => (
+                  <div key={d.id} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 0',borderBottom:'1px solid var(--border)'}}>
+                    <div style={{fontSize:32}}>
+                      {d.type?.includes('pdf') ? '📕' : d.type?.includes('image') ? '🖼️' : '📄'}
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:700,fontSize:13}}>{d.name}</div>
+                      <div style={{fontSize:11,color:'var(--muted)'}}>{d.desc || 'No description'}</div>
+                      <div style={{fontSize:10,color:'var(--muted)',marginTop:3}}>{d.size} · {new Date(d.id).toLocaleDateString()}</div>
+                    </div>
+                    <button className="btn btn-sm" style={{background:M,color:'#fff',borderRadius:8}} 
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = d.data;
+                        link.download = d.name;
+                        link.click();
+                      }}>
+                      ⬇️ Download
+                    </button>
+                  </div>
+                ))
+              )}
           </div>
         </div>
       )}
