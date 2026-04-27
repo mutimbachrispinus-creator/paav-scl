@@ -810,6 +810,17 @@ function AttendanceRegisterTemplate({ learners, grade, type, att }) {
               </tr>
             );
           })}
+          {/* Extra blank rows for consistent register look */}
+          {learners.length < 15 && [...Array(15 - learners.length)].map((_, idx) => (
+            <tr key={`blank-${idx}`}>
+              <td style={{ border: '1px solid #333', padding: '6px 8px', textAlign: 'center' }}>{learners.length + idx + 1}</td>
+              <td style={{ border: '1px solid #333', padding: '6px 8px', height: 32 }}></td>
+              {dayList.map(d => (
+                <td key={d} style={{ border: '1px solid #333', padding: 0 }}></td>
+              ))}
+              <td style={{ border: '1px solid #333', padding: 0 }}></td>
+            </tr>
+          ))}
         </tbody>
       </table>
       <div style={{ marginTop: 25, fontSize: 11, display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #ccc', paddingTop: 15 }}>
