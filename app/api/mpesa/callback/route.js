@@ -19,7 +19,8 @@ export async function POST(req) {
         amount: result.amount,
         method: 'M-Pesa',
         ref: result.mpesaCode,
-        by: 'M-Pesa STK'
+        by: 'M-Pesa STK',
+        status: 'pending'
       });
 
       console.log(`Payment recorded: ${adm}, ${result.amount}, ${result.mpesaCode}`);

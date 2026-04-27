@@ -38,7 +38,8 @@ export default function LearnerReceiptPage() {
       setLearner(l);
       setFeeCfg(db.results[1]?.value || {});
       const allLogs = db.results[2]?.value || [];
-      setPaylog(allLogs.filter(p => p.adm === adm).sort((a,b) => new Date(b.date) - new Date(a.date)));
+      const myLogs = allLogs.filter(p => p.adm === adm);
+      setPaylog(myLogs.sort((a,b) => new Date(b.date) - new Date(a.date)));
     } catch (e) {
       console.error(e);
     } finally {
@@ -134,8 +135,11 @@ export default function LearnerReceiptPage() {
         </thead>
         <tbody>
           {paylog.map((p, i) => (
-            <tr key={i}>
-              <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{p.date}</td>
+            <tr key={i} style={p.status === 'pending' ? { opacity: 0.6, background: '#FFF7ED' } : {}}>
+              <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>
+                {p.date}
+                {p.status === 'pending' && <div style={{ fontSize: 9, color: '#92400E', fontWeight: 800 }}>⚠️ PENDING APPROVAL</div>}
+              </td>
               <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{p.term}</td>
               <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{p.method}</td>
               <td style={{ padding: 10, borderBottom: '1px solid #eee', color: '#666' }}>{p.ref || '—'}</td>

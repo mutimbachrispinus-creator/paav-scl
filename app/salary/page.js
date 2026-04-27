@@ -189,6 +189,8 @@ function SalaryAddModal({ staff, onSave, onClose, busy }) {
   const [basic, setBasic] = useState(0);
   const [allow, setAllow] = useState(0);
   const [deduct, setDeduct] = useState(0);
+  const [allowItems, setAllowItems] = useState([{ name: 'Housing', amount: 0 }, { name: 'Transport', amount: 0 }]);
+  const [deductItems, setDeductItems] = useState([{ name: 'NSSF', amount: 0 }, { name: 'SHA/NHIF', amount: 0 }]);
   const [month, setMonth] = useState(new Date().toLocaleString('default', { month: 'long', year: 'numeric' }));
 
   useEffect(() => {
@@ -196,40 +198,85 @@ function SalaryAddModal({ staff, onSave, onClose, busy }) {
       const s = staff.find(x => x.id === sid);
       if (s) {
         setBasic(s.salaryBasic || 0);
-        setAllow((s.salaryHousing || 0) + (s.salaryTransport || 0));
+        setAllowItems([
+          { name: 'Housing', amount: s.salaryHousing || 0 },
+          { name: 'Transport', amount: s.salaryTransport || 0 }
+        ]);
       }
     }
   }, [sid, staff]);
 
-  const net = basic + allow - deduct;
+  const allowTotal = allowItems.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+  const deductTotal = deductItems.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+  const net = basic + allowTotal - deductTotal;
+
+  const addAllow = () => setAllowItems([...allowItems, { name: '', amount: 0 }]);
+  const addDeduct = () => setDeductItems([...deductItems, { name: '', amount: 0 }]);
+  const remAllow = (i) => setAllowItems(allowItems.filter((_, idx) => idx !== i));
+  const remDeduct = (i) => setDeductItems(deductItems.filter((_, idx) => idx !== i));
+  const updAllow = (i, k, v) => setAllowItems(allowItems.map((x, idx) => idx === i ? { ...x, [k]: v } : x));
+  const updDeduct = (i, k, v) => setDeductItems(deductItems.map((x, idx) => idx === i ? { ...x, [k]: v } : x));
 
   return (
     <div className="modal-overlay open">
-      <div className="modal">
+      <div className="modal modal-lg">
         <div className="modal-hdr"><h3>➕ Record Salary Payment</h3><button className="modal-close" onClick={onClose}>✕</button></div>
-        <div className="modal-body">
-          <div className="field">
-            <label>Select Staff</label>
-            <select value={sid} onChange={e => setSid(e.target.value)}>
-              <option value="">— Choose —</option>
-              {staff.map(s => <option key={s.id} value={s.id}>{s.name} ({s.role})</option>)}
-            </select>
-          </div>
-          <div className="field">
-            <label>For Month</label>
-            <input value={month} onChange={e => setMonth(e.target.value)} />
-          </div>
+        <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
           <div className="field-row">
-            <div className="field"><label>Basic Salary</label><input type="number" value={basic} onChange={e => setBasic(Number(e.target.value))} /></div>
-            <div className="field"><label>Total Allowances</label><input type="number" value={allow} onChange={e => setAllow(Number(e.target.value))} /></div>
+            <div className="field">
+              <label>Select Staff</label>
+              <select value={sid} onChange={e => setSid(e.target.value)}>
+                <option value="">— Choose —</option>
+                {staff.map(s => <option key={s.id} value={s.id}>{s.name} ({s.role})</option>)}
+              </select>
+            </div>
+            <div className="field">
+              <label>For Month</label>
+              <input value={month} onChange={e => setMonth(e.target.value)} />
+            </div>
           </div>
+
           <div className="field">
-            <label>Deductions (NHIF/NSSF/Advance)</label>
-            <input type="number" value={deduct} onChange={e => setDeduct(Number(e.target.value))} />
+            <label>Basic Salary</label>
+            <input type="number" value={basic} onChange={e => setBasic(Number(e.target.value))} />
           </div>
-          <div style={{ background: '#F8FAFF', padding: 15, borderRadius: 8, marginTop: 10, textAlign: 'center' }}>
-            <div style={{ fontSize: 12, color: '#666' }}>ESTIMATED NET PAY</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--navy)' }}>KES {net.toLocaleString()}</div>
+
+          <div style={{ marginTop: 15 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <label style={{ fontWeight: 800, fontSize: 11, color: 'var(--green)' }}>💰 ALLOWANCES</label>
+              <button className="btn btn-sm btn-ghost" onClick={addAllow}>+ Add</button>
+            </div>
+            {allowItems.map((item, i) => (
+              <div key={i} className="field-row" style={{ marginBottom: 8 }}>
+                <input style={{ flex: 2 }} placeholder="Allowance Name" value={item.name} onChange={e => updAllow(i, 'name', e.target.value)} />
+                <input style={{ flex: 1 }} type="number" placeholder="Amount" value={item.amount} onChange={e => updAllow(i, 'amount', e.target.value)} />
+                <button className="btn btn-sm btn-ghost" onClick={() => remAllow(i)}>✕</button>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 15 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <label style={{ fontWeight: 800, fontSize: 11, color: 'var(--red)' }}>➖ DEDUCTIONS</label>
+              <button className="btn btn-sm btn-ghost" onClick={addDeduct}>+ Add</button>
+            </div>
+            {deductItems.map((item, i) => (
+              <div key={i} className="field-row" style={{ marginBottom: 8 }}>
+                <input style={{ flex: 2 }} placeholder="Deduction Name" value={item.name} onChange={e => updDeduct(i, 'name', e.target.value)} />
+                <input style={{ flex: 1 }} type="number" placeholder="Amount" value={item.amount} onChange={e => updDeduct(i, 'amount', e.target.value)} />
+                <button className="btn btn-sm btn-ghost" onClick={() => remDeduct(i)}>✕</button>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background: '#F8FAFF', padding: 15, borderRadius: 8, marginTop: 20, textAlign: 'center', border: '1px solid #E2E8F0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: 10, fontSize: 12 }}>
+              <div>Basic: <strong>{basic.toLocaleString()}</strong></div>
+              <div>+ Allow: <strong>{allowTotal.toLocaleString()}</strong></div>
+              <div>- Deduct: <strong>{deductTotal.toLocaleString()}</strong></div>
+            </div>
+            <div style={{ fontSize: 11, color: '#666', textTransform: 'uppercase', letterSpacing: 1 }}>ESTIMATED NET PAY</div>
+            <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--navy)' }}>KES {net.toLocaleString()}</div>
           </div>
         </div>
         <div className="modal-footer">
@@ -238,7 +285,11 @@ function SalaryAddModal({ staff, onSave, onClose, busy }) {
             id: Date.now(),
             staffId: sid,
             staffName: staff.find(x => x.id === sid).name,
-            basic, allowances: allow, deductions: deduct,
+            basic,
+            allowances: allowTotal,
+            deductions: deductTotal,
+            allowItems: allowItems.filter(x => x.name && x.amount),
+            deductItems: deductItems.filter(x => x.name && x.amount),
             net, month, status: 'pending'
           })}>
             {busy ? 'Saving...' : '💾 Save Record'}
@@ -251,8 +302,16 @@ function SalaryAddModal({ staff, onSave, onClose, busy }) {
 
 function PayslipModal({ rec, onClose }) {
   function doPrint() {
-    const el = document.getElementById('payslip-print-area');
     const w = window.open('', '_blank', 'width=680,height=900');
+    
+    const earnsHtml = rec.allowItems?.length > 0 
+      ? rec.allowItems.map(x => `<tr><td>${x.name}</td><td>KES ${Number(x.amount).toLocaleString()}</td></tr>`).join('')
+      : `<tr><td>General Allowances</td><td>KES ${rec.allowances.toLocaleString()}</td></tr>`;
+
+    const deductsHtml = rec.deductItems?.length > 0
+      ? rec.deductItems.map(x => `<tr><td>${x.name}</td><td>KES ${Number(x.amount).toLocaleString()}</td></tr>`).join('')
+      : `<tr><td>NHIF / NSSF / Advance</td><td>KES ${rec.deductions.toLocaleString()}</td></tr>`;
+
     w.document.write(`<!DOCTYPE html><html><head>
       <title>Payslip — ${rec.staffName}</title>
       <style>
@@ -283,9 +342,9 @@ function PayslipModal({ rec, onClose }) {
             <tr><td>Month</td><td>${rec.month}</td></tr>
             <tr><td colspan="2" style="padding:6px 12px;background:#f9f9f9"><strong>EARNINGS</strong></td></tr>
             <tr><td>Basic Salary</td><td>KES ${rec.basic.toLocaleString()}</td></tr>
-            <tr><td>Allowances</td><td>KES ${rec.allowances.toLocaleString()}</td></tr>
+            ${earnsHtml}
             <tr><td colspan="2" style="padding:6px 12px;background:#f9f9f9"><strong>DEDUCTIONS</strong></td></tr>
-            <tr><td>NHIF / NSSF / Advance</td><td>KES ${rec.deductions.toLocaleString()}</td></tr>
+            ${deductsHtml}
             <tr class="net-row"><td>NET PAY</td><td>KES ${rec.net.toLocaleString()}</td></tr>
           </tbody>
         </table>
@@ -318,9 +377,17 @@ function PayslipModal({ rec, onClose }) {
                 <tr><td><strong>Month</strong></td><td>{rec.month}</td></tr>
                 <tr><td colSpan={2} style={{ background: '#F8FAFF', fontWeight: 700, paddingTop: 10 }}>EARNINGS</td></tr>
                 <tr><td>Basic Salary</td><td>KES {rec.basic.toLocaleString()}</td></tr>
-                <tr><td>Allowances</td><td>KES {rec.allowances.toLocaleString()}</td></tr>
+                {rec.allowItems?.length > 0 ? rec.allowItems.map((x,i) => (
+                  <tr key={i}><td>{x.name}</td><td>KES {Number(x.amount).toLocaleString()}</td></tr>
+                )) : (
+                  <tr><td>Allowances</td><td>KES {rec.allowances.toLocaleString()}</td></tr>
+                )}
                 <tr><td colSpan={2} style={{ background: '#FFF5F5', fontWeight: 700, paddingTop: 10 }}>DEDUCTIONS</td></tr>
-                <tr><td>NHIF / NSSF / Advance</td><td>KES {rec.deductions.toLocaleString()}</td></tr>
+                {rec.deductItems?.length > 0 ? rec.deductItems.map((x,i) => (
+                  <tr key={i}><td>{x.name}</td><td>KES {Number(x.amount).toLocaleString()}</td></tr>
+                )) : (
+                  <tr><td>Deductions</td><td>KES {rec.deductions.toLocaleString()}</td></tr>
+                )}
                 <tr className="payslip-net-row"><td>NET PAY</td><td>KES {rec.net.toLocaleString()}</td></tr>
               </tbody>
             </table>

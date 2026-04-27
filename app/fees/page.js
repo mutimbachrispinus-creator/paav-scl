@@ -67,6 +67,50 @@ export default function FeesPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  async function approvePayment(p) {
+    if (!confirm(`Approve payment of KES ${p.amount} for ${p.name}?`)) return;
+    setLoading(true);
+    try {
+      const dbRes = await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [
+          { type: 'get', key: 'paav6_learners' },
+          { type: 'get', key: 'paav6_paylog'  },
+        ]}),
+      });
+      const db = await dbRes.json();
+      const list = db.results[0]?.value || [];
+      const logs = db.results[1]?.value || [];
+
+      const pIdx = logs.findIndex(x => x.id === p.id);
+      if (pIdx >= 0) logs[pIdx].status = 'approved';
+
+      const lIdx = list.findIndex(l => l.adm === p.adm);
+      const termKey = p.term.toLowerCase();
+      if (lIdx >= 0) list[lIdx][termKey] = (list[lIdx][termKey]||0) + Number(p.amount);
+
+      await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [
+          { type: 'set', key: 'paav6_learners', value: list  },
+          { type: 'set', key: 'paav6_paylog',   value: logs },
+        ]}),
+      });
+      load();
+    } catch(e) { alert(e.message); }
+    finally { setLoading(false); }
+  }
+
+  async function rejectPayment(p) {
+    if (!confirm(`Reject/Delete this payment of KES ${p.amount}?`)) return;
+    const updated = paylog.filter(x => x.id !== p.id);
+    await fetch('/api/db', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_paylog', value: updated }] }),
+    });
+    setPaylog(updated);
+  }
+
   function getAnnualFee(grade) {
     const cfg = feeCfg[grade] || {};
     const sum = (cfg.t1||0) + (cfg.t2||0) + (cfg.t3||0);
@@ -145,6 +189,41 @@ export default function FeesPage() {
           </div>
         )}
 
+        {/* ── Pending Approvals ── */}
+        {user?.role === 'admin' && paylog.some(p => p.status === 'pending') && (
+          <div className="panel no-print" style={{ marginBottom: 18, border: '2px solid var(--amber)' }}>
+            <div className="panel-hdr" style={{ background: '#FFF7ED' }}>
+              <h3 style={{ color: '#92400E' }}>⏳ Pending Approvals</h3>
+              <span className="badge bg-amber">{paylog.filter(p => p.status === 'pending').length}</span>
+            </div>
+            <div className="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Adm</th><th>Name</th><th>Amount</th><th>Method</th><th>Ref</th><th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paylog.filter(p => p.status === 'pending').map((p, i) => (
+                    <tr key={i}>
+                      <td>{p.date}</td>
+                      <td><strong>{p.adm}</strong></td>
+                      <td>{p.name}</td>
+                      <td style={{ fontWeight: 800 }}>{fmtK(p.amount)}</td>
+                      <td>{p.method}</td>
+                      <td style={{ fontSize: 11 }}>{p.ref}</td>
+                      <td>
+                        <button className="btn btn-sm btn-success" onClick={() => approvePayment(p)}>Approve</button>
+                        <button className="btn btn-sm btn-ghost" style={{ marginLeft: 5, color: 'var(--red)' }} onClick={() => rejectPayment(p)}>Reject</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* ── Payment log ── */}
         <div className="panel no-print" style={{ marginBottom: 18 }}>
           <div className="panel-hdr">
@@ -155,11 +234,11 @@ export default function FeesPage() {
               <thead>
                 <tr>
                   <th>Date</th><th>Adm</th><th>Name</th><th>Term</th>
-                  <th>Amount</th><th>Method</th><th>Ref</th><th>By</th><th className="no-print">Actions</th>
+                  <th>Amount</th><th>Method</th><th>Ref</th><th>By</th><th>Status</th><th className="no-print">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {paylog.slice(-50).reverse().map((p, i) => (
+                {paylog.filter(p => p.status !== 'pending').slice(-50).reverse().map((p, i) => (
                   <tr key={i}>
                     <td style={{ fontSize: 11 }}>{p.date}</td>
                     <td style={{ fontWeight: 700, fontSize: 11.5 }}>{p.adm}</td>
@@ -169,6 +248,11 @@ export default function FeesPage() {
                     <td><span className="badge bg-teal" style={{ fontSize: 10 }}>{p.method}</span></td>
                     <td style={{ fontSize: 11, color: 'var(--muted)' }}>{p.ref || '—'}</td>
                     <td style={{ fontSize: 11, color: 'var(--muted)' }}>{p.by || '—'}</td>
+                    <td>
+                      <span className={`badge bg-${p.status === 'approved' ? 'green' : 'amber'}`} style={{ fontSize: 9 }}>
+                        {(p.status || 'approved').toUpperCase()}
+                      </span>
+                    </td>
                     <td>
                       <button className="btn btn-ghost btn-sm"
                         onClick={() => router.push(`/fees/${p.adm}/receipt`)}>
@@ -445,6 +529,7 @@ function PayModal({ learner, feeCfg, onClose, recordedBy }) {
       amount: Number(amount),
       method, ref,
       by: recordedBy || 'Staff',
+      status: 'approved'
     });
 
     // 4. Save both
