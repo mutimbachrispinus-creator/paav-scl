@@ -61,6 +61,7 @@ export default function LoginPage() {
         if (db.results[0]?.value) setAnnouncement(db.results[0].value);
         if (db.results[1]?.value) setHeroImg(db.results[1].value);
       } catch (e) {}
+    }
     loadStats();
     prefetchKeys(['paav6_learners', 'paav6_staff', 'paav6_feecfg', 'paav7_hero_img']);
   }, []);
