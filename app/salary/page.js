@@ -190,7 +190,7 @@ function SalaryAddModal({ staff, onSave, onClose, busy }) {
   const [allow, setAllow] = useState(0);
   const [deduct, setDeduct] = useState(0);
   const [allowItems, setAllowItems] = useState([{ name: 'Housing', amount: 0 }, { name: 'Transport', amount: 0 }]);
-  const [deductItems, setDeductItems] = useState([{ name: 'NSSF', amount: 0 }, { name: 'SHA/NHIF', amount: 0 }]);
+  const [deductItems, setDeductItems] = useState([{ name: 'NSSF', amount: 0 }, { name: 'SHA', amount: 0 }]);
   const [month, setMonth] = useState(new Date().toLocaleString('default', { month: 'long', year: 'numeric' }));
 
   useEffect(() => {
@@ -310,7 +310,7 @@ function PayslipModal({ rec, onClose }) {
 
     const deductsHtml = rec.deductItems?.length > 0
       ? rec.deductItems.map(x => `<tr><td>${x.name}</td><td>KES ${Number(x.amount).toLocaleString()}</td></tr>`).join('')
-      : `<tr><td>NHIF / NSSF / Advance</td><td>KES ${rec.deductions.toLocaleString()}</td></tr>`;
+      : `<tr><td>SHA / NSSF / Advance</td><td>KES ${rec.deductions.toLocaleString()}</td></tr>`;
 
     w.document.write(`<!DOCTYPE html><html><head>
       <title>Payslip — ${rec.staffName}</title>
@@ -386,7 +386,7 @@ function PayslipModal({ rec, onClose }) {
                 {rec.deductItems?.length > 0 ? rec.deductItems.map((x,i) => (
                   <tr key={i}><td>{x.name}</td><td>KES {Number(x.amount).toLocaleString()}</td></tr>
                 )) : (
-                  <tr><td>Deductions</td><td>KES {rec.deductions.toLocaleString()}</td></tr>
+                  <tr><td>SHA / NSSF / Advance</td><td>KES {rec.deductions.toLocaleString()}</td></tr>
                 )}
                 <tr className="payslip-net-row"><td>NET PAY</td><td>KES {rec.net.toLocaleString()}</td></tr>
               </tbody>
