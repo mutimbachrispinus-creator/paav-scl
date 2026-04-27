@@ -318,50 +318,111 @@ function BulkAddModal({ onClose }) {
 function PromoteLearnersModal({ onClose, learners }) {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
-
-  const GRADE_ORDER = ALL_GRADES;
+  const [mode, setMode] = useState('grade'); // 'grade' | 'individual'
+  const [fromGrade, setFromGrade] = useState('');
+  const [toGrade, setToGrade] = useState('');
+  const [selAdms, setSelAdms] = useState([]);
 
   async function promote() {
-    if (!confirm('Promote all learners to the next grade? This cannot be easily undone.')) return;
+    if (!toGrade) { alert('Please select a target grade'); return; }
+    
+    let targets = [];
+    if (mode === 'grade') {
+      if (!fromGrade) { alert('Please select a source grade'); return; }
+      targets = learners.filter(l => l.grade === fromGrade);
+    } else {
+      if (selAdms.length === 0) { alert('Please select at least one learner'); return; }
+      targets = learners.filter(l => selAdms.includes(l.adm));
+    }
+
+    if (!confirm(`Promote ${targets.length} learners to ${toGrade}? This resets their fee balances.`)) return;
+    
     setBusy(true);
-    const promoted = learners.map(l => {
-      const idx  = GRADE_ORDER.indexOf(l.grade);
-      const next = idx >= 0 && idx < GRADE_ORDER.length - 1 ? GRADE_ORDER[idx + 1] : l.grade;
-      return { ...l, grade: next, t1: 0, t2: 0, t3: 0 }; // reset fees for new year
+    const updatedList = learners.map(l => {
+      const isTarget = mode === 'grade' ? (l.grade === fromGrade) : selAdms.includes(l.adm);
+      if (isTarget) {
+        return { ...l, grade: toGrade, t1: 0, t2: 0, t3: 0 };
+      }
+      return l;
     });
+
     await fetch('/api/db', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_learners', value: promoted }] }),
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_learners', value: updatedList }] }),
     });
     setBusy(false);
     setDone(true);
   }
 
+  const toggleAdm = adm => {
+    setSelAdms(prev => prev.includes(adm) ? prev.filter(a => a !== adm) : [...prev, adm]);
+  };
+
   return (
     <ModalOverlay title="🎓 Promote Learners" onClose={onClose}>
       {done ? (
-        <div className="alert alert-ok show">✅ All learners promoted to next grade!</div>
+        <div className="alert alert-ok show" style={{ textAlign: 'center', padding: '30px' }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>✅</div>
+          <h3>Promotion Successful!</h3>
+          <p>Learners have been moved and their fees reset.</p>
+          <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={onClose}>Close</button>
+        </div>
       ) : (
-        <>
-          <div className="note-box" style={{ marginBottom: 14 }}>
-            This will move every learner up one grade and reset their term fee payments to zero
-            for the new academic year. Grade 12 learners will remain in Grade 12.
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="auth-sw-row" style={{ marginBottom: 0 }}>
+            <button className={`auth-sw ${mode === 'grade' ? 'on' : ''}`} onClick={() => setMode('grade')}>By Grade</button>
+            <button className={`auth-sw ${mode === 'individual' ? 'on' : ''}`} onClick={() => setMode('individual')}>By Learner</button>
           </div>
-          <p style={{ fontSize: 12.5, color: 'var(--muted)', marginBottom: 16 }}>
-            <strong>{learners.length}</strong> learners will be promoted.
-          </p>
+
+          <div className="field-row">
+            {mode === 'grade' ? (
+              <div className="field">
+                <label>From Grade</label>
+                <select value={fromGrade} onChange={e => setFromGrade(e.target.value)}>
+                  <option value="">Select Source</option>
+                  {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
+                </select>
+              </div>
+            ) : (
+              <div className="field">
+                <label>Select Learners ({selAdms.length})</label>
+                <div style={{ maxHeight: 150, overflowY: 'auto', border: '2px solid var(--border)', borderRadius: 8, padding: 8 }}>
+                  {learners.sort((a,b)=>a.name.localeCompare(b.name)).map(l => (
+                    <label key={l.adm} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', fontSize: 12, cursor: 'pointer', textTransform: 'none', letterSpacing: 0 }}>
+                      <input type="checkbox" checked={selAdms.includes(l.adm)} onChange={() => toggleAdm(l.adm)} style={{ width: 'auto' }} />
+                      {l.name} ({l.grade})
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="field" style={{ alignSelf: 'flex-start' }}>
+              <label>Promote To</label>
+              <select value={toGrade} onChange={e => setToGrade(e.target.value)}>
+                <option value="">Select Target</option>
+                {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
+                <option value="GRADUATED">GRADUATED / ALUMNI</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="note-box" style={{ background: '#FFF7ED', borderLeft: '3px solid #EA580C' }}>
+            <strong>Important:</strong> Promotion moves learners to the new grade and <strong>resets all term payments (T1, T2, T3) to zero</strong> for the new academic year.
+          </div>
+
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
             <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
             <button className="btn btn-gold btn-sm" onClick={promote} disabled={busy}
               style={{ width: 'auto', opacity: busy ? 0.7 : 1 }}>
-              {busy ? '⏳ Promoting…' : '🎓 Promote All'}
+              {busy ? '⏳ Processing…' : '🎓 Complete Promotion'}
             </button>
           </div>
-        </>
+        </div>
       )}
     </ModalOverlay>
   );
 }
+
 
 /* ─── Shared modal wrapper ──────────────────────────────────────────────── */
 function ModalOverlay({ title, onClose, children }) {
