@@ -24,9 +24,10 @@ export default function BulkLearnersPage() {
     async function check() {
       const res = await fetch('/api/auth');
       const data = await res.json();
-      if (!data.ok || (data.user.role !== 'admin' && data.user.role !== 'teacher')) {
+      if (!data.ok || !['admin','teacher','jss_teacher','senior_teacher'].includes(data.user?.role)) {
         router.push('/'); return;
       }
+
       setLoading(false);
     }
     check();
