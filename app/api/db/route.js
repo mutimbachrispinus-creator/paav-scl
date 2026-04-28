@@ -211,7 +211,27 @@ async function handleRequest(req, auth) {
       return { type: 'storageUsage', usage };
     }
 
+    case 'logActivity': {
+      if (!req.activity) return { type: req.type, error: 'activity object is required' };
+      const { logAction } = await import('@/lib/db');
+      await logAction(auth, req.activity.action, req.activity.details);
+      return { type: req.type, ok: true };
+    }
+
+    case 'getDatabaseDump': {
+      if (auth.role !== 'admin') return { error: 'Unauthorized' };
+      const { query } = await import('@/lib/db');
+      const all = await query('SELECT key, value FROM kv');
+      const data = {};
+      all.forEach(r => {
+        try { data[r.key] = JSON.parse(r.value); } catch { data[r.key] = r.value; }
+      });
+      return { type: req.type, data };
+    }
+
     default:
       return { error: `Unknown request type: ${req.type}` };
   }
 }
+
+

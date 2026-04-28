@@ -56,15 +56,38 @@ export default function DutiesPage() {
     try {
       const newPresence = [...presence];
       const idx = newPresence.findIndex(p => p.id === user.id && p.date === today);
-      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
       if (idx !== -1) {
-        newPresence[idx] = { ...newPresence[idx], [type]: now };
+        const record = { ...newPresence[idx], [type]: timeStr };
+        if (type === 'logout' && record.login) {
+          // Calculate duration
+          const [h1, m1] = record.login.split(':').map(Number);
+          const [h2, m2] = timeStr.split(':').map(Number);
+          const start = new Date(); start.setHours(h1, m1, 0);
+          const end = new Date(); end.setHours(h2, m2, 0);
+          let diff = (end - start) / 1000 / 60 / 60; // hours
+          if (diff < 0) diff += 24; // overnight shift
+          record.hours = diff.toFixed(1);
+        }
+        newPresence[idx] = record;
       } else {
-        newPresence.push({ id: user.id, name: user.name, date: today, login: now, logout: '' });
+        newPresence.push({ id: user.id, name: user.name, date: today, login: timeStr, logout: '', hours: '' });
       }
+      
       await fetch('/api/db', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_presence', value: newPresence }] })
+        body: JSON.stringify({ 
+          requests: [
+            { type: 'set', key: 'paav_presence', value: newPresence },
+            { type: 'logActivity', activity: { 
+                action: type === 'login' ? 'Clocked In' : 'Clocked Out',
+                details: `${type === 'login' ? 'Started work' : 'Finished work'} at ${timeStr}`
+              }
+            }
+          ] 
+        })
       });
       invalidateDB('paav_presence');
       setPresence(newPresence);
@@ -443,13 +466,14 @@ export default function DutiesPage() {
             ) : (
               <div className="tbl-wrap">
                 <table>
-                  <thead><tr><th>Date</th><th>In</th><th>Out</th><th>Status</th></tr></thead>
+                  <thead><tr><th>Date</th><th>In</th><th>Out</th><th>Hours</th><th>Status</th></tr></thead>
                   <tbody>
                     {myPresence.map((p, i) => (
                       <tr key={i}>
                         <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{p.date}</td>
                         <td style={{ fontWeight: 600, color: 'var(--green)' }}>{p.login || '—'}</td>
                         <td style={{ color: p.logout ? 'var(--muted)' : 'var(--amber)' }}>{p.logout || 'Pending'}</td>
+                        <td style={{ fontWeight: 700 }}>{p.hours ? `${p.hours} hrs` : '—'}</td>
                         <td>
                           <span className={`badge ${p.logout ? 'bg-green' : 'bg-amber'}`}>
                             {p.logout ? 'Complete' : 'Present'}

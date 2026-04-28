@@ -184,7 +184,13 @@ async function handleGoogle({ idToken }, request) {
 
     const response = NextResponse.json({ ok: true, user: publicUser(user) });
     await setSessionCookie(user, response);
+    
+    // Log activity
+    const { logAction } = await import('@/lib/db');
+    await logAction(user, 'Login', `Logged in from ${request.headers.get('user-agent') || 'unknown'}`);
+
     return response;
+
   } catch (e) {
     return err('Google sign-in failed: ' + e.message, 500);
   }

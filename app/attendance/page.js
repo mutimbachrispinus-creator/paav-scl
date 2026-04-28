@@ -122,8 +122,14 @@ export default function AttendancePage() {
     try {
       await fetch('/api/db', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ requests:[{ type:'set', key:'paav_student_attendance', value:att }] })
+        body: JSON.stringify({ 
+          requests:[
+            { type:'set', key:'paav_student_attendance', value:att },
+            { type:'logActivity', activity: { action:'Updated Attendance', details:`Marked attendance for ${grade} on ${selDate}` } }
+          ] 
+        })
       });
+
       setAlert('✅ Attendance saved!');
       setTimeout(()=>setAlert(''),3000);
     } catch(e) { setAlert('❌ '+e.message); }
