@@ -22,6 +22,10 @@ export default function DutiesPage() {
   const [reqSent, setReqSent] = useState(false);
   const [showReqForm, setShowReqForm] = useState(false);
   const [activeTab, setActiveTab] = useState('duties');
+  const [staff, setStaff] = useState([]);
+  const [dutyForm, setDutyForm] = useState({ staffId: '', task: '', date: '' });
+
+  const today = new Date().toLocaleDateString('en-KE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   const load = useCallback(async () => {
     try {
@@ -29,12 +33,13 @@ export default function DutiesPage() {
       if (!u) { router.push('/'); return; }
       setUser(u);
       const data = await getCachedDBMulti(
-        ['paav_presence', 'paav_duties', 'paav_staff_reqs'],
-        15000 // 15 s TTL for presence
+        ['paav_presence', 'paav_duties', 'paav_staff_reqs', 'paav6_staff'],
+        15000 // 15 s TTL
       );
       setPresence(data['paav_presence'] || []);
       setDuties(data['paav_duties'] || []);
       setRequests(data['paav_staff_reqs'] || []);
+      setStaff(data['paav6_staff'] || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -132,17 +137,83 @@ export default function DutiesPage() {
     </div>
   );
 
-  const myDuties = duties.filter(d => d.staffId === user.id || d.staffName === user.name);
+  async function addDuty(e) {
+    e.preventDefault();
+    if (!dutyForm.staffId || !dutyForm.task) { alert('Staff and Task are required'); return; }
+    setBusy(true);
+    try {
+      const selectedStaff = staff.find(s => s.id === dutyForm.staffId);
+      const newDuty = {
+        id: 'duty_' + Date.now(),
+        staffId: dutyForm.staffId,
+        staffName: selectedStaff?.name || 'Unknown',
+        task: dutyForm.task,
+        date: dutyForm.date || today,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
+      const newDuties = [newDuty, ...duties];
+      await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_duties', value: newDuties }] })
+      });
+      invalidateDB('paav_duties');
+      setDuties(newDuties);
+      setDutyForm({ staffId: '', task: '', date: '' });
+    } catch (e) { alert('❌ ' + e.message); } finally { setBusy(false); }
+  }
+
+  async function toggleDutyStatus(id) {
+    setBusy(true);
+    try {
+      const newDuties = duties.map(d => {
+        if (d.id === id) {
+          const isCompleted = d.status === 'completed';
+          return {
+            ...d,
+            status: isCompleted ? 'pending' : 'completed',
+            completedAt: isCompleted ? null : new Date().toISOString()
+          };
+        }
+        return d;
+      });
+      await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_duties', value: newDuties }] })
+      });
+      invalidateDB('paav_duties');
+      setDuties(newDuties);
+    } catch (e) { alert('❌ ' + e.message); } finally { setBusy(false); }
+  }
+
+  async function deleteDuty(id) {
+    if (!confirm('Delete this duty assignment?')) return;
+    setBusy(true);
+    try {
+      const newDuties = duties.filter(d => d.id !== id);
+      await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_duties', value: newDuties }] })
+      });
+      invalidateDB('paav_duties');
+      setDuties(newDuties);
+    } catch (e) { alert('❌ ' + e.message); } finally { setBusy(false); }
+  }
+
+  const myDuties = duties.filter(d => d.staffId === user.id).sort((a,b) => b.createdAt?.localeCompare(a.createdAt || '') || 0);
   const myPresence = presence.filter(p => p.id === user.id).slice(-7).reverse();
   const myRequests = requests.filter(r => r.userId === user.id).slice(-10).reverse();
   const allRequests = requests.slice().reverse(); // admin sees all
   const isAdmin = user.role === 'admin';
 
   const TABS = [
-    { id: 'duties',    label: '📋 Duties' },
+    { id: 'duties',    label: '📋 My Duties' },
     { id: 'presence',  label: '📍 Attendance' },
     { id: 'requests',  label: `✋ Requests${myRequests.some(r => r.status === 'pending') ? ' 🔴' : ''}` },
-    ...(isAdmin ? [{ id: 'admin_reqs', label: `🛡 All Requests${allRequests.some(r => r.status === 'pending') ? ' 🔴' : ''}` }] : []),
+    ...(isAdmin ? [
+      { id: 'manage_duties', label: '🛠 Assign Duties' },
+      { id: 'admin_reqs', label: `🛡 All Requests${allRequests.some(r => r.status === 'pending') ? ' 🔴' : ''}` }
+    ] : []),
   ];
 
   return (
@@ -254,35 +325,113 @@ export default function DutiesPage() {
         ))}
       </div>
 
-      {/* ── Duties Tab ── */}
+      {/* ── My Duties Tab ── */}
       {activeTab === 'duties' && (
         <div className="panel">
-          <div className="panel-hdr"><h3>📅 Your Duty Roster</h3></div>
+          <div className="panel-hdr"><h3>📋 Your Assigned Duties</h3></div>
           <div className="panel-body">
             {myDuties.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 30, color: 'var(--muted)' }}>
                 <div style={{ fontSize: 32 }}>📋</div>
-                <div>No duties assigned this week.</div>
+                <div>No specific duties assigned to you yet.</div>
               </div>
             ) : (
-              <div className="tbl-wrap">
-                <table>
-                  <thead><tr><th>Day</th><th>Role</th><th>Location</th><th>Time</th></tr></thead>
-                  <tbody>
-                    {myDuties.map((d, i) => (
-                      <tr key={i}>
-                        <td style={{ fontWeight: 700 }}>{d.day}</td>
-                        <td><span className="badge bg-blue">{d.role}</span></td>
-                        <td>{d.location}</td>
-                        <td style={{ fontSize: 12, color: 'var(--muted)' }}>{d.time || '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {myDuties.map(d => (
+                  <div key={d.id} style={{ border: '1.5px solid var(--border)', borderRadius: 10, padding: 14,
+                    borderLeft: `4px solid ${d.status === 'completed' ? '#059669' : '#D97706'}`,
+                    background: d.status === 'completed' ? '#F0FDF4' : '#FFFBEB' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase' }}>
+                          📅 {d.date} {d.completedAt && ` · ✅ Done ${new Date(d.completedAt).toLocaleDateString('en-KE')}`}
+                        </div>
+                        <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4 }}>{d.task}</div>
+                      </div>
+                      <button
+                        className={`btn btn-sm ${d.status === 'completed' ? 'btn-ghost' : 'btn-success'}`}
+                        onClick={() => toggleDutyStatus(d.id)}
+                        disabled={busy}
+                      >
+                        {d.status === 'completed' ? '↩️ Mark Pending' : '✅ Mark Completed'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         </div>
+      )}
+
+      {/* ── Admin: Manage Duties ── */}
+      {activeTab === 'manage_duties' && isAdmin && (
+        <>
+          <div className="panel" style={{ marginBottom: 16 }}>
+            <div className="panel-hdr"><h3>🛠 Assign New Duty</h3></div>
+            <div className="panel-body">
+              <form onSubmit={addDuty} style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <div className="field" style={{ flex: 1, minWidth: 200, marginBottom: 0 }}>
+                  <label>Assign to Staff</label>
+                  <select value={dutyForm.staffId} onChange={e => setDutyForm({ ...dutyForm, staffId: e.target.value })} required>
+                    <option value="">Select Staff...</option>
+                    {staff.map(s => <option key={s.id} value={s.id}>{s.name} ({s.role})</option>)}
+                  </select>
+                </div>
+                <div className="field" style={{ flex: 2, minWidth: 250, marginBottom: 0 }}>
+                  <label>Duty Description / Task</label>
+                  <input placeholder="e.g. In charge of Morning Parade" value={dutyForm.task}
+                    onChange={e => setDutyForm({ ...dutyForm, task: e.target.value })} required />
+                </div>
+                <div className="field" style={{ width: 150, marginBottom: 0 }}>
+                  <label>Date</label>
+                  <input type="date" value={dutyForm.date} onChange={e => setDutyForm({ ...dutyForm, date: e.target.value })} />
+                </div>
+                <button type="submit" className="btn btn-maroon" disabled={busy} style={{ height: 42 }}>Assign Duty</button>
+              </form>
+            </div>
+          </div>
+
+          <div className="panel">
+            <div className="panel-hdr"><h3>📅 Duty Roster (All Staff)</h3></div>
+            <div className="panel-body">
+              {duties.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: 30, color: 'var(--muted)' }}>No duties assigned yet.</div>
+              ) : (
+                <div className="tbl-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Staff Name</th>
+                        <th>Task</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {duties.sort((a,b) => b.createdAt?.localeCompare(a.createdAt || '') || 0).map(d => (
+                        <tr key={d.id}>
+                          <td style={{ fontSize: 12 }}>{d.date}</td>
+                          <td style={{ fontWeight: 700 }}>{d.staffName}</td>
+                          <td style={{ fontSize: 13 }}>{d.task}</td>
+                          <td>
+                            <span className={`badge ${d.status === 'completed' ? 'bg-green' : 'bg-amber'}`}>
+                              {d.status === 'completed' ? '✅ Completed' : '⏳ Pending'}
+                            </span>
+                          </td>
+                          <td>
+                            <button className="btn btn-ghost btn-xs" onClick={() => deleteDuty(d.id)} disabled={busy}>🗑️</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
       )}
 
       {/* ── Presence/Attendance Tab ── */}
