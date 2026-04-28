@@ -77,12 +77,13 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
             if (hasChildren) {
               return (
                 <div key={n.key} className="nav-item-wrap">
-                  <div
+                  <Link
+                    href={n.key === 'classes' ? '/classes' : `/${n.key}`}
                     className={`tb-nbtn${isActive(n.key) ? ' on' : ''}`}
-                    style={{ position: 'relative', cursor: 'pointer' }}
+                    style={{ position: 'relative', textDecoration: 'none' }}
                   >
                     {n.icon} {n.label} ▾
-                  </div>
+                  </Link>
                   <div className="nav-dropdown">
                     {n.children.map(child => (
                       <Link
@@ -98,6 +99,7 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
                 </div>
               );
             }
+
 
             return (
               <Link
