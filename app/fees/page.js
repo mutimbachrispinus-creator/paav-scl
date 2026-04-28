@@ -376,6 +376,7 @@ export default function FeesPage() {
                           onClick={() => { setSelLearner(l); setModal('pay'); }}>
                           + Pay
                         </button>
+                        <WhatsAppReminderButton adm={l.adm} balance={bal} phone={l.phone} />
                         <button className="btn btn-ghost btn-sm" style={{ marginLeft: 4 }}
                           onClick={() => router.push(`/fees/${l.adm}/receipt`)}>
                           🧾
@@ -540,6 +541,22 @@ function PayModal({ learner, feeCfg, onClose, recordedBy }) {
         { type: 'set', key: 'paav6_paylog',   value: paylog },
       ]}),
     });
+
+    // 5. Trigger email receipt (silent)
+    try {
+      fetch('/api/email/receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adm: learner.adm,
+          amount: Number(amount),
+          term,
+          ref,
+          balance: balance - Number(amount)
+        })
+      });
+    } catch (e) { console.error('Email trigger failed:', e); }
+
     setBusy(false);
     onClose();
   }
@@ -723,3 +740,55 @@ function ModalOverlay({ title, onClose, children }) {
     </div>
   );
 }
+
+function WhatsAppReminderButton({ adm, balance, phone }) {
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  async function send() {
+    if (balance <= 0) return;
+    if (!phone) { alert('No phone number set for this parent.'); return; }
+    if (!confirm(`Send WhatsApp fee reminder to ${phone}?`)) return;
+
+    setBusy(true);
+    try {
+      const res = await fetch('/api/whatsapp/reminder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adm, balance })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSent(true);
+        setTimeout(() => setSent(false), 3000);
+      } else {
+        alert(data.error || 'Failed to send WhatsApp message');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (balance <= 0) return null;
+
+  return (
+    <button 
+      className="btn btn-sm" 
+      onClick={send} 
+      disabled={busy}
+      style={{ 
+        marginLeft: 4, 
+        background: sent ? '#16a34a' : '#25D366', 
+        color: '#fff', 
+        border: 'none',
+        opacity: busy ? 0.7 : 1
+      }}
+      title="Send WhatsApp Reminder"
+    >
+      {busy ? '⏳' : sent ? '✅' : '📱'}
+    </button>
+  );
+}
+

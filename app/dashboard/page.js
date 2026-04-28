@@ -250,6 +250,7 @@ export default function DashboardPage() {
               { href:'/timetable',   icon:'📅', label:'Timetable',   roles:['admin','teacher','staff'] },
               { href:'/duties',      icon:'🎖️', label:'Duties',      roles:['admin','teacher','staff'] },
               { href:'/performance', icon:'📈', label:'Performance', roles:['admin','teacher','jss_teacher','senior_teacher'] },
+              { href:'/analytics',   icon:'📊', label:'Analytics',   roles:['admin'] },
               { href:'/learners',    icon:'🎓', label:'Learners',    roles:['admin','teacher','jss_teacher','senior_teacher'] },
               { href:'/grades',      icon:'📊', label:'Grades',      roles:['admin','teacher','jss_teacher','senior_teacher'] },
               { href:'/merit-list',  icon:'🏆', label:'Merit List',  roles:['admin','teacher','jss_teacher','senior_teacher'] },

@@ -130,6 +130,7 @@ export default function LearnerProfilePage() {
               ['Class Teacher', learner.teacher || '—'],
               ['Parent/Guardian', learner.parent || '—'],
               ['Phone',         learner.phone || '—'],
+              ['Parent Email',  learner.parentEmail || '—'],
               ['Address',       learner.addr  || '—'],
             ].map(([k, v]) => (
               <div key={k} style={{ display: 'flex', justifyContent: 'space-between',

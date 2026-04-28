@@ -121,6 +121,10 @@ export default function ReportCardPage() {
           className="btn btn-ghost btn-sm" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.3)' }}>
           ← Profile
         </button>
+        
+        <EmailButton adm={admNo} term={term} email={learner.parentEmail} />
+        <WhatsAppButton adm={admNo} term={term} phone={learner.phone} />
+
         <button onClick={() => window.print()} className="btn btn-gold btn-sm" style={{ marginLeft: 'auto' }}>
           🖨️ Print / PDF
         </button>
@@ -352,3 +356,97 @@ export default function ReportCardPage() {
     </>
   );
 }
+
+function EmailButton({ adm, term, email }) {
+  const [status, setStatus] = useState('idle'); // 'idle' | 'sending' | 'sent' | 'error'
+
+  async function send() {
+    if (!email) { alert('No parent email set for this learner.'); return; }
+    if (!confirm(`Email this report card to ${email}?`)) return;
+
+    setStatus('sending');
+    try {
+      const res = await fetch('/api/email/report-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adm, term })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatus('sent');
+        setTimeout(() => setStatus('idle'), 3000);
+      } else {
+        alert(data.error || 'Failed to send email');
+        setStatus('error');
+      }
+    } catch (e) {
+      console.error(e);
+      setStatus('error');
+    }
+  }
+
+  return (
+    <button
+      onClick={send}
+      disabled={status === 'sending'}
+      className="btn btn-sm"
+      style={{
+        background: status === 'sent' ? '#16a34a' : 'rgba(255,255,255,.1)',
+        color: '#fff',
+        border: '1px solid rgba(255,255,255,.3)',
+        marginLeft: 10,
+        opacity: status === 'sending' ? 0.7 : 1
+      }}
+    >
+      {status === 'sending' ? '⏳ Sending...' : status === 'sent' ? '✅ Sent!' : '📧 Email to Parent'}
+    </button>
+  );
+}
+
+function WhatsAppButton({ adm, term, phone }) {
+  const [status, setStatus] = useState('idle'); // 'idle' | 'sending' | 'sent' | 'error'
+
+  async function send() {
+    if (!phone) { alert('No parent phone number set for this learner.'); return; }
+    if (!confirm(`Send WhatsApp results to ${phone}?`)) return;
+
+    setStatus('sending');
+    try {
+      const res = await fetch('/api/whatsapp/report-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adm, term })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatus('sent');
+        setTimeout(() => setStatus('idle'), 3000);
+      } else {
+        alert(data.error || 'Failed to send WhatsApp message');
+        setStatus('error');
+      }
+    } catch (e) {
+      console.error(e);
+      setStatus('error');
+    }
+  }
+
+  return (
+    <button
+      onClick={send}
+      disabled={status === 'sending'}
+      className="btn btn-sm"
+      style={{
+        background: status === 'sent' ? '#16a34a' : '#25D366',
+        color: '#fff',
+        border: 'none',
+        marginLeft: 10,
+        opacity: status === 'sending' ? 0.7 : 1
+      }}
+    >
+      {status === 'sending' ? '⏳ Sending...' : status === 'sent' ? '✅ Sent!' : '📱 WhatsApp Results'}
+    </button>
+  );
+}
+
+

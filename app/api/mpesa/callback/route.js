@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { parseStkCallback } from '@/lib/mpesa';
-import { kvRecordPayment } from '@/lib/db';
+import { kvRecordPayment, kvGet } from '@/lib/db';
 
 export async function POST(req) {
   try {
@@ -24,6 +24,33 @@ export async function POST(req) {
       });
 
       console.log(`Payment recorded: ${adm}, ${result.amount}, ${result.mpesaCode}`);
+
+      // Optional: Trigger email receipt
+      try {
+        const learners = await kvGet('paav6_learners') || [];
+        const l = learners.find(x => x.adm === adm);
+        const feeCfg = await kvGet('paav6_feecfg') || {};
+        const gradeCfg = feeCfg[l?.grade] || {};
+        const annual = gradeCfg.annual || 5000;
+        const paid = (l?.t1||0) + (l?.t2||0) + (l?.t3||0);
+        const balance = annual - paid;
+
+        if (l?.parentEmail) {
+          // We can call our internal API route or the helper directly
+          // Since we're in an API route already, let's just trigger it silently
+          fetch(`${req.nextUrl.origin}/api/email/receipt`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              adm: adm,
+              amount: result.amount,
+              term: term || 'T1',
+              ref: result.mpesaCode,
+              balance: balance
+            })
+          }).catch(e => console.error('M-Pesa email trigger error:', e));
+        }
+      } catch (e) { console.error('M-Pesa email fetch error:', e); }
     }
 
     return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' });
