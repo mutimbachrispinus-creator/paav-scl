@@ -12,29 +12,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { ALL_NAV } from '@/lib/navigation';
 
-const ALL_NAV = [
-  { key:'dashboard',  label:'📊 Home',        roles:['admin','teacher','staff','member','parent'] },
-  { key:'attendance', label:'📋 Attendance',  roles:['admin','teacher','jss_teacher','senior_teacher'] },
-  { key:'timetable',  label:'📅 Timetable',   roles:['admin','teacher','staff'] },
-  { key:'duties',     label:'🎖️ Duties',       roles:['admin','teacher','staff'] },
-  { key:'performance',label:'📈 Performance', roles:['admin','teacher','jss_teacher','senior_teacher'] },
-  { key:'classes',     label:'🏫 Classes',     roles:['admin','teacher','jss_teacher','senior_teacher'] },
-  { key:'learners',   label:'🎓 Learners',    roles:['admin','teacher','jss_teacher','senior_teacher'] },
-  { key:'grades',     label:'📊 Grades',      roles:['admin','teacher','jss_teacher','senior_teacher'] },
-  { key:'merit-list', label:'🏆 Merit List',  roles:['admin','teacher','jss_teacher','senior_teacher'] },
-  { key:'allocations',label:'🗓️ Allocations', roles:['admin'] },
-  { key:'salary',     label:'💵 Salary',       roles:['admin'] },
-  { key:'templates',  label:'📄 Templates',   roles:['admin'] },
-  { key:'fees',       label:'💰 Fees',        roles:['admin','staff'] },
-  { key:'teachers',   label:'👔 Staff',       roles:['admin'] },
-  { key:'settings',   label:'⚙ Settings',    roles:['admin'] },
-  { key:'analytics',  label:'📈 Analytics', roles:['admin'] },
-  { key:'messages',   label:'💬 Messages',    roles:['admin','teacher','jss_teacher','senior_teacher','staff','parent'] },
-  { key:'profile',     label:'👤 Profile',      roles:['admin'] },
-  { key:'documents',   label:'📂 Documents',    roles:['admin','teacher','staff','member','parent'] },
-  { key:'sms',        label:'📱 SMS',         roles:['admin'] },
-];
 
 export default function Navbar({ user, unreadCount = 0, onProfileClick }) {
   const router   = useRouter();
@@ -89,7 +68,7 @@ export default function Navbar({ user, unreadCount = 0, onProfileClick }) {
               style={{ textDecoration: 'none' }}
               onClick={() => setShowMobileNav(false)}
             >
-              {n.label}
+              {n.icon} {n.label}
             </Link>
           ))}
         </nav>
@@ -101,7 +80,7 @@ export default function Navbar({ user, unreadCount = 0, onProfileClick }) {
         <div className="mobile-drawer no-print">
           {nav.map(n => (
             <Link key={n.key} href={`/${n.key}`} className={`drawer-item ${isActive(n.key)?'on':''}`} onClick={() => setShowMobileNav(false)}>
-              {n.label}
+              {n.icon} {n.label}
             </Link>
           ))}
           <button className="btn btn-danger" style={{ margin: 20 }} onClick={logout}>🚪 Logout</button>

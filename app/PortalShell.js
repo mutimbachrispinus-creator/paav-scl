@@ -1,22 +1,15 @@
 'use client';
-import { getCachedUser, invalidateUser, prefetchKeys } from '@/lib/client-cache';
-/**
- * app/PortalShell.js — Client-side portal shell
- *
- * Handles:
- *   • Session fetch on mount (populates user context)
- *   • Navbar visibility (hidden on '/' login page and '/fees/pay' public pay page)
- *   • Inactivity auto-logout (8-minute warning → 1-minute countdown)
- *   • Announcement banner (from DB 'paav_announcement' key)
- *   • Bottom mobile nav
- */
-
-
 import { useEffect, useState, useCallback, useRef, createContext, useContext } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import ProfilePanel from '@/components/ProfilePanel';
+import { ALL_NAV } from '@/lib/navigation';
+import { getCachedUser, invalidateUser, prefetchKeys, getCachedDBMulti } from '@/lib/client-cache';
+
+/**
+ * app/PortalShell.js — Client-side portal shell
+ */
 
 const ProfileContext = createContext();
 export const useProfile = () => useContext(ProfileContext);
@@ -64,7 +57,6 @@ export default function PortalShell({ children }) {
 
   const loadSession = useCallback(async () => {
     try {
-      // Parallelize user fetch and critical shell data
       const [u, db] = await Promise.all([
         getCachedUser(),
         getCachedDBMulti([
@@ -83,7 +75,6 @@ export default function PortalShell({ children }) {
         const msgs = db?.paav6_msgs || [];
         setUnreadCount(msgs.filter(m => m.to === 'ALL' || m.to === 'ALL_STAFF').length);
         
-        // Fire-and-forget prefetch for page-level data
         prefetchKeys([
           'paav6_learners', 'paav6_staff', 'paav6_marks',
           'paav6_feecfg',  'paav_calendar_events',
@@ -104,7 +95,6 @@ export default function PortalShell({ children }) {
     }
   }, [pathname]);
 
-  /* ── Inactivity logout ── */
   function resetIdleTimers() {
     clearTimeout(idleTimer.current);
     clearTimeout(warnTimer.current);
@@ -150,7 +140,7 @@ export default function PortalShell({ children }) {
       clearTimeout(warnTimer.current);
       clearInterval(countdownRef.current);
     };
-  }, [showNav, user]); // eslint-disable-line
+  }, [showNav, user]);
 
   async function saveAnnouncement() {
     try {
@@ -185,15 +175,12 @@ export default function PortalShell({ children }) {
 
   return (
     <ProfileContext.Provider value={{ openProfile: () => setShowProfile(true), setUser }}>
-      {/* ── Hero file input (hidden) ── */}
       <input ref={heroFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadHero} />
 
-      {/* ── Topbar ── */}
       {showNav && user && (
         <Navbar user={user} unreadCount={unreadCount} onProfileClick={() => setShowProfile(true)} />
       )}
 
-      {/* ── Announcement banner ── */}
       {showNav && (announcement || user?.role === 'admin') && (
         <div className="announcement-bar-live no-print">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
@@ -238,13 +225,10 @@ export default function PortalShell({ children }) {
         </div>
       )}
 
-      {/* ── Main content ── */}
       <div id="main" style={showNav ? {} : { padding: 0, maxWidth: 'none' }}>
-        {/* Pass heroUrl + uploadTrigger as a data attribute on a context div */}
         {children}
       </div>
 
-      {/* ── Inactivity warning banner ── */}
       <div className={`inactivity-banner${showBanner ? ' show' : ''}`}>
         <span>⏰ You will be logged out in {countdown}s due to inactivity</span>
         <button
@@ -259,21 +243,13 @@ export default function PortalShell({ children }) {
       {/* ── Mobile Bottom Nav ── */}
       {showNav && user && (
         <div className="mobile-bottom-nav no-print">
-          {[
-            { path: '/dashboard',  icon: '📊', label: 'Home'    },
-            { path: '/messages',   icon: '💬', label: 'Messages' },
-            { path: '/attendance', icon: '📋', label: 'Attendance', roles: ['admin','teacher'] },
-            { path: '/duties',     icon: '🎖️', label: 'Duties',     roles: ['admin','teacher','staff'] },
-            { path: '/grades',     icon: '📊', label: 'Grades',   roles: ['admin','teacher'] },
-            { path: '/fees',       icon: '💰', label: 'Fees',     roles: ['admin','staff']   },
-            { path: '/settings',   icon: '⚙️', label: 'Setup',    roles: ['admin'] },
-          ]
+          {ALL_NAV
             .filter(n => !n.roles || n.roles.includes(user.role))
             .map(n => (
               <Link
-                key={n.path}
-                href={n.path}
-                className={pathname.startsWith(n.path) ? 'active' : ''}
+                key={n.key}
+                href={n.key === 'classes' ? '/classes/GRADE%207' : `/${n.key}`}
+                className={pathname.startsWith('/' + n.key) || (n.key === 'dashboard' && pathname === '/dashboard') ? 'active' : ''}
               >
                 <span className="icon">{n.icon}</span>
                 <span className="label">{n.label}</span>
@@ -281,7 +257,7 @@ export default function PortalShell({ children }) {
             ))}
         </div>
       )}
-      {/* ── Global Profile Panel ── */}
+
       {showProfile && user && (
         <ProfilePanel user={user} onClose={() => setShowProfile(false)} />
       )}
