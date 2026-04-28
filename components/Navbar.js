@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { ALL_NAV } from '@/lib/navigation';
 
 
-export default function Navbar({ user, unreadCount = 0, onProfileClick }) {
+export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendingReqs = 0, onProfileClick }) {
   const router   = useRouter();
   const pathname = usePathname();
   const [showMobileNav, setShowMobileNav] = useState(false);
@@ -25,6 +25,16 @@ export default function Navbar({ user, unreadCount = 0, onProfileClick }) {
   function isActive(key) {
     if (key === 'dashboard') return pathname === '/dashboard';
     return pathname.startsWith('/' + key);
+  }
+
+  function getBadge(key) {
+    if (key === 'messages' && unreadCount > 0) return unreadCount;
+    if (key === 'sms' && unreadCount > 0) return unreadCount; // User requested "sms button should show number of inbox sms"
+    if (key === 'duties') {
+      const total = pendingDuties + (user.role === 'admin' ? pendingReqs : 0);
+      if (total > 0) return total;
+    }
+    return 0;
   }
 
   async function logout() {
@@ -60,17 +70,21 @@ export default function Navbar({ user, unreadCount = 0, onProfileClick }) {
       <div className="nav-container">
         <button className="nav-scroll-btn no-print" onClick={() => document.getElementById('tb-nav-inner').scrollBy({left:-200, behavior:'smooth'})}>‹</button>
         <nav className="tb-nav" id="tb-nav-inner">
-          {nav.map(n => (
-            <Link
-              key={n.key}
-              href={n.key === 'classes' ? '/classes/GRADE%207' : `/${n.key}`}
-              className={`tb-nbtn${isActive(n.key) ? ' on' : ''}`}
-              style={{ textDecoration: 'none' }}
-              onClick={() => setShowMobileNav(false)}
-            >
-              {n.icon} {n.label}
-            </Link>
-          ))}
+          {nav.map(n => {
+            const b = getBadge(n.key);
+            return (
+              <Link
+                key={n.key}
+                href={n.key === 'classes' ? '/classes/GRADE%207' : `/${n.key}`}
+                className={`tb-nbtn${isActive(n.key) ? ' on' : ''}`}
+                style={{ textDecoration: 'none', position: 'relative' }}
+                onClick={() => setShowMobileNav(false)}
+              >
+                {n.icon} {n.label}
+                {b > 0 && <span className="nav-badge">{b > 9 ? '9+' : b}</span>}
+              </Link>
+            );
+          })}
         </nav>
         <button className="nav-scroll-btn no-print" onClick={() => document.getElementById('tb-nav-inner').scrollBy({left:200, behavior:'smooth'})}>›</button>
       </div>
@@ -78,11 +92,15 @@ export default function Navbar({ user, unreadCount = 0, onProfileClick }) {
       {/* ── Mobile Drawer ── */}
       {showMobileNav && (
         <div className="mobile-drawer no-print">
-          {nav.map(n => (
-            <Link key={n.key} href={`/${n.key}`} className={`drawer-item ${isActive(n.key)?'on':''}`} onClick={() => setShowMobileNav(false)}>
-              {n.icon} {n.label}
-            </Link>
-          ))}
+          {nav.map(n => {
+            const b = getBadge(n.key);
+            return (
+              <Link key={n.key} href={`/${n.key}`} className={`drawer-item ${isActive(n.key)?'on':''}`} onClick={() => setShowMobileNav(false)} style={{ position: 'relative' }}>
+                {n.icon} {n.label}
+                {b > 0 && <span className="nav-badge" style={{ right: 20 }}>{b > 9 ? '9+' : b}</span>}
+              </Link>
+            );
+          })}
           <button className="btn btn-danger" style={{ margin: 20 }} onClick={logout}>🚪 Logout</button>
         </div>
       )}

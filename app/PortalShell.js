@@ -41,6 +41,8 @@ export default function PortalShell({ children }) {
 
   const [announcement, setAnnouncement] = useState('');
   const [unreadCount,  setUnreadCount]  = useState(0);
+  const [pendingDuties, setPendingDuties] = useState(0);
+  const [pendingReqs,   setPendingReqs]   = useState(0);
   const [showBanner,   setShowBanner]   = useState(false);
   const [countdown,    setCountdown]    = useState(60);
   const [editAnn,      setEditAnn]      = useState(false);
@@ -62,7 +64,9 @@ export default function PortalShell({ children }) {
         getCachedDBMulti([
           'paav_announcement',
           'paav6_msgs',
-          'paav_hero_img'
+          'paav_hero_img',
+          'paav7_duties',
+          'paav_staff_reqs'
         ])
       ]);
 
@@ -73,11 +77,27 @@ export default function PortalShell({ children }) {
         if (db?.paav_hero_img) setHeroUrl(db.paav_hero_img);
 
         const msgs = db?.paav6_msgs || [];
-        setUnreadCount(msgs.filter(m => m.to === 'ALL' || m.to === 'ALL_STAFF').length);
+        const unr  = msgs.filter(m => 
+          !m.read?.includes(u.username) && (
+            m.to === 'ALL' || 
+            m.to === u.username || 
+            (m.to === 'ALL_STAFF' && ['admin','teacher','staff'].includes(u.role)) ||
+            (m.to === 'ALL_PARENTS' && u.role === 'parent')
+          )
+        ).length;
+        setUnreadCount(unr);
+
+        const duties = db?.paav7_duties || [];
+        setPendingDuties(duties.filter(d => d.staffId === u.id && d.status === 'pending').length);
+
+        if (u.role === 'admin') {
+          const reqs = db?.paav_staff_reqs || [];
+          setPendingReqs(reqs.filter(r => r.status === 'pending').length);
+        }
         
         prefetchKeys([
           'paav6_learners', 'paav6_staff', 'paav6_marks',
-          'paav6_feecfg',  'paav_calendar_events',
+          'paav6_feecfg',  'paav_calendar_events', 'paav_presence'
         ]);
       }
     } catch (e) {
@@ -178,7 +198,13 @@ export default function PortalShell({ children }) {
       <input ref={heroFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadHero} />
 
       {showNav && user && (
-        <Navbar user={user} unreadCount={unreadCount} onProfileClick={() => setShowProfile(true)} />
+        <Navbar 
+          user={user} 
+          unreadCount={unreadCount} 
+          pendingDuties={pendingDuties}
+          pendingReqs={pendingReqs}
+          onProfileClick={() => setShowProfile(true)} 
+        />
       )}
 
       {showNav && (announcement || user?.role === 'admin') && (
@@ -245,16 +271,22 @@ export default function PortalShell({ children }) {
         <div className="mobile-bottom-nav no-print">
           {ALL_NAV
             .filter(n => !n.roles || n.roles.includes(user.role))
-            .map(n => (
-              <Link
-                key={n.key}
-                href={n.key === 'classes' ? '/classes/GRADE%207' : `/${n.key}`}
-                className={pathname.startsWith('/' + n.key) || (n.key === 'dashboard' && pathname === '/dashboard') ? 'active' : ''}
-              >
-                <span className="icon">{n.icon}</span>
-                <span className="label">{n.label}</span>
-              </Link>
-            ))}
+            .map(n => {
+              const b = (n.key === 'messages' || n.key === 'sms') ? unreadCount :
+                        (n.key === 'duties') ? (pendingDuties + (user.role === 'admin' ? pendingReqs : 0)) : 0;
+              return (
+                <Link
+                  key={n.key}
+                  href={n.key === 'classes' ? '/classes/GRADE%207' : `/${n.key}`}
+                  className={pathname.startsWith('/' + n.key) || (n.key === 'dashboard' && pathname === '/dashboard') ? 'active' : ''}
+                  style={{ position: 'relative' }}
+                >
+                  <span className="icon">{n.icon}</span>
+                  <span className="label">{n.label}</span>
+                  {b > 0 && <span className="nav-badge" style={{ top: 5, right: '15%', transform: 'scale(0.8)' }}>{b > 9 ? '9+' : b}</span>}
+                </Link>
+              );
+            })}
         </div>
       )}
 
