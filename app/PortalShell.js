@@ -298,7 +298,7 @@ export default function PortalShell({ children }) {
               return (
                 <Link
                   key={n.key}
-                  href={n.key === 'classes' ? '/classes/GRADE%207' : `/${n.key}`}
+                  href={n.key === 'classes' ? '/classes' : `/${n.key}`}
                   className={pathname.startsWith('/' + n.key) || (n.key === 'dashboard' && pathname === '/dashboard') ? 'active' : ''}
                   style={{ position: 'relative' }}
                 >

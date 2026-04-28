@@ -247,7 +247,7 @@ export default function DashboardPage() {
           {(() => {
             const navTabs = ALL_NAV.filter(n => n.roles.includes(user?.role || 'member'));
             return navTabs.map(t => {
-              const href = t.key === 'classes' ? '/classes/GRADE%207' : `/${t.key}`;
+              const href = t.key === 'classes' ? '/classes' : `/${t.key}`;
               return (
                 <Link key={t.key} href={href} className="quick-access-btn">
                   <span className="qa-icon">{t.icon}</span>

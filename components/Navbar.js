@@ -72,14 +72,42 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
         <nav className="tb-nav" id="tb-nav-inner">
           {nav.map(n => {
             const b = getBadge(n.key);
+            const hasChildren = n.children && n.children.length > 0;
+
+            if (hasChildren) {
+              return (
+                <div key={n.key} className="nav-item-wrap">
+                  <div
+                    className={`tb-nbtn${isActive(n.key) ? ' on' : ''}`}
+                    style={{ position: 'relative', cursor: 'pointer' }}
+                  >
+                    {n.icon} {n.label} ▾
+                  </div>
+                  <div className="nav-dropdown">
+                    {n.children.map(child => (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        className={`dropdown-item ${pathname === child.href ? 'active' : ''}`}
+                        onClick={() => setShowMobileNav(false)}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={n.key}
-                href={n.key === 'classes' ? '/classes/GRADE%207' : `/${n.key}`}
+                href={n.key === 'classes' ? '/classes' : `/${n.key}`}
                 className={`tb-nbtn${isActive(n.key) ? ' on' : ''}`}
                 style={{ textDecoration: 'none', position: 'relative' }}
                 onClick={() => setShowMobileNav(false)}
               >
+
                 {n.icon} {n.label}
                 {b > 0 && <span className="nav-badge">{b > 9 ? '9+' : b}</span>}
               </Link>
@@ -94,16 +122,42 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
         <div className="mobile-drawer no-print">
           {nav.map(n => {
             const b = getBadge(n.key);
+            const hasChildren = n.children && n.children.length > 0;
+
             return (
-              <Link key={n.key} href={`/${n.key}`} className={`drawer-item ${isActive(n.key)?'on':''}`} onClick={() => setShowMobileNav(false)} style={{ position: 'relative' }}>
-                {n.icon} {n.label}
-                {b > 0 && <span className="nav-badge" style={{ right: 20 }}>{b > 9 ? '9+' : b}</span>}
-              </Link>
+              <div key={n.key}>
+                <Link 
+                  href={hasChildren ? '#' : `/${n.key}`} 
+                  className={`drawer-item ${isActive(n.key)?'on':''}`} 
+                  onClick={() => !hasChildren && setShowMobileNav(false)} 
+                  style={{ position: 'relative', display: 'flex', justifyContent: 'space-between' }}
+                >
+                  <span>{n.icon} {n.label}</span>
+                  {hasChildren && <span>▾</span>}
+                  {b > 0 && <span className="nav-badge" style={{ right: 20 }}>{b > 9 ? '9+' : b}</span>}
+                </Link>
+                {hasChildren && (
+                  <div style={{ background: 'rgba(255,255,255,0.03)', paddingLeft: 20 }}>
+                    {n.children.map(child => (
+                      <Link 
+                        key={child.href} 
+                        href={child.href} 
+                        className="drawer-item" 
+                        style={{ fontSize: 13, padding: '10px 20px' }}
+                        onClick={() => setShowMobileNav(false)}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
           <button className="btn btn-danger" style={{ margin: 20 }} onClick={logout}>🚪 Logout</button>
         </div>
       )}
+
 
       {/* ── Actions ── */}
       <div className="tb-actions">
