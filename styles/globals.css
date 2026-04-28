@@ -95,11 +95,11 @@ input,select,textarea,button{font-family:'Inter',sans-serif}
 .tb-crest{width:36px;height:36px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);background:#fff}
 .tb-sname{font-family:'Sora',sans-serif;font-size:13.5px;font-weight:700;color:#fff;line-height:1.1}
 .tb-stag{font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1.2px}
-.tb-nav{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+.tb-nav{display:flex;align-items:center;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding:4px 0}
 .tb-nav::-webkit-scrollbar{display:none}
-.tb-nbtn{padding:7px 12px;border:none;border-radius:8px;background:none;color:rgba(255,255,255,.55);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;position:relative}
-.tb-nbtn:hover{background:rgba(255,255,255,.15);color:#fff;white-space:normal;overflow:visible;max-width:none;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,.35)}
-.tb-nbtn.on{background:rgba(37,99,235,.4);color:#fff;box-shadow:0 0 0 1px rgba(37,99,235,.5)}
+.tb-nbtn{padding:8px 14px;border:none;border-radius:8px;background:none;color:rgba(255,255,255,.55);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.tb-nbtn:hover{background:rgba(255,255,255,.12);color:#fff}
+.tb-nbtn.on{background:rgba(255,255,255,.15);color:#fff;box-shadow:0 0 0 1.5px rgba(255,255,255,0.2)}
 
 .nav-scroll-btn{background:none;border:none;color:rgba(255,255,255,.45);font-size:22px;padding:0 5px;cursor:pointer;line-height:1;flex-shrink:0;transition:color .15s;border-radius:6px}
 .nav-scroll-btn:hover{color:#fff;background:rgba(255,255,255,.12)}
@@ -556,9 +556,7 @@ tr:hover td{background:#F8FAFF}
   #main {
     padding-bottom: 90px; /* Space for bottom nav */
   }
-  .tb-nav {
-    display: none !important;
-  }
+  .tb-nbtn { padding: 6px 10px; font-size: 11px; }
   .tb-user {
     padding: 4px;
   }
@@ -658,15 +656,15 @@ tr:hover td{background:#F8FAFF}
 .nav-scroll-btn:hover { background: var(--blue); }
 
 @media (max-width: 800px) {
-  .tb-hamburger { display: block; }
+  .tb-hamburger { display: none !important; }
   .nav-container { 
-    display: flex; 
+    display: flex !important; 
     order: 3;
     width: 100%;
-    margin: 8px -22px -1px; /* overlap padding and stick to bottom */
-    background: rgba(139,26,26,0.1);
-    padding: 4px 10px;
-    border-top: 1px solid rgba(255,255,255,0.05);
+    margin: 8px -22px -1px;
+    background: rgba(0,0,0,0.15);
+    padding: 6px 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
   }
   #topbar {
     height: auto;
