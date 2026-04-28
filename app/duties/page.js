@@ -49,7 +49,6 @@ export default function DutiesPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const today = new Date().toLocaleDateString('en-KE', { day: '2-digit', month: '2-digit', year: 'numeric' });
   const todayRecord = presence.find(p => p.id === user?.id && p.date === today);
 
   async function logPresence(type) {
