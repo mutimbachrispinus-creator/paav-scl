@@ -251,7 +251,7 @@ export default function DashboardPage() {
         </div>
         <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
           {(() => {
-            const navTabs = ALL_NAV.filter(n => n.roles.includes(user?.role || 'member'));
+            const navTabs = ALL_NAV.filter(n => n.roles.includes(user?.role || 'member') && n.key !== 'fees');
             return navTabs.map(t => {
               const href = t.key === 'classes' ? '/classes' : `/${t.key}`;
               return (
@@ -268,9 +268,12 @@ export default function DashboardPage() {
       {/* ── Stat cards ── */}
       <div className="sg sg4">
         <StatCard icon="🎓" bg="#EFF6FF" value={learners.length} label="Total Learners" />
-        <StatCard icon="💰" bg="#ECFDF5" value={fmtK(totalPaid)} label="Fees Collected"
-          sub={`${collectionPct}% of target`} subBg="#ECFDF5" subColor="var(--green)" />
+        {user?.role === 'admin' && (
+          <StatCard icon="💰" bg="#ECFDF5" value={fmtK(totalPaid)} label="Fees Collected"
+            sub={`${collectionPct}% of target`} subBg="#ECFDF5" subColor="var(--green)" />
+        )}
         <StatCard icon="✅" bg="#F5F3FF" value={cleared} label="Fully Cleared"
+
           sub={`${learners.length - cleared} with balance`} subBg="#FEF3C7" subColor="var(--amber)" />
         <StatCard icon="💬" bg="#EFF6FF" value={unread} label="New Messages"
           onClick={() => router.push('/dashboard?tab=messages')} />
