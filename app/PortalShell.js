@@ -329,6 +329,7 @@ export default function PortalShell({ children }) {
                   href={n.key === 'classes' ? '/classes' : `/${n.key}`}
                   className={pathname.startsWith('/' + n.key) || (n.key === 'dashboard' && pathname === '/dashboard') ? 'active' : ''}
                   style={{ position: 'relative' }}
+                  onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
                 >
                   <span className="icon">{n.icon}</span>
                   <span className="label">{n.label}</span>

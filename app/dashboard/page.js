@@ -255,7 +255,12 @@ export default function DashboardPage() {
             return navTabs.map(t => {
               const href = t.key === 'classes' ? '/classes' : `/${t.key}`;
               return (
-                <Link key={t.key} href={href} className="quick-access-btn">
+                <Link 
+                  key={t.key} 
+                  href={href} 
+                  className="quick-access-btn"
+                  onMouseEnter={() => t.prefetch && prefetchKeys(t.prefetch)}
+                >
                   <span className="qa-icon">{t.icon}</span>
                   {t.label}
                 </Link>
@@ -267,16 +272,26 @@ export default function DashboardPage() {
 
       {/* ── Stat cards ── */}
       <div className="sg sg4">
-        <StatCard icon="🎓" bg="#EFF6FF" value={learners.length} label="Total Learners" />
+        <StatCard icon="🎓" bg="#EFF6FF" value={learners.length} label="Total Learners" 
+          onMouseEnter={() => prefetchKeys(['paav6_learners'])}
+          onClick={() => router.push('/learners')} 
+        />
         {user?.role === 'admin' && (
           <StatCard icon="💰" bg="#ECFDF5" value={fmtK(totalPaid)} label="Fees Collected"
-            sub={`${collectionPct}% of target`} subBg="#ECFDF5" subColor="var(--green)" />
+            sub={`${collectionPct}% of target`} subBg="#ECFDF5" subColor="var(--green)" 
+            onMouseEnter={() => prefetchKeys(['paav6_paylog', 'paav6_feecfg'])}
+            onClick={() => router.push('/fees')}
+          />
         )}
         <StatCard icon="✅" bg="#F5F3FF" value={cleared} label="Fully Cleared"
-
-          sub={`${learners.length - cleared} with balance`} subBg="#FEF3C7" subColor="var(--amber)" />
+          sub={`${learners.length - cleared} with balance`} subBg="#FEF3C7" subColor="var(--amber)" 
+          onMouseEnter={() => prefetchKeys(['paav6_learners'])}
+          onClick={() => router.push('/learners')}
+        />
         <StatCard icon="💬" bg="#EFF6FF" value={unread} label="New Messages"
-          onClick={() => router.push('/dashboard?tab=messages')} />
+          onMouseEnter={() => prefetchKeys(['paav6_msgs'])}
+          onClick={() => router.push('/dashboard?tab=messages')} 
+        />
       </div>
 
       {/* ── Charts row ── */}

@@ -26,7 +26,7 @@ export default function LearnersPage() {
   const [loading,  setLoading]  = useState(true);
   const [query,    setQuery]    = useState('');
   const [gradeF,   setGradeF]   = usePersistedState('paav_learners_grade', '');
-  const [modal,    setModal]    = useState(null); // 'add' | 'bulk' | 'promote' | null
+  const [modal,    setModal]    = useState(null); // 'add' | 'promote' | null
 
   const load = useCallback(async () => {
     try {
@@ -199,7 +199,6 @@ export default function LearnersPage() {
 
       {/* ── Modals ── */}
       {modal === 'add'     && <AddLearnerModal     onClose={() => { setModal(null); load(); }} />}
-      {modal === 'bulk'    && <BulkAddModal        onClose={() => { setModal(null); load(); }} />}
       {modal === 'promote' && <PromoteLearnersModal onClose={() => { setModal(null); load(); }} learners={learners} />}
     </>
   );
@@ -294,28 +293,6 @@ function AddLearnerModal({ onClose }) {
   );
 }
 
-/* ─── Bulk Add Modal (placeholder) ─────────────────────────────────────── */
-function BulkAddModal({ onClose }) {
-  return (
-    <ModalOverlay title="📋 Bulk Add Learners" onClose={onClose}>
-      <div className="note-box">
-        Paste or enter learner data row by row. Select a grade first,
-        then fill the table. Each row creates one learner record.
-      </div>
-      <div className="field" style={{ marginTop: 14 }}>
-        <label>Grade</label>
-        <select><option value="">Select Grade</option>{ALL_GRADES.map(g=><option key={g}>{g}</option>)}</select>
-      </div>
-      <div style={{ color: 'var(--muted)', fontSize: 12, padding: '20px', textAlign: 'center' }}>
-        Select a grade above to load the entry sheet
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-        <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary btn-sm" style={{ width: 'auto' }}>✅ Save All</button>
-      </div>
-    </ModalOverlay>
-  );
-}
 
 /* ─── Promote Learners Modal ────────────────────────────────────────────── */
 function PromoteLearnersModal({ onClose, learners }) {

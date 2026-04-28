@@ -10,7 +10,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ALL_GRADES } from '@/lib/cbe';
 
-const EMPTY_ROW = { adm: '', name: '', dob: '', grade: 'GRADE 7', stream: '', parent: '', phone: '' };
+const EMPTY_ROW = { 
+  adm: '', name: '', dob: '', grade: 'GRADE 7', sex: 'F', age: '', 
+  stream: '', parent: '', phone: '', parentEmail: '', addr: '',
+  t1: 0, t2: 0, t3: 0, teacher: ''
+};
 const GENDERS = ['M', 'F'];
 
 export default function BulkLearnersPage() {
@@ -62,7 +66,15 @@ export default function BulkLearnersPage() {
       const data = await res.json();
       const current = data.results[0]?.value || [];
       
-      const updated = [...current, ...validRows];
+      const updated = [...current, ...validRows.map(r => ({
+        ...r,
+        name: r.name.toUpperCase(),
+        age: r.age || '',
+        parentEmail: r.parentEmail || '',
+        addr: r.addr || '',
+        teacher: '',
+        t1: 0, t2: 0, t3: 0
+      }))];
       
       await fetch('/api/db', {
         method: 'POST',
@@ -125,6 +137,7 @@ export default function BulkLearnersPage() {
                 <th>Full Name</th>
                 <th style={{ width: 140 }}>DOB</th>
                 <th style={{ width: 150 }}>Grade</th>
+                <th style={{ width: 70 }}>Sex</th>
                 <th style={{ width: 100 }}>Stream</th>
                 <th>Parent Name</th>
                 <th>Phone</th>
@@ -145,6 +158,12 @@ export default function BulkLearnersPage() {
                   <td>
                     <select className="sc-inp" style={{ width: '100%' }} value={r.grade} onChange={e => updateRow(i, 'grade', e.target.value)}>
                       {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
+                    </select>
+                  </td>
+                  <td>
+                    <select className="sc-inp" style={{ width: '100%' }} value={r.sex} onChange={e => updateRow(i, 'sex', e.target.value)}>
+                      <option value="F">F</option>
+                      <option value="M">M</option>
                     </select>
                   </td>
                   <td>
