@@ -214,16 +214,9 @@ export default function PortalShell({ children }) {
     reader.readAsDataURL(file);
   }
 
-    const response = await fetch('/api/db', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_announcement', value: ann }] })
-    });
-    if (response.ok) playSuccessSound();
-  }
-
   function playSuccessSound() {
     const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
-    audio.play().catch(() => {}); // catch browser policy blocks
+    audio.play().catch(() => {});
   }
 
   async function saveAnnouncement() {
@@ -237,12 +230,8 @@ export default function PortalShell({ children }) {
     if (response.ok) playSuccessSound();
   }
 
-  function playSuccessSound() {
-    const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
-    audio.play().catch(() => {});
-  }
-
   return (
+
     <ProfileContext.Provider value={{ openProfile: () => setShowProfile(true), setUser, playSuccessSound }}>
       <input ref={heroFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadHero} />
 
