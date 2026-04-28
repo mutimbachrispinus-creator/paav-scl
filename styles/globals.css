@@ -90,8 +90,8 @@ input,select,textarea,button{font-family:'Inter',sans-serif}
 /* ── APP ── */
 #app{display:none;flex-direction:column;min-height:100vh}
 #app.visible{display:flex}
-#topbar{background:linear-gradient(135deg,var(--navy),var(--navy2));height:60px;display:flex;align-items:center;padding:0 22px;gap:5px;position:sticky;top:0;z-index:300;box-shadow:0 4px 24px rgba(5,15,28,.4);border-bottom:1px solid rgba(255,255,255,.06)}
-.tb-brand{display:flex;align-items:center;gap:10px;margin-right:18px;flex-shrink:0}
+#topbar{background:linear-gradient(135deg,var(--navy),var(--navy2));height:60px;display:flex;align-items:center;padding:0 22px;gap:15px;position:sticky;top:0;z-index:300;box-shadow:0 4px 24px rgba(5,15,28,.4);border-bottom:1px solid rgba(255,255,255,.06)}
+.tb-brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none;flex-shrink:0;margin-right:18px}
 .tb-crest{width:36px;height:36px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);background:#fff}
 .tb-sname{font-family:'Sora',sans-serif;font-size:13.5px;font-weight:700;color:#fff;line-height:1.1}
 .tb-stag{font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1.2px}
@@ -100,12 +100,13 @@ input,select,textarea,button{font-family:'Inter',sans-serif}
 .tb-nbtn{padding:7px 12px;border:none;border-radius:8px;background:none;color:rgba(255,255,255,.55);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;position:relative}
 .tb-nbtn:hover{background:rgba(255,255,255,.15);color:#fff;white-space:normal;overflow:visible;max-width:none;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .tb-nbtn.on{background:rgba(37,99,235,.4);color:#fff;box-shadow:0 0 0 1px rgba(37,99,235,.5)}
+
 .nav-scroll-btn{background:none;border:none;color:rgba(255,255,255,.45);font-size:22px;padding:0 5px;cursor:pointer;line-height:1;flex-shrink:0;transition:color .15s;border-radius:6px}
 .nav-scroll-btn:hover{color:#fff;background:rgba(255,255,255,.12)}
 .grading-scale-bar{padding:10px 14px;background:#F8FAFF;border-top:1.5px solid var(--border);display:flex;flex-wrap:wrap;gap:6px;align-items:center;border-radius:0 0 var(--r) var(--r)}
 .gs-label{font-weight:700;color:var(--navy);font-size:11px;margin-right:4px}
 .grade-item-pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;border:1px solid rgba(0,0,0,.06)}
-.tb-actions{display:flex;align-items:center;gap:7px;margin-left:auto;flex-shrink:0}
+.tb-actions{display:flex;align-items:center;gap:15px;flex-shrink:0}
 .tb-msg{position:relative;width:38px;height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.15);cursor:pointer;background:rgba(255,255,255,.08);color:#fff;font-size:17px;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .tb-msg:hover{background:rgba(37,99,235,.5)}
 .msg-badge{position:absolute;top:-5px;right:-5px;background:#EF4444;color:#fff;font-size:9.5px;font-weight:800;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--navy);animation:pulse 2s infinite}
@@ -604,6 +605,7 @@ tr:hover td{background:#F8FAFF}
   flex: 1;
   overflow: hidden;
   margin: 0 10px;
+  min-width: 0;
 }
 .tb-hamburger {
   display: none;
