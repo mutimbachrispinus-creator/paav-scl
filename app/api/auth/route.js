@@ -42,16 +42,21 @@ export async function POST(request) {
 
   const { action } = body;
 
-  switch (action) {
-    case 'login':    return handleLogin(body, request);
-    case 'logout':   return handleLogout(request);
-    case 'register': return handleRegister(body, request);
-    case 'edit_user': return handleEditUser(body, request);
-    case 'google':   return handleGoogle(body, request);
-    case 'whoami':   return handleWhoami(request);
-    case 'forgot':   return handleForgot(body);
-    case 'resetpw':  return handleResetPw(body);
-    default:         return err(`Unknown action: ${action}`);
+  try {
+    switch (action) {
+      case 'login':    return handleLogin(body, request);
+      case 'logout':   return handleLogout(request);
+      case 'register': return handleRegister(body, request);
+      case 'edit_user': return handleEditUser(body, request);
+      case 'google':   return handleGoogle(body, request);
+      case 'whoami':   return handleWhoami(request);
+      case 'forgot':   return handleForgot(body);
+      case 'resetpw':  return handleResetPw(body);
+      default:         return err(`Unknown action: ${action}`);
+    }
+  } catch (e) {
+    console.error('[api/auth] Server Error:', e);
+    return err(e.message || 'Internal Server Error', 500);
   }
 }
 

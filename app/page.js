@@ -99,12 +99,19 @@ export default function LoginPage() {
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: actionPayload, 
-          ...form 
-        })
+        body: JSON.stringify({ action: actionPayload, ...form })
       });
-      const data = await res.json();
+
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        throw new Error(`Server returned invalid response (${res.status})`);
+      }
+      
+      if (!res.ok) {
+        throw new Error(data.error || `Server Error (${res.status})`);
+      }
       
       if (data.ok) {
         if (tab === 'login') {
@@ -113,7 +120,6 @@ export default function LoginPage() {
           } else {
             localStorage.removeItem('paav_remember');
           }
-          // Start prefetching dashboard data immediately before navigation
           prefetchKeys(['paav6_learners', 'paav6_paylog', 'paav6_msgs', 'paav6_feecfg', 'paav7_hero_img']);
           router.push('/dashboard');
         } else if (tab === 'otp' || tab === 'register') {
@@ -124,11 +130,14 @@ export default function LoginPage() {
           setOkMsg('✅ Success! Check your messages/email.');
           setTab('login');
         }
-      } else {
-        setErr(data.error || 'Operation failed');
       }
     } catch (e) {
-      setErr(e.message || 'Connection error');
+      console.error('[LoginPage] Action Error:', e);
+      if (e.message?.includes('Failed to fetch')) {
+        setErr('❌ Network error. Please check your internet connection or server status.');
+      } else {
+        setErr(e.message || 'An unexpected error occurred');
+      }
     } finally {
       setBusy(false);
     }
