@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fmtK } from '@/lib/cbe';
 import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
+import { ALL_NAV } from '@/lib/navigation';
 import { PRE, LOWER, UPPER, JSS, SENIOR } from '@/lib/cbe';
 import { useProfile } from '@/app/PortalShell';
 
@@ -244,33 +245,16 @@ export default function DashboardPage() {
         </div>
         <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
           {(() => {
-            const allTabs = [
-              { href:'/dashboard',   icon:'📊', label:'Home',        roles:['admin','teacher','staff','member','parent'] },
-              { href:'/attendance',  icon:'📋', label:'Attendance',  roles:['admin','teacher','jss_teacher','senior_teacher'] },
-              { href:'/timetable',   icon:'📅', label:'Timetable',   roles:['admin','teacher','staff'] },
-              { href:'/duties',      icon:'🎖️', label:'Duties',      roles:['admin','teacher','staff'] },
-              { href:'/performance', icon:'📈', label:'Performance', roles:['admin','teacher','jss_teacher','senior_teacher'] },
-              { href:'/analytics',   icon:'📊', label:'Analytics',   roles:['admin'] },
-              { href:'/learners',    icon:'🎓', label:'Learners',    roles:['admin','teacher','jss_teacher','senior_teacher'] },
-              { href:'/grades',      icon:'📊', label:'Grades',      roles:['admin','teacher','jss_teacher','senior_teacher'] },
-              { href:'/merit-list',  icon:'🏆', label:'Merit List',  roles:['admin','teacher','jss_teacher','senior_teacher'] },
-              { href:'/allocations', icon:'🗓️', label:'Allocations', roles:['admin'] },
-              { href:'/salary',      icon:'💵', label:'Salary',      roles:['admin'] },
-              { href:'/templates',   icon:'📄', label:'Templates',   roles:['admin'] },
-              { href:'/fees',        icon:'💰', label:'Fees',        roles:['admin','staff'] },
-              { href:'/teachers',    icon:'👔', label:'Staff',       roles:['admin'] },
-              { href:'/settings',    icon:'⚙️', label:'Settings',    roles:['admin'] },
-              { href:'/messages',    icon:'💬', label:'Messages',    roles:['admin','teacher','jss_teacher','senior_teacher','staff','parent'] },
-              { href:'/profile',     icon:'👤', label:'Profile',     roles:['admin'] },
-              { href:'/documents',   icon:'📂', label:'Documents',    roles:['admin','teacher','staff','member','parent'] },
-              { href:'/sms',         icon:'📱', label:'SMS',         roles:['admin'] },
-            ].filter(t => t.roles.includes(user?.role || 'member'));
-            return allTabs.map(t => (
-              <Link key={t.href} href={t.href} className="quick-access-btn">
-                <span className="qa-icon">{t.icon}</span>
-                {t.label}
-              </Link>
-            ));
+            const navTabs = ALL_NAV.filter(n => n.roles.includes(user?.role || 'member'));
+            return navTabs.map(t => {
+              const href = t.key === 'classes' ? '/classes/GRADE%207' : `/${t.key}`;
+              return (
+                <Link key={t.key} href={href} className="quick-access-btn">
+                  <span className="qa-icon">{t.icon}</span>
+                  {t.label}
+                </Link>
+              );
+            });
           })()}
         </div>
       </div>
