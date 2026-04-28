@@ -162,6 +162,27 @@ export default function PortalShell({ children }) {
     };
   }, [showNav, user]);
 
+  /* PWA Update Detection — avoid stale UI */
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then(reg => {
+        if (!reg) return;
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              if (confirm('A new version of the portal is available. Update now?')) {
+                window.location.reload();
+              }
+            }
+          });
+        });
+      });
+    }
+  }, []);
+
+
   async function saveAnnouncement() {
     try {
       await fetch('/api/db', {
