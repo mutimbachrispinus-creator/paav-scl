@@ -32,7 +32,9 @@ export default function ClassesPage() {
     { title: 'Lower Primary', grades: ['GRADE 1', 'GRADE 2', 'GRADE 3'], color: '#059669' },
     { title: 'Upper Primary', grades: ['GRADE 4', 'GRADE 5', 'GRADE 6'], color: '#2563EB' },
     { title: 'Junior Secondary', grades: ['GRADE 7', 'GRADE 8', 'GRADE 9'], color: '#7C3AED' },
+    { title: 'Senior School', grades: ['GRADE 10', 'GRADE 11', 'GRADE 12'], color: '#D97706' },
   ];
+
 
   return (
     <div className="page on">
