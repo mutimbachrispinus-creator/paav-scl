@@ -13,9 +13,11 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ALL_NAV } from '@/lib/navigation';
+import { prefetchKeys } from '@/lib/client-cache';
 
 
 export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendingReqs = 0, onProfileClick }) {
+
   const router   = useRouter();
   const pathname = usePathname();
   const [showMobileNav, setShowMobileNav] = useState(false);
@@ -91,6 +93,7 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
                         href={child.href}
                         className={`dropdown-item ${pathname === child.href ? 'active' : ''}`}
                         onClick={() => setShowMobileNav(false)}
+                        onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
                       >
                         {child.label}
                       </Link>
@@ -108,6 +111,7 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
                 className={`tb-nbtn${isActive(n.key) ? ' on' : ''}`}
                 style={{ textDecoration: 'none', position: 'relative' }}
                 onClick={() => setShowMobileNav(false)}
+                onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
               >
 
                 {n.icon} {n.label}
@@ -132,6 +136,7 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
                   href={hasChildren ? '#' : `/${n.key}`} 
                   className={`drawer-item ${isActive(n.key)?'on':''}`} 
                   onClick={() => !hasChildren && setShowMobileNav(false)} 
+                  onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
                   style={{ position: 'relative', display: 'flex', justifyContent: 'space-between' }}
                 >
                   <span>{n.icon} {n.label}</span>
@@ -147,7 +152,9 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
                         className="drawer-item" 
                         style={{ fontSize: 13, padding: '10px 20px' }}
                         onClick={() => setShowMobileNav(false)}
+                        onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
                       >
+
                         {child.label}
                       </Link>
                     ))}

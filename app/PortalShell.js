@@ -29,7 +29,7 @@ export default function PortalShell({ children }) {
   const [user, setUser] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
-        const raw = sessionStorage.getItem('paav_cache_user');
+        const raw = localStorage.getItem('paav_cache_user');
         if (raw) {
           const { v } = JSON.parse(raw);
           return v;
@@ -38,6 +38,7 @@ export default function PortalShell({ children }) {
     }
     return null;
   });
+
 
   const [announcement, setAnnouncement] = useState('');
   const [unreadCount,  setUnreadCount]  = useState(0);
