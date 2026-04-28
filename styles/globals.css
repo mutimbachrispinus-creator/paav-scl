@@ -981,7 +981,18 @@ tr:hover td{background:#F8FAFF}
    ═══════════════════════════════════════════ */
 
 /* ── PREMIUM NAV TAB ANIMATION (override) ── */
-.tb-nav { position: relative; }
+.tb-nav { 
+  position: relative; 
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 4px 0;
+}
+.tb-nav::-webkit-scrollbar { display: none; }
 .tb-nbtn {
   position: relative;
   padding: 7px 13px;
