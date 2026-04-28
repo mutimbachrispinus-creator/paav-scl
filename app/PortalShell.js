@@ -262,7 +262,9 @@ export default function PortalShell({ children }) {
           {[
             { path: '/dashboard',  icon: '📊', label: 'Home'    },
             { path: '/messages',   icon: '💬', label: 'Messages' },
-            { path: '/grades',     icon: '📋', label: 'Grades',   roles: ['admin','teacher'] },
+            { path: '/attendance', icon: '📋', label: 'Attendance', roles: ['admin','teacher'] },
+            { path: '/duties',     icon: '🎖️', label: 'Duties',     roles: ['admin','teacher','staff'] },
+            { path: '/grades',     icon: '📊', label: 'Grades',   roles: ['admin','teacher'] },
             { path: '/fees',       icon: '💰', label: 'Fees',     roles: ['admin','staff']   },
             { path: '/settings',   icon: '⚙️', label: 'Setup',    roles: ['admin'] },
           ]
