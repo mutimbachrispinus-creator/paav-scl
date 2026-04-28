@@ -7,12 +7,16 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
+import { useProfile } from '@/app/PortalShell';
+
 
 const M = '#8B1A1A';
 
 export default function DutiesPage() {
   const router = useRouter();
+  const { playSuccessSound } = useProfile();
   const [user, setUser] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [presence, setPresence] = useState([]);
@@ -89,7 +93,9 @@ export default function DutiesPage() {
           ] 
         })
       });
+      playSuccessSound();
       invalidateDB('paav_presence');
+
       setPresence(newPresence);
     } catch (e) { alert('❌ ' + e.message); } finally { setBusy(false); }
   }
@@ -179,7 +185,9 @@ export default function DutiesPage() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_duties', value: newDuties }] })
       });
+      playSuccessSound();
       invalidateDB('paav_duties');
+
       setDuties(newDuties);
       setDutyForm({ staffId: '', task: '', date: '' });
     } catch (e) { alert('❌ ' + e.message); } finally { setBusy(false); }

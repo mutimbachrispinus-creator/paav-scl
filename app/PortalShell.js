@@ -214,8 +214,36 @@ export default function PortalShell({ children }) {
     reader.readAsDataURL(file);
   }
 
+    const response = await fetch('/api/db', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_announcement', value: ann }] })
+    });
+    if (response.ok) playSuccessSound();
+  }
+
+  function playSuccessSound() {
+    const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
+    audio.play().catch(() => {}); // catch browser policy blocks
+  }
+
+  async function saveAnnouncement() {
+    setEditAnn(false);
+    const ann = { text: annDraft, active: !!annDraft };
+    setAnnouncement(annDraft);
+    const response = await fetch('/api/db', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_announcement', value: ann }] })
+    });
+    if (response.ok) playSuccessSound();
+  }
+
+  function playSuccessSound() {
+    const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
+    audio.play().catch(() => {});
+  }
+
   return (
-    <ProfileContext.Provider value={{ openProfile: () => setShowProfile(true), setUser }}>
+    <ProfileContext.Provider value={{ openProfile: () => setShowProfile(true), setUser, playSuccessSound }}>
       <input ref={heroFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadHero} />
 
       {showNav && user && (
@@ -265,7 +293,7 @@ export default function PortalShell({ children }) {
               </>
             )}
             {announcement && (
-              <button onClick={() => { setAnnouncement(''); saveAnnouncement(); }}
+              <button onClick={() => { setAnnouncement(''); setAnnDraft(''); saveAnnouncement(); }}
                 style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.6)', cursor: 'pointer', fontSize: 18, padding: '0 4px' }}>✕</button>
             )}
           </div>
@@ -273,8 +301,18 @@ export default function PortalShell({ children }) {
       )}
 
       <div id="main" style={showNav ? {} : { padding: 0, maxWidth: 'none' }}>
+        {showNav && pathname !== '/dashboard' && (
+          <button 
+            onClick={() => router.back()}
+            className="btn btn-ghost btn-sm no-print"
+            style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: '#8B1A1A' }}
+          >
+            ← Back
+          </button>
+        )}
         {children}
       </div>
+
 
       <div className={`inactivity-banner${showBanner ? ' show' : ''}`}>
         <span>⏰ You will be logged out in {countdown}s due to inactivity</span>

@@ -18,6 +18,7 @@ import { ALL_NAV } from '@/lib/navigation';
 import { PRE, LOWER, UPPER, JSS, SENIOR } from '@/lib/cbe';
 import { useProfile } from '@/app/PortalShell';
 
+
 const ALL_GRADE_GROUPS = [
   { label: 'Pre-School', color: '#0D9488', grades: PRE },
   { label: 'Lower Pri',  color: '#059669', grades: LOWER },
@@ -28,8 +29,9 @@ const ALL_GRADE_GROUPS = [
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { openProfile } = useProfile();
+  const { openProfile, playSuccessSound } = useProfile();
   const [user,     setUser]     = useState(null);
+
   const [learners, setLearners] = useState([]);
   const [paylog,   setPaylog]   = useState([]);
   const [messages, setMessages] = useState([]);
@@ -114,7 +116,9 @@ export default function DashboardPage() {
           const out = await res.json();
           if (!res.ok) throw new Error(out.error || 'API request failed');
           if (out.results?.[0]?.error) throw new Error(out.results[0].error);
+          playSuccessSound();
           setUser(u=>({...u, avatar:dataUrl}));
+
         } catch(err) { alert('Upload failed: ' + err.message); } finally { setBusy(false); }
       };
       img.src = ev.target.result;
@@ -144,7 +148,9 @@ export default function DashboardPage() {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ requests: [{ type: 'set', key: 'paav7_hero_img', value: b64 }] })
           });
+          playSuccessSound();
         } catch {}
+
       };
       img.src = ev.target.result;
     };

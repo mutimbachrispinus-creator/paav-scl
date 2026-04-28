@@ -18,8 +18,10 @@ import {
 } from '@/lib/cbe';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+import { useProfile } from '@/app/PortalShell';
 
 const TERMS      = ['T1','T2','T3'];
+
 const ASSESSMENTS = [
   { key: 'op1', label: '📝 Opener'   },
   { key: 'mt1', label: '📖 Mid-Term' },
@@ -28,7 +30,9 @@ const ASSESSMENTS = [
 
 export default function GradesPage() {
   const router = useRouter();
+  const { playSuccessSound } = useProfile();
   const [user,     setUser]     = useState(null);
+
   const [learners, setLearners] = useState([]);
   const [marks,    setMarks]    = useState({});
   const [locked,   setLocked]   = useState({});
@@ -135,7 +139,9 @@ export default function GradesPage() {
       });
 
       if (!isAuto) {
+        playSuccessSound();
         if (user?.role !== 'admin' && !isLocked) setLocked(nextLocked);
+
         setAlert({ msg: '✅ Marks saved!', type: 'ok' });
         setTimeout(() => setAlert({ msg: '', type: '' }), 3000);
       }

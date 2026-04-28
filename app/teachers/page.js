@@ -1,5 +1,4 @@
 'use client';
-'use client';
 /**
  * app/teachers/page.js — Teacher & Staff List
  *
@@ -9,6 +8,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
+import { useProfile } from '@/app/PortalShell';
 import { ALL_GRADES } from '@/lib/cbe';
 
 const ROLES       = ['teacher','jss_teacher','senior_teacher','staff','parent'];
@@ -21,7 +22,9 @@ const COLORS = {
 
 export default function TeachersPage() {
   const router = useRouter();
+  const { playSuccessSound } = useProfile();
   const [user,  setUser]  = useState(null);
+
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
@@ -174,7 +177,9 @@ export default function TeachersPage() {
 
 /* ─── Add / Edit User Modal ─────────────────────────────────────────────── */
 function UserModal({ user, currentUser, allStaff, onClose }) {
+  const { playSuccessSound } = useProfile();
   const isEdit = !!user;
+
   const [form, setForm] = useState({
     name:     user?.name     || '',
     username: user?.username || '',
@@ -215,7 +220,9 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
     const data = await res.json();
     setBusy(false);
     if (!data.ok) { setErr(data.error || 'Save failed'); return; }
+    playSuccessSound();
     onClose();
+
   }
 
   return (

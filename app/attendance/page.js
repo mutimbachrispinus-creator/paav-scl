@@ -13,8 +13,10 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ALL_GRADES } from '@/lib/cbe';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+import { useProfile } from '@/app/PortalShell';
 
 const TERMS = ['T1','T2','T3'];
+
 const STATUS_COLORS = { P:'#059669', A:'#DC2626', L:'#D97706', E:'#7C3AED' };
 const STATUS_LABELS = { P:'Present', A:'Absent', L:'Late', E:'Excused' };
 
@@ -47,7 +49,9 @@ function monthOf(dateStr) { return dateStr.slice(0,7); }
 
 export default function AttendancePage() {
   const router = useRouter();
+  const { playSuccessSound } = useProfile();
   const [user,         setUser]         = useState(null);
+
   const [loading,      setLoading]      = useState(true);
   const [busy,         setBusy]         = useState(false);
   const [learners,     setLearners]     = useState([]);
@@ -129,7 +133,7 @@ export default function AttendancePage() {
           ] 
         })
       });
-
+      playSuccessSound();
       setAlert('✅ Attendance saved!');
       setTimeout(()=>setAlert(''),3000);
     } catch(e) { setAlert('❌ '+e.message); }
