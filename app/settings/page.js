@@ -27,21 +27,22 @@ export default function SettingsHubPage() {
           return;
         }
         setUser(u);
-        
-        // Fetch DB usage via specialized request
-        // Since getCachedDB uses {type:'get'}, we still need to fetch usage separately
-        // but we can optimize the initial check.
-        const dbRes = await fetch('/api/db', {
+        setLoading(false); // Show page immediately
+
+        // Fetch DB usage in background
+        fetch('/api/db', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ requests: [{ type: 'storageUsage' }] })
-        });
-        const dbData = await dbRes.json();
-        setUsage(dbData.results[0]?.usage || null);
+        })
+        .then(res => res.json())
+        .then(dbData => {
+          setUsage(dbData.results?.[0]?.usage || null);
+        })
+        .catch(err => console.error('Storage usage fetch failed:', err));
         
       } catch (e) {
         router.push('/');
-      } finally {
         setLoading(false);
       }
     }

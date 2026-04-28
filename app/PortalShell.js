@@ -64,22 +64,26 @@ export default function PortalShell({ children }) {
 
   const loadSession = useCallback(async () => {
     try {
-      const u = await getCachedUser();
-      if (u) {
-        setUser(u);
-        const db = await getCachedDBMulti([
+      // Parallelize user fetch and critical shell data
+      const [u, db] = await Promise.all([
+        getCachedUser(),
+        getCachedDBMulti([
           'paav_announcement',
           'paav6_msgs',
           'paav_hero_img'
-        ]);
+        ])
+      ]);
 
-        const ann = db.paav_announcement;
+      if (u) {
+        setUser(u);
+        const ann = db?.paav_announcement;
         if (ann?.text && ann?.active) setAnnouncement(ann.text);
-        if (db.paav_hero_img) setHeroUrl(db.paav_hero_img);
+        if (db?.paav_hero_img) setHeroUrl(db.paav_hero_img);
 
-        const msgs = db.paav6_msgs || [];
+        const msgs = db?.paav6_msgs || [];
         setUnreadCount(msgs.filter(m => m.to === 'ALL' || m.to === 'ALL_STAFF').length);
         
+        // Fire-and-forget prefetch for page-level data
         prefetchKeys([
           'paav6_learners', 'paav6_staff', 'paav6_marks',
           'paav6_feecfg',  'paav_calendar_events',
