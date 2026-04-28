@@ -19,6 +19,7 @@ const ALL_NAV = [
   { key:'timetable',  label:'📅 Timetable',   roles:['admin','teacher','staff'] },
   { key:'duties',     label:'🎖️ Duties',       roles:['admin','teacher','staff'] },
   { key:'performance',label:'📈 Performance', roles:['admin','teacher','jss_teacher','senior_teacher'] },
+  { key:'classes',     label:'🏫 Classes',     roles:['admin','teacher','jss_teacher','senior_teacher'] },
   { key:'learners',   label:'🎓 Learners',    roles:['admin','teacher','jss_teacher','senior_teacher'] },
   { key:'grades',     label:'📊 Grades',      roles:['admin','teacher','jss_teacher','senior_teacher'] },
   { key:'merit-list', label:'🏆 Merit List',  roles:['admin','teacher','jss_teacher','senior_teacher'] },
