@@ -297,7 +297,7 @@ export default function DashboardPage() {
             onClick={() => router.push('/fees')}
           />
         )}
-        {['admin', 'staff'].includes(user?.role) && (
+        {user?.role === 'admin' && (
           <StatCard icon="✅" bg="#F5F3FF" value={cleared} label="Fully Cleared"
             sub={`${learners.length - cleared} with balance`} subBg="#FEF3C7" subColor="var(--amber)" 
             onMouseEnter={() => prefetchKeys(['paav6_learners'])}

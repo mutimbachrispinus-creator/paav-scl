@@ -124,13 +124,15 @@ export default function LearnersPage() {
                 <tr>
                   <th>#</th><th>Adm</th><th>Name</th><th>Grade</th>
                   <th>Sex</th><th>Age</th><th>Class Teacher</th>
-                  <th>Parent</th><th>Phone</th><th>Fee Status</th><th>Actions</th>
+                  <th>Parent</th><th>Phone</th>
+                  {user?.role === 'admin' && <th>Fee Status</th>}
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan="11" style={{ textAlign: 'center', padding: 20, color: 'var(--muted)' }}>
+                    <td colSpan={user?.role === 'admin' ? 11 : 10} style={{ textAlign: 'center', padding: 20, color: 'var(--muted)' }}>
                       No learners found
                     </td>
                   </tr>
@@ -155,12 +157,14 @@ export default function LearnersPage() {
                       <td style={{ fontSize: 11.5 }}>{l.teacher || '—'}</td>
                       <td style={{ fontSize: 11.5 }}>{l.parent  || '—'}</td>
                       <td style={{ fontSize: 11.5 }}>{l.phone   || '—'}</td>
-                      <td>
-                        {bal <= 0
-                          ? <span className="badge bg-green">✅ Cleared</span>
-                          : <span className="badge bg-amber">⚠ {fmtK(bal)}</span>
-                        }
-                      </td>
+                      {user?.role === 'admin' && (
+                        <td>
+                          {bal <= 0
+                            ? <span className="badge bg-green">✅ Cleared</span>
+                            : <span className="badge bg-amber">⚠ {fmtK(bal)}</span>
+                          }
+                        </td>
+                      )}
                       <td style={{ whiteSpace: 'nowrap' }}>
                         <button className="btn btn-ghost btn-sm"
                           onClick={() => router.push(`/learners/${l.adm}`)}>

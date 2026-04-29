@@ -143,46 +143,48 @@ export default function LearnerProfilePage() {
         </div>
 
         {/* ── Fee statement ── */}
-        <div className="panel">
-          <div className="panel-hdr">
-            <h3>💰 Fee Statement</h3>
-            {user?.role === 'admin' && (
-              <button className="btn btn-success btn-sm"
-                onClick={() => router.push(`/fees/${admNo}/receipt`)}>
-                🧾 Receipt
-              </button>
-            )}
-          </div>
-          <div className="panel-body">
-            {[
-              ['Arrears B/F', fmtK(learner.arrears || 0)],
-              ['Annual Total', fmtK(annualFee)],
-              ...(t1Fee || t2Fee || t3Fee ? [
-                [`T1 (Expected: ${fmtK(t1Fee)})`, `Paid: ${fmtK(learner.t1||0)}`],
-                [`T2 (Expected: ${fmtK(t2Fee)})`, `Paid: ${fmtK(learner.t2||0)}`],
-                [`T3 (Expected: ${fmtK(t3Fee)})`, `Paid: ${fmtK(learner.t3||0)}`],
-              ] : [
-                ['T1 Paid',     fmtK(learner.t1||0)],
-                ['T2 Paid',     fmtK(learner.t2||0)],
-                ['T3 Paid',     fmtK(learner.t3||0)],
-              ]),
-              ['Total Paid',  fmtK(totalPaid)],
-            ].map(([k, v]) => (
-              <div key={k} style={{ display: 'flex', justifyContent: 'space-between',
-                padding: '7px 0', borderBottom: '1px dashed var(--border)', fontSize: 12.5 }}>
-                <span style={{ color: 'var(--muted)' }}>{k}</span>
-                <strong>{v}</strong>
+        {user?.role === 'admin' && (
+          <div className="panel">
+            <div className="panel-hdr">
+              <h3>💰 Fee Statement</h3>
+              {user?.role === 'admin' && (
+                <button className="btn btn-success btn-sm"
+                  onClick={() => router.push(`/fees/${admNo}/receipt`)}>
+                  🧾 Receipt
+                </button>
+              )}
+            </div>
+            <div className="panel-body">
+              {[
+                ['Arrears B/F', fmtK(learner.arrears || 0)],
+                ['Annual Total', fmtK(annualFee)],
+                ...(t1Fee || t2Fee || t3Fee ? [
+                  [`T1 (Expected: ${fmtK(t1Fee)})`, `Paid: ${fmtK(learner.t1||0)}`],
+                  [`T2 (Expected: ${fmtK(t2Fee)})`, `Paid: ${fmtK(learner.t2||0)}`],
+                  [`T3 (Expected: ${fmtK(t3Fee)})`, `Paid: ${fmtK(learner.t3||0)}`],
+                ] : [
+                  ['T1 Paid',     fmtK(learner.t1||0)],
+                  ['T2 Paid',     fmtK(learner.t2||0)],
+                  ['T3 Paid',     fmtK(learner.t3||0)],
+                ]),
+                ['Total Paid',  fmtK(totalPaid)],
+              ].map(([k, v]) => (
+                <div key={k} style={{ display: 'flex', justifyContent: 'space-between',
+                  padding: '7px 0', borderBottom: '1px dashed var(--border)', fontSize: 12.5 }}>
+                  <span style={{ color: 'var(--muted)' }}>{k}</span>
+                  <strong>{v}</strong>
+                </div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between',
+                padding: '10px 0', fontWeight: 800, fontSize: 14 }}>
+                <span>Balance</span>
+                <span style={{ color: balance <= 0 ? 'var(--green)' : 'var(--red)' }}>
+                  {fmtK(balance)} {balance <= 0 ? '✅' : ''}
+                </span>
               </div>
-            ))}
-            <div style={{ display: 'flex', justifyContent: 'space-between',
-              padding: '10px 0', fontWeight: 800, fontSize: 14 }}>
-              <span>Balance</span>
-              <span style={{ color: balance <= 0 ? 'var(--green)' : 'var(--red)' }}>
-                {fmtK(balance)} {balance <= 0 ? '✅' : ''}
-              </span>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ── Academic performance ── */}

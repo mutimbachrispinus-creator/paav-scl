@@ -195,8 +195,13 @@ async function handleRequest(req, auth) {
         let value = await kvGet(k);
         // Security: Filter staff requests if not admin
         if (k === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
-          if (Array.isArray(value)) {
-            value = value.filter(r => r.userId === auth.id);
+          if (Array.isArray(value)) value = value.filter(r => r.userId === auth.id);
+        }
+        // Security: Hide fees from teachers/staff
+        if (!['admin','parent'].includes(auth.role)) {
+          if (['paav6_feecfg', 'paav6_paylog'].includes(k)) value = k === 'paav6_paylog' ? [] : {};
+          if (k === 'paav6_learners' && Array.isArray(value)) {
+            value = value.map(l => ({ ...l, t1: 0, t2: 0, t3: 0, arrears: 0 }));
           }
         }
         data[k] = value;

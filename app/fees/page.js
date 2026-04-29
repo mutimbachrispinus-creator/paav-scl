@@ -49,7 +49,7 @@ export default function FeesPage() {
       ]);
 
       if (!u) { router.push('/'); return; }
-      if (!['admin','staff'].includes(u.role)) {
+      if (u.role !== 'admin') {
         router.push('/dashboard'); return;
       }
       setUser(u);
