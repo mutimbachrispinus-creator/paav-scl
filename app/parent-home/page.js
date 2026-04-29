@@ -481,7 +481,8 @@ export default function ParentHome() {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* CALENDAR TAB */}
       {tab==='calendar' && (
