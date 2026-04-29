@@ -108,8 +108,9 @@ export default function LearnersPage() {
                 onChange={e => setGradeF(e.target.value)}
                 style={{ padding: '8px 11px', border: '2px solid var(--border)',
                   borderRadius: 'var(--r2)', fontSize: 12, outline: 'none' }}>
-                <option value="">All Grades</option>
-                {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
+                <option value="">All Active Grades</option>
+                {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                <option value="ALUMNI">🎓 ALUMNI / GRADUATED</option>
               </select>
             </div>
             <span style={{ fontSize: 12, color: 'var(--muted)' }}>
