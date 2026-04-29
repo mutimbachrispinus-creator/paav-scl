@@ -244,14 +244,6 @@ async function handleRequest(req, auth) {
       return { type: req.type, ok: true };
     }
 
-    case 'deletePayment': {
-      if (auth.role !== 'admin') return { type: req.type, error: 'Unauthorized' };
-      if (!req.id) return { type: req.type, error: 'id is required' };
-      const { kvDeletePayment } = await import('@/lib/db');
-      await kvDeletePayment(req.id);
-      return { type: req.type, ok: true };
-    }
-
     /* ── Bulk read ── */
     case 'getAll': {
       const keys = Array.isArray(req.keys) ? req.keys : [];
