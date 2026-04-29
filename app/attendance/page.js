@@ -62,6 +62,7 @@ export default function AttendancePage() {
   const [activeView,   setActiveView]   = useState('mark');   // 'mark' | 'weekly' | 'monthly' | 'termly' | 'annual'
   const [selDate,      setSelDate]      = useState(new Date().toISOString().split('T')[0]);
   const [alert,        setAlert]        = useState('');
+  const [dirtyAtt,     setDirtyAtt]     = useState({}); // { key: status }
 
   const load = useCallback(async () => {
     try {
@@ -116,23 +117,35 @@ export default function AttendancePage() {
   function setStatus(adm, date, status) {
     const key = `${grade}|${date}|${adm}`;
     setAtt(prev => ({ ...prev, [key]: status }));
+    setDirtyAtt(prev => ({ ...prev, [key]: status }));
   }
   function getStatus(adm, date) {
     return att[`${grade}|${date}|${adm}`] || '';
   }
 
   async function save() {
+    const toSync = { ...dirtyAtt };
+    if (Object.keys(toSync).length === 0) return;
+
     setBusy(true);
     try {
       await fetch('/api/db', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ 
           requests:[
-            { type:'set', key:'paav_student_attendance', value:att },
+            { type:'updateAttendanceBulk', attMap: toSync },
             { type:'logActivity', activity: { action:'Updated Attendance', details:`Marked attendance for ${grade} on ${selDate}` } }
           ] 
         })
       });
+
+      // Clear dirty flags
+      setDirtyAtt(prev => {
+        const next = { ...prev };
+        Object.keys(toSync).forEach(k => delete next[k]);
+        return next;
+      });
+
       playSuccessSound();
       setAlert('✅ Attendance saved!');
       setTimeout(()=>setAlert(''),3000);

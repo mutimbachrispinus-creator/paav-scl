@@ -118,7 +118,7 @@ async function handleRequest(req, auth) {
     /* ── Specialized Staff Request Handlers ── */
     case 'submitStaffRequest': {
       if (!req.request) return { type: req.type, error: 'request object is required' };
-      const oldReqs = await kvGet('paav_staff_reqs', []);
+      const { kvSubmitStaffRequest } = await import('@/lib/db');
       const newReq = {
         ...req.request,
         id: Date.now(),
@@ -128,18 +128,15 @@ async function handleRequest(req, auth) {
         status: 'pending',
         date: new Date().toLocaleDateString('en-KE', { day: '2-digit', month: '2-digit', year: 'numeric' })
       };
-      await kvSet('paav_staff_reqs', [...oldReqs, newReq]);
+      await kvSubmitStaffRequest(newReq);
       return { type: req.type, ok: true, request: newReq };
     }
 
     case 'updateStaffRequestStatus': {
       if (auth.role !== 'admin') return { type: req.type, error: 'Only admins can update status' };
       if (!req.id || !req.status) return { type: req.type, error: 'id and status are required' };
-      
-      const oldReqs = await kvGet('paav_staff_reqs', []);
-      const updated = oldReqs.map(r => r.id === req.id ? { ...r, status: req.status } : r);
-      
-      await kvSet('paav_staff_reqs', updated);
+      const { kvUpdateStaffRequestStatus } = await import('@/lib/db');
+      await kvUpdateStaffRequestStatus(req.id, req.status);
       return { type: req.type, ok: true };
     }
 
@@ -182,6 +179,48 @@ async function handleRequest(req, auth) {
       if (!req.gsa || !req.adm) return { type: req.type, error: 'gsa and adm are required' };
       const { kvUpdateMark } = await import('@/lib/db');
       await kvUpdateMark(req.gsa, req.adm, req.score);
+      return { type: req.type, ok: true };
+    }
+
+    case 'updateMarksBulk': {
+      if (!Array.isArray(req.marks)) return { type: req.type, error: 'marks array is required' };
+      const { kvUpdateMarksBulk } = await import('@/lib/db');
+      await kvUpdateMarksBulk(req.marks);
+      return { type: req.type, ok: true };
+    }
+
+    case 'updateAttendanceBulk': {
+      if (!req.attMap) return { type: req.type, error: 'attMap is required' };
+      const { kvUpdateAttendanceBulk } = await import('@/lib/db');
+      await kvUpdateAttendanceBulk(req.attMap);
+      return { type: req.type, ok: true };
+    }
+
+    case 'upsertMessage': {
+      if (!req.message) return { type: req.type, error: 'message object is required' };
+      const { kvUpsertMessage } = await import('@/lib/db');
+      await kvUpsertMessage(req.message);
+      return { type: req.type, ok: true };
+    }
+
+    case 'logPresence': {
+      if (!req.userId || !req.date || !req.record) return { type: req.type, error: 'userId, date, and record are required' };
+      const { kvLogPresence } = await import('@/lib/db');
+      await kvLogPresence(req.userId, req.date, req.record);
+      return { type: req.type, ok: true };
+    }
+
+    case 'upsertDuty': {
+      if (!req.duty) return { type: req.type, error: 'duty object is required' };
+      const { kvUpsertDuty } = await import('@/lib/db');
+      await kvUpsertDuty(req.duty);
+      return { type: req.type, ok: true };
+    }
+
+    case 'deleteDuty': {
+      if (!req.id) return { type: req.type, error: 'id is required' };
+      const { kvDeleteDuty } = await import('@/lib/db');
+      await kvDeleteDuty(req.id);
       return { type: req.type, ok: true };
     }
 

@@ -43,32 +43,21 @@ export default function MessagesPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const saveMessages = async (newMsgs) => {
-    setSaving(true);
-    try {
-      await fetch('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_msgs', value: newMsgs }] })
-      });
-      setAllMessages(newMsgs);
-    } catch (e) {
-      console.error(e);
-      alert('Failed to save message');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const openThread = async (m) => {
     setActiveThread(m);
     if (!m.read.includes(user.username)) {
-      const newMsgs = allMessages.map(msg => {
-        if (msg.id === m.id) return { ...msg, read: [...msg.read, user.username] };
-        return msg;
-      });
-      await saveMessages(newMsgs);
-      setActiveThread(newMsgs.find(msg => msg.id === m.id));
+      const updatedMsg = { ...m, read: [...m.read, user.username] };
+      setSaving(true);
+      try {
+        await fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requests: [{ type: 'upsertMessage', message: updatedMsg }] })
+        });
+        setAllMessages(prev => prev.map(msg => msg.id === m.id ? updatedMsg : msg));
+        setActiveThread(updatedMsg);
+      } catch (e) { console.error(e); }
+      finally { setSaving(false); }
     }
   };
 
@@ -76,19 +65,27 @@ export default function MessagesPage() {
     e.preventDefault();
     if (!replyText.trim() || !activeThread) return;
     
-    const newMsgs = allMessages.map(msg => {
-      if (msg.id === activeThread.id) {
-        return {
-          ...msg,
-          replies: [...(msg.replies || []), { from: user.username, fromName: user.name, text: replyText.trim(), date: today() }]
-        };
-      }
-      return msg;
-    });
+    const updatedMsg = {
+      ...activeThread,
+      replies: [...(activeThread.replies || []), { from: user.username, fromName: user.name, text: replyText.trim(), date: today() }]
+    };
     
-    await saveMessages(newMsgs);
-    setReplyText('');
-    setActiveThread(newMsgs.find(msg => msg.id === activeThread.id));
+    setSaving(true);
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'upsertMessage', message: updatedMsg }] })
+      });
+      setAllMessages(prev => prev.map(msg => msg.id === activeThread.id ? updatedMsg : msg));
+      setActiveThread(updatedMsg);
+      setReplyText('');
+    } catch (e) {
+      console.error(e);
+      alert('Failed to send reply');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const sendMessage = async (e) => {
@@ -111,12 +108,23 @@ export default function MessagesPage() {
       replies: []
     };
     
-    const newMsgs = [newMsg, ...allMessages];
-    await saveMessages(newMsgs);
-    
-    setShowCompose(false);
-    setCmpSub('');
-    setCmpBody('');
+    setSaving(true);
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'upsertMessage', message: newMsg }] })
+      });
+      setAllMessages(prev => [newMsg, ...prev]);
+      setShowCompose(false);
+      setCmpSub('');
+      setCmpBody('');
+    } catch (e) {
+      console.error(e);
+      alert('Failed to send message');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading || !user) return <LoadingSkeleton />;

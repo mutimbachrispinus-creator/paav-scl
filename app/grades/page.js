@@ -45,6 +45,8 @@ export default function GradesPage() {
   const [grade,  setGrade]  = usePersistedState('paav_grades_grade',  'GRADE 7');
   const [term,   setTerm]   = usePersistedState('paav_grades_term',   'T1');
   const [assess, setAssess] = usePersistedState('paav_grades_assess', 'mt1');
+  
+  const [dirtyMarks, setDirtyMarks] = useState([]); // Array of { gsa, adm, score }
 
   /* ── Load data ── */
   const load = useCallback(async () => {
@@ -65,7 +67,7 @@ export default function GradesPage() {
         router.push('/dashboard'); return;
       }
       setUser(u);
-      if (u.grade) setGrade(u.grade);
+      if (u.grade && !grade) setGrade(u.grade);
 
       setLearners(db.paav6_learners || []);
       setMarks(   db.paav6_marks    || {});
@@ -77,7 +79,7 @@ export default function GradesPage() {
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, grade]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -91,11 +93,20 @@ export default function GradesPage() {
   /* ── Score change ── */
   function setScore(admNo, subj, value) {
     if (isLocked && user?.role !== 'admin') return;
-    const key = `${term}:${grade}|${subj}|${assess}`;
+    const gsa = `${term}:${grade}|${subj}|${assess}`;
+    const score = value === '' ? undefined : Number(value);
+    
+    // Update local state for immediate UI feedback
     setMarks(prev => ({
       ...prev,
-      [key]: { ...(prev[key] || {}), [admNo]: value === '' ? undefined : Number(value) },
+      [gsa]: { ...(prev[gsa] || {}), [admNo]: score },
     }));
+
+    // Track as dirty for atomic sync
+    setDirtyMarks(prev => {
+      const filtered = prev.filter(m => !(m.gsa === gsa && m.adm === admNo));
+      return [...filtered, { gsa, adm: admNo, score }];
+    });
   }
 
   function getScore(admNo, subj) {
@@ -105,14 +116,12 @@ export default function GradesPage() {
 
   /* ── Auto-save (Sync immediately) ── */
   useEffect(() => {
-    if (loading || saving) return;
+    if (loading || saving || dirtyMarks.length === 0) return;
     const timer = setTimeout(() => {
-      // We don't want to show the alert for every auto-save
-      // unless it fails
       save(true); 
     }, 1500);
     return () => clearTimeout(timer);
-  }, [marks]);
+  }, [dirtyMarks]);
 
   /* ── Save ── */
   async function save(isAuto = false) {
@@ -120,10 +129,18 @@ export default function GradesPage() {
       if (!isAuto) setAlert({ msg: 'Marks are locked. Only admin can edit.', type: 'err' });
       return;
     }
+    
+    const marksToSync = [...dirtyMarks];
+    if (marksToSync.length === 0 && isAuto) return;
+
     if (!isAuto) setSaving(true);
     
     let nextLocked = locked;
-    const reqs = [{ type: 'set', key: 'paav6_marks', value: marks }];
+    const reqs = [];
+    
+    if (marksToSync.length > 0) {
+      reqs.push({ type: 'updateMarksBulk', marks: marksToSync });
+    }
     
     // Auto-lock for non-admins (only on manual save or first entry)
     if (!isAuto && user?.role !== 'admin' && !isLocked) {
@@ -131,12 +148,23 @@ export default function GradesPage() {
       reqs.push({ type: 'set', key: 'paav_marks_locked', value: nextLocked });
     }
 
+    if (reqs.length === 0) {
+      if (!isAuto) setSaving(false);
+      return;
+    }
+
     try {
-      await fetch('/api/db', {
+      const res = await fetch('/api/db', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ requests: reqs }),
       });
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+
+      // Clear dirty marks that were successfully synced
+      setDirtyMarks(prev => prev.filter(m => !marksToSync.includes(m)));
 
       if (!isAuto) {
         playSuccessSound();
@@ -147,7 +175,7 @@ export default function GradesPage() {
       }
     } catch (e) {
       console.error(e);
-      if (!isAuto) setAlert({ msg: '❌ Save failed', type: 'err' });
+      if (!isAuto) setAlert({ msg: '❌ Save failed: ' + e.message, type: 'err' });
     } finally {
       if (!isAuto) setSaving(false);
     }

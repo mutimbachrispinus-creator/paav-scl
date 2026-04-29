@@ -58,33 +58,28 @@ export default function DutiesPage() {
   async function logPresence(type) {
     setBusy(true);
     try {
-      const newPresence = [...presence];
-      const idx = newPresence.findIndex(p => p.id === user.id && p.date === today);
       const now = new Date();
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       
-      if (idx !== -1) {
-        const record = { ...newPresence[idx], [type]: timeStr };
-        if (type === 'logout' && record.login) {
-          // Calculate duration
-          const [h1, m1] = record.login.split(':').map(Number);
-          const [h2, m2] = timeStr.split(':').map(Number);
-          const start = new Date(); start.setHours(h1, m1, 0);
-          const end = new Date(); end.setHours(h2, m2, 0);
-          let diff = (end - start) / 1000 / 60 / 60; // hours
-          if (diff < 0) diff += 24; // overnight shift
-          record.hours = diff.toFixed(1);
-        }
-        newPresence[idx] = record;
-      } else {
-        newPresence.push({ id: user.id, name: user.name, date: today, login: timeStr, logout: '', hours: '' });
+      const record = todayRecord ? { ...todayRecord } : { id: user.id, name: user.name, date: today, login: '', logout: '', hours: '' };
+      record[type] = timeStr;
+      
+      if (type === 'logout' && record.login) {
+        // Calculate duration
+        const [h1, m1] = record.login.split(':').map(Number);
+        const [h2, m2] = timeStr.split(':').map(Number);
+        const start = new Date(); start.setHours(h1, m1, 0);
+        const end = new Date(); end.setHours(h2, m2, 0);
+        let diff = (end - start) / 1000 / 60 / 60; // hours
+        if (diff < 0) diff += 24; // overnight shift
+        record.hours = diff.toFixed(1);
       }
       
       await fetch('/api/db', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           requests: [
-            { type: 'set', key: 'paav_presence', value: newPresence },
+            { type: 'logPresence', userId: user.id, date: today, record },
             { type: 'logActivity', activity: { 
                 action: type === 'login' ? 'Clocked In' : 'Clocked Out',
                 details: `${type === 'login' ? 'Started work' : 'Finished work'} at ${timeStr}`
@@ -96,7 +91,13 @@ export default function DutiesPage() {
       playSuccessSound();
       invalidateDB('paav_presence');
 
-      setPresence(newPresence);
+      setPresence(prev => {
+        const next = [...prev];
+        const idx = next.findIndex(p => p.id === user.id && p.date === today);
+        if (idx !== -1) next[idx] = record;
+        else next.push(record);
+        return next;
+      });
     } catch (e) { alert('❌ ' + e.message); } finally { setBusy(false); }
   }
 
@@ -180,15 +181,15 @@ export default function DutiesPage() {
         status: 'pending',
         createdAt: new Date().toISOString()
       };
-      const newDuties = [newDuty, ...duties];
+      
       await fetch('/api/db', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_duties', value: newDuties }] })
+        body: JSON.stringify({ requests: [{ type: 'upsertDuty', duty: newDuty }] })
       });
       playSuccessSound();
       invalidateDB('paav_duties');
 
-      setDuties(newDuties);
+      setDuties(prev => [newDuty, ...prev]);
       setDutyForm({ staffId: '', task: '', date: '' });
     } catch (e) { alert('❌ ' + e.message); } finally { setBusy(false); }
   }
@@ -196,23 +197,23 @@ export default function DutiesPage() {
   async function toggleDutyStatus(id) {
     setBusy(true);
     try {
-      const newDuties = duties.map(d => {
-        if (d.id === id) {
-          const isCompleted = d.status === 'completed';
-          return {
-            ...d,
-            status: isCompleted ? 'pending' : 'completed',
-            completedAt: isCompleted ? null : new Date().toISOString()
-          };
-        }
-        return d;
-      });
+      const d = duties.find(item => item.id === id);
+      if (!d) return;
+
+      const isCompleted = d.status === 'completed';
+      const updatedDuty = {
+        ...d,
+        status: isCompleted ? 'pending' : 'completed',
+        completedAt: isCompleted ? null : new Date().toISOString()
+      };
+
       await fetch('/api/db', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_duties', value: newDuties }] })
+        body: JSON.stringify({ requests: [{ type: 'upsertDuty', duty: updatedDuty }] })
       });
+      
       invalidateDB('paav_duties');
-      setDuties(newDuties);
+      setDuties(prev => prev.map(item => item.id === id ? updatedDuty : item));
     } catch (e) { alert('❌ ' + e.message); } finally { setBusy(false); }
   }
 
@@ -220,13 +221,12 @@ export default function DutiesPage() {
     if (!confirm('Delete this duty assignment?')) return;
     setBusy(true);
     try {
-      const newDuties = duties.filter(d => d.id !== id);
       await fetch('/api/db', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_duties', value: newDuties }] })
+        body: JSON.stringify({ requests: [{ type: 'deleteDuty', id }] })
       });
       invalidateDB('paav_duties');
-      setDuties(newDuties);
+      setDuties(prev => prev.filter(d => d.id !== id));
     } catch (e) { alert('❌ ' + e.message); } finally { setBusy(false); }
   }
 
