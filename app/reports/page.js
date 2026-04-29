@@ -81,6 +81,85 @@ export default function ReportsPage() {
       setSubmitting(false);
     }
   }
+  
+  function downloadReport(r) {
+    const win = window.open('', '_blank');
+    if (!win) {
+      alert('⚠️ Popup blocked! Please allow popups for this site to download reports.');
+      return;
+    }
+    
+    win.document.write(`
+      <html>
+        <head>
+          <title>Progress Report - ${r.title}</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+            body { font-family: 'Inter', sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; }
+            .header { text-align: center; border-bottom: 3px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; }
+            .school-name { font-size: 14px; font-weight: 900; letter-spacing: 2px; }
+            .doc-title { font-size: 24px; font-weight: 900; text-transform: uppercase; margin-top: 5px; }
+            .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; background: #f8fafc; padding: 15px; border-radius: 8px; font-size: 13px; }
+            .meta-item { margin-bottom: 5px; }
+            .meta-label { font-weight: 800; color: #64748b; text-transform: uppercase; font-size: 10px; display: block; }
+            .content { font-family: 'Georgia', serif; font-size: 16px; white-space: pre-wrap; min-height: 400px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fffefa; }
+            .footer { margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end; }
+            .sig-line { border-top: 1px solid #1e293b; width: 200px; padding-top: 5px; font-size: 11px; text-align: center; }
+            .stamp { opacity: 0.1; font-weight: 900; font-size: 40px; transform: rotate(-15deg); position: absolute; top: 50%; left: 40%; }
+            @media print { .no-print { display: none; } body { padding: 20px; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="school-name">PAAV-GITOMBO COMMUNITY SCHOOL</div>
+            <div class="doc-title">Official Progress Report</div>
+          </div>
+          
+          <div class="meta">
+            <div class="meta-item">
+              <span class="meta-label">Department</span>
+              <strong>${r.dept}</strong>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Date Submitted</span>
+              <strong>${new Date(r.time).toLocaleDateString()} ${new Date(r.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Author</span>
+              <strong>${r.author}</strong> (${r.authorRole})
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Report ID</span>
+              <strong>PR-${r.id}</strong>
+            </div>
+          </div>
+          
+          <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 10px;">Subject: ${r.title}</div>
+          
+          <div class="content">${r.text}</div>
+          
+          <div class="footer">
+            <div>
+              <div class="sig-line">Author's Signature</div>
+            </div>
+            <div style="text-align: right;">
+              <div class="sig-line">Administrator's Review</div>
+            </div>
+          </div>
+          
+          <div class="stamp">OFFICIAL RECORD</div>
+          
+          <script>
+            window.onload = () => {
+              window.print();
+              // window.close(); // Uncomment if you want it to auto-close after printing
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    win.document.close();
+  }
 
   if (loading) return <div className="page on">Loading...</div>;
 
@@ -154,7 +233,16 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                {msg.text && <div className={`msg ${msg.type}`}>{msg.text}</div>}
+                {msg.text && (
+                  <div className={`msg ${msg.type}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{msg.text}</span>
+                    {msg.type === 'success' && (
+                      <button type="button" className="btn btn-ghost btn-sm" style={{ padding: '2px 8px', color: 'inherit', borderColor: 'currentColor' }} onClick={() => downloadReport({ ...form, author: user.name, authorRole: user.role, time: new Date() })}>
+                        📥 Save Copy
+                      </button>
+                    )}
+                  </div>
+                )}
                 
                 <button className="btn btn-primary" style={{ height: 50, fontSize: 16, fontWeight: 800, background: '#1E293B', border: 'none', borderRadius: 8 }} disabled={submitting}>
                   {submitting ? '🚀 Submitting Official Record...' : '📜 Authenticate & Submit Report'}
@@ -185,6 +273,11 @@ export default function ReportsPage() {
                         <div style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'right' }}>
                           {new Date(r.time).toLocaleDateString()}<br/>
                           {new Date(r.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          <div style={{ marginTop: 8 }}>
+                            <button className="btn btn-ghost btn-sm" onClick={() => downloadReport(r)} title="Download Official Report">
+                              📥 Download
+                            </button>
+                          </div>
                         </div>
                       </div>
                       <div style={{ fontSize: 13, color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-wrap', borderTop: '1px solid var(--border)', paddingTop: 10 }}>
