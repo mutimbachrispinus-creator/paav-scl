@@ -13,7 +13,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fmtK } from '@/lib/cbe';
-import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
+import { getCachedUser, getCachedDBMulti, invalidateDB, prefetchKeys } from '@/lib/client-cache';
 import { ALL_NAV } from '@/lib/navigation';
 import { PRE, LOWER, UPPER, JSS, SENIOR } from '@/lib/cbe';
 import { useProfile } from '@/app/PortalShell';
@@ -273,7 +273,7 @@ export default function DashboardPage() {
         </div>
         <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
           {(() => {
-            const navTabs = ALL_NAV.filter(n => n.roles.includes(user?.role || 'member') && n.key !== 'fees');
+            const navTabs = ALL_NAV.filter(n => n.roles.includes(user?.role || 'member'));
             return navTabs.map(t => {
               const href = t.key === 'classes' ? '/classes' : `/${t.key}`;
               return (

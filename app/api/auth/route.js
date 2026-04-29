@@ -19,7 +19,7 @@ import {
   setSessionCookie, clearSessionCookie, getSession,
   ROLE_EMOJI, ROLE_COLOR,
 } from '@/lib/auth';
-import { kvGet, kvSet } from '@/lib/db';
+import { kvGet, kvSet, ensureSchema, query } from '@/lib/db';
 import { sendCredentialsSMS } from '@/lib/sms-client';
 
 /* ─── Helpers ───────────────────────────────────────────────────────────── */
@@ -41,6 +41,7 @@ export async function POST(request) {
   catch { return err('Invalid JSON body'); }
 
   const { action } = body;
+  await ensureSchema();
 
   try {
     switch (action) {
@@ -70,7 +71,6 @@ export async function GET(request) {
 async function handleLogin({ username, password }, request) {
   if (!username || !password) return err('Username and password are required');
 
-  const { query } = await import('@/lib/db');
   const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
   const user = rows[0];
 
