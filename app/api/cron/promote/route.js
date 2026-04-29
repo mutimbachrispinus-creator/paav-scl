@@ -32,13 +32,10 @@ export async function GET(req) {
       const currentGrade = l.grade;
       let nextGrade = currentGrade;
 
-      if (currentGrade === 'GRADE 12') {
+      if (currentGrade === 'GRADE 12' || currentGrade === 'GRADE 9') {
         nextGrade = 'ALUMNI';
       } else if (currentGrade === 'ALUMNI') {
         nextGrade = 'ALUMNI'; // Stay in alumni
-      } else if (currentGrade === 'GRADE 9') {
-        // As requested: "except for grade 9" — they remain in Grade 9
-        nextGrade = 'GRADE 9';
       } else {
         // Find index in ALL_GRADES and get next
         const idx = ALL_GRADES.indexOf(currentGrade);
