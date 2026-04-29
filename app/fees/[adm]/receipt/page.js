@@ -57,7 +57,8 @@ export default function LearnerReceiptPage() {
   const t3Fee = cfg.t3 || 0;
   const annualFee = (t1Fee + t2Fee + t3Fee) || cfg.annual || 5000;
   const paid = (learner.t1||0) + (learner.t2||0) + (learner.t3||0);
-  const bal = annualFee - paid;
+  const arrears = learner.arrears || 0;
+  const bal = annualFee + arrears - paid;
 
   return (
     <div style={{ maxWidth: 800, margin: '40px auto', padding: '40px', background: '#fff', border: '1px solid #ddd', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
@@ -86,18 +87,22 @@ export default function LearnerReceiptPage() {
       </div>
 
       <div style={{ background: '#F8FAFF', padding: '20px 24px', borderRadius: 12, border: '1px solid #E2E8F0', marginBottom: 30 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 15, borderBottom: '1px solid #E2E8F0', paddingBottom: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 15, marginBottom: 15, borderBottom: '1px solid #E2E8F0', paddingBottom: 10 }}>
           <div>
-            <div style={{ fontSize: 11, color: '#666' }}>TOTAL ANNUAL FEE</div>
-            <div style={{ fontSize: 22, fontWeight: 900 }}>KES {annualFee.toLocaleString()}</div>
+            <div style={{ fontSize: 10, color: '#666' }}>ARREARS B/F</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: arrears > 0 ? '#DC2626' : '#666' }}>KES {arrears.toLocaleString()}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: '#666' }}>ANNUAL FEE</div>
+            <div style={{ fontSize: 16, fontWeight: 800 }}>KES {annualFee.toLocaleString()}</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 11, color: '#666' }}>TOTAL PAID</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: '#059669' }}>KES {paid.toLocaleString()}</div>
+            <div style={{ fontSize: 10, color: '#666' }}>TOTAL PAID</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: '#059669' }}>KES {paid.toLocaleString()}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 11, color: '#666' }}>CURRENT BALANCE</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: bal > 0 ? '#DC2626' : '#059669' }}>KES {bal.toLocaleString()}</div>
+            <div style={{ fontSize: 10, color: '#666' }}>TOTAL BALANCE</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: bal > 0 ? '#DC2626' : '#059669' }}>KES {bal.toLocaleString()}</div>
           </div>
         </div>
         

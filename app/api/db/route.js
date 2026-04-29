@@ -218,6 +218,13 @@ async function handleRequest(req, auth) {
       return { type: req.type, ok: true };
     }
 
+    case 'recordPayment': {
+      if (!req.payment) return { type: req.type, error: 'payment object is required' };
+      const { kvRecordPayment } = await import('@/lib/db');
+      await kvRecordPayment(req.payment);
+      return { type: req.type, ok: true };
+    }
+
     case 'getDatabaseDump': {
       if (auth.role !== 'admin') return { error: 'Unauthorized' };
       const { query } = await import('@/lib/db');

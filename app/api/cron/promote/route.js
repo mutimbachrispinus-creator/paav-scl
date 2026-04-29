@@ -21,23 +21,29 @@ export async function GET(req) {
     // 1. Fetch current data
     const learners = await kvGet('paav6_learners', []);
     const lastYear = await kvGet('paav_last_promotion_year', 0);
+    const feeCfg   = await kvGet('paav6_feecfg', {});
 
     // 2. Prevent double execution in the same year
     if (currentYear <= lastYear) {
       return NextResponse.json({ ok: true, msg: `Promotion already completed for ${currentYear}.` });
     }
 
-    // 3. Promotion Logic
+    // 3. Promotion & Arrears Logic
     const promotedList = learners.map(l => {
       const currentGrade = l.grade;
       let nextGrade = currentGrade;
 
+      // Calculate Arrears
+      const annualFee = feeCfg[currentGrade]?.annual || 5000;
+      const paid = (l.t1 || 0) + (l.t2 || 0) + (l.t3 || 0);
+      const diff = annualFee - paid;
+      const accumulated = (l.arrears || 0) + (diff > 0 ? diff : 0);
+
       if (currentGrade === 'GRADE 12' || currentGrade === 'GRADE 9') {
         nextGrade = 'ALUMNI';
       } else if (currentGrade === 'ALUMNI') {
-        nextGrade = 'ALUMNI'; // Stay in alumni
+        nextGrade = 'ALUMNI'; 
       } else {
-        // Find index in ALL_GRADES and get next
         const idx = ALL_GRADES.indexOf(currentGrade);
         if (idx !== -1 && idx < ALL_GRADES.length - 1) {
           nextGrade = ALL_GRADES[idx + 1];
@@ -47,6 +53,7 @@ export async function GET(req) {
       return {
         ...l,
         grade: nextGrade,
+        arrears: accumulated,
         t1: 0,
         t2: 0,
         t3: 0

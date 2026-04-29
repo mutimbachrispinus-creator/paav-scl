@@ -123,7 +123,7 @@ export default function FeesPage() {
       const paid = l[term.toLowerCase()] || 0;
       return exp - paid;
     }
-    return getAnnualFee(l.grade) - (l.t1||0) - (l.t2||0) - (l.t3||0);
+    return getAnnualFee(l.grade) + (l.arrears || 0) - (l.t1||0) - (l.t2||0) - (l.t3||0);
   }
 
   const filtered = learners.filter(l => {
@@ -132,6 +132,7 @@ export default function FeesPage() {
     return hit && (!gradeF || l.grade === gradeF);
   });
 
+  const totalArrears = learners.reduce((s, l) => s + (l.arrears || 0), 0);
   const totalExp = learners.reduce((s, l) => {
     if (termF) return s + ((feeCfg[l.grade] || {})[termF.toLowerCase()] || 0);
     return s + getAnnualFee(l.grade);
@@ -140,7 +141,7 @@ export default function FeesPage() {
     if (termF) return s + (l[termF.toLowerCase()] || 0);
     return s + (l.t1 || 0) + (l.t2 || 0) + (l.t3 || 0);
   }, 0);
-  const totalBalance = totalExp - totalPaid;
+  const totalBalance = totalExp + (termF ? 0 : totalArrears) - totalPaid;
   const cleared = learners.filter(l => getBal(l, termF) <= 0).length;
 
   if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading fees…</div>;
@@ -502,68 +503,51 @@ function PayModal({ learner, feeCfg, onClose, recordedBy }) {
     if (!amount || Number(amount) <= 0) { setErr('Enter a valid amount'); return; }
     setBusy(true);
 
-    // 1. Load current learners list
-    const dbRes = await fetch('/api/db', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [
-        { type: 'get', key: 'paav6_learners' },
-        { type: 'get', key: 'paav6_paylog'  },
-      ]}),
-    });
-    const db     = await dbRes.json();
-    const list   = db.results[0]?.value || [];
-    const paylog = db.results[1]?.value || [];
-
-    // 2. Update learner's term payment
-    const termKey = term.toLowerCase();
-    const idx     = list.findIndex(l => l.adm === learner.adm);
-    if (idx >= 0) list[idx][termKey] = (list[idx][termKey]||0) + Number(amount);
-
-    // 3. Add to pay log
-    paylog.push({
-      id:     'p' + Date.now(),
-      date:   new Date().toLocaleDateString('en-KE'),
-      adm:    learner.adm,
-      name:   learner.name,
-      grade:  learner.grade,
-      term:   term,
-      amount: Number(amount),
-      method, ref,
-      by: recordedBy || 'Staff',
-      status: 'approved'
-    });
-
-    // 4. Save both
-    await fetch('/api/db', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [
-        { type: 'set', key: 'paav6_learners', value: list  },
-        { type: 'set', key: 'paav6_paylog',   value: paylog },
-      ]}),
-    });
-
-    // 5. Trigger email receipt (silent)
     try {
-      fetch('/api/email/receipt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          adm: learner.adm,
-          amount: Number(amount),
-          term,
-          ref,
-          balance: balance - Number(amount)
-        })
+      // Use the centralized server-side payment logic
+      await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [
+          { 
+            type: 'recordPayment', 
+            payment: {
+              adm:    learner.adm,
+              term,
+              amount: Number(amount),
+              method, ref,
+              by: recordedBy || 'Staff',
+              status: 'approved'
+            }
+          }
+        ]}),
       });
-    } catch (e) { console.error('Email trigger failed:', e); }
 
-    setBusy(false);
-    onClose();
+      // Trigger email receipt (silent)
+      try {
+        fetch('/api/email/receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            adm: learner.adm,
+            amount: Number(amount),
+            term,
+            ref,
+            balance: balance - Number(amount)
+          })
+        });
+      } catch (e) {}
+
+      setBusy(false);
+      onClose();
+    } catch (e) {
+      setErr(e.message);
+      setBusy(false);
+    }
   }
 
   const annualFee = getAnnualFee(learner.grade);
   const totalPaid = (learner.t1||0)+(learner.t2||0)+(learner.t3||0);
-  const balance   = annualFee - totalPaid;
+  const balance   = annualFee + (learner.arrears || 0) - totalPaid;
 
   return (
     <ModalOverlay title={`💰 Record Payment — ${learner.name}`} onClose={onClose}>

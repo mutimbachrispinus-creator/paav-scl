@@ -58,7 +58,7 @@ export default function PayPage() {
     setPaybillAccounts(pbas);
 
     // Pre-fill amount with outstanding balance
-    const fee = cfg[found.grade]?.annual || 5000;
+    const fee = (cfg[found.grade]?.annual || 5000) + (found.arrears || 0);
     const paid = (found.t1||0)+(found.t2||0)+(found.t3||0);
     setAmount(Math.max(0, fee - paid).toString());
   }
@@ -96,7 +96,7 @@ export default function PayPage() {
 
   const annualFee  = feeCfg[learner?.grade]?.annual || 5000;
   const totalPaid  = learner ? (learner.t1||0)+(learner.t2||0)+(learner.t3||0) : 0;
-  const balance    = annualFee - totalPaid;
+  const balance    = annualFee + (learner?.arrears || 0) - totalPaid;
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#050F1C,#0D1F3C)',

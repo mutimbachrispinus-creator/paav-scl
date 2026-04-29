@@ -64,7 +64,7 @@ export default function LearnersPage() {
   /* ── Fee helpers ── */
   function getAnnualFee(grade) { return feeCfg[grade]?.annual || 5000; }
   function getBal(l) {
-    return getAnnualFee(l.grade) - (l.t1||0) - (l.t2||0) - (l.t3||0);
+    return getAnnualFee(l.grade) + (l.arrears || 0) - (l.t1||0) - (l.t2||0) - (l.t3||0);
   }
 
   if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading learners…</div>;

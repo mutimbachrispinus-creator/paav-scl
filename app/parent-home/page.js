@@ -209,7 +209,7 @@ export default function ParentHome() {
 
   const exp = feeCfg[child?.grade]?.annual || 5000;
   const paid = (child?.t1||0)+(child?.t2||0)+(child?.t3||0);
-  const bal = exp - paid;
+  const bal = exp + (child?.arrears || 0) - paid;
   const subjs = DEFAULT_SUBJECTS[child?.grade] || [];
   const unr = messages.filter(m=>m.to==='ALL'||m.to==='ALL_PARENTS'||m.to===user.username).filter(m=>!(m.read||[]).includes(user.username)).length;
 
