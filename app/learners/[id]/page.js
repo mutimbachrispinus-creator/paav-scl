@@ -78,7 +78,7 @@ export default function LearnerProfilePage() {
   const t3Fee      = cfg.t3 || 0;
   const annualFee  = (t1Fee + t2Fee + t3Fee) || cfg.annual || 5000;
   const totalPaid  = (learner.t1||0) + (learner.t2||0) + (learner.t3||0);
-  const balance    = annualFee - totalPaid;
+  const balance    = annualFee + (learner.arrears || 0) - totalPaid;
 
   /* ── Marks for selected term + assessment ── */
   const marksRows = subjects.map(subj => {
@@ -155,6 +155,7 @@ export default function LearnerProfilePage() {
           </div>
           <div className="panel-body">
             {[
+              ['Arrears B/F', fmtK(learner.arrears || 0)],
               ['Annual Total', fmtK(annualFee)],
               ...(t1Fee || t2Fee || t3Fee ? [
                 [`T1 (Expected: ${fmtK(t1Fee)})`, `Paid: ${fmtK(learner.t1||0)}`],

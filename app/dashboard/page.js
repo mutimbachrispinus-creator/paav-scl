@@ -92,11 +92,12 @@ export default function DashboardPage() {
     return feeCfg[grade]?.annual || 5000;
   }
   function getBal(l) {
-    return getAnnualFee(l.grade) - (l.t1 || 0) - (l.t2 || 0) - (l.t3 || 0);
+    return getAnnualFee(l.grade) + (l.arrears || 0) - (l.t1 || 0) - (l.t2 || 0) - (l.t3 || 0);
   }
 
   const totalPaid = learners.reduce((s, l) => s + (l.t1||0) + (l.t2||0) + (l.t3||0), 0);
-  const totalExp  = learners.reduce((s, l) => s + getAnnualFee(l.grade), 0);
+  const totalArrears = learners.reduce((s, l) => s + (l.arrears || 0), 0);
+  const totalExp  = learners.reduce((s, l) => s + getAnnualFee(l.grade), 0) + totalArrears;
   const cleared   = learners.filter(l => getBal(l) <= 0).length;
   const unread    = messages.filter(m =>
     m.to === 'ALL' || m.to === 'ALL_STAFF'
