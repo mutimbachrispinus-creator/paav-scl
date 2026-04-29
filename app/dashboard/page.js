@@ -57,7 +57,10 @@ export default function DashboardPage() {
 
       if (!u) { router.push('/'); return; }
       setUser(u);
-      if (u.role === 'parent') { router.push('/parent-home'); return; }
+      if (u.role === 'parent') { 
+        router.replace('/parent-home'); 
+        return; 
+      }
 
       setLearners(db.paav6_learners || []);
       setPaylog(  db.paav6_paylog   || []);
@@ -157,7 +160,7 @@ export default function DashboardPage() {
     reader.readAsDataURL(file);
   }
 
-  if (loading || !user) return (
+  if (loading || !user || user.role === 'parent') return (
     <div className="page on" id="pg-dashboard">
       <div className="skeleton" style={{ height: 140, borderRadius: 12, marginBottom: 22 }} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 18 }}>
@@ -283,11 +286,13 @@ export default function DashboardPage() {
             onClick={() => router.push('/fees')}
           />
         )}
-        <StatCard icon="✅" bg="#F5F3FF" value={cleared} label="Fully Cleared"
-          sub={`${learners.length - cleared} with balance`} subBg="#FEF3C7" subColor="var(--amber)" 
-          onMouseEnter={() => prefetchKeys(['paav6_learners'])}
-          onClick={() => router.push('/learners')}
-        />
+        {['admin', 'staff'].includes(user?.role) && (
+          <StatCard icon="✅" bg="#F5F3FF" value={cleared} label="Fully Cleared"
+            sub={`${learners.length - cleared} with balance`} subBg="#FEF3C7" subColor="var(--amber)" 
+            onMouseEnter={() => prefetchKeys(['paav6_learners'])}
+            onClick={() => router.push('/learners')}
+          />
+        )}
         <StatCard icon="💬" bg="#EFF6FF" value={unread} label="New Messages"
           onMouseEnter={() => prefetchKeys(['paav6_msgs'])}
           onClick={() => router.push('/dashboard?tab=messages')} 
@@ -297,33 +302,35 @@ export default function DashboardPage() {
       {/* ── Charts row ── */}
       <div className="sg sg2">
         {/* Enrolment bars */}
-        <div className="panel">
-          <div className="panel-hdr"><h3>📚 Enrolment</h3></div>
-          <div className="panel-body">
-            {[...PRE, ...LOWER, ...UPPER, ...JSS, ...SENIOR].map(grade => {
-              const count = learners.filter(l => l.grade === grade).length;
-              const pct   = Math.min(100, count * 8);
-              const col   = SENIOR.includes(grade) ? '#B91C1C'
-                          : JSS.includes(grade)    ? '#7C3AED'
-                          : UPPER.includes(grade)  ? '#2563EB'
-                          : LOWER.includes(grade)  ? '#059669' : '#0D9488';
-              return (
-                <div key={grade} style={{ display: 'flex', alignItems: 'center', gap: 9,
-                  marginBottom: 6, fontSize: 11.5 }}>
-                  <div style={{ width: 78, color: 'var(--muted)', flexShrink: 0, fontSize: 10 }}>
-                    {grade.replace('KINDERGARTEN','KG')}
-                  </div>
-                  <div style={{ flex: 1, background: '#EEF2FF', borderRadius: 4, height: 17, overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.max(pct, 3)}%`, height: '100%', background: col,
-                      borderRadius: 4, display: 'flex', alignItems: 'center', padding: '0 7px' }}>
-                      <span style={{ fontSize: 10, color: '#fff', fontWeight: 700 }}>{count}</span>
+        {user?.role === 'admin' && (
+          <div className="panel">
+            <div className="panel-hdr"><h3>📚 Enrolment</h3></div>
+            <div className="panel-body">
+              {[...PRE, ...LOWER, ...UPPER, ...JSS, ...SENIOR].map(grade => {
+                const count = learners.filter(l => l.grade === grade).length;
+                const pct   = Math.min(100, count * 8);
+                const col   = SENIOR.includes(grade) ? '#B91C1C'
+                            : JSS.includes(grade)    ? '#7C3AED'
+                            : UPPER.includes(grade)  ? '#2563EB'
+                            : LOWER.includes(grade)  ? '#059669' : '#0D9488';
+                return (
+                  <div key={grade} style={{ display: 'flex', alignItems: 'center', gap: 9,
+                    marginBottom: 6, fontSize: 11.5 }}>
+                    <div style={{ width: 78, color: 'var(--muted)', flexShrink: 0, fontSize: 10 }}>
+                      {grade.replace('KINDERGARTEN','KG')}
+                    </div>
+                    <div style={{ flex: 1, background: '#EEF2FF', borderRadius: 4, height: 17, overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.max(pct, 3)}%`, height: '100%', background: col,
+                        borderRadius: 4, display: 'flex', alignItems: 'center', padding: '0 7px' }}>
+                        <span style={{ fontSize: 10, color: '#fff', fontWeight: 700 }}>{count}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {user?.role === "admin" && (
         <div className="panel">

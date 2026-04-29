@@ -121,7 +121,8 @@ export default function LoginPage() {
             localStorage.removeItem('paav_remember');
           }
           prefetchKeys(['paav6_learners', 'paav6_paylog', 'paav6_msgs', 'paav6_feecfg', 'paav7_hero_img']);
-          router.push('/dashboard');
+          const target = data.user.role === 'parent' ? '/parent-home' : '/dashboard';
+          router.push(target);
         } else if (tab === 'otp' || tab === 'register') {
           setOkMsg(`✅ Registered! Your username is: ${data.username}. Please login.`);
           setTab('login');
