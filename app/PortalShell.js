@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import ProfilePanel from '@/components/ProfilePanel';
 import { ALL_NAV } from '@/lib/navigation';
-import { getCachedUser, getCachedDBMulti, prefetchKeys, clearAllCache } from '@/lib/client-cache';
+import { getCachedUser, getCachedDBMulti, prefetchKeys, clearAllCache, fetchWithRetry } from '@/lib/client-cache';
 import { initSyncEngine, stopSyncEngine } from '@/lib/sync-engine';
 
 /**
@@ -204,11 +204,12 @@ export default function PortalShell({ children }) {
     clearTimeout(idleTimer.current);
     clearTimeout(warnTimer.current);
     clearInterval(countdownRef.current);
-    await fetch('/api/auth', {
+    await fetchWithRetry('/api/auth', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ action: 'logout' }),
-    });
+      timeout: 5000
+    }).catch(() => {}); // Logout failure shouldn't block UI redirection
     clearAllCache();
     window.location.href = '/';
   }
@@ -248,12 +249,13 @@ export default function PortalShell({ children }) {
 
   async function saveAnnouncement() {
     try {
-      await fetch('/api/db', {
+      await fetchWithRetry('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [
           { type: 'set', key: 'paav_announcement', value: { text: annDraft, active: !!annDraft, ts: Date.now() } }
-        ]})
+        ]}),
+        timeout: 8000
       });
       setAnnouncement(annDraft);
       setEditAnn(false);
@@ -268,9 +270,10 @@ export default function PortalShell({ children }) {
       const b64 = ev.target.result;
       setHeroUrl(b64);
       try {
-        await fetch('/api/db', {
+        await fetchWithRetry('/api/db', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_hero_img', value: b64 }] })
+          body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_hero_img', value: b64 }] }),
+          timeout: 15000
         });
       } catch {}
     };
@@ -286,9 +289,10 @@ export default function PortalShell({ children }) {
     setEditAnn(false);
     const ann = { text: annDraft, active: !!annDraft };
     setAnnouncement(annDraft);
-    const response = await fetch('/api/db', {
+    const response = await fetchWithRetry('/api/db', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_announcement', value: ann }] })
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_announcement', value: ann }] }),
+      timeout: 8000
     });
     if (response.ok) playSuccessSound();
   }

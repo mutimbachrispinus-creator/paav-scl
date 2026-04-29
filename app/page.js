@@ -11,7 +11,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { prefetchKeys, clearAllCache } from '@/lib/client-cache';
+import { prefetchKeys, clearAllCache, fetchWithRetry } from '@/lib/client-cache';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,13 +46,14 @@ export default function LoginPage() {
     async function loadStats() {
       try {
         const [statsRes, dbRes] = await Promise.all([
-          fetch('/api/stats'),
-          fetch('/api/db', {
+          fetchWithRetry('/api/stats', { timeout: 8000 }),
+          fetchWithRetry('/api/db', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ requests: [
               { type: 'get', key: 'paav7_announcement' },
               { type: 'get', key: 'paav7_hero_img' }
-            ] })
+            ] }),
+            timeout: 8000
           })
         ]);
         const s = await statsRes.json();
@@ -96,10 +97,11 @@ export default function LoginPage() {
 
       const actionPayload = tab === 'otp' ? 'register' : tab;
 
-      const res = await fetch('/api/auth', {
+      const res = await fetchWithRetry('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: actionPayload, ...form })
+        body: JSON.stringify({ action: actionPayload, ...form }),
+        timeout: 15000 // Allow 15s for auth operations
       });
 
       let data;
@@ -134,11 +136,17 @@ export default function LoginPage() {
         }
       }
     } catch (e) {
-      console.error('[LoginPage] Action Error:', e);
-      if (e.message?.includes('Failed to fetch')) {
-        setErr('❌ Network error. Please check your internet connection or server status.');
+      console.error('[LoginPage] Action Error Details:', {
+        message: e.message,
+        stack: e.stack,
+        tab,
+        action: tab === 'otp' ? 'register' : tab
+      });
+      
+      if (e.message?.toLowerCase().includes('failed to fetch') || e.message?.toLowerCase().includes('networkerror')) {
+        setErr('❌ Network connectivity error. The portal cannot reach the server. Please check your internet or if the server is running.');
       } else {
-        setErr(e.message || 'An unexpected error occurred');
+        setErr(e.message || 'An unexpected error occurred during processing');
       }
     } finally {
       setBusy(false);
