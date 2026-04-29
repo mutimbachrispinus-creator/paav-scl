@@ -99,27 +99,65 @@ export default function ReportsPage() {
 
         <div className="sg sg2" style={{ gridTemplateColumns: user.role === 'admin' ? '1fr 1.5fr' : '1fr' }}>
           {/* Submission Form */}
-          <div className="panel">
-            <div className="panel-hdr"><h3>📝 New Progress Report</h3></div>
-            <div className="panel-body">
-              <form onSubmit={submitReport}>
-                <div className="form-group">
-                  <label>Department</label>
-                  <input type="text" value={form.dept} onChange={e => setForm({...form, dept: e.target.value})} placeholder="e.g. Mathematics, Sports, Finance..." required />
+          <div className="panel" style={{ border: '1.5px solid var(--border)', background: '#F8FAFC' }}>
+            <div className="panel-hdr" style={{ background: 'linear-gradient(135deg, #1E293B, #0F172A)', color: '#fff' }}>
+              <h3 style={{ color: '#fff' }}>📄 Departmental Progress Submission</h3>
+            </div>
+            <div className="panel-body" style={{ padding: '25px' }}>
+              <form onSubmit={submitReport} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div style={{ background: '#fff', padding: '30px', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #E2E8F0', position: 'relative' }}>
+                  {/* Memorandum Header */}
+                  <div style={{ textAlign: 'center', marginBottom: 25, borderBottom: '2px solid #1E293B', paddingBottom: 15 }}>
+                    <div style={{ fontSize: 12, fontWeight: 900, color: '#1E293B', letterSpacing: '2px', marginBottom: 4 }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: '#0F172A', textTransform: 'uppercase' }}>Departmental Memorandum</div>
+                  </div>
+
+                  <div className="sg sg2" style={{ marginBottom: 20 }}>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#64748B' }}>Department</label>
+                      <input type="text" value={form.dept} onChange={e => setForm({...form, dept: e.target.value})} 
+                        placeholder="e.g. Mathematics Department" 
+                        style={{ border: 'none', borderBottom: '1.5px solid #CBD5E1', borderRadius: 0, padding: '8px 0', fontSize: 14, fontWeight: 600, background: 'transparent' }} required />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#64748B' }}>Subject/Title</label>
+                      <input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} 
+                        placeholder="e.g. Monthly Progress Update" 
+                        style={{ border: 'none', borderBottom: '1.5px solid #CBD5E1', borderRadius: 0, padding: '8px 0', fontSize: 14, fontWeight: 600, background: 'transparent' }} required />
+                    </div>
+                  </div>
+
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#64748B', display: 'block', marginBottom: 10 }}>Report Narrative</label>
+                    <textarea value={form.text} onChange={e => setForm({...form, text: e.target.value})} 
+                      placeholder="Type your official report here..." 
+                      style={{ 
+                        minHeight: 300, 
+                        resize: 'vertical', 
+                        border: '1px solid #E2E8F0', 
+                        borderRadius: 8, 
+                        padding: 15, 
+                        fontSize: 15, 
+                        lineHeight: 1.7, 
+                        fontFamily: 'Georgia, serif',
+                        background: '#FFFEFA', /* Subtle paper tint */
+                        color: '#1E293B'
+                      }} required />
+                  </div>
+
+                  <div style={{ marginTop: 20, paddingTop: 15, borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: 12, color: '#64748B' }}>
+                      Submitted by: <strong>{user?.name}</strong><br/>
+                      Date: {new Date().toLocaleDateString()}
+                    </div>
+                    <div style={{ opacity: 0.1, fontWeight: 900, fontSize: 24, userSelect: 'none' }}>OFFICIAL</div>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Report Title</label>
-                  <input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="e.g. Monthly Curriculum Coverage" required />
-                </div>
-                <div className="form-group">
-                  <label>Progress Details</label>
-                  <textarea value={form.text} onChange={e => setForm({...form, text: e.target.value})} 
-                    placeholder="Provide a detailed update on progress, challenges, and goals..." 
-                    style={{ minHeight: 180, resize: 'vertical' }} required />
-                </div>
-                {msg.text && <div className={`msg ${msg.type}`} style={{ marginBottom: 15 }}>{msg.text}</div>}
-                <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} disabled={submitting}>
-                  {submitting ? 'Submitting...' : '🚀 Submit Report'}
+
+                {msg.text && <div className={`msg ${msg.type}`}>{msg.text}</div>}
+                
+                <button className="btn btn-primary" style={{ height: 50, fontSize: 16, fontWeight: 800, background: '#1E293B', border: 'none', borderRadius: 8 }} disabled={submitting}>
+                  {submitting ? '🚀 Submitting Official Record...' : '📜 Authenticate & Submit Report'}
                 </button>
               </form>
             </div>
