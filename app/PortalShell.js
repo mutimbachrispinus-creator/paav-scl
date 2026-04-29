@@ -141,7 +141,8 @@ export default function PortalShell({ children }) {
         
         prefetchKeys([
           'paav6_learners', 'paav6_staff', 'paav6_marks',
-          'paav6_feecfg',  'paav_calendar_events', 'paav_presence'
+          'paav6_feecfg',  'paav_calendar_events', 'paav_presence',
+          'paav6_dept_reports'
         ]);
       }
     } catch (e) {

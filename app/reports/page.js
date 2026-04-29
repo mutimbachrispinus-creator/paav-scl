@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import PortalShell from '@/app/PortalShell';
+import { invalidateDB } from '@/lib/client-cache';
 
 export default function ReportsPage() {
   const [user, setUser] = useState(null);
@@ -71,6 +72,7 @@ export default function ReportsPage() {
         body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_dept_reports', value: list }] })
       });
 
+      invalidateDB('paav6_dept_reports');
       setForm({ dept: '', title: '', text: '' });
       setMsg({ type: 'success', text: '✅ Report submitted successfully to administration!' });
       if (user.role === 'admin') load();

@@ -140,6 +140,10 @@ export default function ParentHome() {
 
   function printReceipt(p) {
     const win = window.open('', '_blank');
+    if (!win) {
+      alert('⚠️ Popup blocked! Please allow popups for this site to download receipts.');
+      return;
+    }
     win.document.write(`
       <html>
         <head>
