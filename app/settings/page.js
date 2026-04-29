@@ -56,6 +56,7 @@ export default function SettingsHubPage() {
     { title: '📚 Subjects', desc: 'Add or remove subjects per grade level', href: '/settings/subjects', icon: '📖' },
     { title: '🏫 Streams & Classes', desc: 'Manage class streams and identifiers', href: '/settings/streams', icon: '🏢' },
     { title: '📅 Timetable', desc: 'Configure lesson times and breaks', href: '/settings/timetable', icon: '⏰' },
+    { title: '📱 SMS Configuration', desc: 'Manage Africa\'s Talking API credentials', href: '/settings/sms', icon: '📱' },
     { title: '🎨 Portal Branding', desc: 'Hero images and announcements', href: '/settings/portal', icon: '✨' },
     { title: '👤 My Profile', desc: 'Update your personal info and security', href: '/dashboard?tab=profile', icon: '🔑' },
     { title: '🗄️ Database Storage', desc: usage ? `Usage: ${usage.percent.toFixed(2)}% (${(usage.totalBytes / 1024 / 1024).toFixed(1)} MB / 9 GB)` : 'Loading database stats...', href: '#', icon: '💾' },

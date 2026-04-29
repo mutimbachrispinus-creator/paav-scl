@@ -123,7 +123,7 @@ export default function ReportCardPage() {
         </button>
         
         <EmailButton adm={admNo} term={term} email={learner.parentEmail} />
-        <WhatsAppButton adm={admNo} term={term} phone={learner.phone} />
+        <SMSButton adm={admNo} term={term} phone={learner.phone} />
 
         <button onClick={() => window.print()} className="btn btn-gold btn-sm" style={{ marginLeft: 'auto' }}>
           🖨️ Print / PDF
@@ -403,12 +403,12 @@ function EmailButton({ adm, term, email }) {
   );
 }
 
-function WhatsAppButton({ adm, term, phone }) {
+function SMSButton({ adm, term, phone }) {
   const [status, setStatus] = useState('idle'); // 'idle' | 'sending' | 'sent' | 'error'
 
   async function send() {
     if (!phone) { alert('No parent phone number set for this learner.'); return; }
-    if (!confirm(`Send WhatsApp results to ${phone}?`)) return;
+    if (!confirm(`Send SMS results to ${phone}?`)) return;
 
     setStatus('sending');
     try {
@@ -422,7 +422,7 @@ function WhatsAppButton({ adm, term, phone }) {
         setStatus('sent');
         setTimeout(() => setStatus('idle'), 3000);
       } else {
-        alert(data.error || 'Failed to send WhatsApp message');
+        alert(data.error || 'Failed to send SMS');
         setStatus('error');
       }
     } catch (e) {
@@ -437,14 +437,14 @@ function WhatsAppButton({ adm, term, phone }) {
       disabled={status === 'sending'}
       className="btn btn-sm"
       style={{
-        background: status === 'sent' ? '#16a34a' : '#25D366',
+        background: status === 'sent' ? '#16a34a' : '#1e293b',
         color: '#fff',
         border: 'none',
         marginLeft: 10,
         opacity: status === 'sending' ? 0.7 : 1
       }}
     >
-      {status === 'sending' ? '⏳ Sending...' : status === 'sent' ? '✅ Sent!' : '📱 WhatsApp Results'}
+      {status === 'sending' ? '⏳ Sending...' : status === 'sent' ? '✅ Sent!' : '📱 SMS Results'}
     </button>
   );
 }

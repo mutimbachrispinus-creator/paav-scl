@@ -377,7 +377,7 @@ export default function FeesPage() {
                           onClick={() => { setSelLearner(l); setModal('pay'); }}>
                           + Pay
                         </button>
-                        <WhatsAppReminderButton adm={l.adm} balance={bal} phone={l.phone} />
+                        <SMSReminderButton adm={l.adm} balance={bal} phone={l.phone} />
                         <button className="btn btn-ghost btn-sm" style={{ marginLeft: 4 }}
                           onClick={() => router.push(`/fees/${l.adm}/receipt`)}>
                           🧾
@@ -725,14 +725,14 @@ function ModalOverlay({ title, onClose, children }) {
   );
 }
 
-function WhatsAppReminderButton({ adm, balance, phone }) {
+function SMSReminderButton({ adm, balance, phone }) {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
   async function send() {
     if (balance <= 0) return;
     if (!phone) { alert('No phone number set for this parent.'); return; }
-    if (!confirm(`Send WhatsApp fee reminder to ${phone}?`)) return;
+    if (!confirm(`Send SMS fee reminder to ${phone}?`)) return;
 
     setBusy(true);
     try {
@@ -746,7 +746,7 @@ function WhatsAppReminderButton({ adm, balance, phone }) {
         setSent(true);
         setTimeout(() => setSent(false), 3000);
       } else {
-        alert(data.error || 'Failed to send WhatsApp message');
+        alert(data.error || 'Failed to send SMS');
       }
     } catch (e) {
       console.error(e);
@@ -764,12 +764,12 @@ function WhatsAppReminderButton({ adm, balance, phone }) {
       disabled={busy}
       style={{ 
         marginLeft: 4, 
-        background: sent ? '#16a34a' : '#25D366', 
+        background: sent ? '#16a34a' : '#1e293b', 
         color: '#fff', 
         border: 'none',
         opacity: busy ? 0.7 : 1
       }}
-      title="Send WhatsApp Reminder"
+      title="Send SMS Reminder"
     >
       {busy ? '⏳' : sent ? '✅' : '📱'}
     </button>

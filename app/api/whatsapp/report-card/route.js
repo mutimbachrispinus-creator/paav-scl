@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sendWhatsApp, getResultNotificationMessage } from '@/lib/twilio';
+import { sendSMS, getResultNotificationMessage } from '@/lib/sms-client';
 import { kvGet } from '@/lib/db';
 import { DEFAULT_SUBJECTS, gInfo, maxPts } from '@/lib/cbe';
 
@@ -9,10 +9,11 @@ export async function POST(req) {
 
     if (!adm || !term) return NextResponse.json({ error: 'ADM and Term required' }, { status: 400 });
 
-    const [learners, marks, gradCfg] = await Promise.all([
+    const [learners, marks, gradCfg, savedCreds] = await Promise.all([
       kvGet('paav6_learners'),
       kvGet('paav6_marks'),
       kvGet('paav8_grad'),
+      kvGet('paav_at_creds')
     ]);
 
     const learner = (learners || []).find(l => l.adm === adm);
@@ -47,18 +48,25 @@ export async function POST(req) {
     const mPts = maxPts(learner.grade, subjects);
     const message = getResultNotificationMessage(learner.name, term.replace('T',''), totalPts, mPts);
 
-    const result = await sendWhatsApp({
+    const creds = {
+      username: savedCreds?.username || process.env.AT_USERNAME || 'sandbox',
+      apiKey:   savedCreds?.apiKey   || process.env.AT_API_KEY  || '',
+      senderId: savedCreds?.senderId || process.env.AT_SENDER_ID || '',
+    };
+
+    const result = await sendSMS({
       to: learner.phone,
-      body: message
+      message,
+      ...creds
     });
 
-    if (result.error) {
+    if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('WhatsApp Results API error:', err);
+    console.error('SMS Results API error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
