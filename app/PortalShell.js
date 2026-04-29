@@ -40,15 +40,58 @@ export default function PortalShell({ children }) {
   });
 
 
-  const [announcement, setAnnouncement] = useState('');
-  const [unreadCount,  setUnreadCount]  = useState(0);
+  const [announcement, setAnnouncement] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    try {
+      const raw = localStorage.getItem('paav_cache_db_paav_announcement');
+      if (raw) {
+        const { v } = JSON.parse(raw);
+        if (v?.text && v?.active) return v.text;
+      }
+    } catch {}
+    return '';
+  });
+
+  const [unreadCount, setUnreadCount] = useState(() => {
+    if (typeof window === 'undefined') return 0;
+    try {
+      const rawUser = localStorage.getItem('paav_cache_user');
+      const rawMsgs = localStorage.getItem('paav_cache_db_paav6_msgs');
+      if (rawUser && rawMsgs) {
+        const { v: u } = JSON.parse(rawUser);
+        const { v: msgs } = JSON.parse(rawMsgs);
+        if (u && Array.isArray(msgs)) {
+          return msgs.filter(m => 
+            !m.read?.includes(u.username) && (
+              m.to === 'ALL' || 
+              m.to === u.username || 
+              (m.to === 'ALL_STAFF' && ['admin','teacher','staff'].includes(u.role)) ||
+              (m.to === 'ALL_PARENTS' && u.role === 'parent')
+            )
+          ).length;
+        }
+      }
+    } catch {}
+    return 0;
+  });
+
   const [pendingDuties, setPendingDuties] = useState(0);
   const [pendingReqs,   setPendingReqs]   = useState(0);
   const [showBanner,   setShowBanner]   = useState(false);
   const [countdown,    setCountdown]    = useState(60);
   const [editAnn,      setEditAnn]      = useState(false);
   const [annDraft,     setAnnDraft]     = useState('');
-  const [heroUrl,      setHeroUrl]      = useState('');
+  const [heroUrl,      setHeroUrl]      = useState(() => {
+    if (typeof window === 'undefined') return '';
+    try {
+      const raw = localStorage.getItem('paav_cache_db_paav_hero_img');
+      if (raw) {
+        const { v } = JSON.parse(raw);
+        return v || '';
+      }
+    } catch {}
+    return '';
+  });
   const [showProfile,  setShowProfile]  = useState(false);
 
   const idleTimer    = useRef(null);
