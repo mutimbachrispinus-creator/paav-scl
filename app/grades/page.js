@@ -83,6 +83,17 @@ export default function GradesPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    const handler = (e) => {
+      const changed = e.detail?.changed || [];
+      if (changed.includes('paav6_marks') || changed.includes('paav_marks_locked')) {
+        load();
+      }
+    };
+    window.addEventListener('paav:sync', handler);
+    return () => window.removeEventListener('paav:sync', handler);
+  }, [load]);
+
   /* ── Derived ── */
   const classLearners = learners.filter(l => l.grade === grade)
     .sort((a, b) => a.name.localeCompare(b.name));

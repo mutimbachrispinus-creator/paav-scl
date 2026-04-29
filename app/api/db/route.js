@@ -68,7 +68,10 @@ export async function GET(request) {
     const key = searchParams.get('key');
     if (!key) return NextResponse.json({ error: 'key is required' }, { status: 400 });
 
-    let value = await kvGet(key);
+    let { value, updatedAt } = await (async () => {
+      const { kvGetWithMeta } = await import('@/lib/db');
+      return await kvGetWithMeta(key);
+    })();
 
     // Security: Filter staff requests if not admin
     if (key === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
@@ -77,7 +80,7 @@ export async function GET(request) {
       }
     }
 
-    return NextResponse.json({ key, value });
+    return NextResponse.json({ key, value, updatedAt });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -88,7 +91,8 @@ async function handleRequest(req, auth) {
   switch (req.type) {
     /* ── Read one key ── */
     case 'get': {
-      let value = await kvGet(req.key, null);
+      const { kvGetWithMeta } = await import('@/lib/db');
+      let { value, updatedAt } = await kvGetWithMeta(req.key);
       
       // Security: Filter staff requests if not admin
       if (req.key === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
@@ -97,7 +101,7 @@ async function handleRequest(req, auth) {
         }
       }
       
-      return { type: 'get', key: req.key, value };
+      return { type: 'get', key: req.key, value, updatedAt };
     }
 
     /* ── Write one key ── */
@@ -175,6 +179,14 @@ async function handleRequest(req, auth) {
       return { type: req.type, adm: req.adm, ok: true };
     }
 
+    case 'updateLearner': {
+      if (auth.role !== 'admin') return { type: req.type, error: 'Unauthorized' };
+      if (!req.oldAdm || !req.details) return { type: req.type, error: 'oldAdm and details are required' };
+      const { kvUpdateLearner } = await import('@/lib/db');
+      await kvUpdateLearner(req.oldAdm, req.details);
+      return { type: req.type, ok: true };
+    }
+
     case 'updateMark': {
       if (!req.gsa || !req.adm) return { type: req.type, error: 'gsa and adm are required' };
       const { kvUpdateMark } = await import('@/lib/db');
@@ -229,9 +241,11 @@ async function handleRequest(req, auth) {
       const keys = Array.isArray(req.keys) ? req.keys : [];
       if (!keys.length) return { type: 'getAll', data: {} };
 
+      const { kvGetWithMeta } = await import('@/lib/db');
       const data = {};
+      const meta = {};
       await Promise.all(keys.map(async (k) => {
-        let value = await kvGet(k);
+        let { value, updatedAt } = await kvGetWithMeta(k);
         // Security: Filter staff requests if not admin
         if (k === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
           if (Array.isArray(value)) value = value.filter(r => r.userId === auth.id);
@@ -244,8 +258,9 @@ async function handleRequest(req, auth) {
           }
         }
         data[k] = value;
+        meta[k] = updatedAt;
       }));
-      return { type: 'getAll', data };
+      return { type: 'getAll', data, meta };
     }
     
     case 'storageUsage': {

@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import ProfilePanel from '@/components/ProfilePanel';
 import { ALL_NAV } from '@/lib/navigation';
 import { getCachedUser, getCachedDBMulti, prefetchKeys, clearAllCache } from '@/lib/client-cache';
+import { initSyncEngine, stopSyncEngine } from '@/lib/sync-engine';
 
 /**
  * app/PortalShell.js — Client-side portal shell
@@ -151,8 +152,24 @@ export default function PortalShell({ children }) {
   }, []);
 
   useEffect(() => {
-    if (showNav) loadSession();
+    if (showNav) {
+      loadSession();
+      initSyncEngine();
+    }
+    return () => stopSyncEngine();
   }, [showNav, loadSession]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const changed = e.detail?.changed || [];
+      // Refresh shell state if relevant keys changed
+      if (changed.some(k => ['paav_announcement','paav6_msgs','paav_hero_img','paav7_duties','paav_staff_reqs'].includes(k))) {
+        loadSession();
+      }
+    };
+    window.addEventListener('paav:sync', handler);
+    return () => window.removeEventListener('paav:sync', handler);
+  }, [loadSession]);
 
   useEffect(() => {
     if (pathname && !NO_NAV_PATHS.includes(pathname)) {

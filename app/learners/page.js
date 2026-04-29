@@ -52,6 +52,14 @@ export default function LearnersPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail?.changed?.includes('paav6_learners')) load();
+    };
+    window.addEventListener('paav:sync', handler);
+    return () => window.removeEventListener('paav:sync', handler);
+  }, [load]);
+
   /* ── Filtered list ── */
   const filtered = learners.filter(l => {
     const q = query.toLowerCase();
@@ -171,6 +179,13 @@ export default function LearnersPage() {
                           👁 View
                         </button>
                         {user?.role === 'admin' && (
+                          <button className="btn btn-ghost btn-sm"
+                            style={{ marginLeft: 4 }}
+                            onClick={() => setModal({ type: 'edit', learner: l })}>
+                            ✏️ Edit
+                          </button>
+                        )}
+                        {user?.role === 'admin' && (
                           <>
                             <button className="btn btn-gold btn-sm"
                               style={{ marginLeft: 4 }}
@@ -205,6 +220,7 @@ export default function LearnersPage() {
       {/* ── Modals ── */}
       {modal === 'add'     && <AddLearnerModal     onClose={() => { setModal(null); load(); }} />}
       {modal === 'promote' && <PromoteLearnersModal onClose={() => { setModal(null); load(); }} learners={learners} />}
+      {modal?.type === 'edit' && <EditLearnerModal onClose={() => { setModal(null); load(); }} learner={modal.learner} />}
     </>
   );
 }
@@ -404,6 +420,101 @@ function PromoteLearnersModal({ onClose, learners }) {
           </div>
         </div>
       )}
+    </ModalOverlay>
+  );
+}
+
+
+/* ─── Edit Learner Modal ───────────────────────────────────────────────── */
+function EditLearnerModal({ onClose, learner }) {
+  const [form, setForm] = useState({ ...learner });
+  const [err,  setErr]  = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    if (!form.name || !form.grade || !form.adm) { setErr('Name, Grade and Adm No are required'); return; }
+    setBusy(true);
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requests: [{
+            type: 'updateLearner',
+            oldAdm: learner.adm,
+            details: {
+              ...form,
+              name: form.name.toUpperCase(),
+              age: Number(form.age) || ''
+            }
+          }]
+        })
+      });
+      const data = await res.json();
+      if (data.results?.[0]?.error) {
+        setErr(data.results[0].error);
+      } else {
+        onClose();
+      }
+    } catch (e) {
+      setErr('Failed to save changes');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <ModalOverlay title={`✏️ Edit Learner: ${learner.name}`} onClose={onClose}>
+      {err && <div className="alert alert-err show">{err}</div>}
+      <div className="field-row">
+        <div className="field"><label>Full Name</label>
+          <input value={form.name} onChange={e => F('name', e.target.value)} /></div>
+        <div className="field"><label>Grade</label>
+          <select value={form.grade} onChange={e => F('grade', e.target.value)}>
+            <option value="">Select</option>
+            {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
+          </select></div>
+      </div>
+      <div className="field-row">
+        <div className="field"><label>Date of Birth</label>
+          <input type="date" value={form.dob || ''} onChange={e => F('dob', e.target.value)} /></div>
+        <div className="field"><label>Adm No</label>
+          <input value={form.adm} onChange={e => F('adm', e.target.value)} /></div>
+      </div>
+      <div className="field-row">
+        <div className="field"><label>Sex</label>
+          <select value={form.sex} onChange={e => F('sex', e.target.value)}>
+            <option>Female</option><option>Male</option>
+          </select></div>
+        <div className="field"><label>Age</label>
+          <input type="number" value={form.age} onChange={e => F('age', e.target.value)} min="3" max="25" /></div>
+      </div>
+      <div className="field-row">
+        <div className="field"><label>Stream</label>
+          <input value={form.stream || ''} onChange={e => F('stream', e.target.value)} placeholder="e.g. West" /></div>
+        <div className="field"><label>Class Teacher</label>
+          <input value={form.teacher || ''} onChange={e => F('teacher', e.target.value)} /></div>
+      </div>
+      <div className="field-row">
+        <div className="field"><label>Parent / Guardian</label>
+          <input value={form.parent} onChange={e => F('parent', e.target.value)} /></div>
+        <div className="field"><label>Phone</label>
+          <input value={form.phone} onChange={e => F('phone', e.target.value)} type="tel" placeholder="07XXXXXXXX" /></div>
+      </div>
+      <div className="field"><label>Parent Email</label>
+        <input value={form.parentEmail || ''} onChange={e => F('parentEmail', e.target.value)} type="email" /></div>
+      <div className="field"><label>Address</label>
+        <input value={form.addr || ''} onChange={e => F('addr', e.target.value)} /></div>
+      
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 15 }}>
+        <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
+        <button className="btn btn-primary btn-sm" onClick={save} disabled={busy}
+          style={{ width: 'auto', opacity: busy ? 0.7 : 1 }}>
+          {busy ? '⏳ Saving…' : '✅ Save Changes'}
+        </button>
+      </div>
     </ModalOverlay>
   );
 }
