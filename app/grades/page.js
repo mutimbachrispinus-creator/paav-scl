@@ -205,6 +205,80 @@ export default function GradesPage() {
     });
   }
 
+  /* ── Clear marks ── */
+  async function clearAllInView() {
+    if (isLocked && user?.role !== 'admin') {
+      alert('Marks are locked. Only admin can clear.');
+      return;
+    }
+    if (!confirm(`Are you sure you want to PERMANENTLY CLEAR ALL MARKS for ${grade} ${term} ${assess}? This cannot be undone.`)) return;
+    
+    setSaving(true);
+    try {
+      const updates = [];
+      const currentMarks = { ...marks };
+      
+      for (const subj of subjects) {
+        const gsa = `${term}:${grade}|${subj}|${assess}`;
+        for (const l of classLearners) {
+          updates.push({ gsa, adm: l.adm, score: undefined });
+          if (currentMarks[gsa]) delete currentMarks[gsa][l.adm];
+        }
+      }
+      
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'updateMarksBulk', marks: updates }] })
+      });
+      
+      setMarks(currentMarks);
+      setDirtyMarks([]);
+      setAlert({ msg: '🗑️ All marks in this view cleared!', type: 'ok' });
+      setTimeout(() => setAlert({ msg: '', type: '' }), 3000);
+    } catch (e) {
+      alert('Failed to clear marks: ' + e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function clearLearnerMarks(l) {
+    if (isLocked && user?.role !== 'admin') {
+      alert('Marks are locked.');
+      return;
+    }
+    if (!confirm(`Clear all marks for ${l.name} in this assessment?`)) return;
+    
+    setSaving(true);
+    try {
+      const updates = [];
+      const currentMarks = { ...marks };
+      
+      for (const subj of subjects) {
+        const gsa = `${term}:${grade}|${subj}|${assess}`;
+        updates.push({ gsa, adm: l.adm, score: undefined });
+        if (currentMarks[gsa]) delete currentMarks[gsa][l.adm];
+      }
+      
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'updateMarksBulk', marks: updates }] })
+      });
+      
+      setMarks(currentMarks);
+      // Remove from dirty if present
+      setDirtyMarks(prev => prev.filter(m => m.adm !== l.adm || !m.gsa.includes(`${term}:${grade}`)));
+      setAlert({ msg: `🗑️ Marks for ${l.name} cleared!`, type: 'ok' });
+      setTimeout(() => setAlert({ msg: '', type: '' }), 3000);
+    } catch (e) {
+      alert('Failed to clear marks: ' + e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   /* ── Grade scale pills ── */
   const scale = isJSSGrade(grade) ? JSS_SCALE : PRIMARY_SCALE;
 
@@ -230,6 +304,11 @@ export default function GradesPage() {
           <button className="btn btn-ghost btn-sm no-print" onClick={() => window.print()}>
             🖨️ Print
           </button>
+          {user?.role === 'admin' && (
+            <button className="btn btn-danger btn-sm" onClick={clearAllInView} disabled={saving}>
+              🗑️ Clear All
+            </button>
+          )}
           <button className="btn btn-primary btn-sm" onClick={save} disabled={saving}>
             {saving ? '⏳ Saving…' : '💾 Save Marks'}
           </button>
@@ -324,6 +403,7 @@ export default function GradesPage() {
                   <th style={{ minWidth: 60, textAlign: 'center' }}>Pts</th>
                   <th style={{ minWidth: 52, textAlign: 'center' }}>Max</th>
                   <th style={{ minWidth: 52, textAlign: 'center' }}>%</th>
+                  <th style={{ minWidth: 40 }} className="no-print"></th>
                 </tr>
               </thead>
               <tbody>
@@ -392,13 +472,26 @@ export default function GradesPage() {
                           : 'var(--muted)' }}>
                         {entered > 0 ? Math.round((totalPts / maxTotal) * 100) + '%' : '—'}
                       </td>
+                      <td className="no-print">
+                        <button className="btn btn-ghost btn-xs" 
+                          style={{ color: 'var(--red)', padding: '2px 4px' }}
+                          title="Clear marks for this learner"
+                          onClick={() => clearLearnerMarks(l)}>
+                          🗑️
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
-          <div className="panel-footer no-print" style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 20px', background: '#f8fafc', borderTop: '1.5px solid var(--border)', borderRadius: '0 0 12px 12px' }}>
+          <div className="panel-footer no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '12px 20px', background: '#f8fafc', borderTop: '1.5px solid var(--border)', borderRadius: '0 0 12px 12px' }}>
+            {user?.role === 'admin' && (
+              <button className="btn btn-danger" onClick={clearAllInView} disabled={saving}>
+                🗑️ Clear This Assessment
+              </button>
+            )}
             <button className="btn btn-primary" onClick={() => save()} disabled={saving} style={{ padding: '10px 24px', fontSize: 14 }}>
               {saving ? '⏳ Saving…' : '💾 Save All Marks Now'}
             </button>
