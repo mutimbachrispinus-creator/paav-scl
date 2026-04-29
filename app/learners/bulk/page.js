@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ALL_GRADES } from '@/lib/cbe';
+import { invalidateDB } from '@/lib/client-cache';
 
 const EMPTY_ROW = { 
   adm: '', name: '', dob: '', grade: 'GRADE 7', sex: 'F', age: '', 
@@ -22,15 +23,24 @@ export default function BulkLearnersPage() {
   const [rows, setRows] = useState(() => Array(20).fill(null).map(() => ({ ...EMPTY_ROW })));
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [learners, setLearners] = useState([]);
   const [bulkGrade, setBulkGrade] = useState('GRADE 7');
 
   useEffect(() => {
     async function check() {
       const res = await fetch('/api/auth');
-      const data = await res.json();
-      if (!data.ok || !['admin','teacher','jss_teacher','senior_teacher'].includes(data.user?.role)) {
+      const auth = await res.json();
+      if (!auth.ok || !['admin','teacher','jss_teacher','senior_teacher'].includes(auth.user?.role)) {
         router.push('/'); return;
       }
+
+      const dbRes = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_learners' }] })
+      });
+      const dbData = await dbRes.json();
+      setLearners(dbData.results[0]?.value || []);
 
       setLoading(false);
     }
@@ -39,7 +49,17 @@ export default function BulkLearnersPage() {
 
   function updateRow(idx, field, val) {
     const newRows = [...rows];
-    newRows[idx] = { ...newRows[idx], [field]: val };
+    let row = { ...newRows[idx], [field]: val };
+    
+    // Auto-lookup if ADM changes
+    if (field === 'adm' && val) {
+      const existing = learners.find(l => l.adm === val);
+      if (existing) {
+        row = { ...row, ...existing };
+      }
+    }
+    
+    newRows[idx] = row;
     setRows(newRows);
   }
 
@@ -61,28 +81,15 @@ export default function BulkLearnersPage() {
       const res = await fetch('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_learners' }] })
+        body: JSON.stringify({ requests: [{ type: 'bulkAddLearners', learners: validRows }] })
       });
-      const data = await res.json();
-      const current = data.results[0]?.value || [];
+      if (!res.ok) throw new Error('API request failed');
       
-      const updated = [...current, ...validRows.map(r => ({
-        ...r,
-        name: r.name.toUpperCase(),
-        age: r.age || '',
-        parentEmail: r.parentEmail || '',
-        addr: r.addr || '',
-        teacher: '',
-        t1: 0, t2: 0, t3: 0
-      }))];
+      // Invalidate local cache and notify app
+      invalidateDB('paav6_learners');
+      window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav6_learners'] } }));
       
-      await fetch('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_learners', value: updated }] })
-      });
-      
-      alert(`✅ Successfully added ${validRows.length} learners!`);
+      alert(`✅ Successfully saved ${validRows.length} learners!`);
       router.push('/learners');
     } catch (e) {
       alert('❌ Error: ' + e.message);

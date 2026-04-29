@@ -201,6 +201,14 @@ async function handleRequest(req, auth) {
       return { type: req.type, ok: true };
     }
 
+    case 'bulkAddLearners': {
+      if (auth.role !== 'admin' && auth.role !== 'teacher') return { type: req.type, error: 'Unauthorized' };
+      if (!Array.isArray(req.learners)) return { type: req.type, error: 'learners array is required' };
+      const { kvBulkAddLearners } = await import('@/lib/db');
+      await kvBulkAddLearners(req.learners);
+      return { type: req.type, ok: true };
+    }
+
     case 'updateAttendanceBulk': {
       if (!req.attMap) return { type: req.type, error: 'attMap is required' };
       const { kvUpdateAttendanceBulk } = await import('@/lib/db');
