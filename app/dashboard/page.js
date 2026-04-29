@@ -85,6 +85,17 @@ export default function DashboardPage() {
   }, [router]);
 
   useEffect(() => { load(); }, [load]);
+  
+  useEffect(() => {
+    const handler = (e) => {
+      const changed = e.detail?.changed || [];
+      if (changed.some(k => ['paav6_paylog', 'paav6_learners', 'paav6_msgs'].includes(k))) {
+        load();
+      }
+    };
+    window.addEventListener('paav:sync', handler);
+    return () => window.removeEventListener('paav:sync', handler);
+  }, [load]);
 
 
   /* ── Derived stats ── */
@@ -138,6 +149,27 @@ export default function DashboardPage() {
       img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
+  }
+
+  async function clearPayment(p) {
+    if (user?.role !== 'admin') return;
+    if (!confirm(`Are you sure you want to delete the payment of ${fmtK(p.amount)} for ${p.name}? This will reverse the balance update.`)) return;
+    
+    setBusy(true);
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'deletePayment', id: p.id }] })
+      });
+      if (!res.ok) throw new Error('API failed');
+      playSuccessSound();
+      load(); // Refresh
+    } catch (e) {
+      alert('Failed to delete payment: ' + e.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function uploadHero(e) {
@@ -410,6 +442,14 @@ export default function DashboardPage() {
               <div style={{ fontWeight: 800, color: 'var(--green)', fontSize: 12.5 }}>
                 {fmtK(p.amount)}
               </div>
+              {user?.role === 'admin' && (
+                <button className="btn btn-ghost btn-xs" 
+                  style={{ color: 'var(--red)', marginLeft: 8 }}
+                  title="Delete this payment"
+                  onClick={() => clearPayment(p)}>
+                  🗑️
+                </button>
+              )}
             </div>
           ))}
           {paylog.length === 0 && (
