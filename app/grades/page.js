@@ -398,6 +398,11 @@ export default function GradesPage() {
               </tbody>
             </table>
           </div>
+          <div className="panel-footer no-print" style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 20px', background: '#f8fafc', borderTop: '1.5px solid var(--border)', borderRadius: '0 0 12px 12px' }}>
+            <button className="btn btn-primary" onClick={() => save()} disabled={saving} style={{ padding: '10px 24px', fontSize: 14 }}>
+              {saving ? '⏳ Saving…' : '💾 Save All Marks Now'}
+            </button>
+          </div>
         </div>
       )}
     </div>
