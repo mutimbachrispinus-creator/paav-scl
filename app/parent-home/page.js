@@ -330,8 +330,27 @@ export default function ParentHome() {
                         <div style={{ fontSize: 42, fontWeight: 900, color: '#1E3A8A' }}>{avg}%</div>
                         <div style={{ fontSize: 12, color: 'var(--muted)' }}>Based on {scores.length} subjects</div>
                       </div>
+
+                      {/* Performance Bar Chart */}
+                      <div style={{ marginTop: 10 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 15 }}>📊 Subject Comparison</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          {scores.sort((a,b)=>b.sc - a.sc).map(s => {
+                            const info = gInfo(s.sc, child?.grade);
+                            return (
+                              <div key={s.s} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <div style={{ width: 85, fontSize: 10.5, fontWeight: 700, color: 'var(--navy)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.s}</div>
+                                <div style={{ flex: 1, background: '#F1F5F9', height: 14, borderRadius: 7, overflow: 'hidden', position: 'relative' }}>
+                                  <div style={{ width: `${s.sc}%`, height: '100%', background: info.c, borderRadius: 7, transition: 'width 1s ease-out' }} />
+                                </div>
+                                <div style={{ width: 35, fontSize: 11, fontWeight: 800, color: info.c, textAlign: 'right' }}>{s.sc}%</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                       
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
                         <div style={{ background: '#ECFDF5', padding: 12, borderRadius: 10, border: '1px solid #A7F3D0' }}>
                           <div style={{ fontSize: 10, color: '#059669', fontWeight: 700 }}>🌟 Strongest</div>
                           <div style={{ fontWeight: 800, fontSize: 13 }}>{best.s}</div>
@@ -359,35 +378,72 @@ export default function ParentHome() {
 
       {/* PAY FEES TAB */}
       {tab==='fees' && (
-        <div>
-          {/* Fee Statement */}
-          <div className="panel" style={{border:`1.5px solid ${MB}`,marginBottom:16}}>
-            <div className="panel-hdr" style={{background:`linear-gradient(135deg,#047857,#065F46)`,color:'#fff'}}>
-              <h3 style={{color:'#fff'}}>💰 Fee Statement — {child?.name}</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
+          {/* Fee Overview Card with Chart */}
+          <div className="panel" style={{ border: `1.5px solid #A7F3D0`, background: '#fff' }}>
+            <div className="panel-hdr" style={{ background: 'linear-gradient(135deg, #047857, #065F46)', color: '#fff' }}>
+              <h3 style={{ color: '#fff' }}>📊 Fee Status Overview</h3>
             </div>
-            <div className="panel-body">
-              {[['Term 1',child?.t1||0],['Term 2',child?.t2||0],['Term 3',child?.t3||0]].map(([l,p])=>{
-                const due = feeCfg[child?.grade]?.[l.toLowerCase().replace(' ','')]||Math.round(exp/3);
-                return (
-                  <div key={l} style={{marginBottom:12}}>
-                    <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:4}}>
-                      <span style={{fontWeight:600}}>{l}</span><span>{fmtK(p)} paid</span>
-                    </div>
-                    <div style={{height:8,background:'#EEF2FF',borderRadius:4,overflow:'hidden'}}>
-                      <div style={{width:`${Math.min(100,due?Math.round(p/due*100):0)}%`,height:'100%',background:p>=due?'#059669':'#2563EB',borderRadius:4}} />
-                    </div>
-                  </div>
-                );
-              })}
-              <div style={{display:'flex',justifyContent:'space-between',padding:'10px',background:'#F8FAFF',borderRadius:8,marginTop:6,fontSize:13}}>
-                <span>Annual: <strong>{fmtK(exp)}</strong></span>
-                <span style={{color:'#059669'}}>Paid: <strong>{fmtK(paid)}</strong></span>
-                <span style={{color:bal>0?M:'#059669'}}>Balance: <strong>{fmtK(bal)}</strong></span>
+            <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '25px 20px' }}>
+              <div style={{ 
+                width: 160, height: 160, borderRadius: '50%', 
+                background: `conic-gradient(#059669 ${Math.min(100, Math.round((paid/exp)*100))}%, #F1F5F9 0)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+                boxShadow: '0 10px 25px rgba(4, 120, 87, 0.15)'
+              }}>
+                <div style={{ width: 130, height: 130, background: '#fff', borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: '#065F46' }}>{Math.min(100, Math.round((paid/exp)*100))}%</div>
+                  <div style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 800, textTransform: 'uppercase' }}>Paid</div>
+                </div>
+              </div>
+              
+              <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                 <div style={{ background: '#ECFDF5', padding: 12, borderRadius: 10, border: '1px solid #A7F3D0', textAlign: 'center' }}>
+                    <div style={{ fontSize: 10, color: '#059669', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>Paid So Far</div>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: '#065F46' }}>{fmtK(paid)}</div>
+                 </div>
+                 <div style={{ background: bal > 0 ? '#FEF2F2' : '#ECFDF5', padding: 12, borderRadius: 10, border: bal > 0 ? '1px solid #FECACA' : '1px solid #A7F3D0', textAlign: 'center' }}>
+                    <div style={{ fontSize: 10, color: bal > 0 ? '#B91C1C' : '#059669', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>{bal > 0 ? 'Remaining' : 'Status'}</div>
+                    <div style={{ fontSize: 16, fontWeight: 900, color: bal > 0 ? '#B91C1C' : '#065F46' }}>{bal > 0 ? fmtK(bal) : 'CLEARED'}</div>
+                 </div>
+              </div>
+              
+              <div style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', fontStyle: 'italic' }}>
+                Annual requirement for {child.grade}: <strong>{fmtK(exp)}</strong>
               </div>
             </div>
           </div>
-          {/* Payment instructions and Accounts */}
-          <div className="panel" style={{border:`1.5px solid #A7F3D0`}}>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Fee Statement */}
+            <div className="panel" style={{border:`1.5px solid ${MB}`}}>
+              <div className="panel-hdr" style={{background:`linear-gradient(135deg,#047857,#065F46)`,color:'#fff'}}>
+                <h3 style={{color:'#fff'}}>💰 Termly Progress</h3>
+              </div>
+              <div className="panel-body">
+                {[['Term 1',child?.t1||0],['Term 2',child?.t2||0],['Term 3',child?.t3||0]].map(([l,p])=>{
+                  const due = feeCfg[child?.grade]?.[l.toLowerCase().replace(' ','')]||Math.round(exp/3);
+                  const termPct = Math.min(100, Math.round((p/due)*100));
+                  return (
+                    <div key={l} style={{marginBottom:15}}>
+                      <div style={{display:'flex',justifyContent:'space-between',fontSize:11.5,marginBottom:6}}>
+                        <span style={{fontWeight:700, color: 'var(--navy)'}}>{l}</span>
+                        <span style={{fontWeight:800, color: p>=due ? '#059669' : '#1E40AF'}}>{fmtK(p)} / {fmtK(due)}</span>
+                      </div>
+                      <div style={{height:10,background:'#F1F5F9',borderRadius:5,overflow:'hidden'}}>
+                        <div style={{width:`${termPct}%`,height:'100%',background:p>=due?'#059669':'#3B82F6',borderRadius:5, transition: 'width 1s' }} />
+                      </div>
+                      <div style={{ textAlign: 'right', fontSize: 10, color: 'var(--muted)', marginTop: 3 }}>{termPct}% covered</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+          
+          <div style={{ gridColumn: '1/-1' }}>
+            {/* Payment instructions and Accounts */}
+            <div className="panel" style={{border:`1.5px solid #A7F3D0`}}>
             <div className="panel-hdr" style={{background:'linear-gradient(135deg,#047857,#065F46)',color:'#fff'}}>
               <h3 style={{color:'#fff'}}>💳 How to Pay</h3>
             </div>
