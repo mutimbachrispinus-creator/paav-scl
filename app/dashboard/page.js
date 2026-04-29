@@ -148,6 +148,9 @@ export default function DashboardPage() {
       };
       img.src = ev.target.result;
     };
+    reader.readAsDataURL(file);
+  }
+
   async function uploadHero(e) {
     const file = e.target.files?.[0];
     if (!file) return;
