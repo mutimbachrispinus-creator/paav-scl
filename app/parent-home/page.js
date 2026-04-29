@@ -25,6 +25,7 @@ export default function ParentHome() {
   const [feeCfg, setFeeCfg] = useState({});
   const [marks, setMarks] = useState({});
   const [payInfo, setPayInfo] = useState({});
+  const [paylog, setPaylog] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('child');
@@ -48,6 +49,7 @@ export default function ParentHome() {
           { type: 'get', key: 'paav_paybill_accounts' },
           { type: 'get', key: 'paav_calendar_events' },
           { type: 'get', key: 'paav_documents' },
+          { type: 'get', key: 'paav6_paylog' },
         ]})
       });
       const db = await dbRes.json();
@@ -73,6 +75,7 @@ export default function ParentHome() {
         documents: db.results[6]?.value || [],
       });
       setEvents(db.results[5]?.value || []);
+      setPaylog(db.results[7]?.value || []);
     } catch(e) { console.error(e); } finally { setLoading(false); }
   }, [router, selAdm]);
 
@@ -133,6 +136,55 @@ export default function ParentHome() {
     } catch (err) {
       alert('❌ Connection error: ' + err.message);
     }
+  }
+
+  function printReceipt(p) {
+    const win = window.open('', '_blank');
+    win.document.write(`
+      <html>
+        <head>
+          <title>Fee Receipt - ${child.name}</title>
+          <style>
+            body { font-family: sans-serif; padding: 40px; color: #333; line-height: 1.6; }
+            .receipt { border: 2px solid #333; padding: 30px; max-width: 600px; margin: auto; position: relative; }
+            .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+            .logo { font-size: 24px; font-weight: 900; color: #8B1A1A; }
+            .school { font-size: 18px; font-weight: 700; margin: 5px 0; }
+            .title { font-size: 20px; font-weight: 900; text-transform: uppercase; margin-top: 10px; text-decoration: underline; }
+            .row { display: flex; justify-content: space-between; margin: 10px 0; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+            .label { font-weight: 700; color: #666; }
+            .val { font-weight: 900; }
+            .total { font-size: 22px; margin-top: 20px; border-top: 2px solid #333; padding-top: 10px; }
+            .footer { margin-top: 30px; text-align: center; font-size: 12px; font-style: italic; color: #777; }
+            .stamp { position: absolute; bottom: 60px; right: 40px; border: 3px solid rgba(139,26,26,.3); color: rgba(139,26,26,.3); padding: 10px; border-radius: 10px; transform: rotate(-15deg); font-weight: 900; text-transform: uppercase; }
+            @media print { .no-print { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="receipt">
+            <div class="header">
+              <div class="logo">PAAV-GITOMBO</div>
+              <div class="school">OFFICIAL FEE RECEIPT</div>
+              <div class="title">No: ${p.id || 'N/A'}</div>
+            </div>
+            <div class="row"><span class="label">Student Name:</span> <span class="val">${child.name}</span></div>
+            <div class="row"><span class="label">Admission No:</span> <span class="val">${child.adm}</span></div>
+            <div class="row"><span class="label">Grade:</span> <span class="val">${child.grade}</span></div>
+            <div class="row"><span class="label">Date:</span> <span class="val">${new Date(p.time).toLocaleString()}</span></div>
+            <div class="row"><span class="label">Payment Mode:</span> <span class="val">${p.method || 'MPESA'}</span></div>
+            <div class="row"><span class="label">Reference:</span> <span class="val">${p.ref || 'N/A'}</span></div>
+            <div class="total row"><span class="label">Amount Paid:</span> <span class="val">KES ${fmtK(p.amount)}</span></div>
+            <div class="stamp">OFFICIAL PAID</div>
+            <div class="footer">
+              This is a system generated receipt.<br/>
+              Thank you for your payment.
+            </div>
+          </div>
+          <script>setTimeout(() => { window.print(); window.close(); }, 500);</script>
+        </body>
+      </html>
+    `);
+    win.document.close();
   }
 
   if (loading || !user) return <div className="page on" style={{padding:60,textAlign:'center',color:'var(--muted)'}}>Loading…</div>;
@@ -442,6 +494,47 @@ export default function ParentHome() {
           </div>
           
           <div style={{ gridColumn: '1/-1' }}>
+            {/* Recent Payments Panel */}
+            <div className="panel" style={{ border: `1.5px solid ${MB}`, marginBottom: 16 }}>
+              <div className="panel-hdr" style={{ background: `linear-gradient(135deg, ${M}, ${M2})`, color: '#fff' }}>
+                <h3 style={{ color: '#fff' }}>📜 Recent Fee Payments</h3>
+              </div>
+              <div className="panel-body" style={{ padding: 0 }}>
+                {(() => {
+                  const myPays = paylog.filter(p => p.adm === child.adm).sort((a,b) => new Date(b.time) - new Date(a.time));
+                  if (myPays.length === 0) return <div style={{ padding: 30, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>No payment history found.</div>;
+                  return (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                        <thead style={{ background: '#F8FAFC', borderBottom: '1.5px solid var(--border)' }}>
+                          <tr>
+                            <th style={{ padding: '12px 16px', textAlign: 'left' }}>Date</th>
+                            <th style={{ padding: '12px 16px', textAlign: 'left' }}>Ref</th>
+                            <th style={{ padding: '12px 16px', textAlign: 'right' }}>Amount</th>
+                            <th style={{ padding: '12px 16px', textAlign: 'center' }}>Receipt</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {myPays.map((p, i) => (
+                            <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                              <td style={{ padding: '12px 16px' }}>{new Date(p.time).toLocaleDateString()}</td>
+                              <td style={{ padding: '12px 16px', color: 'var(--muted)', fontFamily: 'monospace' }}>{p.ref || 'N/A'}</td>
+                              <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 800, color: '#059669' }}>{fmtK(p.amount)}</td>
+                              <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                <button className="btn btn-sm" style={{ background: MB, color: M, borderRadius: 6, fontWeight: 700 }} onClick={() => printReceipt(p)}>
+                                  📥 Download
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
             {/* Payment instructions and Accounts */}
             <div className="panel" style={{border:`1.5px solid #A7F3D0`}}>
             <div className="panel-hdr" style={{background:'linear-gradient(135deg,#047857,#065F46)',color:'#fff'}}>
