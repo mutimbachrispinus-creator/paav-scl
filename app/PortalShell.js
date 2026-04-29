@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import ProfilePanel from '@/components/ProfilePanel';
 import { ALL_NAV } from '@/lib/navigation';
-import { getCachedUser, invalidateUser, prefetchKeys, getCachedDBMulti } from '@/lib/client-cache';
+import { getCachedUser, getCachedDBMulti, prefetchKeys, clearAllCache } from '@/lib/client-cache';
 
 /**
  * app/PortalShell.js — Client-side portal shell
@@ -191,7 +191,8 @@ export default function PortalShell({ children }) {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ action: 'logout' }),
     });
-    router.push('/');
+    clearAllCache();
+    window.location.href = '/';
   }
 
   useEffect(() => {

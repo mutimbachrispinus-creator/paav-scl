@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ALL_NAV } from '@/lib/navigation';
-import { prefetchKeys } from '@/lib/client-cache';
+import { prefetchKeys, clearAllCache } from '@/lib/client-cache';
 
 
 export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendingReqs = 0, onProfileClick }) {
@@ -45,6 +45,7 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ action: 'logout' }),
     });
+    clearAllCache();
     router.push('/');
   }
 
