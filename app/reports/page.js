@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import PortalShell from '@/app/PortalShell';
 import { invalidateDB } from '@/lib/client-cache';
 
 export default function ReportsPage() {
@@ -83,10 +82,10 @@ export default function ReportsPage() {
     }
   }
 
-  if (loading) return <PortalShell user={user}><div className="page on">Loading...</div></PortalShell>;
+  if (loading) return <div className="page on">Loading...</div>;
 
   return (
-    <PortalShell user={user}>
+    <>
       <div className="page on" id="pg-reports">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <div>
@@ -97,7 +96,7 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <div className="sg sg2" style={{ gridTemplateColumns: user.role === 'admin' ? '1fr 1.5fr' : '1fr' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
           {/* Submission Form */}
           <div className="panel" style={{ border: '1.5px solid var(--border)', background: '#F8FAFC' }}>
             <div className="panel-hdr" style={{ background: 'linear-gradient(135deg, #1E293B, #0F172A)', color: '#fff' }}>
@@ -105,43 +104,44 @@ export default function ReportsPage() {
             </div>
             <div className="panel-body" style={{ padding: '25px' }}>
               <form onSubmit={submitReport} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <div style={{ background: '#fff', padding: '30px', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #E2E8F0', position: 'relative' }}>
+                <div style={{ background: '#fff', padding: '40px', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #E2E8F0', position: 'relative', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
                   {/* Memorandum Header */}
-                  <div style={{ textAlign: 'center', marginBottom: 25, borderBottom: '2px solid #1E293B', paddingBottom: 15 }}>
-                    <div style={{ fontSize: 12, fontWeight: 900, color: '#1E293B', letterSpacing: '2px', marginBottom: 4 }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
-                    <div style={{ fontSize: 18, fontWeight: 900, color: '#0F172A', textTransform: 'uppercase' }}>Departmental Memorandum</div>
+                  <div style={{ textAlign: 'center', marginBottom: 35, borderBottom: '2px solid #1E293B', paddingBottom: 20 }}>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: '#1E293B', letterSpacing: '3px', marginBottom: 6 }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: '#0F172A', textTransform: 'uppercase' }}>Departmental Progress Memorandum</div>
                   </div>
 
-                  <div className="sg sg2" style={{ marginBottom: 20 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30, marginBottom: 30 }}>
                     <div className="form-group" style={{ margin: 0 }}>
                       <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#64748B' }}>Department</label>
                       <input type="text" value={form.dept} onChange={e => setForm({...form, dept: e.target.value})} 
                         placeholder="e.g. Mathematics Department" 
-                        style={{ border: 'none', borderBottom: '1.5px solid #CBD5E1', borderRadius: 0, padding: '8px 0', fontSize: 14, fontWeight: 600, background: 'transparent' }} required />
+                        style={{ border: 'none', borderBottom: '1.5px solid #CBD5E1', borderRadius: 0, padding: '10px 0', fontSize: 15, fontWeight: 600, background: 'transparent', width: '100%' }} required />
                     </div>
                     <div className="form-group" style={{ margin: 0 }}>
                       <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#64748B' }}>Subject/Title</label>
                       <input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} 
                         placeholder="e.g. Monthly Progress Update" 
-                        style={{ border: 'none', borderBottom: '1.5px solid #CBD5E1', borderRadius: 0, padding: '8px 0', fontSize: 14, fontWeight: 600, background: 'transparent' }} required />
+                        style={{ border: 'none', borderBottom: '1.5px solid #CBD5E1', borderRadius: 0, padding: '10px 0', fontSize: 15, fontWeight: 600, background: 'transparent', width: '100%' }} required />
                     </div>
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#64748B', display: 'block', marginBottom: 10 }}>Report Narrative</label>
+                    <label style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#64748B', display: 'block', marginBottom: 12 }}>Report Narrative</label>
                     <textarea value={form.text} onChange={e => setForm({...form, text: e.target.value})} 
                       placeholder="Type your official report here..." 
                       style={{ 
-                        minHeight: 300, 
+                        minHeight: 500, 
                         resize: 'vertical', 
                         border: '1px solid #E2E8F0', 
                         borderRadius: 8, 
-                        padding: 15, 
-                        fontSize: 15, 
-                        lineHeight: 1.7, 
+                        padding: '25px', 
+                        fontSize: 16, 
+                        lineHeight: 1.8, 
                         fontFamily: 'Georgia, serif',
                         background: '#FFFEFA', /* Subtle paper tint */
-                        color: '#1E293B'
+                        color: '#1E293B',
+                        width: '100%'
                       }} required />
                   </div>
 
@@ -198,6 +198,6 @@ export default function ReportsPage() {
           )}
         </div>
       </div>
-    </PortalShell>
+    </>
   );
 }
