@@ -8,7 +8,17 @@ const M = '#8B1A1A', M2 = '#6B1212', ML = '#FDF2F2', MB = '#F5E6E6';
 export default function ParentHome() {
   const router = useRouter();
   const fileRef = useRef(null);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem('paav_cache_user');
+      if (raw) {
+        const { v } = JSON.parse(raw);
+        return v;
+      }
+    } catch {}
+    return null;
+  });
   const [children, setChildren] = useState([]); // multiple children
   const [selAdm, setSelAdm] = useState(null);   // selected child adm
   const [messages, setMessages] = useState([]);

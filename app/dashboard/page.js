@@ -30,7 +30,17 @@ const ALL_GRADE_GROUPS = [
 export default function DashboardPage() {
   const router = useRouter();
   const { openProfile, playSuccessSound } = useProfile();
-  const [user,     setUser]     = useState(null);
+  const [user, setUser] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem('paav_cache_user');
+      if (raw) {
+        const { v } = JSON.parse(raw);
+        return v;
+      }
+    } catch {}
+    return null;
+  });
 
   const [learners, setLearners] = useState([]);
   const [paylog,   setPaylog]   = useState([]);
