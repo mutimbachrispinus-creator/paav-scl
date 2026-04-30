@@ -107,7 +107,9 @@ export default function LearnerReceiptPage() {
         </div>
         
         {(t1Fee > 0 || t2Fee > 0 || t3Fee > 0) && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <div style={{ marginTop: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#4A5568', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Termly Fee Breakdown</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <div style={{ background: '#fff', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDF2F7' }}>
               <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase' }}>Term 1 Expected</div>
               <div style={{ fontSize: 13, fontWeight: 700 }}>{fmtK(t1Fee)}</div>
@@ -124,7 +126,8 @@ export default function LearnerReceiptPage() {
               <div style={{ fontSize: 10, color: '#059669' }}>Paid: {fmtK(learner.t3||0)}</div>
             </div>
           </div>
-        )}
+        </div>
+      )}
       </div>
 
       <div style={{ fontWeight: 800, marginBottom: 10 }}>PAYMENT HISTORY</div>

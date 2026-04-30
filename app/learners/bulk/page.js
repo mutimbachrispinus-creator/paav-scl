@@ -27,6 +27,7 @@ export default function BulkLearnersPage() {
   const [bulkGrade, setBulkGrade] = useState('GRADE 7');
   const [pickerSearch, setPickerSearch] = useState('');
   const [showPicker, setShowPicker] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     async function check() {
@@ -35,6 +36,7 @@ export default function BulkLearnersPage() {
       if (!auth.ok || !['admin','teacher','jss_teacher','senior_teacher'].includes(auth.user?.role)) {
         router.push('/'); return;
       }
+      setIsAdmin(auth.user?.role === 'admin');
 
       const dbRes = await fetch('/api/db', {
         method: 'POST',
@@ -250,7 +252,7 @@ export default function BulkLearnersPage() {
                     <input type="text" className="sc-inp" style={{ width: '100%' }} value={r.phone} onChange={e => updateRow(i, 'phone', e.target.value)} placeholder="07..." />
                   </td>
                   <td>
-                    <input type="number" className="sc-inp" style={{ width: '100%' }} value={r.arrears} onChange={e => updateRow(i, 'arrears', Number(e.target.value))} placeholder="0.00" />
+                    <input type="number" className="sc-inp" style={{ width: '100%' }} value={r.arrears} onChange={e => updateRow(i, 'arrears', Number(e.target.value))} placeholder="0.00" disabled={!isAdmin} />
                   </td>
                 </tr>
               ))}

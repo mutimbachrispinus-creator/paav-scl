@@ -224,15 +224,15 @@ export default function LearnersPage() {
       </div>
 
       {/* ── Modals ── */}
-      {modal === 'add'     && <AddLearnerModal     onClose={() => { setModal(null); load(); }} />}
+      {modal === 'add'     && <AddLearnerModal     isAdmin={user.role === 'admin'} onClose={() => { setModal(null); load(); }} />}
       {modal === 'promote' && <PromoteLearnersModal onClose={() => { setModal(null); load(); }} learners={learners} />}
-      {modal?.type === 'edit' && <EditLearnerModal onClose={() => { setModal(null); load(); }} learner={modal.learner} />}
+      {modal?.type === 'edit' && <EditLearnerModal isAdmin={user.role === 'admin'} onClose={() => { setModal(null); load(); }} learner={modal.learner} />}
     </>
   );
 }
 
 /* ─── Add Learner Modal ─────────────────────────────────────────────────── */
-function AddLearnerModal({ onClose }) {
+function AddLearnerModal({ onClose, isAdmin }) {
   const [form, setForm] = useState({
     name: '', grade: '', dob: '', adm: '', sex: 'Female', age: '',
     stream: '', parent: '', phone: '', parentEmail: '', addr: '', arrears: 0,
@@ -310,7 +310,7 @@ function AddLearnerModal({ onClose }) {
       <div className="field"><label>Address</label>
         <input value={form.addr} onChange={e => F('addr', e.target.value)} /></div>
       <div className="field"><label>Accumulated Fee (Previous Balance)</label>
-        <input type="number" value={form.arrears} onChange={e => F('arrears', e.target.value)} placeholder="0.00" /></div>
+        <input type="number" value={form.arrears} onChange={e => F('arrears', e.target.value)} placeholder="0.00" disabled={!isAdmin} /></div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
         <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
         <button className="btn btn-primary btn-sm" onClick={save} disabled={busy}
@@ -434,7 +434,7 @@ function PromoteLearnersModal({ onClose, learners }) {
 
 
 /* ─── Edit Learner Modal ───────────────────────────────────────────────── */
-function EditLearnerModal({ onClose, learner }) {
+function EditLearnerModal({ onClose, learner, isAdmin }) {
   const [form, setForm] = useState({ ...learner });
   const [err,  setErr]  = useState('');
   const [busy, setBusy] = useState(false);
@@ -516,7 +516,7 @@ function EditLearnerModal({ onClose, learner }) {
       <div className="field"><label>Address</label>
         <input value={form.addr || ''} onChange={e => F('addr', e.target.value)} /></div>
       <div className="field"><label>Accumulated Fee (Previous Balance)</label>
-        <input type="number" value={form.arrears || 0} onChange={e => F('arrears', e.target.value)} /></div>
+        <input type="number" value={form.arrears || 0} onChange={e => F('arrears', e.target.value)} disabled={!isAdmin} /></div>
       
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 15 }}>
         <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>

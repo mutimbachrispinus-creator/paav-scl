@@ -588,6 +588,10 @@ function PayModal({ learner, feeCfg, onClose, recordedBy }) {
           <span style={{ color:'var(--muted)' }}>Annual Fee</span>
           <strong>{fmtK(annualFee)}</strong>
         </div>
+        <div style={{ display:'flex', justifyContent:'space-between', marginBottom: 4 }}>
+          <span style={{ color:'var(--muted)' }}>Accumulated Fee</span>
+          <strong>{fmtK(learner.arrears || 0)}</strong>
+        </div>
         {(feeCfg[learner.grade]?.t1 || feeCfg[learner.grade]?.t2 || feeCfg[learner.grade]?.t3) && (
           <div style={{ fontSize: 11, color: 'var(--muted)', borderTop: '1px dashed var(--border)', paddingTop: 4, marginTop: 4 }}>
             T1: {fmtK(feeCfg[learner.grade]?.t1 || 0)} · T2: {fmtK(feeCfg[learner.grade]?.t2 || 0)} · T3: {fmtK(feeCfg[learner.grade]?.t3 || 0)}
