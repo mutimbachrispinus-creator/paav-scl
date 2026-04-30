@@ -79,6 +79,25 @@ export default function FinanceDashboardPage() {
         </div>
       </div>
 
+      <div className="panel" style={{ marginBottom: 20, background: 'linear-gradient(135deg, #1E293B, #0F172A)', color: '#fff', border: 'none' }}>
+        <div className="panel-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
+              <span style={{ fontSize: 24 }}>🤖</span>
+              <h3 style={{ margin: 0, color: '#fff' }}>Smart AI Budget Forecast</h3>
+            </div>
+            <p style={{ margin: 0, fontSize: 13, color: '#94A3B8' }}>Based on your average monthly burn rate of <strong>KSH {Math.round(stats.totalExpense / (stats.chartData.length || 1)).toLocaleString()}</strong></p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 11, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1 }}>Estimated Sustainability</div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#FCD34D' }}>
+              {stats.balance > 0 ? `${Math.floor(stats.balance / (stats.totalExpense / (stats.chartData.length || 1)))} Months` : 'Urgent Funding Needed'}
+            </div>
+            <div style={{ fontSize: 10, color: '#94A3B8' }}>*Predicted with current spending trends</div>
+          </div>
+        </div>
+      </div>
+
       <div className="sg-responsive">
         <div className="panel">
           <div className="panel-hdr"><h3>📊 Cash Flow (Monthly)</h3></div>

@@ -49,6 +49,23 @@ export default function AnalyticsPage() {
   const filteredLearners = useMemo(() => learners.filter(l => l.grade === selGrade), [learners, selGrade]);
   const learner = useMemo(() => learners.find(l => l.adm === selAdm), [learners, selAdm]);
 
+  /* ── AI Early Warning System ── */
+  const warnings = useMemo(() => {
+    const list = [];
+    learners.forEach(l => {
+      const subjects = DEFAULT_SUBJECTS[l.grade] || [];
+      const mt1 = calcLearnerPoints(marks, l.adm, l.grade, 'T1', 'mt1', subjects);
+      const et1 = calcLearnerPoints(marks, l.adm, l.grade, 'T1', 'et1', subjects);
+      if (mt1.enteredCount > 0 && et1.enteredCount > 0) {
+        const mt1Avg = Math.round((mt1.totalPts / mt1.maxTotal) * 100);
+        const et1Avg = Math.round((et1.totalPts / et1.maxTotal) * 100);
+        const drop = mt1Avg - et1Avg;
+        if (drop > 7) list.push({ ...l, oldAvg: mt1Avg, curAvg: et1Avg, drop });
+      }
+    });
+    return list.sort((a,b) => b.drop - a.drop);
+  }, [learners, marks]);
+
   /* ── School Data Processing ── */
   const schoolStats = useMemo(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -114,9 +131,49 @@ export default function AnalyticsPage() {
       <div className="tabs" style={{ marginBottom: 25, background: MB, borderRadius: 12, padding: 5 }}>
         <button className={`tab-btn ${tab === 'school' ? 'on' : ''}`} onClick={() => setTab('school')} style={tab === 'school' ? { background: M, color: '#fff' } : {}}>🏫 School</button>
         <button className={`tab-btn ${tab === 'student' ? 'on' : ''}`} onClick={() => setTab('student')} style={tab === 'student' ? { background: M, color: '#fff' } : {}}>👤 Individual</button>
+        <button className={`tab-btn ${tab === 'warning' ? 'on' : ''}`} onClick={() => setTab('warning')} style={tab === 'warning' ? { background: M, color: '#fff' } : {}}>⚠️ Early Warning {warnings.length > 0 && <span className="badge bg-red" style={{ marginLeft: 5 }}>{warnings.length}</span>}</button>
       </div>
 
-      {tab === 'school' ? (
+      {tab === 'warning' ? (
+        <div className="panel">
+          <div className="panel-hdr">
+            <h3>⚠️ Academic Risk Report (AI Analysis)</h3>
+            <p style={{ fontSize: 11, color: 'var(--muted)' }}>Students with {'>'}7% drop between Mid-Term and End-Term</p>
+          </div>
+          <div className="panel-body">
+            {warnings.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 100, color: 'var(--green)', fontWeight: 700 }}>✅ No students currently flagged for academic risk.</div>
+            ) : (
+              <div className="tbl-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Learner</th>
+                      <th>Grade</th>
+                      <th>Previous Avg</th>
+                      <th>Current Avg</th>
+                      <th>Drop</th>
+                      <th>Intervention</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {warnings.map(w => (
+                      <tr key={w.adm}>
+                        <td><strong>{w.name}</strong></td>
+                        <td>{w.grade}</td>
+                        <td>{w.oldAvg}%</td>
+                        <td style={{ fontWeight: 700 }}>{w.curAvg}%</td>
+                        <td style={{ color: '#DC2626', fontWeight: 900 }}>↓ {w.drop}%</td>
+                        <td><button className="btn btn-sm btn-gold" onClick={() => { setSelGrade(w.grade); setSelAdm(w.adm); setTab('student'); }}>View Trends</button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : tab === 'school' ? (
         <>
           <div className="sg sg3" style={{ marginBottom: 20 }}>
             <div className="panel" style={{ textAlign: 'center', borderTop: `4px solid ${M}` }}>
