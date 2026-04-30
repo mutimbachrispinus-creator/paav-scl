@@ -152,14 +152,15 @@ export default function PortalShell({ children }) {
           'paav_hero_img',
           'paav7_duties',
           'paav_staff_reqs'
-        ]);
+        ])
+      ]);
         
-        // If we have a nav shell but no user, and we're not already on the login page
-        if (!u && showNav) {
-          console.warn('[PortalShell] No session found, redirecting...');
-          window.location.href = '/';
-          return;
-        }
+      // If we have a nav shell but no user, and we're not already on the login page
+      if (!u && showNav) {
+        console.warn('[PortalShell] No session found, redirecting...');
+        window.location.href = '/';
+        return;
+      }
 
       if (u) {
         setUser(u);
