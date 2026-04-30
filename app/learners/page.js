@@ -130,11 +130,17 @@ export default function LearnersPage() {
             <table>
               <thead>
                 <tr>
-                  <th>#</th><th>Adm</th><th>Name</th><th>Grade</th>
-                  <th>Sex</th><th>Age</th><th>Class Teacher</th>
-                  <th>Parent</th><th>Phone</th>
-                  {user?.role === 'admin' && <th>Fee Status</th>}
-                  <th>Actions</th>
+                  <th style={{ padding: '6px 8px' }}>#</th>
+                  <th style={{ padding: '6px 8px' }}>Adm</th>
+                  <th style={{ padding: '6px 8px' }}>Name</th>
+                  <th style={{ padding: '6px 8px' }}>Grade</th>
+                  <th style={{ padding: '6px 8px' }}>Sex</th>
+                  <th style={{ padding: '6px 8px' }}>Age</th>
+                  <th style={{ padding: '6px 8px' }}>Class Teacher</th>
+                  <th style={{ padding: '6px 8px' }}>Parent</th>
+                  <th style={{ padding: '6px 8px' }}>Phone</th>
+                  {user?.role === 'admin' && <th style={{ padding: '6px 8px' }}>Fee Status</th>}
+                  <th style={{ padding: '6px 8px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -148,32 +154,32 @@ export default function LearnersPage() {
                   const bal = getBal(l);
                   return (
                     <tr key={l.adm + i}>
-                      <td>{i + 1}</td>
-                      <td><strong>{l.adm}</strong></td>
-                      <td>
+                      <td style={{ padding: '6px 8px' }}>{i + 1}</td>
+                      <td style={{ padding: '6px 8px' }}><strong>{l.adm}</strong></td>
+                      <td style={{ padding: '6px 8px' }}>
                         <button
                           className="btn-link"
                           onClick={() => router.push(`/learners/${l.adm}`)}>
                           {l.name}
                         </button>
                       </td>
-                      <td>
+                      <td style={{ padding: '6px 8px' }}>
                         <span className="badge bg-blue" style={{ fontSize: 10 }}>{l.grade}</span>
                       </td>
-                      <td>{l.sex}</td>
-                      <td>{l.age}</td>
-                      <td style={{ fontSize: 11.5 }}>{l.teacher || '—'}</td>
-                      <td style={{ fontSize: 11.5 }}>{l.parent  || '—'}</td>
-                      <td style={{ fontSize: 11.5 }}>{l.phone   || '—'}</td>
+                      <td style={{ padding: '6px 8px' }}>{l.sex}</td>
+                      <td style={{ padding: '6px 8px' }}>{l.age}</td>
+                      <td style={{ fontSize: 11.5, padding: '6px 8px' }}>{l.teacher || '—'}</td>
+                      <td style={{ fontSize: 11.5, padding: '6px 8px' }}>{l.parent  || '—'}</td>
+                      <td style={{ fontSize: 11.5, padding: '6px 8px' }}>{l.phone   || '—'}</td>
                       {user?.role === 'admin' && (
-                        <td>
+                        <td style={{ padding: '6px 8px' }}>
                           {bal <= 0
                             ? <span className="badge bg-green">✅ Cleared</span>
                             : <span className="badge bg-amber">⚠ {fmtK(bal)}</span>
                           }
                         </td>
                       )}
-                      <td style={{ whiteSpace: 'nowrap' }}>
+                      <td style={{ whiteSpace: 'nowrap', padding: '6px 8px' }}>
                         <button className="btn btn-ghost btn-sm"
                           onClick={() => router.push(`/learners/${l.adm}`)}>
                           👁 View

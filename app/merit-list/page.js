@@ -193,18 +193,18 @@ export default function MeritListPage() {
               <table>
                 <thead>
                   <tr>
-                    <th style={{ textAlign: 'center' }}>Rank</th>
-                    <th style={{ textAlign: 'center' }}>Adm</th>
-                    <th style={{ textAlign: 'left' }}>Name</th>
+                    <th style={{ textAlign: 'center', padding: '6px 4px' }}>Rank</th>
+                    <th style={{ textAlign: 'center', padding: '6px 4px' }}>Adm</th>
+                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>Name</th>
                     {subjects.map(s => (
-                      <th key={s} style={{ textAlign: 'center', fontSize: 9 }} title={s}>
+                      <th key={s} style={{ textAlign: 'center', fontSize: 9, padding: '6px 2px' }} title={s}>
                         {s.length > 6 ? s.slice(0,6)+'…' : s}
                       </th>
                     ))}
-                    <th style={{ textAlign: 'center', color:'#8B1A1A' }}>Total Marks</th>
-                    <th style={{ textAlign: 'center', color:'#8B1A1A' }}>Total Pts</th>
-                    <th style={{ textAlign: 'center', color:'#8B1A1A' }}>/ {max}</th>
-                    <th style={{ textAlign: 'center', color:'#8B1A1A' }}>%</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>Total Marks</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>Total Pts</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>/ {max}</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>%</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -213,15 +213,15 @@ export default function MeritListPage() {
                     <tr key={l.adm}
                       className={l.rank <= 3 ? `merit-rank-${l.rank}` : ''}
                       style={{ transition: 'background .15s' }}>
-                      <td>
+                      <td style={{ padding: '4px' }}>
                         <span style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 14,
                           color: l.rank === 1 ? '#B45309' : l.rank === 2 ? '#475569'
                                : l.rank === 3 ? '#C2410C' : 'var(--navy)' }}>
                           {MEDALS[l.rank] || `#${l.rank}`}
                         </span>
                       </td>
-                      <td style={{ fontWeight: 700, fontSize: 11.5 }}>{l.adm}</td>
-                      <td style={{ fontWeight: 600 }}>{l.name}</td>
+                      <td style={{ fontWeight: 700, fontSize: 11.5, padding: '4px' }}>{l.adm}</td>
+                      <td style={{ fontWeight: 600, padding: '4px 8px' }}>{l.name}</td>
                       {l.detail.map(d => (
                         <td key={d.subj} style={{ textAlign: 'center', padding: '3px 2px' }}>
                           {d.score !== null ? (
@@ -234,18 +234,18 @@ export default function MeritListPage() {
                           ) : '—'}
                         </td>
                       ))}
-                      <td style={{ textAlign: 'center', fontWeight: 700, fontSize: 13, color: '#059669' }}>
+                      <td style={{ textAlign: 'center', fontWeight: 700, fontSize: 13, color: '#059669', padding: '4px' }}>
                         {l.detail.reduce((s,d)=>s+(d.score||0),0)}
                       </td>
                       <td style={{ textAlign: 'center', fontWeight: 800, fontSize: 14,
-                        color: 'var(--navy)' }}>
+                        color: 'var(--navy)', padding: '4px' }}>
                         {l.totalPts}
                       </td>
-                      <td style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 11 }}>
+                      <td style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 11, padding: '4px' }}>
                         {max}
                       </td>
                       <td style={{ textAlign: 'center', fontWeight: 700,
-                        color: l.totalPts/max >= 0.5 ? 'var(--green)' : 'var(--red)' }}>
+                        color: l.totalPts/max >= 0.5 ? 'var(--green)' : 'var(--red)', padding: '4px' }}>
                         {Math.round((l.totalPts/max)*100)}%
                       </td>
                       <td>

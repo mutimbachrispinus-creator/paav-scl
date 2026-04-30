@@ -279,41 +279,41 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
       <div style={{ textAlign: 'center', marginBottom: 15, fontSize: 13, fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: 1 }}>
         TERM {term.replace('T','')} — {assess === 'op1' ? 'OPENER' : assess === 'mt1' ? 'MID-TERM' : 'END-TERM'} EXAMINATION
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
         <thead>
           <tr>
-            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>Pos</th>
-            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>ADM</th>
-            <th style={{ border: '1px solid #ddd', padding: 8, textAlign: 'left' }}>Name</th>
-            {subjects.map(s => <th key={s} style={{ border: '1px solid #ddd', padding: 8, fontSize: 9, textAlign: 'center' }}>{s.slice(0,5)}</th>)}
-            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A', textAlign: 'center' }}>Total Marks</th>
-            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A', textAlign: 'center' }}>Total Pts</th>
-            <th style={{ border: '1px solid #ddd', padding: 8, color: '#8B1A1A', textAlign: 'center' }}>%</th>
+            <th style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>Pos</th>
+            <th style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>ADM</th>
+            <th style={{ border: '1px solid #ddd', padding: 4, textAlign: 'left' }}>Name</th>
+            {subjects.map(s => <th key={s} style={{ border: '1px solid #ddd', padding: 4, fontSize: 8, textAlign: 'center' }}>{s.slice(0,5)}</th>)}
+            <th style={{ border: '1px solid #ddd', padding: 4, color: '#8B1A1A', textAlign: 'center' }}>Total Marks</th>
+            <th style={{ border: '1px solid #ddd', padding: 4, color: '#8B1A1A', textAlign: 'center' }}>Total Pts</th>
+            <th style={{ border: '1px solid #ddd', padding: 4, color: '#8B1A1A', textAlign: 'center' }}>%</th>
           </tr>
         </thead>
         <tbody>
           {data.map((l, i) => (
             <tr key={l.adm}>
-              <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>{i + 1}</td>
-              <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>{l.adm}</td>
-              <td style={{ border: '1px solid #ddd', padding: 6 }}>{l.name}</td>
+              <td style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center' }}>{i + 1}</td>
+              <td style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center' }}>{l.adm}</td>
+              <td style={{ border: '1px solid #ddd', padding: 3 }}>{l.name}</td>
               {subjects.map(s => {
                 const score = marks[`${term}:${grade}|${s}|${assess}`]?.[l.adm];
                 const info = score !== undefined ? gInfo(Number(score), grade, gradCfg) : null;
                 return (
-                  <td key={s} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>
+                  <td key={s} style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center' }}>
                     {score !== undefined ? (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <span style={{ fontWeight: 600 }}>{score}</span>
-                        <span style={{ fontSize: 9, color: info.c, fontWeight: 800 }}>{info.lv}</span>
+                        <span style={{ fontSize: 8, color: info.c, fontWeight: 800 }}>{info.lv}</span>
                       </div>
                     ) : '—'}
                   </td>
                 );
               })}
-              <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700, color: '#059669' }}>{l.totalMarks}</td>
-              <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800, color: 'var(--navy)' }}>{l.total}</td>
-              <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>{l.avg}%</td>
+              <td style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center', fontWeight: 700, color: '#059669' }}>{l.totalMarks}</td>
+              <td style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center', fontWeight: 800, color: 'var(--navy)' }}>{l.total}</td>
+              <td style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center' }}>{l.avg}%</td>
             </tr>
           ))}
           {data.length > 0 && (
@@ -396,27 +396,27 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg })
           <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 25 }}>
             <thead>
               <tr style={{ background: '#8B1A1A', color: '#fff' }}>
-                <th style={{ border: '1px solid #333', padding: 10, textAlign: 'left' }}>Subject</th>
-                <th style={{ border: '1px solid #333', padding: 10 }}>Opener</th>
-                <th style={{ border: '1px solid #333', padding: 10 }}>Mid-Term</th>
-                <th style={{ border: '1px solid #333', padding: 10 }}>End-Term</th>
-                <th style={{ border: '1px solid #333', padding: 10 }}>Average</th>
-                <th style={{ border: '1px solid #333', padding: 10 }}>Level</th>
-                <th style={{ border: '1px solid #333', padding: 10 }}>Points</th>
+                <th style={{ border: '1px solid #333', padding: 6, textAlign: 'left' }}>Subject</th>
+                <th style={{ border: '1px solid #333', padding: 6 }}>Opener</th>
+                <th style={{ border: '1px solid #333', padding: 6 }}>Mid-Term</th>
+                <th style={{ border: '1px solid #333', padding: 6 }}>End-Term</th>
+                <th style={{ border: '1px solid #333', padding: 6 }}>Average</th>
+                <th style={{ border: '1px solid #333', padding: 6 }}>Level</th>
+                <th style={{ border: '1px solid #333', padding: 6 }}>Points</th>
               </tr>
             </thead>
             <tbody>
               {l.report.subjects.map(s => (
                 <tr key={s.subj}>
-                  <td style={{ border: '1px solid #333', padding: 8, fontWeight: 600 }}>{s.subj}</td>
-                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>{s.op || '—'} <small className={`grade-pill-${s.opLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.opLv}</small></td>
-                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>{s.mt || '—'} <small className={`grade-pill-${s.mtLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.mtLv}</small></td>
-                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>{s.et || '—'} <small className={`grade-pill-${s.etLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.etLv}</small></td>
-                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center', background: '#f9f9f9', fontWeight: 700 }}>{s.avg}</td>
-                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>
+                  <td style={{ border: '1px solid #333', padding: 4, fontWeight: 600 }}>{s.subj}</td>
+                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center' }}>{s.op || '—'} <small className={`grade-pill-${s.opLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.opLv}</small></td>
+                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center' }}>{s.mt || '—'} <small className={`grade-pill-${s.mtLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.mtLv}</small></td>
+                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center' }}>{s.et || '—'} <small className={`grade-pill-${s.etLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.etLv}</small></td>
+                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center', background: '#f9f9f9', fontWeight: 700 }}>{s.avg}</td>
+                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center' }}>
                     <span className={`grade-pill-${s.avgLv}`} style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 800, display:'inline-block' }}>{s.avgLv}</span>
                   </td>
-                  <td style={{ border: '1px solid #333', padding: 8, textAlign: 'center' }}>{s.pts}</td>
+                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center' }}>{s.pts}</td>
                 </tr>
               ))}
             </tbody>
@@ -463,24 +463,24 @@ function ClassListTemplate({ learners, grade }) {
   return (
     <div>
       <PrintHeader title="OFFICIAL CLASS LIST" grade={grade} />
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
         <thead>
           <tr style={{ background: '#f4f4f4' }}>
-            <th style={{ border: '1px solid #ddd', padding: 10 }}>#</th>
-            <th style={{ border: '1px solid #ddd', padding: 10 }}>ADM</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'left' }}>Full Name</th>
-            <th style={{ border: '1px solid #ddd', padding: 10 }}>Gender</th>
-            <th style={{ border: '1px solid #ddd', padding: 10 }}>Parent Phone</th>
+            <th style={{ border: '1px solid #ddd', padding: 5 }}>#</th>
+            <th style={{ border: '1px solid #ddd', padding: 5 }}>ADM</th>
+            <th style={{ border: '1px solid #ddd', padding: 5, textAlign: 'left' }}>Full Name</th>
+            <th style={{ border: '1px solid #ddd', padding: 5 }}>Gender</th>
+            <th style={{ border: '1px solid #ddd', padding: 5 }}>Parent Phone</th>
           </tr>
         </thead>
         <tbody>
           {learners.map((l, i) => (
             <tr key={l.adm}>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>{i + 1}</td>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>{l.adm}</td>
-              <td style={{ border: '1px solid #ddd', padding: 8 }}>{l.name}</td>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>{l.gender}</td>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>{l.phone}</td>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>{i + 1}</td>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>{l.adm}</td>
+              <td style={{ border: '1px solid #ddd', padding: 4 }}>{l.name}</td>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>{l.gender}</td>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>{l.phone}</td>
             </tr>
           ))}
         </tbody>
@@ -511,38 +511,38 @@ function FeeBalanceListTemplate({ learners, fees, grade, feeCfg }) {
   return (
     <div>
       <PrintHeader title="FEE BALANCE LIST" grade={grade} />
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
         <thead>
           <tr style={{ background: '#f4f4f4' }}>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>#</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>ADM</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'left' }}>Full Name</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Term 1 (Exp/Paid)</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Term 2 (Exp/Paid)</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Term 3 (Exp/Paid)</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Expected Total</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Paid Total</th>
-            <th style={{ border: '1px solid #ddd', padding: 10, textAlign: 'center' }}>Balance</th>
+            <th style={{ border: '1px solid #ddd', padding: 5, textAlign: 'center' }}>#</th>
+            <th style={{ border: '1px solid #ddd', padding: 5, textAlign: 'center' }}>ADM</th>
+            <th style={{ border: '1px solid #ddd', padding: 5, textAlign: 'left' }}>Full Name</th>
+            <th style={{ border: '1px solid #ddd', padding: 5, textAlign: 'center' }}>Term 1 (Exp/Paid)</th>
+            <th style={{ border: '1px solid #ddd', padding: 5, textAlign: 'center' }}>Term 2 (Exp/Paid)</th>
+            <th style={{ border: '1px solid #ddd', padding: 5, textAlign: 'center' }}>Term 3 (Exp/Paid)</th>
+            <th style={{ border: '1px solid #ddd', padding: 5, textAlign: 'center' }}>Expected Total</th>
+            <th style={{ border: '1px solid #ddd', padding: 5, textAlign: 'center' }}>Paid Total</th>
+            <th style={{ border: '1px solid #ddd', padding: 5, textAlign: 'center' }}>Balance</th>
           </tr>
         </thead>
         <tbody>
           {data.map((l, i) => (
             <tr key={l.adm}>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center' }}>{i + 1}</td>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', fontWeight: 600 }}>{l.adm}</td>
-              <td style={{ border: '1px solid #ddd', padding: 8, fontWeight: 700 }}>{l.name}</td>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', fontSize: 10 }}>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>{i + 1}</td>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center', fontWeight: 600 }}>{l.adm}</td>
+              <td style={{ border: '1px solid #ddd', padding: 4, fontWeight: 700 }}>{l.name}</td>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center', fontSize: 9 }}>
                 Exp: {((feeCfg[l.grade]||{}).t1||0).toLocaleString()} / Paid: {(l.t1||0).toLocaleString()}
               </td>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', fontSize: 10 }}>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center', fontSize: 9 }}>
                 Exp: {((feeCfg[l.grade]||{}).t2||0).toLocaleString()} / Paid: {(l.t2||0).toLocaleString()}
               </td>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', fontSize: 10 }}>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center', fontSize: 9 }}>
                 Exp: {((feeCfg[l.grade]||{}).t3||0).toLocaleString()} / Paid: {(l.t3||0).toLocaleString()}
               </td>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', fontWeight: 600 }}>{l.expected.toLocaleString()}</td>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', color: '#059669', fontWeight: 600 }}>{l.paid.toLocaleString()}</td>
-              <td style={{ border: '1px solid #ddd', padding: 8, textAlign: 'center', color: l.bal > 0 ? '#DC2626' : '#059669', fontWeight: 700 }}>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center', fontWeight: 600 }}>{l.expected.toLocaleString()}</td>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center', color: '#059669', fontWeight: 600 }}>{l.paid.toLocaleString()}</td>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center', color: l.bal > 0 ? '#DC2626' : '#059669', fontWeight: 700 }}>
                 {l.bal.toLocaleString()}
               </td>
             </tr>
@@ -778,14 +778,14 @@ function AttendanceRegisterTemplate({ learners, grade, type, att }) {
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
         <thead>
           <tr style={{ background: '#F1F5F9' }}>
-            <th style={{ border: '1px solid #333', padding: '6px 8px', width: 30 }}>#</th>
-            <th style={{ border: '1px solid #333', padding: '6px 8px', textAlign: 'left', width: 220 }}>Student Name / ADM</th>
+            <th style={{ border: '1px solid #333', padding: '3px 4px', width: 30 }}>#</th>
+            <th style={{ border: '1px solid #333', padding: '3px 4px', textAlign: 'left', width: 220 }}>Student Name / ADM</th>
             {dayList.map((d, i) => (
-              <th key={d} style={{ border: '1px solid #333', padding: 2, width: 25, fontSize: 8 }}>
+              <th key={d} style={{ border: '1px solid #333', padding: 1, width: 25, fontSize: 7.5 }}>
                 {isAnnual ? d.split('-')[1] : d.split('-')[2]}
               </th>
             ))}
-            <th style={{ border: '1px solid #333', padding: 4, width: 50 }}>Total</th>
+            <th style={{ border: '1px solid #333', padding: 2, width: 50 }}>Total</th>
           </tr>
         </thead>
         <tbody>
@@ -794,10 +794,10 @@ function AttendanceRegisterTemplate({ learners, grade, type, att }) {
             let presentCount = 0;
             return (
               <tr key={l.adm}>
-                <td style={{ border: '1px solid #333', padding: '6px 8px', textAlign: 'center' }}>{idx + 1}</td>
-                <td style={{ border: '1px solid #333', padding: '6px 8px' }}>
+                <td style={{ border: '1px solid #333', padding: '3px 4px', textAlign: 'center' }}>{idx + 1}</td>
+                <td style={{ border: '1px solid #333', padding: '3px 4px' }}>
                   <div style={{ fontWeight: 700 }}>{l.name}</div>
-                  <div style={{ fontSize: 8, color: '#666' }}>{l.adm}</div>
+                  <div style={{ fontSize: 7.5, color: '#666' }}>{l.adm}</div>
                 </td>
                 {dayList.map(d => {
                   const status = att[`${grade}|${d}|${l.adm}`] || '';

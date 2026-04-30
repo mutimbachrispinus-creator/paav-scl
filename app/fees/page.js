@@ -201,19 +201,25 @@ export default function FeesPage() {
               <table>
                 <thead>
                   <tr>
-                    <th>Date</th><th>Adm</th><th>Name</th><th>Amount</th><th>Method</th><th>Ref</th><th>Actions</th>
+                    <th style={{ padding: '6px 8px' }}>Date</th>
+                    <th style={{ padding: '6px 8px' }}>Adm</th>
+                    <th style={{ padding: '6px 8px' }}>Name</th>
+                    <th style={{ padding: '6px 8px' }}>Amount</th>
+                    <th style={{ padding: '6px 8px' }}>Method</th>
+                    <th style={{ padding: '6px 8px' }}>Ref</th>
+                    <th style={{ padding: '6px 8px' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paylog.filter(p => p.status === 'pending').map((p, i) => (
                     <tr key={i}>
-                      <td>{p.date}</td>
-                      <td><strong>{p.adm}</strong></td>
-                      <td>{p.name}</td>
-                      <td style={{ fontWeight: 800 }}>{fmtK(p.amount)}</td>
-                      <td>{p.method}</td>
-                      <td style={{ fontSize: 11 }}>{p.ref}</td>
-                      <td>
+                      <td style={{ padding: '6px 8px' }}>{p.date}</td>
+                      <td style={{ padding: '6px 8px' }}><strong>{p.adm}</strong></td>
+                      <td style={{ padding: '6px 8px' }}>{p.name}</td>
+                      <td style={{ fontWeight: 800, padding: '6px 8px' }}>{fmtK(p.amount)}</td>
+                      <td style={{ padding: '6px 8px' }}>{p.method}</td>
+                      <td style={{ fontSize: 11, padding: '6px 8px' }}>{p.ref}</td>
+                      <td style={{ padding: '6px 8px' }}>
                         <button className="btn btn-sm btn-success" onClick={() => approvePayment(p)}>Approve</button>
                         <button className="btn btn-sm btn-ghost" style={{ marginLeft: 5, color: 'var(--red)' }} onClick={() => rejectPayment(p)}>Reject</button>
                       </td>
@@ -234,27 +240,43 @@ export default function FeesPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Date</th><th>Adm</th><th>Name</th><th>Term</th>
-                  <th>Amount</th><th>Method</th><th>Ref</th><th>By</th><th>Status</th><th className="no-print">Actions</th>
+                  <th style={{ padding: '6px 8px' }}>Date</th>
+                  <th style={{ padding: '6px 8px' }}>Adm</th>
+                  <th style={{ padding: '6px 8px' }}>Name</th>
+                  <th style={{ padding: '6px 8px' }}>Term</th>
+                  <th style={{ padding: '6px 8px' }}>Amount</th>
+                  <th style={{ padding: '6px 8px' }}>Method</th>
+                  <th style={{ padding: '6px 8px' }}>Ref</th>
+                  <th style={{ padding: '6px 8px' }}>By</th>
+                  <th style={{ padding: '4px 6px' }}>Date</th>
+                  <th style={{ padding: '4px 6px' }}>Adm</th>
+                  <th style={{ padding: '4px 6px' }}>Name</th>
+                  <th style={{ padding: '4px 6px' }}>Term</th>
+                  <th style={{ padding: '4px 6px' }}>Amount</th>
+                  <th style={{ padding: '4px 6px' }}>Method</th>
+                  <th style={{ padding: '4px 6px' }}>Ref</th>
+                  <th style={{ padding: '4px 6px' }}>By</th>
+                  <th style={{ padding: '4px 6px' }}>Status</th>
+                  <th className="no-print" style={{ padding: '4px 6px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paylog.filter(p => p.status !== 'pending').slice(-50).reverse().map((p, i) => (
                   <tr key={i}>
-                    <td style={{ fontSize: 11 }}>{p.date}</td>
-                    <td style={{ fontWeight: 700, fontSize: 11.5 }}>{p.adm}</td>
-                    <td>{p.name}</td>
-                    <td><span className="badge bg-blue" style={{ fontSize: 10 }}>{p.term}</span></td>
-                    <td style={{ fontWeight: 800, color: 'var(--green)' }}>{fmtK(p.amount)}</td>
-                    <td><span className="badge bg-teal" style={{ fontSize: 10 }}>{p.method}</span></td>
-                    <td style={{ fontSize: 11, color: 'var(--muted)' }}>{p.ref || '—'}</td>
-                    <td style={{ fontSize: 11, color: 'var(--muted)' }}>{p.by || '—'}</td>
-                    <td>
+                    <td style={{ fontSize: 11, padding: '4px 6px' }}>{p.date}</td>
+                    <td style={{ fontWeight: 700, fontSize: 11.5, padding: '4px 6px' }}>{p.adm}</td>
+                    <td style={{ padding: '4px 6px' }}>{p.name}</td>
+                    <td style={{ padding: '4px 6px' }}><span className="badge bg-blue" style={{ fontSize: 10 }}>{p.term}</span></td>
+                    <td style={{ fontWeight: 800, color: 'var(--green)', padding: '4px 6px' }}>{fmtK(p.amount)}</td>
+                    <td style={{ padding: '4px 6px' }}><span className="badge bg-teal" style={{ fontSize: 10 }}>{p.method}</span></td>
+                    <td style={{ fontSize: 11, color: 'var(--muted)', padding: '4px 6px' }}>{p.ref || '—'}</td>
+                    <td style={{ fontSize: 11, color: 'var(--muted)', padding: '4px 6px' }}>{p.by || '—'}</td>
+                    <td style={{ padding: '4px 6px' }}>
                       <span className={`badge bg-${p.status === 'approved' ? 'green' : 'amber'}`} style={{ fontSize: 9 }}>
                         {(p.status || 'approved').toUpperCase()}
                       </span>
                     </td>
-                    <td>
+                    <td style={{ padding: '4px 6px' }}>
                       <button className="btn btn-ghost btn-sm"
                         onClick={() => router.push(`/fees/${p.adm}/receipt`)}>
                         🧾
@@ -316,21 +338,25 @@ export default function FeesPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Adm</th><th>Name</th><th>Grade</th>
+                  <th style={{ padding: '6px 8px' }}>Adm</th>
+                  <th style={{ padding: '6px 8px' }}>Name</th>
+                  <th style={{ padding: '6px 8px' }}>Grade</th>
                   {termF ? (
                     <>
-                      <th>{termF} Expected</th>
-                      <th>{termF} Paid</th>
+                      <th style={{ padding: '6px 8px' }}>{termF} Expected</th>
+                      <th style={{ padding: '6px 8px' }}>{termF} Paid</th>
                     </>
                   ) : (
                     <>
-                      <th>Annual Total</th>
-                      <th>Term 1 (Exp/Paid)</th>
-                      <th>Term 2 (Exp/Paid)</th>
-                      <th>Term 3 (Exp/Paid)</th>
+                      <th style={{ padding: '6px 8px' }}>Annual Total</th>
+                      <th style={{ padding: '6px 8px' }}>Term 1 (Exp/Paid)</th>
+                      <th style={{ padding: '6px 8px' }}>Term 2 (Exp/Paid)</th>
+                      <th style={{ padding: '6px 8px' }}>Term 3 (Exp/Paid)</th>
                     </>
                   )}
-                  <th>Total Paid</th><th>Balance</th><th className="no-print">Actions</th>
+                  <th style={{ padding: '6px 8px' }}>Total Paid</th>
+                  <th style={{ padding: '6px 8px' }}>Balance</th>
+                  <th className="no-print" style={{ padding: '6px 8px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -341,38 +367,38 @@ export default function FeesPage() {
                   const bal = fee - tp;
                   return (
                     <tr key={l.adm}>
-                      <td style={{ fontWeight: 700 }}>{l.adm}</td>
-                      <td>{l.name}</td>
-                      <td><span className="badge bg-blue" style={{ fontSize: 10 }}>{l.grade}</span></td>
+                      <td style={{ fontWeight: 700, padding: '6px 8px' }}>{l.adm}</td>
+                      <td style={{ padding: '6px 8px' }}>{l.name}</td>
+                      <td style={{ padding: '6px 8px' }}><span className="badge bg-blue" style={{ fontSize: 10 }}>{l.grade}</span></td>
                       {termF ? (
                         <>
-                          <td style={{ fontWeight: 800 }}>{fmtK(cfg[termF.toLowerCase()] || 0)}</td>
-                          <td style={{ color: 'var(--green)', fontWeight: 700 }}>{fmtK(l[termF.toLowerCase()] || 0)}</td>
+                          <td style={{ fontWeight: 800, padding: '6px 8px' }}>{fmtK(cfg[termF.toLowerCase()] || 0)}</td>
+                          <td style={{ color: 'var(--green)', fontWeight: 700, padding: '6px 8px' }}>{fmtK(l[termF.toLowerCase()] || 0)}</td>
                         </>
                       ) : (
                         <>
-                          <td style={{ fontWeight: 800 }}>{fmtK(fee)}</td>
-                          <td>
+                          <td style={{ fontWeight: 800, padding: '6px 8px' }}>{fmtK(fee)}</td>
+                          <td style={{ padding: '6px 8px' }}>
                             <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t1||0)}</div>
                             <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t1||0)}</div>
                           </td>
-                          <td>
+                          <td style={{ padding: '6px 8px' }}>
                             <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t2||0)}</div>
                             <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t2||0)}</div>
                           </td>
-                          <td>
+                          <td style={{ padding: '6px 8px' }}>
                             <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t3||0)}</div>
                             <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t3||0)}</div>
                           </td>
                         </>
                       )}
-                      <td style={{ fontWeight: 800 }}>{fmtK(tp)}</td>
-                      <td>
+                      <td style={{ fontWeight: 800, padding: '6px 8px' }}>{fmtK(tp)}</td>
+                      <td style={{ padding: '6px 8px' }}>
                         {bal <= 0
                           ? <span className="badge bg-green">Cleared</span>
                           : <span className="badge bg-amber">{fmtK(bal)}</span>}
                       </td>
-                      <td className="no-print" style={{ whiteSpace: 'nowrap' }}>
+                      <td className="no-print" style={{ whiteSpace: 'nowrap', padding: '6px 8px' }}>
                         <button className="btn btn-success btn-sm"
                           onClick={() => { setSelLearner(l); setModal('pay'); }}>
                           + Pay
