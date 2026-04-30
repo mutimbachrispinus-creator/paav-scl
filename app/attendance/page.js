@@ -149,6 +149,17 @@ export default function AttendancePage() {
     } catch(e) { setAlert('❌ '+e.message); }
     finally { setBusy(false); }
   }
+  
+  function markAllPresent() {
+    if (!classList.length) return;
+    const updates = {};
+    classList.forEach(l => {
+      const key = `${grade}|${selDate}|${l.adm}`;
+      updates[key] = 'P';
+    });
+    setAtt(prev => ({ ...prev, ...updates }));
+    setDirtyAtt(prev => ({ ...prev, ...updates }));
+  }
 
   /* ─── Analytics helpers ── */
   function learnerStats(adm, days) {
@@ -257,7 +268,12 @@ export default function AttendancePage() {
         <div className="panel">
           <div className="panel-hdr">
             <h3>Daily Register — {selDate}</h3>
-            <span style={{fontSize:12,color:'var(--muted)'}}>{classList.length} learners</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button className="btn btn-ghost btn-sm" onClick={markAllPresent} style={{ color: STATUS_COLORS.P, fontWeight: 800 }}>
+                ✅ Mark All Present
+              </button>
+              <span style={{fontSize:12,color:'var(--muted)'}}>{classList.length} learners</span>
+            </div>
           </div>
           <div className="tbl-wrap">
             <table>
