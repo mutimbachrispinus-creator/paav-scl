@@ -61,13 +61,13 @@ export default function LearnerReceiptPage() {
   const bal = annualFee + arrears - paid;
 
   return (
-    <div className="receipt-statement-wrap" style={{ maxWidth: 800, margin: '40px auto' }}>
+    <div className="receipt-statement-wrap" style={{ maxWidth: 1000, margin: '40px auto' }}>
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, padding: '0 20px' }}>
         <button className="btn btn-ghost" onClick={() => router.back()}>← Back</button>
         <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Print Statement / Receipt</button>
       </div>
 
-      <div style={{ maxWidth: '80mm', margin: '0 auto', padding: '20px', background: '#fff', border: '1px solid #ddd', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} className="pos-receipt">
+      <div style={{ margin: '0 auto', padding: '40px', background: '#fff', border: '1px solid #ddd', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} className="standard-statement">
 
       <div style={{ textAlign: 'center', marginBottom: 30, borderBottom: '2px solid var(--maroon)', paddingBottom: 20 }}>
         <div style={{ fontWeight: 900, fontSize: 24, color: 'var(--maroon)' }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
@@ -89,13 +89,24 @@ export default function LearnerReceiptPage() {
       </div>
 
       <div style={{ background: '#F8FAFF', padding: '20px 24px', borderRadius: 12, border: '1px solid #E2E8F0', marginBottom: 30 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 15, marginBottom: 15, borderBottom: '1px solid #E2E8F0', paddingBottom: 10 }}>
-          <div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10, marginBottom: 15, borderBottom: '1px solid #E2E8F0', paddingBottom: 10 }}>
             <div style={{ fontSize: 10, color: '#666' }}>ACCUMULATED FEE</div>
             <div style={{ fontSize: 16, fontWeight: 800, color: arrears > 0 ? '#DC2626' : '#666' }}>KES {arrears.toLocaleString()}</div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: '#666' }}>ANNUAL FEE</div>
+            <div style={{ fontSize: 10, color: '#666' }}>TERM 1 FEE</div>
+            <div style={{ fontSize: 14, fontWeight: 700 }}>KES {t1Fee.toLocaleString()}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: '#666' }}>TERM 2 FEE</div>
+            <div style={{ fontSize: 14, fontWeight: 700 }}>KES {t2Fee.toLocaleString()}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: '#666' }}>TERM 3 FEE</div>
+            <div style={{ fontSize: 14, fontWeight: 700 }}>KES {t3Fee.toLocaleString()}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: '#666' }}>ANNUAL TOTAL</div>
             <div style={{ fontSize: 16, fontWeight: 800 }}>KES {annualFee.toLocaleString()}</div>
           </div>
           <div style={{ textAlign: 'center' }}>
@@ -179,15 +190,16 @@ export default function LearnerReceiptPage() {
 
       <style jsx>{`
         @media print {
+          @page { size: landscape; margin: 10mm; }
           .no-print { display: none !important; }
           body { background: white !important; padding: 0; margin: 0; }
           .receipt-statement-wrap { margin: 0 !important; padding: 0 !important; max-width: none !important; }
-          .pos-receipt { 
+          .standard-statement { 
             box-shadow: none !important; 
             border: none !important; 
-            margin: 0 auto !important; 
+            margin: 0 !important; 
             padding: 0 !important; 
-            max-width: 80mm !important;
+            width: 100% !important;
           }
         }
       `}</style>
