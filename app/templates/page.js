@@ -273,9 +273,49 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
   const totalAvgMarks = data.length > 0 ? Math.round(totalMarksSum / data.length) : 0;
   const avgPct = data.length > 0 ? (data.reduce((acc, l) => acc + parseFloat(l.avg), 0) / data.length).toFixed(1) : 0;
 
+  // Distribution stats
+  const dist = { EE: 0, ME: 0, AE: 0, BE: 0 };
+  data.forEach(l => {
+    const info = gInfo(l.totalMarks / (subjects.length || 1), grade, gradCfg);
+    if (info.lv === 'EE') dist.EE++;
+    else if (info.lv === 'ME') dist.ME++;
+    else if (info.lv === 'AE') dist.AE++;
+    else if (info.lv === 'BE') dist.BE++;
+  });
+
   return (
     <div>
       <PrintHeader title="MERIT LIST" grade={grade} />
+      
+      {/* Distribution Graph */}
+      <div style={{ marginBottom: 20, padding: 10, border: '1px solid #eee', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 20 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 9, fontWeight: 800, color: '#666', marginBottom: 8, textTransform: 'uppercase' }}>Class Performance Distribution</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 60 }}>
+            {Object.entries(dist).map(([k, v]) => {
+              const max = Math.max(...Object.values(dist), 1);
+              const h = (v / max) * 100;
+              const colors = { EE: '#059669', ME: '#2563EB', AE: '#D97706', BE: '#DC2626' };
+              return (
+                <div key={k} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{ fontSize: 8, fontWeight: 800, marginBottom: 2 }}>{v}</div>
+                  <div style={{ width: '100%', height: `${h}%`, background: colors[k], borderRadius: '2px 2px 0 0' }}></div>
+                  <div style={{ fontSize: 8, fontWeight: 800, marginTop: 4, color: '#666' }}>{k}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ width: 120, borderLeft: '1px solid #eee', paddingLeft: 20 }}>
+          <div style={{ fontSize: 8, color: '#666' }}>SUMMARY</div>
+          {Object.entries(dist).map(([k, v]) => (
+            <div key={k} style={{ fontSize: 10, fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}>
+              <span>{k}:</span> <span>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div style={{ textAlign: 'center', marginBottom: 15, fontSize: 13, fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: 1 }}>
         TERM {term.replace('T','')} — {assess === 'op1' ? 'OPENER' : assess === 'mt1' ? 'MID-TERM' : 'END-TERM'} EXAMINATION
       </div>
@@ -422,6 +462,36 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg })
             </tbody>
           </table>
 
+          {/* Performance Graphs */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 15, marginBottom: 20 }}>
+            <div style={{ border: '1px solid #eee', padding: 10, borderRadius: 8 }}>
+              <div style={{ fontSize: 8, fontWeight: 800, color: '#666', marginBottom: 8 }}>ASSESSMENT TRENDS</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 60, padding: '0 10px' }}>
+                {[
+                  { l: 'OP', v: l.report.subjects.reduce((a, s) => a + (s.op || 0), 0) / (subjects.length || 1) },
+                  { l: 'MT', v: l.report.subjects.reduce((a, s) => a + (s.mt || 0), 0) / (subjects.length || 1) },
+                  { l: 'ET', v: l.report.subjects.reduce((a, s) => a + (s.et || 0), 0) / (subjects.length || 1) },
+                  { l: 'AVG', v: l.report.totalAvgPts / (subjects.length || 1) * 25 } // Normalized
+                ].map((d, idx) => (
+                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ width: '100%', height: `${d.v}%`, background: idx === 3 ? 'var(--maroon)' : '#cbd5e1', borderRadius: '2px 2px 0 0' }}></div>
+                    <div style={{ fontSize: 7, fontWeight: 800, marginTop: 4 }}>{d.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ border: '1px solid #eee', padding: 10, borderRadius: 8 }}>
+              <div style={{ fontSize: 8, fontWeight: 800, color: '#666', marginBottom: 8 }}>SUBJECT PROFICIENCY</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 60 }}>
+                {l.report.subjects.map((s, idx) => (
+                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ width: '100%', height: `${s.avg}%`, background: '#8B1A1A', borderRadius: '1px 1px 0 0' }}></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30, marginTop: 10 }}>
             <div style={{ border: '1.5px solid #333', padding: 15, borderRadius: 8 }}>
               <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #eee' }}>SUMMARY</h4>
@@ -565,8 +635,6 @@ function FeeBalanceListTemplate({ learners, fees, grade, feeCfg }) {
 }
 
 function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
-  const getAnnualFee = g => feeCfg[g]?.annual || 5000;
-  
   const targetLearners = learners.filter(l => {
     if (grade && l.grade !== grade) return false;
     if (selLearner && l.adm !== selLearner) return false;
@@ -578,100 +646,163 @@ function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
       <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>
         <div style={{ fontSize: 36, marginBottom: 12 }}>🧾</div>
         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>No learners found</div>
-        <div style={{ fontSize: 12 }}>
-          Check your grade/learner selection.
-        </div>
+        <div style={{ fontSize: 12 }}>Check your grade/learner selection.</div>
       </div>
     );
   }
 
+  const fmtK = (v) => 'KES ' + (v || 0).toLocaleString();
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 40 }}>
       {targetLearners.map((l, i) => {
-        const annualFee = getAnnualFee(l.grade);
-        const lfees = fees.filter(f => f.adm === l.adm).sort((a,b) => new Date(b.date) - new Date(a.date));
+        const cfg = feeCfg[l.grade] || {};
+        const t1Fee = cfg.t1 || 0;
+        const t2Fee = cfg.t2 || 0;
+        const t3Fee = cfg.t3 || 0;
+        const annualFee = t1Fee + t2Fee + t3Fee;
+        const paylog = fees.filter(f => f.adm === l.adm).sort((a,b) => new Date(b.date) - new Date(a.date));
         const paid = (l.t1||0) + (l.t2||0) + (l.t3||0);
-        const bal = annualFee - paid;
+        const arrears = l.arrears || 0;
+        const bal = annualFee + arrears - paid;
 
         return (
-          <div key={l.adm || i} className="receipt-preview-card" style={{ 
+          <div key={l.adm || i} style={{ 
             pageBreakInside: 'avoid', 
-            width: '80mm', 
-            margin: '0 auto 30px',
-            padding: '8mm 4mm',
-            fontFamily: 'monospace',
-            fontSize: '11px',
-            lineHeight: '1.4',
-            border: '1px solid #ddd',
-            background: '#fff'
-          }}>
-            <div style={{ textAlign: 'center', marginBottom: 10 }}>
-              <div style={{ fontWeight: 900, fontSize: '13px' }}>PAAV-GITOMBO</div>
-              <div style={{ fontSize: '10px' }}>COMMUNITY SCHOOL</div>
-              <div style={{ fontSize: '9px', fontStyle: 'italic' }}>More Than Academics!</div>
-              <div style={{ fontSize: '9px', marginTop: 4 }}>P.O BOX 4091-00100 Nairobi</div>
-              <div style={{ fontSize: '9px' }}>TEL: 0758 922 915</div>
-            </div>
-
-            <div style={{ borderTop: '1px dashed #000', borderBottom: '1px dashed #000', padding: '6px 0', marginBottom: 10, textAlign: 'center' }}>
-              <div style={{ fontWeight: 700, fontSize: '12px' }}>OFFICIAL FEE RECEIPT</div>
-            </div>
-
-            <div style={{ marginBottom: 10 }}>
-              <div><strong>NAME:</strong> {l.name}</div>
-              <div><strong>ADM:</strong> {l.adm}</div>
-              <div><strong>GRADE:</strong> {l.grade}</div>
-              <div><strong>DATE:</strong> {new Date().toLocaleDateString('en-GB')}</div>
-            </div>
-
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontWeight: 700, borderBottom: '1px solid #000', marginBottom: 4 }}>TERMLY PAYMENTS:</div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
-                <span>TERM 1:</span>
-                <strong>{(l.t1 || 0).toLocaleString()}</strong>
+            margin: '0 auto', 
+            padding: '20px', 
+            background: '#fff', 
+            border: '1px solid #ddd', 
+            borderRadius: 8, 
+            width: '105mm', 
+            minHeight: '148mm',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+          }} className="standard-statement">
+            
+            {/* Letterhead */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, borderBottom: '2px solid #8B1A1A', paddingBottom: 10 }}>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: 900, fontSize: 18, color: '#8B1A1A', letterSpacing: -0.5 }}>PAAV-GITOMBO SCHOOL</div>
+                <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>✝ More Than Academics!</div>
+                <div style={{ fontSize: 9, color: '#666' }}>Tel: 0758 922 915</div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
-                <span>TERM 2:</span>
-                <strong>{(l.t2 || 0).toLocaleString()}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
-                <span>TERM 3:</span>
-                <strong>{(l.t3 || 0).toLocaleString()}</strong>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontWeight: 800, fontSize: 12, background: '#8B1A1A', color: '#fff', padding: '4px 12px', borderRadius: 4 }}>FEES STATEMENT</div>
+                <div style={{ fontSize: 9, marginTop: 4, color: '#666' }}>Year: {new Date().getFullYear()}</div>
               </div>
             </div>
 
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontWeight: 700, borderBottom: '1px solid #000', marginBottom: 4 }}>RECENT PAYMENTS:</div>
-              {lfees.length > 0 ? lfees.slice(0, 5).map((f, idx) => (
-                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px', marginBottom: 1 }}>
-                  <span>{f.date} ({f.method || 'Cash'})</span>
-                  <strong>{Number(f.amount || f.amt || 0).toLocaleString()}</strong>
+            {/* Learner Info */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 15 }}>
+              <div>
+                <div style={{ color: '#666', fontSize: 9, textTransform: 'uppercase' }}>Learner</div>
+                <div style={{ fontSize: 14, fontWeight: 800 }}>{l.name}</div>
+                <div style={{ fontSize: 11, color: '#444' }}>ADM: <strong>{l.adm}</strong> | {l.grade}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ color: '#666', fontSize: 9, textTransform: 'uppercase' }}>Date</div>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>{new Date().toLocaleDateString()}</div>
+              </div>
+            </div>
+
+            {/* Summary Grid */}
+            <div style={{ background: '#F8FAFF', padding: '12px', borderRadius: 8, border: '1px solid #E2E8F0', marginBottom: 15 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 10, borderBottom: '1px solid #E2E8F0', paddingBottom: 8 }}>
+                <div>
+                  <div style={{ fontSize: 8, color: '#666', fontWeight: 700 }}>ARREARS</div>
+                  <div style={{ fontSize: 12, fontWeight: 900 }}>{arrears.toLocaleString()}</div>
                 </div>
-              )) : <div style={{ fontSize: '9px', fontStyle: 'italic' }}>No payments</div>}
+                <div>
+                  <div style={{ fontSize: 8, color: '#666', fontWeight: 700 }}>ANNUAL</div>
+                  <div style={{ fontSize: 12, fontWeight: 900 }}>{annualFee.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 8, color: '#666', fontWeight: 700 }}>PAYABLE</div>
+                  <div style={{ fontSize: 12, fontWeight: 900, color: '#8B1A1A' }}>{(annualFee + arrears).toLocaleString()}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 8, color: '#666', fontWeight: 700 }}>PAID</div>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: '#059669' }}>{paid.toLocaleString()}</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, padding: '5px 0' }}>
+                <div>
+                  <div style={{ fontSize: 7, color: '#666' }}>T1 EXP</div>
+                  <div style={{ fontSize: 10, fontWeight: 700 }}>{t1Fee.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 7, color: '#666' }}>T2 EXP</div>
+                  <div style={{ fontSize: 10, fontWeight: 700 }}>{t2Fee.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 7, color: '#666' }}>T3 EXP</div>
+                  <div style={{ fontSize: 10, fontWeight: 700 }}>{t3Fee.toLocaleString()}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 8, color: '#666', fontWeight: 800 }}>BALANCE</div>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: bal > 0 ? '#DC2626' : '#059669' }}>{bal.toLocaleString()}</div>
+                </div>
+              </div>
             </div>
 
-            <div style={{ borderTop: '1px solid #000', paddingTop: 6, marginBottom: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>ANNUAL FEE:</span>
-                <strong>{annualFee.toLocaleString()}</strong>
+            {/* Termly Breakdown */}
+            {(t1Fee > 0 || t2Fee > 0 || t3Fee > 0) && (
+              <div style={{ marginTop: 15 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#4A5568', marginBottom: 5, textTransform: 'uppercase' }}>Termly Fee Breakdown</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                  <div style={{ background: '#fff', padding: '6px 10px', borderRadius: 6, border: '1px solid #EDF2F7' }}>
+                    <div style={{ fontSize: 8, color: '#718096' }}>Term 1</div>
+                    <div style={{ fontSize: 10, fontWeight: 700 }}>Exp: {fmtK(t1Fee)}</div>
+                    <div style={{ fontSize: 9, color: '#059669' }}>Paid: {fmtK(l.t1||0)}</div>
+                  </div>
+                  <div style={{ background: '#fff', padding: '6px 10px', borderRadius: 6, border: '1px solid #EDF2F7' }}>
+                    <div style={{ fontSize: 8, color: '#718096' }}>Term 2</div>
+                    <div style={{ fontSize: 10, fontWeight: 700 }}>Exp: {fmtK(t2Fee)}</div>
+                    <div style={{ fontSize: 9, color: '#059669' }}>Paid: {fmtK(l.t2||0)}</div>
+                  </div>
+                  <div style={{ background: '#fff', padding: '6px 10px', borderRadius: 6, border: '1px solid #EDF2F7' }}>
+                    <div style={{ fontSize: 8, color: '#718096' }}>Term 3</div>
+                    <div style={{ fontSize: 10, fontWeight: 700 }}>Exp: {fmtK(t3Fee)}</div>
+                    <div style={{ fontSize: 9, color: '#059669' }}>Paid: {fmtK(l.t3||0)}</div>
+                  </div>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669' }}>
-                <span>TOTAL PAID:</span>
-                <strong>{paid.toLocaleString()}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: bal > 0 ? '#DC2626' : '#059669', fontSize: '12px', fontWeight: 900, marginTop: 4 }}>
-                <span>BALANCE:</span>
-                <span>KSH {bal.toLocaleString()}</span>
-              </div>
-            </div>
+            )}
 
-            <div style={{ textAlign: 'center', marginTop: 15, fontSize: '9px', borderTop: '1px dashed #ccc', paddingTop: 10 }}>
-              <div>*** Thank You ***</div>
-              <div>Generated: {new Date().toLocaleString()}</div>
+            <div style={{ borderTop: '1px dashed #000', margin: '15px 0' }}></div>
+
+            {/* Payment History */}
+            <div style={{ fontSize: 10, marginBottom: 5, fontWeight: 700 }}>PAYMENT HISTORY</div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
+              <thead>
+                <tr style={{ background: '#F1F5F9', textAlign: 'left' }}>
+                  <th style={{ padding: 5, borderBottom: '1px solid #ddd' }}>Date</th>
+                  <th style={{ padding: 5, borderBottom: '1px solid #ddd' }}>Term</th>
+                  <th style={{ padding: 5, borderBottom: '1px solid #ddd' }}>Method</th>
+                  <th style={{ padding: 5, borderBottom: '1px solid #ddd', textAlign: 'right' }}>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paylog.slice(0, 8).map((p, idx) => (
+                  <tr key={idx}>
+                    <td style={{ padding: 5, borderBottom: '1px solid #eee' }}>{p.date.split('-').slice(1).join('/')}</td>
+                    <td style={{ padding: 5, borderBottom: '1px solid #eee' }}>{p.term}</td>
+                    <td style={{ padding: 5, borderBottom: '1px solid #eee' }}>{p.method}</td>
+                    <td style={{ padding: 5, borderBottom: '1px solid #eee', textAlign: 'right', fontWeight: 700 }}>{p.amount || p.amt}</td>
+                  </tr>
+                ))}
+                {paylog.length === 0 && (
+                  <tr><td colSpan={4} style={{ padding: 15, textAlign: 'center', color: '#999' }}>No payments.</td></tr>
+                )}
+              </tbody>
+            </table>
+
+            <div style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#8B1A1A', marginTop: 15 }}>
+              Thank you for your payment!
             </div>
           </div>
         );
-
       })}
     </div>
   );
