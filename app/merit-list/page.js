@@ -13,7 +13,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { buildMeritList, ALL_GRADES, maxPts, DEFAULT_SUBJECTS, gInfo } from '@/lib/cbe';
+import { buildMeritList, ALL_GRADES, maxPts, DEFAULT_SUBJECTS, gInfo, JSS, SENIOR } from '@/lib/cbe';
 
 const ASSESS_LABELS = { op1:'Opener Exam', mt1:'Mid-Term Exam', et1:'End-Term Exam' };
 
@@ -92,15 +92,16 @@ export default function MeritListPage() {
   const totalAvgMarks = ranked.length > 0 ? Math.round(totalMarksSum / ranked.length) : 0;
   
   const distribution = useMemo(() => {
-    const counts = { 'Exceeding': 0, 'Meeting': 0, 'Approaching': 0, 'Below': 0 };
+    const isJSS = JSS.includes(grade) || SENIOR.includes(grade);
+    const counts = isJSS 
+      ? { EE1:0, EE2:0, ME1:0, ME2:0, AE1:0, AE2:0, BE1:0, BE2:0 }
+      : { EE: 0, ME: 0, AE: 0, BE: 0 };
+
     ranked.forEach(l => {
       const pct = max ? Math.round((l.totalPts/max)*100) : 0;
       const inf = gInfo(pct, grade, gradCfg);
-      if (inf) {
-        if (inf.lv.includes('Exceeding')) counts['Exceeding']++;
-        else if (inf.lv.includes('Meeting')) counts['Meeting']++;
-        else if (inf.lv.includes('Approaching')) counts['Approaching']++;
-        else counts['Below']++;
+      if (inf && counts[inf.lv] !== undefined) {
+        counts[inf.lv]++;
       }
     });
     return counts;
@@ -199,30 +200,6 @@ export default function MeritListPage() {
             </div>
           )}
 
-          {/* ── DISTRIBUTION GRAPH ── */}
-          <div className="panel" style={{ marginBottom: 18 }}>
-            <div className="panel-body">
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 15, letterSpacing: 0.5 }}>📊 Class Performance Distribution</div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20, height: 120, padding: '0 20px' }}>
-                {[
-                  { label: 'Exceeding', count: distribution['Exceeding'], color: '#059669' },
-                  { label: 'Meeting', count: distribution['Meeting'], color: '#2563EB' },
-                  { label: 'Approaching', count: distribution['Approaching'], color: '#D97706' },
-                  { label: 'Below', count: distribution['Below'], color: '#DC2626' },
-                ].map(g => {
-                  const maxCount = Math.max(...Object.values(distribution), 1);
-                  const barH = (g.count / maxCount) * 80;
-                  return (
-                    <div key={g.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                      <div style={{ fontSize: 13, fontWeight: 900, color: g.color }}>{g.count}</div>
-                      <div style={{ width: '100%', maxWidth: 80, height: barH, background: g.color, borderRadius: '6px 6px 0 0', opacity: 0.85, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                      <div style={{ fontSize: 10, fontWeight: 800, color: '#64748b' }}>{g.label.slice(0,2).toUpperCase()}: {g.count}</div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
 
           {/* ── Full ranked table ── */}
           <div className="panel">
@@ -335,6 +312,43 @@ export default function MeritListPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* ── DISTRIBUTION GRAPH (at bottom) ── */}
+          <div className="panel" style={{ marginTop: 24, background: 'linear-gradient(to bottom right, #fff, #f8fafc)' }}>
+            <div className="panel-body">
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: 20, letterSpacing: 0.5, borderBottom: '1px solid #f1f5f9', paddingBottom: 10 }}>📊 Class Performance Distribution</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 250px', gap: 40, alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 140, padding: '0 10px' }}>
+                  {Object.entries(distribution).map(([lv, count]) => {
+                    const maxCount = Math.max(...Object.values(distribution), 1);
+                    const barH = (count / maxCount) * 100;
+                    const colors = { 
+                      EE: '#059669', ME: '#2563EB', AE: '#D97706', BE: '#DC2626',
+                      EE1: '#065F46', EE2: '#059669', ME1: '#1D4ED8', ME2: '#2563EB', AE1: '#B45309', AE2: '#92400E', BE1: '#DC2626', BE2: '#991B1B'
+                    };
+                    return (
+                      <div key={lv} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: colors[lv] || '#64748b' }}>{count}</div>
+                        <div style={{ width: '100%', height: `${barH}%`, background: colors[lv] || '#cbd5e1', borderRadius: '4px 4px 0 0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }} />
+                        <div style={{ fontSize: 10, fontWeight: 800, color: '#64748b' }}>{lv}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ borderLeft: '2px solid #f1f5f9', paddingLeft: 30 }}>
+                  <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 800, marginBottom: 10, textTransform: 'uppercase' }}>Summary Counts</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 20px' }}>
+                    {Object.entries(distribution).map(([lv, count]) => (
+                      <div key={lv} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700 }}>
+                        <span style={{ color: '#64748b' }}>{lv}:</span>
+                        <span>{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </>

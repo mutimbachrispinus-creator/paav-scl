@@ -274,47 +274,20 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
   const avgPct = data.length > 0 ? (data.reduce((acc, l) => acc + parseFloat(l.avg), 0) / data.length).toFixed(1) : 0;
 
   // Distribution stats
-  const dist = { EE: 0, ME: 0, AE: 0, BE: 0 };
+  const isJSS = isJSSGrade(grade);
+  const dist = isJSS 
+    ? { EE1:0, EE2:0, ME1:0, ME2:0, AE1:0, AE2:0, BE1:0, BE2:0 }
+    : { EE: 0, ME: 0, AE: 0, BE: 0 };
+    
   data.forEach(l => {
     const info = gInfo(l.totalMarks / (subjects.length || 1), grade, gradCfg);
-    if (info.lv === 'EE') dist.EE++;
-    else if (info.lv === 'ME') dist.ME++;
-    else if (info.lv === 'AE') dist.AE++;
-    else if (info.lv === 'BE') dist.BE++;
+    if (dist[info.lv] !== undefined) dist[info.lv]++;
   });
 
   return (
     <div>
       <PrintHeader title="MERIT LIST" grade={grade} />
       
-      {/* Distribution Graph */}
-      <div style={{ marginBottom: 20, padding: 10, border: '1px solid #eee', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 20 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 9, fontWeight: 800, color: '#666', marginBottom: 8, textTransform: 'uppercase' }}>Class Performance Distribution</div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 60 }}>
-            {Object.entries(dist).map(([k, v]) => {
-              const max = Math.max(...Object.values(dist), 1);
-              const h = (v / max) * 100;
-              const colors = { EE: '#059669', ME: '#2563EB', AE: '#D97706', BE: '#DC2626' };
-              return (
-                <div key={k} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ fontSize: 8, fontWeight: 800, marginBottom: 2 }}>{v}</div>
-                  <div style={{ width: '100%', height: `${h}%`, background: colors[k], borderRadius: '2px 2px 0 0' }}></div>
-                  <div style={{ fontSize: 8, fontWeight: 800, marginTop: 4, color: '#666' }}>{k}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div style={{ width: 120, borderLeft: '1px solid #eee', paddingLeft: 20 }}>
-          <div style={{ fontSize: 8, color: '#666' }}>SUMMARY</div>
-          {Object.entries(dist).map(([k, v]) => (
-            <div key={k} style={{ fontSize: 10, fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}>
-              <span>{k}:</span> <span>{v}</span>
-            </div>
-          ))}
-        </div>
-      </div>
 
       <div style={{ textAlign: 'center', marginBottom: 15, fontSize: 13, fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: 1 }}>
         TERM {term.replace('T','')} — {assess === 'op1' ? 'OPENER' : assess === 'mt1' ? 'MID-TERM' : 'END-TERM'} EXAMINATION
@@ -395,6 +368,38 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
           )}
         </tbody>
       </table>
+
+      {/* Distribution Graph (at bottom) */}
+      <div style={{ marginTop: 25, padding: 12, border: '1px solid #E2E8F0', borderRadius: 8, background: '#F8FAFF', display: 'flex', alignItems: 'center', gap: 24, pageBreakInside: 'avoid' }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 9, fontWeight: 800, color: '#475569', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>Class Performance Distribution</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 70 }}>
+            {Object.entries(dist).map(([k, v]) => {
+              const max = Math.max(...Object.values(dist), 1);
+              const h = (v / max) * 100;
+              const colors = { 
+                EE: '#059669', ME: '#2563EB', AE: '#D97706', BE: '#DC2626',
+                EE1: '#065F46', EE2: '#059669', ME1: '#1D4ED8', ME2: '#2563EB', AE1: '#B45309', AE2: '#92400E', BE1: '#DC2626', BE2: '#991B1B'
+              };
+              return (
+                <div key={k} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{ fontSize: 8, fontWeight: 800, marginBottom: 2 }}>{v}</div>
+                  <div style={{ width: '100%', height: `${h}%`, background: colors[k] || '#cbd5e1', borderRadius: '3px 3px 0 0' }}></div>
+                  <div style={{ fontSize: 8, fontWeight: 800, marginTop: 5, color: '#475569' }}>{k}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ width: 140, borderLeft: '2px solid #E2E8F0', paddingLeft: 24 }}>
+          <div style={{ fontSize: 8, color: '#64748B', fontWeight: 800, marginBottom: 6, textTransform: 'uppercase' }}>SUMMARY</div>
+          {Object.entries(dist).map(([k, v]) => (
+            <div key={k} style={{ fontSize: 10, fontWeight: 700, display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+              <span style={{ color: '#475569' }}>{k}:</span> <span>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
