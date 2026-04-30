@@ -18,6 +18,7 @@ import {
 } from '@/lib/cbe';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+import { addToOutbox } from '@/lib/idb';
 import { useProfile } from '@/app/PortalShell';
 
 const TERMS      = ['T1','T2','T3'];
@@ -107,13 +108,18 @@ export default function GradesPage() {
     const gsa = `${term}:${grade}|${subj}|${assess}`;
     const score = value === '' ? undefined : Number(value);
     
-    // Update local state for immediate UI feedback
+    // 1. Update local UI state
     setMarks(prev => ({
       ...prev,
       [gsa]: { ...(prev[gsa] || {}), [admNo]: score },
     }));
 
-    // Track as dirty for atomic sync
+    // 2. Persist to local cache (localStorage + IndexedDB via mirror)
+    const nextMarks = { ...marks, [gsa]: { ...(marks[gsa] || {}), [admNo]: score } };
+    const PREFIX = 'paav_cache_';
+    localStorage.setItem(PREFIX + 'db_paav6_marks', JSON.stringify({ v: nextMarks, t: Date.now(), s: 0 }));
+
+    // 3. Track as dirty for sync
     setDirtyMarks(prev => {
       const filtered = prev.filter(m => !(m.gsa === gsa && m.adm === admNo));
       return [...filtered, { gsa, adm: admNo, score }];
@@ -185,8 +191,18 @@ export default function GradesPage() {
         setTimeout(() => setAlert({ msg: '', type: '' }), 3000);
       }
     } catch (e) {
-      console.error(e);
-      if (!isAuto) setAlert({ msg: '❌ Save failed: ' + e.message, type: 'err' });
+      console.warn('[Grades] Save failed, queuing in outbox:', e.message);
+      await addToOutbox({ 
+        url: '/api/db', 
+        method: 'POST', 
+        body: { requests: reqs } 
+      });
+      setDirtyMarks(prev => prev.filter(m => !marksToSync.includes(m)));
+      
+      if (!isAuto) {
+        setAlert({ msg: '📵 Offline: Marks saved locally and will sync when online.', type: 'warn' });
+        setTimeout(() => setAlert({ msg: '', type: '' }), 5000);
+      }
     } finally {
       if (!isAuto) setSaving(false);
     }
