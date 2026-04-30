@@ -166,7 +166,7 @@ export default function LearnersPage() {
                       <td style={{ padding: '6px 8px' }}>
                         <span className="badge bg-blue" style={{ fontSize: 10 }}>{l.grade}</span>
                       </td>
-                      <td style={{ padding: '6px 8px' }}>{l.sex}</td>
+                      <td style={{ padding: '6px 8px' }}>{l.sex === 'F' ? 'Female' : (l.sex === 'M' ? 'Male' : l.sex)}</td>
                       <td style={{ padding: '6px 8px' }}>{l.age}</td>
                       <td style={{ fontSize: 11.5, padding: '6px 8px' }}>{l.teacher || '—'}</td>
                       <td style={{ fontSize: 11.5, padding: '6px 8px' }}>{l.parent  || '—'}</td>

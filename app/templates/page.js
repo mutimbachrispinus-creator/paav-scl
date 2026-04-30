@@ -479,7 +479,7 @@ function ClassListTemplate({ learners, grade }) {
               <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>{i + 1}</td>
               <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>{l.adm}</td>
               <td style={{ border: '1px solid #ddd', padding: 4 }}>{l.name}</td>
-              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>{l.sex}</td>
+              <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>{l.sex === 'F' ? 'Female' : (l.sex === 'M' ? 'Male' : l.sex)}</td>
               <td style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>{l.phone}</td>
             </tr>
           ))}

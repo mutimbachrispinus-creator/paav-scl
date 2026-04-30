@@ -238,8 +238,8 @@ export default function BulkLearnersPage() {
                   </td>
                   <td>
                     <select className="sc-inp" style={{ width: '100%' }} value={r.sex} onChange={e => updateRow(i, 'sex', e.target.value)}>
-                      <option value="F">F</option>
-                      <option value="M">M</option>
+                      <option value="F">Female</option>
+                      <option value="M">Male</option>
                     </select>
                   </td>
                   <td>

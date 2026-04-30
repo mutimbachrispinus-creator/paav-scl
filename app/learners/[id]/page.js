@@ -123,7 +123,7 @@ export default function LearnerProfilePage() {
               ['Admission No.', learner.adm],
               ['Full Name',     learner.name],
               ['Grade',         learner.grade],
-              ['Sex',           learner.sex],
+              ['Gender',        learner.sex === 'F' ? 'Female' : (learner.sex === 'M' ? 'Male' : learner.sex)],
               ['Age',           learner.age],
               ['Date of Birth', learner.dob || '—'],
               ['Stream',        learner.stream || '—'],
