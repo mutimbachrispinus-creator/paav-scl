@@ -90,6 +90,21 @@ export default function MeritListPage() {
   const avgPct = ranked.length > 0 && max > 0 ? Math.round((totalAvgPts / max) * 100) : 0;
   const totalMarksSum = ranked.reduce((acc, l) => acc + l.detail.reduce((s,d)=>s+(d.score||0),0), 0);
   const totalAvgMarks = ranked.length > 0 ? Math.round(totalMarksSum / ranked.length) : 0;
+  
+  const distribution = useMemo(() => {
+    const counts = { 'Exceeding': 0, 'Meeting': 0, 'Approaching': 0, 'Below': 0 };
+    ranked.forEach(l => {
+      const pct = max ? Math.round((l.totalPts/max)*100) : 0;
+      const inf = gInfo(pct, grade, gradCfg);
+      if (inf) {
+        if (inf.lv.includes('Exceeding')) counts['Exceeding']++;
+        else if (inf.lv.includes('Meeting')) counts['Meeting']++;
+        else if (inf.lv.includes('Approaching')) counts['Approaching']++;
+        else counts['Below']++;
+      }
+    });
+    return counts;
+  }, [ranked, max, grade, gradCfg]);
 
 
   if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading merit list…</div>;
@@ -183,6 +198,31 @@ export default function MeritListPage() {
               })}
             </div>
           )}
+
+          {/* ── DISTRIBUTION GRAPH ── */}
+          <div className="panel" style={{ marginBottom: 18 }}>
+            <div className="panel-body">
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 15, letterSpacing: 0.5 }}>📊 Class Performance Distribution</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20, height: 120, padding: '0 20px' }}>
+                {[
+                  { label: 'Exceeding', count: distribution['Exceeding'], color: '#059669' },
+                  { label: 'Meeting', count: distribution['Meeting'], color: '#2563EB' },
+                  { label: 'Approaching', count: distribution['Approaching'], color: '#D97706' },
+                  { label: 'Below', count: distribution['Below'], color: '#DC2626' },
+                ].map(g => {
+                  const maxCount = Math.max(...Object.values(distribution), 1);
+                  const barH = (g.count / maxCount) * 80;
+                  return (
+                    <div key={g.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                      <div style={{ fontSize: 13, fontWeight: 900, color: g.color }}>{g.count}</div>
+                      <div style={{ width: '100%', maxWidth: 80, height: barH, background: g.color, borderRadius: '6px 6px 0 0', opacity: 0.85, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b' }}>{g.label}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
 
           {/* ── Full ranked table ── */}
           <div className="panel">

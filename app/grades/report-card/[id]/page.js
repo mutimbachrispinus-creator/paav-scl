@@ -188,6 +188,29 @@ export default function ReportCardPage() {
             ))}
           </div>
 
+          {/* ── PERFORMANCE GRAPH ── */}
+          <div style={{ position: 'relative', zIndex: 1, marginBottom: 15, border: '1.5px solid #e2e8f0', borderRadius: 10, padding: '12px 20px', background: 'white' }}>
+            <div style={{ fontSize: 9, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 12, letterSpacing: 0.5 }}>📊 Assessment Performance Trend</div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 30, height: 70, paddingLeft: 10 }}>
+              {[
+                { label: 'Opener', total: openerTotal, color: '#8B1A1A' },
+                { label: 'Mid-Term', total: midTotal, color: '#D97706' },
+                { label: 'End-Term', total: endTotal, color: '#2563EB' },
+                { label: 'Average', total: avgTotal, color: '#059669' },
+              ].map(g => {
+                const maxVal = Math.max(openerTotal, midTotal, endTotal, avgTotal, 1);
+                const barH = (g.total / maxVal) * 50;
+                return (
+                  <div key={g.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, width: 60 }}>
+                    <div style={{ fontSize: 10, fontWeight: 900, color: g.color }}>{g.total}</div>
+                    <div style={{ width: 35, height: barH, background: g.color, borderRadius: '4px 4px 0 0', opacity: 0.9 }} />
+                    <div style={{ fontSize: 8.5, fontWeight: 700, color: '#64748b' }}>{g.label}</div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
           {/* ── MARKS TABLE ── */}
           <table className="rc-subj-table" style={{ position: 'relative', zIndex: 1 }}>
             <thead>
