@@ -263,28 +263,50 @@ async function handleResetPw({ username, newPassword, secA }) {
 }
 
 /* ─── Admin edit user ───────────────────────────────────────────────────── */
-async function handleEditUser({ id, name, role, grade, phone, status, password }, request) {
-  // Must be called by an admin session
+async function handleEditUser({ id, name, role, grade, phone, status, password, avatar }, request) {
   const session = await getSession();
-  if (!session || session.role !== 'admin') return err('Admin only', 403);
-
-  const staff = await getStaffList();
-  const idx   = staff.findIndex(s => s.id === id);
-  if (idx === -1) return err('User not found');
-
-  if (name)   staff[idx].name   = name.toUpperCase();
-  if (role)   staff[idx].role   = role;
-  if (grade !== undefined) staff[idx].grade  = grade;
-  if (phone)  staff[idx].phone  = phone;
-  if (status) staff[idx].status = status;
-
-  // Admin force-reset password — no old password required
-  if (password && password.length >= 6) {
-    staff[idx].password = await hashPassword(password);
+  if (!session) return err('Unauthorised', 401);
+  
+  // Only admins can edit others; users can edit themselves
+  if (session.role !== 'admin' && session.id !== id) {
+    return err('Forbidden: You can only edit your own profile', 403);
   }
 
-  await kvSet('paav6_staff', staff);
-  return NextResponse.json({ ok: true, user: publicUser(staff[idx]) });
+  // Certain fields are Admin-only
+  if (session.role !== 'admin') {
+    if (role || status || grade !== undefined) {
+      return err('Forbidden: Only administrators can change roles, status, or grades', 403);
+    }
+  }
+
+  const { query, kvUpdateStaffProfile } = await import('@/lib/db');
+  const rows = await query('SELECT * FROM staff WHERE id = ?', [id]);
+  const existing = rows[0];
+  if (!existing) return err('User not found');
+
+  const finalName = name ? name.toUpperCase() : existing.name;
+  const finalPhone = phone || existing.phone;
+  const finalAvatar = avatar !== undefined ? avatar : existing.avatar;
+  
+  let hashedPassword = null;
+  if (password && password.length >= 6) {
+    hashedPassword = await hashPassword(password);
+  }
+
+  // Update directly in the relational table (which handleEditUser was NOT doing correctly before)
+  // And touch the KV timestamp to invalidate client cache
+  await kvUpdateStaffProfile(id, finalName, finalPhone, finalAvatar, hashedPassword);
+
+  // If Admin is updating other fields (role, status, grade)
+  if (session.role === 'admin' && (role || status || grade !== undefined)) {
+    const finalRole = role || existing.role;
+    const finalStatus = status || existing.status;
+    const finalGrade = grade !== undefined ? grade : existing.grade;
+    const { execute } = await import('@/lib/db');
+    await execute('UPDATE staff SET role = ?, status = ?, grade = ? WHERE id = ?', [finalRole, finalStatus, finalGrade, id]);
+  }
+
+  return NextResponse.json({ ok: true });
 }
 
 /* ─── Utilities ─────────────────────────────────────────────────────────── */

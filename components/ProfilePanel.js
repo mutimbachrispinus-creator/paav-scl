@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useProfile } from '@/app/PortalShell';
+import { fetchWithRetry } from '@/lib/client-cache';
 
 export default function ProfilePanel({ user, onClose }) {
   const { setUser } = useProfile();
@@ -17,13 +18,14 @@ export default function ProfilePanel({ user, onClose }) {
     async function loadExtra() {
       if (!user?.id) return;
       try {
-        const res = await fetch('/api/db', { 
+        const res = await fetchWithRetry('/api/db', { 
           method:'POST', 
           headers:{'Content-Type':'application/json'}, 
-          body: JSON.stringify({ requests: [{type:'get', key:'paav_profiles'}] }) 
+          body: JSON.stringify({ requests: [{type:'get', key:'paav_profiles'}] }),
+          timeout: 8000
         });
         const db = await res.json();
-        const pExtra = db.results[0]?.value?.[user.id] || {};
+        const pExtra = db.results?.[0]?.value?.[user.id] || {};
         setForm(f => ({ 
           ...f, 
           phone: user?.phone || '', 
@@ -37,7 +39,9 @@ export default function ProfilePanel({ user, onClose }) {
           nok_phone: pExtra.nok_phone||'', 
           nok_id: pExtra.nok_id||'' 
         }));
-      } catch(e) {}
+      } catch(e) {
+        console.error('[ProfilePanel] Failed to load extra info:', e);
+      }
     }
     loadExtra();
   }, [user?.id, user?.phone]);
@@ -52,31 +56,25 @@ export default function ProfilePanel({ user, onClose }) {
     reader.onload = async ev => {
       const dataUrl = ev.target.result;
       try {
-        const table = 'paav6_staff';
-        const res = await fetch('/api/db', { 
+        const res = await fetchWithRetry('/api/auth', { 
           method:'POST', 
           headers:{'Content-Type':'application/json'}, 
-          body: JSON.stringify({ requests: [{type:'get', key: table}] }) 
+          body: JSON.stringify({ action: 'edit_user', id: user.id, avatar: dataUrl }),
+          timeout: 20000 // Large payload (avatar) needs more time
         });
-        const db = await res.json();
-        const list = db.results[0]?.value || [];
-        const idx = list.findIndex(u => u.id === user.id);
-        if (idx >= 0) {
-          list[idx].avatar = dataUrl;
-          await fetch('/api/db', { 
-            method:'POST', 
-            headers:{'Content-Type':'application/json'}, 
-            body: JSON.stringify({ requests: [{type:'set', key: table, value: list}] }) 
-          });
-          // Update in-memory user context + sessionStorage cache
-          setUser(u => ({ ...u, avatar: dataUrl }));
-          try { sessionStorage.setItem('paav_avatar_' + user.id, dataUrl); } catch {}
-          setMsg('✅ Photo updated!');
-        } else {
-          throw new Error('Profile not found in staff list');
-        }
-      } catch(err) { setMsg('❌ Photo failed'); }
-      finally { setSaving(false); setTimeout(()=>setMsg(''), 3000); }
+        const d = await res.json();
+        if (!d.ok) throw new Error(d.error || 'Failed to update photo');
+
+        // Update in-memory user context + sessionStorage cache
+        setUser(u => ({ ...u, avatar: dataUrl }));
+        try { sessionStorage.setItem('paav_avatar_' + user.id, dataUrl); } catch {}
+        setMsg('✅ Photo updated!');
+      } catch(err) { 
+        setMsg('❌ Photo failed: ' + err.message); 
+      } finally { 
+        setSaving(false); 
+        setTimeout(()=>setMsg(''), 3000); 
+      }
     };
     reader.readAsDataURL(file);
   }
@@ -84,22 +82,24 @@ export default function ProfilePanel({ user, onClose }) {
   async function saveProfile() {
     setSaving(true);
     try {
-      // 1. Save auth level (phone/pw)
-      const res = await fetch('/api/auth', {
+      // 1. Save auth level (phone/pw) via targeted action
+      const res = await fetchWithRetry('/api/auth', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'edit_user', id: user.id, phone: form.phone, password: form.newPw || undefined })
+        body: JSON.stringify({ action:'edit_user', id: user.id, phone: form.phone, password: form.newPw || undefined }),
+        timeout: 10000
       });
       const d = await res.json();
-      if (!d.ok) throw new Error(d.error);
+      if (!d.ok) throw new Error(d.error || 'Failed to update credentials');
 
       // 2. Save extra profile details to paav_profiles
-      const pRes = await fetch('/api/db', { 
+      const pRes = await fetchWithRetry('/api/db', { 
         method:'POST', 
         headers:{'Content-Type':'application/json'}, 
-        body: JSON.stringify({ requests: [{type:'get', key:'paav_profiles'}] }) 
+        body: JSON.stringify({ requests: [{type:'get', key:'paav_profiles'}] }),
+        timeout: 8000
       });
       const pdb = await pRes.json();
-      const profiles = pdb.results[0]?.value || {};
+      const profiles = pdb.results?.[0]?.value || {};
       profiles[user.id] = { 
         ...profiles[user.id], 
         phone: form.phone, 
@@ -113,14 +113,18 @@ export default function ProfilePanel({ user, onClose }) {
         nok_phone: form.nok_phone, 
         nok_id: form.nok_id 
       };
-      await fetch('/api/db', { 
+      await fetchWithRetry('/api/db', { 
         method:'POST', 
         headers:{'Content-Type':'application/json'}, 
-        body: JSON.stringify({ requests: [{type:'set', key:'paav_profiles', value: profiles}] }) 
+        body: JSON.stringify({ requests: [{type:'set', key:'paav_profiles', value: profiles}] }),
+        timeout: 10000
       });
 
       setMsg('✅ Profile updated!');
-    } catch(e) { setMsg('❌ '+e.message); }
+      if (form.newPw) setForm(f => ({ ...f, newPw: '' })); // clear pw field
+    } catch(e) { 
+      setMsg('❌ ' + e.message); 
+    }
     setSaving(false);
     setTimeout(()=>setMsg(''),3000);
   }
