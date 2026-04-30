@@ -195,6 +195,11 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
           </div>
         </div>
 
+        {/* Sync Status */}
+        <div className="tb-sync" title="Sync Status" style={{ fontSize: 18, marginRight: 10 }}>
+          {navigator.onLine ? '🌐' : '📵'}
+        </div>
+
         {/* Logout */}
         <button className="btn-logout" onClick={logout}>⏻ Out</button>
       </div>
