@@ -70,10 +70,16 @@ export default function LearnerReceiptPage() {
 
       <div style={{ margin: '0 auto', padding: '40px', background: '#fff', border: '1px solid #ddd', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} className="standard-statement">
 
-      <div style={{ textAlign: 'center', marginBottom: 30, borderBottom: '2px solid var(--maroon)', paddingBottom: 20 }}>
-        <div style={{ fontWeight: 900, fontSize: 24, color: 'var(--maroon)' }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
-        <div style={{ fontSize: 14, color: '#666' }}>✝ More Than Academics!</div>
-        <div style={{ fontWeight: 800, fontSize: 18, marginTop: 10, background: 'var(--maroon)', color: '#fff', padding: '6px 20px', borderRadius: 20, display: 'inline-block' }}>OFFICIAL FEES STATEMENT / RECEIPT</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30, borderBottom: '3px solid var(--maroon)', paddingBottom: 20 }}>
+        <div style={{ textAlign: 'left' }}>
+          <div style={{ fontWeight: 900, fontSize: 28, color: 'var(--maroon)', letterSpacing: -0.5 }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
+          <div style={{ fontSize: 14, color: '#444', fontWeight: 600 }}>✝ More Than Academics! &nbsp; | &nbsp; P.O. Box 123, Gitombo</div>
+          <div style={{ fontSize: 13, color: '#666' }}>Tel: 0758 922 915 &nbsp; | &nbsp; Email: info@paavgito.sc.ke</div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontWeight: 800, fontSize: 18, background: 'var(--maroon)', color: '#fff', padding: '8px 24px', borderRadius: 8 }}>FEES STATEMENT</div>
+          <div style={{ fontSize: 12, marginTop: 8, color: '#666' }}>Academic Year: {new Date().getFullYear()}</div>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 30 }}>
@@ -89,34 +95,42 @@ export default function LearnerReceiptPage() {
         </div>
       </div>
 
-      <div style={{ background: '#F8FAFF', padding: '20px 24px', borderRadius: 12, border: '1px solid #E2E8F0', marginBottom: 30 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10, marginBottom: 15, borderBottom: '1px solid #E2E8F0', paddingBottom: 10 }}>
-            <div style={{ fontSize: 10, color: '#666' }}>ACCUMULATED FEE</div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: arrears > 0 ? '#DC2626' : '#666' }}>KES {arrears.toLocaleString()}</div>
+      <div style={{ background: '#F8FAFF', padding: '24px', borderRadius: 12, border: '1px solid #E2E8F0', marginBottom: 30 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginBottom: 20, borderBottom: '1px solid #E2E8F0', paddingBottom: 15 }}>
+          <div>
+            <div style={{ fontSize: 10, color: '#666', fontWeight: 700 }}>ARREARS (B/F)</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: arrears > 0 ? '#DC2626' : '#666' }}>KES {arrears.toLocaleString()}</div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: '#666' }}>TERM 1 FEE</div>
+            <div style={{ fontSize: 10, color: '#666', fontWeight: 700 }}>CURRENT YEAR FEES</div>
+            <div style={{ fontSize: 18, fontWeight: 900 }}>KES {annualFee.toLocaleString()}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: '#666', fontWeight: 700 }}>GRAND TOTAL PAYABLE</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--maroon)' }}>KES {(annualFee + arrears).toLocaleString()}</div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 10, color: '#666', fontWeight: 700 }}>TOTAL PAID TO DATE</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: '#059669' }}>KES {paid.toLocaleString()}</div>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 15, padding: '10px 0' }}>
+          <div>
+            <div style={{ fontSize: 10, color: '#666' }}>TERM 1 EXPECTED</div>
             <div style={{ fontSize: 14, fontWeight: 700 }}>KES {t1Fee.toLocaleString()}</div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: '#666' }}>TERM 2 FEE</div>
+            <div style={{ fontSize: 10, color: '#666' }}>TERM 2 EXPECTED</div>
             <div style={{ fontSize: 14, fontWeight: 700 }}>KES {t2Fee.toLocaleString()}</div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: '#666' }}>TERM 3 FEE</div>
+            <div style={{ fontSize: 10, color: '#666' }}>TERM 3 EXPECTED</div>
             <div style={{ fontSize: 14, fontWeight: 700 }}>KES {t3Fee.toLocaleString()}</div>
           </div>
-          <div>
-            <div style={{ fontSize: 10, color: '#666' }}>ANNUAL TOTAL</div>
-            <div style={{ fontSize: 16, fontWeight: 800 }}>KES {annualFee.toLocaleString()}</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 10, color: '#666' }}>TOTAL PAID</div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: '#059669' }}>KES {paid.toLocaleString()}</div>
-          </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 10, color: '#666' }}>TOTAL BALANCE</div>
-            <div style={{ fontSize: 18, fontWeight: 900, color: bal > 0 ? '#DC2626' : '#059669' }}>KES {bal.toLocaleString()}</div>
+            <div style={{ fontSize: 10, color: '#666', fontWeight: 800 }}>OUTSTANDING BALANCE</div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: bal > 0 ? '#DC2626' : '#059669' }}>KES {bal.toLocaleString()}</div>
           </div>
         </div>
         
@@ -187,9 +201,11 @@ export default function LearnerReceiptPage() {
         This is a computer generated official statement.<br/>
         Issued by: {user.name} · {new Date().toLocaleDateString()}
       </div>
+      </div>
     </div>
+  </div>
 
-      <style jsx>{`
+  <style jsx>{`
         @media print {
           @page { size: landscape; margin: 10mm; }
           .no-print { display: none !important; }
