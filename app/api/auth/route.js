@@ -74,7 +74,7 @@ async function handleLogin({ username, password }, request) {
   const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
   const user = rows[0];
 
-  if (!user) return err('Invalid username or password');
+  if (!user) return err('Account not found (Check your username)');
   if (user.status === 'inactive') return err('Your account is deactivated. Contact admin.');
 
   // Support both plain-text passwords (legacy) and hashed passwords
@@ -82,7 +82,7 @@ async function handleLogin({ username, password }, request) {
     user.password === password ||                          // legacy plain
     await verifyPassword(password, user.password);         // hashed
 
-  if (!match) return err('Invalid username or password');
+  if (!match) return err('Incorrect password (Check your credentials)');
 
   const response = NextResponse.json({
     ok: true,

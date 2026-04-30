@@ -112,7 +112,10 @@ export default function LoginPage() {
       }
       
       if (!res.ok) {
-        throw new Error(data.error || `Server Error (${res.status})`);
+        // If it's a 4xx error from our API, it likely has a JSON error message
+        setErr(data.error || `Error (${res.status}): Please check your credentials.`);
+        setBusy(false);
+        return;
       }
       
       if (data.ok) {
