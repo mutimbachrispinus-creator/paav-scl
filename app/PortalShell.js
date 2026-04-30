@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import ProfilePanel from '@/components/ProfilePanel';
 import { ALL_NAV } from '@/lib/navigation';
-import { getCachedUser, getCachedDBMulti, prefetchKeys, clearAllCache, fetchWithRetry } from '@/lib/client-cache';
+import { getCachedUser, getCachedDBMulti, prefetchKeys, clearAllCache, fetchWithRetry, hydrateCache } from '@/lib/client-cache';
 import { initSyncEngine, stopSyncEngine } from '@/lib/sync-engine';
 
 /**

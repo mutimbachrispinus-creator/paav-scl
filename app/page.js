@@ -11,7 +11,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { prefetchKeys, clearAllCache, fetchWithRetry } from '@/lib/client-cache';
+import { prefetchKeys, clearAllCache, fetchWithRetry, hydrateCache } from '@/lib/client-cache';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -126,6 +126,7 @@ export default function LoginPage() {
             localStorage.removeItem('paav_remember');
           }
           clearAllCache();
+          if (data.initialData) hydrateCache(data.initialData);
           prefetchKeys(['paav6_learners', 'paav6_paylog', 'paav6_msgs', 'paav6_feecfg', 'paav7_hero_img']);
           const target = data.user.role === 'parent' ? '/parent-home' : '/dashboard';
           router.push(target);

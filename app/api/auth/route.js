@@ -82,9 +82,25 @@ async function handleLogin({ username, password }, request) {
 
   if (!match) return err('Incorrect password (Check your credentials)');
 
+  // Prefetch common dashboard data to include in login response
+  const [ann, msgs, hero, feecfg, learners] = await Promise.all([
+    kvGet('paav_announcement'),
+    kvGet('paav6_msgs'),
+    kvGet('paav7_hero_img'),
+    kvGet('paav6_feecfg'),
+    kvGet('paav6_learners')
+  ]);
+
   const response = NextResponse.json({
     ok: true,
     user: publicUser(user),
+    initialData: {
+      db_paav_announcement: ann,
+      db_paav6_msgs: msgs,
+      db_paav7_hero_img: hero,
+      db_paav6_feecfg: feecfg,
+      db_paav6_learners: learners
+    }
   });
 
   await setSessionCookie(user, response);
@@ -210,7 +226,25 @@ async function handleWhoami() {
   const user = rows[0];
   
   if (user) {
-    return NextResponse.json({ ok: true, user: publicUser(user) });
+    const [ann, msgs, hero, feecfg, learners] = await Promise.all([
+      kvGet('paav_announcement'),
+      kvGet('paav6_msgs'),
+      kvGet('paav7_hero_img'),
+      kvGet('paav6_feecfg'),
+      kvGet('paav6_learners')
+    ]);
+
+    return NextResponse.json({
+      ok: true,
+      user: publicUser(user),
+      initialData: {
+        db_paav_announcement: ann,
+        db_paav6_msgs: msgs,
+        db_paav7_hero_img: hero,
+        db_paav6_feecfg: feecfg,
+        db_paav6_learners: learners
+      }
+    });
   }
 
   // Fallback if not found in staff (e.g. parent/learner logic)
