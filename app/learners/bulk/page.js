@@ -14,7 +14,7 @@ import { invalidateDB } from '@/lib/client-cache';
 const EMPTY_ROW = { 
   adm: '', name: '', dob: '', grade: 'GRADE 7', sex: 'F', age: '', 
   stream: '', parent: '', phone: '', parentEmail: '', addr: '',
-  t1: 0, t2: 0, t3: 0, teacher: ''
+  t1: 0, t2: 0, t3: 0, teacher: '', arrears: 0
 };
 const GENDERS = ['M', 'F'];
 
@@ -214,6 +214,7 @@ export default function BulkLearnersPage() {
                 <th style={{ width: 100 }}>Stream</th>
                 <th>Parent Name</th>
                 <th>Phone</th>
+                <th style={{ width: 120 }}>Accumulated Fee</th>
               </tr>
             </thead>
             <tbody>
@@ -247,6 +248,9 @@ export default function BulkLearnersPage() {
                   </td>
                   <td>
                     <input type="text" className="sc-inp" style={{ width: '100%' }} value={r.phone} onChange={e => updateRow(i, 'phone', e.target.value)} placeholder="07..." />
+                  </td>
+                  <td>
+                    <input type="number" className="sc-inp" style={{ width: '100%' }} value={r.arrears} onChange={e => updateRow(i, 'arrears', Number(e.target.value))} placeholder="0.00" />
                   </td>
                 </tr>
               ))}

@@ -235,7 +235,7 @@ export default function LearnersPage() {
 function AddLearnerModal({ onClose }) {
   const [form, setForm] = useState({
     name: '', grade: '', dob: '', adm: '', sex: 'Female', age: '',
-    stream: '', parent: '', phone: '', parentEmail: '', addr: '',
+    stream: '', parent: '', phone: '', parentEmail: '', addr: '', arrears: 0,
   });
   const [err,  setErr]  = useState('');
   const [busy, setBusy] = useState(false);
@@ -260,7 +260,7 @@ function AddLearnerModal({ onClose }) {
       dob: form.dob, stream: form.stream,
       teacher: '', parent: form.parent, phone: form.phone,
       parentEmail: form.parentEmail, addr: form.addr,
-      t1: 0, t2: 0, t3: 0,
+      t1: 0, t2: 0, t3: 0, arrears: Number(form.arrears) || 0,
     });
 
     await fetch('/api/db', {
@@ -309,6 +309,8 @@ function AddLearnerModal({ onClose }) {
         <input value={form.parentEmail} onChange={e => F('parentEmail', e.target.value)} type="email" placeholder="parent@example.com" /></div>
       <div className="field"><label>Address</label>
         <input value={form.addr} onChange={e => F('addr', e.target.value)} /></div>
+      <div className="field"><label>Accumulated Fee (Previous Balance)</label>
+        <input type="number" value={form.arrears} onChange={e => F('arrears', e.target.value)} placeholder="0.00" /></div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
         <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
         <button className="btn btn-primary btn-sm" onClick={save} disabled={busy}
@@ -513,6 +515,8 @@ function EditLearnerModal({ onClose, learner }) {
         <input value={form.parentEmail || ''} onChange={e => F('parentEmail', e.target.value)} type="email" /></div>
       <div className="field"><label>Address</label>
         <input value={form.addr || ''} onChange={e => F('addr', e.target.value)} /></div>
+      <div className="field"><label>Accumulated Fee (Previous Balance)</label>
+        <input type="number" value={form.arrears || 0} onChange={e => F('arrears', e.target.value)} /></div>
       
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 15 }}>
         <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>

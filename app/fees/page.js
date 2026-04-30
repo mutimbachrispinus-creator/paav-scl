@@ -132,7 +132,7 @@ export default function FeesPage() {
     return hit && (!gradeF || l.grade === gradeF);
   });
 
-  const totalArrears = learners.reduce((s, l) => s + (l.arrears || 0), 0);
+  const totalAccumulated = learners.reduce((s, l) => s + (l.arrears || 0), 0);
   const totalExp = learners.reduce((s, l) => {
     if (termF) return s + ((feeCfg[l.grade] || {})[termF.toLowerCase()] || 0);
     return s + getAnnualFee(l.grade);
@@ -141,7 +141,7 @@ export default function FeesPage() {
     if (termF) return s + (l[termF.toLowerCase()] || 0);
     return s + (l.t1 || 0) + (l.t2 || 0) + (l.t3 || 0);
   }, 0);
-  const totalBalance = totalExp + (termF ? 0 : totalArrears) - totalPaid;
+  const totalBalance = totalExp + (termF ? 0 : totalAccumulated) - totalPaid;
   const cleared = learners.filter(l => getBal(l, termF) <= 0).length;
 
   if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading fees…</div>;
@@ -311,7 +311,7 @@ export default function FeesPage() {
                   // Let's just make the print view clean.
                   window.print();
                 }}>
-                🖨️ Print Arrears
+                🖨️ Print Balances
               </button>
               <input
                 placeholder="🔍 Search…"

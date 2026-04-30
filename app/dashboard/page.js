@@ -107,8 +107,8 @@ export default function DashboardPage() {
   }
 
   const totalPaid = learners.reduce((s, l) => s + (l.t1||0) + (l.t2||0) + (l.t3||0), 0);
-  const totalArrears = learners.reduce((s, l) => s + (l.arrears || 0), 0);
-  const totalExp  = learners.reduce((s, l) => s + getAnnualFee(l.grade), 0) + totalArrears;
+  const totalAccumulated = learners.reduce((s, l) => s + (l.arrears || 0), 0);
+  const totalExp  = learners.reduce((s, l) => s + getAnnualFee(l.grade), 0) + totalAccumulated;
   const cleared   = learners.filter(l => getBal(l) <= 0).length;
   const unread    = messages.filter(m =>
     m.to === 'ALL' || m.to === 'ALL_STAFF'

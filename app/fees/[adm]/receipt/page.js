@@ -89,7 +89,7 @@ export default function LearnerReceiptPage() {
       <div style={{ background: '#F8FAFF', padding: '20px 24px', borderRadius: 12, border: '1px solid #E2E8F0', marginBottom: 30 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 15, marginBottom: 15, borderBottom: '1px solid #E2E8F0', paddingBottom: 10 }}>
           <div>
-            <div style={{ fontSize: 10, color: '#666' }}>ARREARS B/F</div>
+            <div style={{ fontSize: 10, color: '#666' }}>ACCUMULATED FEE</div>
             <div style={{ fontSize: 16, fontWeight: 800, color: arrears > 0 ? '#DC2626' : '#666' }}>KES {arrears.toLocaleString()}</div>
           </div>
           <div>

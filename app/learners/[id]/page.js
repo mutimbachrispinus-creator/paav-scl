@@ -156,7 +156,7 @@ export default function LearnerProfilePage() {
             </div>
             <div className="panel-body">
               {[
-                ['Arrears B/F', fmtK(learner.arrears || 0)],
+                ['Accumulated Fee', fmtK(learner.arrears || 0)],
                 ['Annual Total', fmtK(annualFee)],
                 ...(t1Fee || t2Fee || t3Fee ? [
                   [`T1 (Expected: ${fmtK(t1Fee)})`, `Paid: ${fmtK(learner.t1||0)}`],
