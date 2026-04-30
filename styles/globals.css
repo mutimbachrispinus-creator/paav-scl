@@ -123,11 +123,11 @@ input,select,textarea,button{font-family:'Inter',sans-serif}
 
 /* ── MAIN ── */
 #main{flex:1;padding:26px 22px;max-width:1380px;margin:0 auto;width:100%}
-.page{display:none;animation:pageEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards}
-.page.on{display:block}
+.page{display:none;will-change:transform,opacity;backface-visibility:hidden;transform:translateZ(0)}
+.page.on{display:block;animation:pageEnter 0.3s ease-out forwards}
 @keyframes pageEnter {
-  from { opacity: 0; transform: translateY(15px) scale(0.99); filter: blur(4px); }
-  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .panel { transition: all 0.3s ease; }
 .panel:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.08); }

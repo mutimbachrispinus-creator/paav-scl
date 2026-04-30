@@ -309,8 +309,10 @@ function AddLearnerModal({ onClose, isAdmin }) {
         <input value={form.parentEmail} onChange={e => F('parentEmail', e.target.value)} type="email" placeholder="parent@example.com" /></div>
       <div className="field"><label>Address</label>
         <input value={form.addr} onChange={e => F('addr', e.target.value)} /></div>
-      <div className="field"><label>Accumulated Fee (Previous Balance)</label>
-        <input type="number" value={form.arrears} onChange={e => F('arrears', e.target.value)} placeholder="0.00" disabled={!isAdmin} /></div>
+      {isAdmin && (
+        <div className="field"><label>Accumulated Fee (Previous Balance)</label>
+          <input type="number" value={form.arrears} onChange={e => F('arrears', e.target.value)} placeholder="0.00" /></div>
+      )}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
         <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
         <button className="btn btn-primary btn-sm" onClick={save} disabled={busy}
@@ -515,8 +517,10 @@ function EditLearnerModal({ onClose, learner, isAdmin }) {
         <input value={form.parentEmail || ''} onChange={e => F('parentEmail', e.target.value)} type="email" /></div>
       <div className="field"><label>Address</label>
         <input value={form.addr || ''} onChange={e => F('addr', e.target.value)} /></div>
-      <div className="field"><label>Accumulated Fee (Previous Balance)</label>
-        <input type="number" value={form.arrears || 0} onChange={e => F('arrears', e.target.value)} disabled={!isAdmin} /></div>
+      {isAdmin && (
+        <div className="field"><label>Accumulated Fee (Previous Balance)</label>
+          <input type="number" value={form.arrears || 0} onChange={e => F('arrears', e.target.value)} /></div>
+      )}
       
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 15 }}>
         <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>

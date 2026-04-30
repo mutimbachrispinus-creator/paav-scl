@@ -130,7 +130,7 @@ export default function BulkLearnersPage() {
     }
   }
 
-  if (loading) return <div className="page on"><p>Loading bulk registration...</p></div>;
+  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading bulk registration...</div>;
 
   return (
     <div className="page on">
@@ -204,19 +204,19 @@ export default function BulkLearnersPage() {
       </div>
 
       <div className="panel">
-        <div className="tbl-wrap">
-          <table style={{ minWidth: 1000 }}>
+        <div className="tbl-wrap" style={{ overflowX: 'auto', contain: 'layout style' }}>
+          <table style={{ minWidth: isAdmin ? 1260 : 1140, tableLayout: 'fixed' }}>
             <thead>
               <tr>
                 <th style={{ width: 80 }}>ADM</th>
-                <th>Full Name</th>
+                <th style={{ width: 250 }}>Full Name</th>
                 <th style={{ width: 140 }}>DOB</th>
                 <th style={{ width: 150 }}>Grade</th>
                 <th style={{ width: 70 }}>Sex</th>
                 <th style={{ width: 100 }}>Stream</th>
-                <th>Parent Name</th>
-                <th>Phone</th>
-                <th style={{ width: 120 }}>Accumulated Fee</th>
+                <th style={{ width: 200 }}>Parent Name</th>
+                <th style={{ width: 150 }}>Phone</th>
+                {isAdmin && <th style={{ width: 120 }}>Accumulated Fee</th>}
               </tr>
             </thead>
             <tbody>
@@ -251,9 +251,11 @@ export default function BulkLearnersPage() {
                   <td>
                     <input type="text" className="sc-inp" style={{ width: '100%' }} value={r.phone} onChange={e => updateRow(i, 'phone', e.target.value)} placeholder="07..." />
                   </td>
-                  <td>
-                    <input type="number" className="sc-inp" style={{ width: '100%' }} value={r.arrears} onChange={e => updateRow(i, 'arrears', Number(e.target.value))} placeholder="0.00" disabled={!isAdmin} />
-                  </td>
+                  {isAdmin && (
+                    <td>
+                      <input type="number" className="sc-inp" style={{ width: '100%' }} value={r.arrears} onChange={e => updateRow(i, 'arrears', Number(e.target.value))} placeholder="0.00" disabled={!isAdmin} />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
