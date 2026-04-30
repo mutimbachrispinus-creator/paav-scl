@@ -25,6 +25,8 @@ export default function BulkLearnersPage() {
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
   const [bulkGrade, setBulkGrade] = useState('GRADE 7');
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
     async function check() {
@@ -68,8 +70,36 @@ export default function BulkLearnersPage() {
   }
 
   function fillGradeRows() {
+    if (rows.some(r => r.adm && r.name) && !confirm('This will clear current rows. Continue?')) return;
     const fresh = Array(30).fill(null).map(() => ({ ...EMPTY_ROW, grade: bulkGrade }));
     setRows(fresh);
+  }
+
+  function loadExistingGrade() {
+    const existing = learners.filter(l => l.grade === bulkGrade);
+    if (existing.length === 0) {
+      alert(`No existing learners found in ${bulkGrade}`);
+      return;
+    }
+    if (rows.some(r => r.adm && r.name) && !confirm('This will replace current rows with existing learners. Continue?')) return;
+    
+    // Fill with existing + some empty rows
+    const filled = existing.map(l => ({ ...EMPTY_ROW, ...l }));
+    const buffer = Array(Math.max(5, 30 - filled.length)).fill(null).map(() => ({ ...EMPTY_ROW, grade: bulkGrade }));
+    setRows([...filled, ...buffer]);
+  }
+
+  function addLearnerToGrid(l) {
+    const newRows = [...rows];
+    const emptyIdx = newRows.findIndex(r => !r.adm && !r.name);
+    if (emptyIdx === -1) {
+      newRows.push({ ...EMPTY_ROW, ...l });
+    } else {
+      newRows[emptyIdx] = { ...EMPTY_ROW, ...l };
+    }
+    setRows(newRows);
+    setPickerSearch('');
+    setShowPicker(false);
   }
 
   async function handleSave() {
@@ -126,12 +156,48 @@ export default function BulkLearnersPage() {
             </select>
           </div>
           <button className="btn btn-gold btn-sm" onClick={fillGradeRows} title="Clear table and set 30 fresh rows for this grade">
-            🎓 New Class Entry ({bulkGrade})
+            🆕 New Class Entry
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={loadExistingGrade} title="Load all existing learners in this grade for editing">
+            ✏️ Load Class for Editing
           </button>
           <button className="btn btn-ghost btn-sm" onClick={applyGradeToAll} title="Apply this grade to all existing rows">
-            ✏️ Apply Grade to All Rows
+            🪄 Apply Grade to All
           </button>
-          <div style={{ fontSize: 11, color: 'var(--muted)', paddingBottom: 2 }}>Sets grade for all rows at once</div>
+
+          <div style={{ borderLeft: '1px solid var(--border)', height: 30, margin: '0 8px' }}></div>
+
+          <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)', marginBottom: 2 }}>👤 Add Individual Learner</div>
+            <input 
+              type="text" 
+              className="sc-inp" 
+              placeholder="Search existing learner name..." 
+              value={pickerSearch} 
+              onFocus={() => setShowPicker(true)}
+              onChange={e => { setPickerSearch(e.target.value); setShowPicker(true); }}
+              style={{ width: '100%', height: 34 }}
+            />
+            {showPicker && pickerSearch.length > 1 && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 100, maxHeight: 200, overflowY: 'auto' }}>
+                {learners
+                  .filter(l => l.name.toLowerCase().includes(pickerSearch.toLowerCase()) || l.adm.includes(pickerSearch))
+                  .slice(0, 10)
+                  .map(l => (
+                    <div key={l.adm} 
+                      onClick={() => addLearnerToGrid(l)}
+                      style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
+                      <strong>{l.name}</strong> <span style={{ color: 'var(--muted)', fontSize: 11 }}>({l.adm} · {l.grade})</span>
+                    </div>
+                  ))
+                }
+                {learners.filter(l => l.name.toLowerCase().includes(pickerSearch.toLowerCase()) || l.adm.includes(pickerSearch)).length === 0 && (
+                  <div style={{ padding: 12, color: 'var(--muted)', fontSize: 12 }}>No matches found</div>
+                )}
+              </div>
+            )}
+            {showPicker && <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setShowPicker(false)}></div>}
+          </div>
         </div>
       </div>
 
