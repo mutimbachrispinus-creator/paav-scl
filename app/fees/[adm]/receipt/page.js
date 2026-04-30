@@ -61,6 +61,7 @@ export default function LearnerReceiptPage() {
   const bal = annualFee + arrears - paid;
 
   return (
+    <>
     <div className="receipt-statement-wrap" style={{ maxWidth: 1000, margin: '40px auto' }}>
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, padding: '0 20px' }}>
         <button className="btn btn-ghost" onClick={() => router.back()}>← Back</button>
@@ -203,6 +204,6 @@ export default function LearnerReceiptPage() {
           }
         }
       `}</style>
-    </div>
+    </>
   );
 }
