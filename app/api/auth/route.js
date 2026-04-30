@@ -77,10 +77,8 @@ async function handleLogin({ username, password }, request) {
   if (!user) return err('Account not found (Check your username)');
   if (user.status === 'inactive') return err('Your account is deactivated. Contact admin.');
 
-  // Support both plain-text passwords (legacy) and hashed passwords
-  const match =
-    user.password === password ||                          // legacy plain
-    await verifyPassword(password, user.password);         // hashed
+  // Strictly verify against hashed passwords (Legacy or PBKDF2)
+  const match = await verifyPassword(password, user.password);
 
   if (!match) return err('Incorrect password (Check your credentials)');
 
@@ -105,7 +103,7 @@ async function handleRegister({ role, name, phone, password, childAdm, teachingL
   if (!role || !name || !phone || !password) {
     return err('role, name, phone and password are required');
   }
-  if (password.length < 6) return err('Password must be at least 6 characters');
+  if (password.length < 8) return err('Password must be at least 8 characters for security');
 
   const staff = await getStaffList();
 
@@ -246,7 +244,7 @@ async function handleForgot({ username, secQ, secA }) {
 /* ─── reset password ────────────────────────────────────────────────────── */
 async function handleResetPw({ username, newPassword, secA }) {
   if (!username || !newPassword) return err('username and newPassword are required');
-  if (newPassword.length < 6)    return err('Password must be at least 6 characters');
+  if (newPassword.length < 8)    return err('Password must be at least 8 characters');
 
   const staff = await getStaffList();
   const idx   = staff.findIndex(s => s.username?.toLowerCase() === username.toLowerCase());

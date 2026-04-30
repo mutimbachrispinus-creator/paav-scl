@@ -22,22 +22,16 @@ import { kvGet, kvSet, kvDelete, kvTimestamps } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
 /* ─── Auth check ────────────────────────────────────────────────────────── */
-async function authenticate(request) {
-  // Allow requests that carry a valid session cookie
+async function authenticate() {
+  // Allow requests that carry a valid session cookie ONLY
   const session = await getSession();
   if (session) return session;
-
-  // Fallback: accept requests from the same origin (e.g. the SPA running in /public)
-  const origin = request.headers.get('origin') || '';
-  const host   = request.headers.get('host')   || '';
-  if (origin.includes(host)) return { role: 'system' };
-
   return null;
 }
 
 export async function POST(request) {
   try {
-    const auth = await authenticate(request);
+    const auth = await authenticate();
     if (!auth) {
       return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
     }
@@ -72,7 +66,7 @@ export async function POST(request) {
 /* ─── GET (single key shorthand) ────────────────────────────────────────── */
 export async function GET(request) {
   try {
-    const auth = await authenticate(request);
+    const auth = await authenticate();
     if (!auth) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
@@ -121,6 +115,12 @@ async function handleRequest(req, auth) {
         return { type: 'set', error: 'key and value are required' };
       }
 
+      // Security: Strictly limit who can overwrite core keys
+      const systemKeys = ['paav6_staff', 'paav6_feecfg', 'paav8_grad', 'paav8_subj'];
+      if (systemKeys.includes(req.key) && auth.role !== 'admin') {
+        return { type: 'set', error: 'Forbidden: Only administrators can update system configuration.' };
+      }
+
       // Security: Only admins can use 'set' for staff requests
       if (req.key === 'paav_staff_reqs' && auth.role !== 'admin') {
         return { type: 'set', error: 'Unauthorized. Use specific request types.' };
@@ -157,6 +157,8 @@ async function handleRequest(req, auth) {
 
     /* ── Delete one key ── */
     case 'delete': {
+      // Security: Only admins can delete keys
+      if (auth.role !== 'admin') return { type: 'delete', error: 'Unauthorized' };
       await kvDelete(req.key);
       return { type: 'delete', key: req.key, ok: true };
     }
@@ -199,6 +201,9 @@ async function handleRequest(req, auth) {
     }
 
     case 'updateMark': {
+      if (auth.role !== 'admin' && auth.role !== 'teacher' && !auth.role.includes('teacher')) {
+        return { type: req.type, error: 'Unauthorized' };
+      }
       if (!req.gsa || !req.adm) return { type: req.type, error: 'gsa and adm are required' };
       const { kvUpdateMark } = await import('@/lib/db');
       await kvUpdateMark(req.gsa, req.adm, req.score);
@@ -206,6 +211,9 @@ async function handleRequest(req, auth) {
     }
 
     case 'updateMarksBulk': {
+      if (auth.role !== 'admin' && auth.role !== 'teacher' && !auth.role.includes('teacher')) {
+        return { type: req.type, error: 'Unauthorized' };
+      }
       if (!Array.isArray(req.marks)) return { type: req.type, error: 'marks array is required' };
       const { kvUpdateMarksBulk } = await import('@/lib/db');
       await kvUpdateMarksBulk(req.marks);
@@ -221,6 +229,9 @@ async function handleRequest(req, auth) {
     }
 
     case 'updateAttendanceBulk': {
+      if (auth.role !== 'admin' && auth.role !== 'teacher' && !auth.role.includes('teacher')) {
+        return { type: req.type, error: 'Unauthorized' };
+      }
       if (!req.attMap) return { type: req.type, error: 'attMap is required' };
       const { kvUpdateAttendanceBulk } = await import('@/lib/db');
       await kvUpdateAttendanceBulk(req.attMap);
@@ -297,6 +308,7 @@ async function handleRequest(req, auth) {
     }
 
     case 'recordPayment': {
+      if (auth.role !== 'admin') return { type: req.type, error: 'Unauthorized' };
       if (!req.payment) return { type: req.type, error: 'payment object is required' };
       const { kvRecordPayment } = await import('@/lib/db');
       await kvRecordPayment(req.payment);
