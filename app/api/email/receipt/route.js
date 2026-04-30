@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server';
 import { sendEmail, getReceiptTemplate } from '@/lib/mail';
 import { kvGet } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 
 export async function POST(req) {
+  const session = await getSession();
+  // Allow if authenticated (staff) OR if it's an internal fetch from the same origin
+  const isInternal = req.headers.get('host') === new URL(req.url).host;
+  
+  if (!session && !isInternal) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
   try {
     const { adm, amount, term, date, ref, balance } = await req.json();
 

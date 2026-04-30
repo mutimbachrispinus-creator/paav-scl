@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@libsql/client';
+import { getSession } from '@/lib/auth';
 
 export async function GET() {
+  const session = await getSession();
+  if (!session || session.role !== 'admin') {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
   const url = process.env.TURSO_URL;
   const token = process.env.TURSO_TOKEN;
 

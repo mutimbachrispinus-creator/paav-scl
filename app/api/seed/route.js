@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { kvGet, kvSet } from '@/lib/db';
-import { hashPassword } from '@/lib/auth';
+import { hashPassword, getSession } from '@/lib/auth';
 import { ALL_GRADES } from '@/lib/cbe';
 
 export async function GET() {
+  const session = await getSession();
+  if (!session || session.role !== 'admin') {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
   try {
     const staff = (await kvGet('paav6_staff')) || [];
     const learners = (await kvGet('paav6_learners')) || [];
