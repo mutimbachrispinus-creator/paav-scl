@@ -23,7 +23,8 @@ export default function UnifiedPayrollPage() {
     setUser(u);
 
     const db = await getCachedDBMulti(['paav6_staff', 'paav7_salary']);
-    setStaff(db.paav6_staff || []);
+    const onlyStaff = (db.paav6_staff || []).filter(s => s.role !== 'parent');
+    setStaff(onlyStaff);
     setPayroll(db.paav7_salary || []);
     setLoading(false);
   }, [router]);
