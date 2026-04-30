@@ -52,13 +52,13 @@ export default function LearnerReceiptPage() {
 
   return (
     <>
-    <div className="receipt-statement-wrap" style={{ maxWidth: 500, margin: '20px auto' }}>
+    <div className="receipt-statement-wrap" style={{ maxWidth: 650, margin: '20px auto' }}>
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, padding: '0 20px' }}>
         <button className="btn btn-ghost" onClick={() => router.back()}>← Back</button>
         <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Print Statement / Receipt</button>
       </div>
 
-      <div style={{ margin: '0 auto', padding: '20px', background: '#fff', border: '1px solid #ddd', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', width: '105mm', minHeight: '148mm' }} className="standard-statement">
+      <div style={{ margin: '0 auto', padding: '10mm', background: '#fff', border: '1px solid #ddd', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', width: '148mm', minHeight: '105mm' }} className="standard-statement">
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, borderBottom: '2px solid var(--maroon)', paddingBottom: 10 }}>
           <div style={{ textAlign: 'left' }}>
@@ -185,7 +185,7 @@ export default function LearnerReceiptPage() {
 
     <style dangerouslySetInnerHTML={{ __html: `
       @media print {
-        @page { size: portrait; margin: 0; }
+        @page { size: landscape; margin: 0; }
         .no-print { display: none !important; }
         body { background: white !important; padding: 0; margin: 0; }
         .receipt-statement-wrap { margin: 0 !important; padding: 0 !important; max-width: none !important; }
@@ -194,8 +194,8 @@ export default function LearnerReceiptPage() {
           border: 1px solid #eee !important; 
           margin: 0 !important; 
           padding: 10mm !important; 
-          width: 105mm !important;
-          height: 148mm !important;
+          width: 148mm !important;
+          height: 105mm !important;
           overflow: hidden;
         }
       }

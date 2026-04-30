@@ -95,12 +95,12 @@ export default function TemplatesPage() {
 
   function printGrade() {
     setSelLearner('');
-    const landscape = tab === 'merit' || tab === 'class' || tab === 'balance' || tab === 'register';
+    const landscape = tab === 'merit' || tab === 'class' || tab === 'balance' || tab === 'register' || tab === 'receipt';
     triggerPrint(landscape);
   }
   function printLearner() {
     if (!selLearner) { alert('Please select a learner first'); return; }
-    const landscape = tab === 'merit' || tab === 'class' || tab === 'balance' || tab === 'register';
+    const landscape = tab === 'merit' || tab === 'class' || tab === 'balance' || tab === 'register' || tab === 'receipt';
     triggerPrint(landscape);
   }
 
@@ -659,7 +659,7 @@ function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
   const fmtK = (v) => 'KES ' + (v || 0).toLocaleString();
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 40 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 148mm)', gap: 30, justifyContent: 'center' }}>
       {targetLearners.map((l, i) => {
         const cfg = feeCfg[l.grade] || {};
         const t1Fee = cfg.t1 || 0;
@@ -675,12 +675,12 @@ function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
           <div key={l.adm || i} style={{ 
             pageBreakInside: 'avoid', 
             margin: '0 auto', 
-            padding: '20px', 
+            padding: '10mm', 
             background: '#fff', 
             border: '1px solid #ddd', 
             borderRadius: 8, 
-            width: '105mm', 
-            minHeight: '148mm',
+            width: '148mm', 
+            minHeight: '105mm',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }} className="standard-statement">
             
