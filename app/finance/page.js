@@ -79,7 +79,7 @@ export default function FinanceDashboardPage() {
         </div>
       </div>
 
-      <div className="sg" style={{ gridTemplateColumns: '2fr 1fr', gap: 20 }}>
+      <div className="sg-responsive">
         <div className="panel">
           <div className="panel-hdr"><h3>📊 Cash Flow (Monthly)</h3></div>
           <div className="panel-body" style={{ height: 400 }}>
@@ -138,6 +138,11 @@ export default function FinanceDashboardPage() {
       </div>
 
       <style jsx>{`
+        .sg-responsive {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 20px;
+        }
         .quick-access-btn {
           display: flex;
           align-items: center;
@@ -156,6 +161,11 @@ export default function FinanceDashboardPage() {
           border-color: #0369A1;
           background: #F0F9FF;
           transform: translateX(5px);
+        }
+        @media (max-width: 800px) {
+          .sg-responsive {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </div>

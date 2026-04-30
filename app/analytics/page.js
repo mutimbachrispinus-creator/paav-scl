@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend 
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis 
 } from 'recharts';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { ALL_GRADES, DEFAULT_SUBJECTS, calcLearnerPoints } from '@/lib/cbe';
@@ -20,7 +20,8 @@ export default function AnalyticsPage() {
   const [paylog, setPaylog] = useState([]);
   const [marks, setMarks] = useState({});
   const [feeCfg, setFeeCfg] = useState({});
-  const [tab, setTab] = useState('school'); // school | student
+  const [tab, setTab] = useState('school'); 
+  const [selGrade, setSelGrade] = useState('GRADE 7');
   const [selAdm, setSelAdm] = useState('');
 
   const load = useCallback(async () => {
@@ -45,6 +46,9 @@ export default function AnalyticsPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  const filteredLearners = useMemo(() => learners.filter(l => l.grade === selGrade), [learners, selGrade]);
+  const learner = useMemo(() => learners.find(l => l.adm === selAdm), [learners, selAdm]);
+
   /* ── School Data Processing ── */
   const schoolStats = useMemo(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -64,7 +68,6 @@ export default function AnalyticsPage() {
   }, [paylog, learners, marks]);
 
   /* ── Student Data Processing ── */
-  const learner = useMemo(() => learners.find(l => l.adm === selAdm), [learners, selAdm]);
   const trendData = useMemo(() => {
     if (!learner) return [];
     const subjects = DEFAULT_SUBJECTS[learner.grade] || [];
@@ -103,41 +106,41 @@ export default function AnalyticsPage() {
     <div className="page on">
       <div className="page-hdr">
         <div>
-          <h2>📊 Advanced Analytics Command Center</h2>
-          <p>Holistic view of school-wide and individual learner performance</p>
+          <h2>📊 Analytics Command Center</h2>
+          <p>Holistic view of performance analytics</p>
         </div>
       </div>
 
       <div className="tabs" style={{ marginBottom: 25, background: MB, borderRadius: 12, padding: 5 }}>
-        <button className={`tab-btn ${tab === 'school' ? 'on' : ''}`} onClick={() => setTab('school')} style={tab === 'school' ? { background: M, color: '#fff' } : {}}>🏫 School Overview</button>
-        <button className={`tab-btn ${tab === 'student' ? 'on' : ''}`} onClick={() => setTab('student')} style={tab === 'student' ? { background: M, color: '#fff' } : {}}>👤 Individual Student Trends</button>
+        <button className={`tab-btn ${tab === 'school' ? 'on' : ''}`} onClick={() => setTab('school')} style={tab === 'school' ? { background: M, color: '#fff' } : {}}>🏫 School</button>
+        <button className={`tab-btn ${tab === 'student' ? 'on' : ''}`} onClick={() => setTab('student')} style={tab === 'student' ? { background: M, color: '#fff' } : {}}>👤 Individual</button>
       </div>
 
       {tab === 'school' ? (
         <>
           <div className="sg sg3" style={{ marginBottom: 20 }}>
             <div className="panel" style={{ textAlign: 'center', borderTop: `4px solid ${M}` }}>
-              <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>COLLECTION RATE</div>
-              <div style={{ fontSize: 32, fontWeight: 900, color: M }}>
+              <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>COLLECTION</div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: M }}>
                 {Math.round(paylog.reduce((s,p)=>s+Number(p.amount),0) / learners.reduce((s,l)=>s+(feeCfg[l.grade]?.annual||5000), 0) * 100)}%
               </div>
             </div>
             <div className="panel" style={{ textAlign: 'center', borderTop: `4px solid #16A34A` }}>
               <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>ACADEMIC MEAN</div>
-              <div style={{ fontSize: 32, fontWeight: 900, color: '#16A34A' }}>
+              <div style={{ fontSize: 24, fontWeight: 900, color: '#16A34A' }}>
                 {Math.round(schoolStats.perf.reduce((s,p)=>s+p.avg,0)/schoolStats.perf.length)}%
               </div>
             </div>
             <div className="panel" style={{ textAlign: 'center', borderTop: `4px solid #0369A1` }}>
               <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>ENROLMENT</div>
-              <div style={{ fontSize: 32, fontWeight: 900, color: '#0369A1' }}>{learners.length}</div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: '#0369A1' }}>{learners.length}</div>
             </div>
           </div>
 
           <div className="sg sg2">
             <div className="panel">
-              <div className="panel-hdr"><h3>💰 Fee Collection Trend</h3></div>
-              <div className="panel-body" style={{ height: 300 }}>
+              <div className="panel-hdr"><h3>💰 Collection Trend</h3></div>
+              <div className="panel-body" style={{ height: 250 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={schoolStats.collection}>
                     <defs>
@@ -156,8 +159,8 @@ export default function AnalyticsPage() {
               </div>
             </div>
             <div className="panel">
-              <div className="panel-hdr"><h3>📊 Academic Performance by Grade</h3></div>
-              <div className="panel-body" style={{ height: 300 }}>
+              <div className="panel-hdr"><h3>📊 Academic Average by Grade</h3></div>
+              <div className="panel-body" style={{ height: 250 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={schoolStats.perf}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -172,80 +175,76 @@ export default function AnalyticsPage() {
           </div>
         </>
       ) : (
-        <div className="sg" style={{ gridTemplateColumns: '300px 1fr', gap: 20 }}>
-          <div className="panel">
-            <div className="panel-hdr"><h3>👤 Select Student</h3></div>
-            <div className="panel-body">
-              <input type="text" placeholder="Search ADM or Name..." className="field" style={{ marginBottom: 15 }} onChange={(e) => {
-                const found = learners.find(l => l.name.toLowerCase().includes(e.target.value.toLowerCase()) || l.adm.includes(e.target.value));
-                if (found) setSelAdm(found.adm);
-              }} />
-              <div style={{ maxHeight: 500, overflowY: 'auto' }}>
-                {learners.slice(0, 100).map(l => (
-                  <div key={l.adm} className={`audit-row ${selAdm === l.adm ? 'active' : ''}`} onClick={() => setSelAdm(l.adm)} style={{ cursor: 'pointer', padding: '10px 15px', borderRadius: 8, background: selAdm === l.adm ? ML : 'transparent', border: selAdm === l.adm ? `1.5px solid ${M}` : '1px solid transparent' }}>
-                    <div style={{ fontWeight: 700 }}>{l.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--muted)' }}>{l.adm} • {l.grade}</div>
-                  </div>
-                ))}
+        <>
+          <div className="panel" style={{ marginBottom: 20 }}>
+            <div className="panel-body" style={{ display: 'flex', gap: 15, flexWrap: 'wrap' }}>
+              <div className="field" style={{ marginBottom: 0, minWidth: 150 }}>
+                <label>Grade</label>
+                <select value={selGrade} onChange={e => { setSelGrade(e.target.value); setSelAdm(''); }}>
+                  {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
+                </select>
+              </div>
+              <div className="field" style={{ marginBottom: 0, flex: 1, minWidth: 200 }}>
+                <label>Learner</label>
+                <select value={selAdm} onChange={e => setSelAdm(e.target.value)}>
+                  <option value="">— Choose Learner —</option>
+                  {filteredLearners.map(l => <option key={l.adm} value={l.adm}>{l.name} ({l.adm})</option>)}
+                </select>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {!learner ? (
-              <div className="panel" style={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>Select a student to view trend analytics</div>
-            ) : (
-              <>
+          {!learner ? (
+            <div className="panel" style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>Select a learner above to view detailed analytics</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div className="panel">
+                <div className="panel-hdr"><h3>📈 Termly Progress — {learner.name}</h3></div>
+                <div className="panel-body" style={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" fontSize={11} axisLine={false} />
+                      <YAxis domain={[0, 100]} fontSize={11} axisLine={false} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="score" stroke={M} strokeWidth={4} dot={{ r: 6, fill: M }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="sg sg2">
                 <div className="panel">
-                  <div className="panel-hdr"><h3>📈 Termly Progress — {learner.name}</h3></div>
-                  <div className="panel-body" style={{ height: 350 }}>
+                  <div className="panel-hdr"><h3>🕸 Competency Radar</h3></div>
+                  <div className="panel-body" style={{ height: 300 }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={trendData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="name" fontSize={11} axisLine={false} />
-                        <YAxis domain={[0, 100]} fontSize={11} axisLine={false} />
+                      <RadarChart data={radarData}>
+                        <PolarGrid />
+                        <PolarAngleAxis dataKey="subject" fontSize={10} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                        <Radar name={learner.name} dataKey="A" stroke={M} fill={M} fillOpacity={0.6} />
                         <Tooltip />
-                        <Line type="monotone" dataKey="score" stroke={M} strokeWidth={4} dot={{ r: 6, fill: M }} />
-                      </LineChart>
+                      </RadarChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
-
-                <div className="sg sg2">
-                  <div className="panel">
-                    <div className="panel-hdr"><h3>🕸 Competency Cluster Radar</h3></div>
-                    <div className="panel-body" style={{ height: 350 }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart data={radarData}>
-                          <PolarGrid />
-                          <PolarAngleAxis dataKey="subject" fontSize={10} />
-                          <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                          <Radar name={learner.name} dataKey="A" stroke={M} fill={M} fillOpacity={0.6} />
-                          <Tooltip />
-                        </RadarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                  <div className="panel" style={{ border: `2px solid ${M}`, background: ML }}>
-                    <div className="panel-hdr"><h3 style={{ color: M }}>🤖 Smart Mentor AI</h3></div>
-                    <div className="panel-body">
-                      <div style={{ fontSize: 40, marginBottom: 10 }}>💡</div>
-                      <h4 style={{ margin: '0 0 10px 0' }}>Personalized Feedback</h4>
-                      <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.6 }}>
-                        Strongest Cluster: <strong>{radarData.sort((a,b)=>b.A-a.A)[0]?.subject}</strong>.<br/>
-                        Focus Needed: <strong>{radarData.sort((a,b)=>a.A-b.A)[0]?.subject}</strong>.
-                      </p>
-                      <ul style={{ fontSize: 13, color: '#475569', paddingLeft: 20, marginTop: 10 }}>
-                        <li>Improve active recall in science-related subjects.</li>
-                        <li>Maintain consistency in {trendData[trendData.length-1]?.score > 50 ? 'the current routine' : 'revising core units'}.</li>
-                      </ul>
-                    </div>
+                <div className="panel" style={{ border: `2px solid ${M}`, background: ML }}>
+                  <div className="panel-hdr"><h3 style={{ color: M }}>🤖 AI Feedback</h3></div>
+                  <div className="panel-body">
+                    <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
+                      Strongest: <strong>{radarData.sort((a,b)=>b.A-a.A)[0]?.subject}</strong>.<br/>
+                      Focus: <strong>{radarData.sort((a,b)=>a.A-b.A)[0]?.subject}</strong>.
+                    </p>
+                    <ul style={{ fontSize: 12, color: '#475569', paddingLeft: 15, marginTop: 10 }}>
+                      <li>Maintain current study habits in language units.</li>
+                      <li>Review science fundamentals to boost overall mean.</li>
+                    </ul>
                   </div>
                 </div>
-              </>
-            )}
-          </div>
-        </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
