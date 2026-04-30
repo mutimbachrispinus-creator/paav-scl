@@ -15,6 +15,46 @@ import { initSyncEngine, stopSyncEngine } from '@/lib/sync-engine';
 const ProfileContext = createContext();
 export const useProfile = () => useContext(ProfileContext);
 
+/**
+ * Basic Error Boundary to prevent the entire portal from crashing
+ */
+import React from 'react';
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('[ErrorBoundary] Caught error:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '60px 20px', textAlign: 'center', background: '#FDF2F2', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ fontSize: 60, marginBottom: 20 }}>⚠️</div>
+          <h2 style={{ color: '#8B1A1A', marginBottom: 10 }}>Something went wrong</h2>
+          <p style={{ color: '#64748B', maxWidth: 400, margin: '0 auto 24px', lineHeight: 1.6 }}>
+            An unexpected error occurred in this part of the portal. Our technical team has been notified.
+          </p>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{ padding: '12px 24px', background: '#8B1A1A', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer' }}
+          >
+            🔄 Reload Portal
+          </button>
+          <div style={{ marginTop: 40, fontSize: 11, color: '#94A3B8', fontFamily: 'monospace' }}>
+            {this.state.error?.message}
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 /* Pages that should NOT show the navbar */
 const NO_NAV_PATHS = ['/', '/fees/pay'];
 
@@ -112,8 +152,14 @@ export default function PortalShell({ children }) {
           'paav_hero_img',
           'paav7_duties',
           'paav_staff_reqs'
-        ])
-      ]);
+        ]);
+        
+        // If we have a nav shell but no user, and we're not already on the login page
+        if (!u && showNav) {
+          console.warn('[PortalShell] No session found, redirecting...');
+          window.location.href = '/';
+          return;
+        }
 
       if (u) {
         setUser(u);
@@ -366,7 +412,9 @@ export default function PortalShell({ children }) {
             ← Back
           </button>
         )}
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </div>
 
 
@@ -378,6 +426,12 @@ export default function PortalShell({ children }) {
             border: '1.5px solid rgba(255,255,255,.4)', borderRadius: 8,
             color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>
           Stay Logged In
+        </button>
+        <button
+          onClick={doLogout}
+          style={{ padding: '6px 12px', background: 'transparent',
+            border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 12 }}>
+          Log Out
         </button>
       </div>
 

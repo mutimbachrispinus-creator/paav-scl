@@ -49,7 +49,18 @@ export async function POST(request) {
       return NextResponse.json({ error: 'requests must be an array' }, { status: 400 });
     }
 
-    const results = await Promise.all(requests.map(req => handleRequest(req, auth)));
+    const results = await Promise.all(requests.map(async (req, index) => {
+      try {
+        return await handleRequest(req, auth);
+      } catch (reqErr) {
+        console.error(`[api/db] Request #${index} (${req.type}) failed:`, reqErr.message);
+        return { 
+          type: req.type, 
+          error: reqErr.message || 'Internal error in sub-request',
+          ok: false 
+        };
+      }
+    }));
     return NextResponse.json({ results });
 
   } catch (err) {
