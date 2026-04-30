@@ -105,10 +105,7 @@ export default function AttendancePage() {
   const isAdmin = user?.role === 'admin';
 
   // Check if current user can mark this grade
-  const canMark = useMemo(() => {
-    if (isAdmin) return true;
-    return classTeachers[grade] === user?.id;
-  }, [isAdmin, classTeachers, grade, user]);
+  const canMark = true; // Allow any teacher/admin who has access to the page to mark
 
   const gradeList = useMemo(() => isAdmin ? ALL_GRADES : (grade ? [grade] : []), [isAdmin, grade]);
   const classList = useMemo(() => learners.filter(l => l.grade === grade).sort((a,b)=>a.name.localeCompare(b.name)), [learners, grade]);
@@ -218,8 +215,7 @@ export default function AttendancePage() {
           </select>
           {activeView === 'mark' && (
             <>
-              <input type="date" value={selDate} onChange={e=>setSelDate(e.target.value)} className="sc-inp"
-                min={schoolDays[0]} max={schoolDays[schoolDays.length-1]} />
+              <input type="date" value={selDate} onChange={e=>setSelDate(e.target.value)} className="sc-inp" />
               <button className="btn btn-primary" onClick={save} disabled={busy||!canMark}>
                 {busy ? 'Saving…' : '💾 Save'}
               </button>
@@ -284,13 +280,12 @@ export default function AttendancePage() {
                       {(['P','A','L','E']).map(s=>(
                         <td key={s} style={{textAlign:'center'}}>
                           <button
-                            disabled={!canMark}
                             onClick={()=>setStatus(l.adm, selDate, s)}
                             style={{
                               width:32,height:32,borderRadius:'50%',border:`2px solid ${STATUS_COLORS[s]}`,
                               background: status===s ? STATUS_COLORS[s] : 'transparent',
                               color: status===s ? '#fff' : STATUS_COLORS[s],
-                              fontWeight:800,cursor:canMark?'pointer':'not-allowed',fontSize:13,
+                              fontWeight:800,cursor:'pointer',fontSize:13,
                             }}
                           >{s}</button>
                         </td>

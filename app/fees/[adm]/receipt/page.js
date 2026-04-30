@@ -61,11 +61,13 @@ export default function LearnerReceiptPage() {
   const bal = annualFee + arrears - paid;
 
   return (
-    <div style={{ maxWidth: 800, margin: '40px auto', padding: '40px', background: '#fff', border: '1px solid #ddd', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+    <div className="receipt-statement-wrap" style={{ maxWidth: 800, margin: '40px auto' }}>
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, padding: '0 20px' }}>
         <button className="btn btn-ghost" onClick={() => router.back()}>← Back</button>
         <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Print Statement / Receipt</button>
       </div>
+
+      <div style={{ maxWidth: '80mm', margin: '0 auto', padding: '20px', background: '#fff', border: '1px solid #ddd', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} className="pos-receipt">
 
       <div style={{ textAlign: 'center', marginBottom: 30, borderBottom: '2px solid var(--maroon)', paddingBottom: 20 }}>
         <div style={{ fontWeight: 900, fontSize: 24, color: 'var(--maroon)' }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
@@ -111,26 +113,31 @@ export default function LearnerReceiptPage() {
             <div style={{ fontSize: 11, fontWeight: 800, color: '#4A5568', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Termly Fee Breakdown</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <div style={{ background: '#fff', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDF2F7' }}>
-              <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase' }}>Term 1 Expected</div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>{fmtK(t1Fee)}</div>
+              <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase' }}>Term 1</div>
+              <div style={{ fontSize: 11, fontWeight: 700 }}>Exp: {fmtK(t1Fee)}</div>
               <div style={{ fontSize: 10, color: '#059669' }}>Paid: {fmtK(learner.t1||0)}</div>
+              <div style={{ fontSize: 10, color: t1Fee - (learner.t1||0) > 0 ? '#DC2626' : '#059669', fontWeight: 700 }}>Bal: {fmtK(t1Fee - (learner.t1||0))}</div>
             </div>
             <div style={{ background: '#fff', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDF2F7' }}>
-              <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase' }}>Term 2 Expected</div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>{fmtK(t2Fee)}</div>
+              <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase' }}>Term 2</div>
+              <div style={{ fontSize: 11, fontWeight: 700 }}>Exp: {fmtK(t2Fee)}</div>
               <div style={{ fontSize: 10, color: '#059669' }}>Paid: {fmtK(learner.t2||0)}</div>
+              <div style={{ fontSize: 10, color: t2Fee - (learner.t2||0) > 0 ? '#DC2626' : '#059669', fontWeight: 700 }}>Bal: {fmtK(t2Fee - (learner.t2||0))}</div>
             </div>
             <div style={{ background: '#fff', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDF2F7' }}>
-              <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase' }}>Term 3 Expected</div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>{fmtK(t3Fee)}</div>
+              <div style={{ fontSize: 9, color: '#718096', textTransform: 'uppercase' }}>Term 3</div>
+              <div style={{ fontSize: 11, fontWeight: 700 }}>Exp: {fmtK(t3Fee)}</div>
               <div style={{ fontSize: 10, color: '#059669' }}>Paid: {fmtK(learner.t3||0)}</div>
+              <div style={{ fontSize: 10, color: t3Fee - (learner.t3||0) > 0 ? '#DC2626' : '#059669', fontWeight: 700 }}>Bal: {fmtK(t3Fee - (learner.t3||0))}</div>
             </div>
           </div>
         </div>
       )}
       </div>
 
-      <div style={{ fontWeight: 800, marginBottom: 10 }}>PAYMENT HISTORY</div>
+      <div style={{ borderTop: '1px dashed #000', margin: '15px 0' }}></div>
+
+      <div style={{ fontSize: 11, marginBottom: 5 }}>PAYMENT HISTORY</div>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
           <tr style={{ background: '#F1F5F9', textAlign: 'left' }}>
@@ -160,16 +167,28 @@ export default function LearnerReceiptPage() {
         </tbody>
       </table>
 
-      <div style={{ marginTop: 40, paddingTop: 20, borderTop: '1px dashed #ddd', textAlign: 'center', fontSize: 11, color: '#999' }}>
-        This is a computer generated official statement of PAAV-Gitombo Community School.<br/>
-        Issued by: {user.name} · Printed on {new Date().toLocaleString()}
+      <div style={{ borderTop: '1px dashed #000', margin: '20px 0' }}></div>
+      <div style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--maroon)' }}>
+        Thank you for your payment!
       </div>
+      <div style={{ textAlign: 'center', fontSize: 9, color: '#666', marginTop: 8 }}>
+        This is a computer generated official statement.<br/>
+        Issued by: {user.name} · {new Date().toLocaleDateString()}
+      </div>
+    </div>
 
       <style jsx>{`
         @media print {
           .no-print { display: none !important; }
-          body { background: white !important; }
-          div { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; }
+          body { background: white !important; padding: 0; margin: 0; }
+          .receipt-statement-wrap { margin: 0 !important; padding: 0 !important; max-width: none !important; }
+          .pos-receipt { 
+            box-shadow: none !important; 
+            border: none !important; 
+            margin: 0 auto !important; 
+            padding: 0 !important; 
+            max-width: 80mm !important;
+          }
         }
       `}</style>
     </div>
