@@ -134,7 +134,7 @@ export default function LearnersPage() {
                   <th style={{ padding: '6px 8px' }}>Adm</th>
                   <th style={{ padding: '6px 8px' }}>Name</th>
                   <th style={{ padding: '6px 8px' }}>Grade</th>
-                  <th style={{ padding: '6px 8px' }}>Sex</th>
+                  <th style={{ padding: '6px 8px' }}>Gender</th>
                   <th style={{ padding: '6px 8px' }}>Age</th>
                   <th style={{ padding: '6px 8px' }}>Class Teacher</th>
                   <th style={{ padding: '6px 8px' }}>Parent</th>
@@ -234,7 +234,7 @@ export default function LearnersPage() {
 /* ─── Add Learner Modal ─────────────────────────────────────────────────── */
 function AddLearnerModal({ onClose, isAdmin }) {
   const [form, setForm] = useState({
-    name: '', grade: '', dob: '', adm: '', sex: 'Female', age: '',
+    name: '', grade: '', dob: '', adm: '', sex: 'F', age: '',
     stream: '', parent: '', phone: '', parentEmail: '', addr: '', arrears: 0,
   });
   const [err,  setErr]  = useState('');
@@ -292,9 +292,9 @@ function AddLearnerModal({ onClose, isAdmin }) {
           <input value={form.adm} onChange={e => F('adm', e.target.value)} placeholder="e.g. 2026001" /></div>
       </div>
       <div className="field-row">
-        <div className="field"><label>Sex</label>
+        <div className="field"><label>Gender</label>
           <select value={form.sex} onChange={e => F('sex', e.target.value)}>
-            <option>Female</option><option>Male</option>
+            <option value="F">Female</option><option value="M">Male</option>
           </select></div>
         <div className="field"><label>Age</label>
           <input type="number" value={form.age} onChange={e => F('age', e.target.value)} min="3" max="20" /></div>
@@ -492,9 +492,9 @@ function EditLearnerModal({ onClose, learner, isAdmin }) {
           <input value={form.adm} onChange={e => F('adm', e.target.value)} /></div>
       </div>
       <div className="field-row">
-        <div className="field"><label>Sex</label>
+        <div className="field"><label>Gender</label>
           <select value={form.sex} onChange={e => F('sex', e.target.value)}>
-            <option>Female</option><option>Male</option>
+            <option value="F">Female</option><option value="M">Male</option>
           </select></div>
         <div className="field"><label>Age</label>
           <input type="number" value={form.age} onChange={e => F('age', e.target.value)} min="3" max="25" /></div>
