@@ -146,7 +146,7 @@ export default function BulkLearnersPage() {
       </div>
 
       {/* ── Entry by Grade ── */}
-      <div className="panel" style={{ marginBottom: 12 }}>
+      <div className="panel" style={{ marginBottom: 12, overflow: 'visible' }}>
         <div className="panel-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)', marginBottom: 2 }}>📚 Entry by Grade</div>
           <div className="field" style={{ marginBottom: 0, minWidth: 180 }}>
@@ -178,7 +178,7 @@ export default function BulkLearnersPage() {
               onChange={e => { setPickerSearch(e.target.value); setShowPicker(true); }}
               style={{ width: '100%', height: 34 }}
             />
-            {showPicker && pickerSearch.length > 1 && (
+            {showPicker && pickerSearch.length > 0 && (
               <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 100, maxHeight: 200, overflowY: 'auto' }}>
                 {learners
                   .filter(l => l.name.toLowerCase().includes(pickerSearch.toLowerCase()) || l.adm.includes(pickerSearch))
