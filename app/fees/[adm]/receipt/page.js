@@ -62,77 +62,77 @@ export default function LearnerReceiptPage() {
 
   return (
     <>
-    <div className="receipt-statement-wrap" style={{ maxWidth: 1000, margin: '40px auto' }}>
+    <div className="receipt-statement-wrap" style={{ maxWidth: 500, margin: '20px auto' }}>
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, padding: '0 20px' }}>
         <button className="btn btn-ghost" onClick={() => router.back()}>← Back</button>
         <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Print Statement / Receipt</button>
       </div>
 
-      <div style={{ margin: '0 auto', padding: '40px', background: '#fff', border: '1px solid #ddd', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} className="standard-statement">
+      <div style={{ margin: '0 auto', padding: '20px', background: '#fff', border: '1px solid #ddd', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', width: '105mm', minHeight: '148mm' }} className="standard-statement">
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30, borderBottom: '3px solid var(--maroon)', paddingBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, borderBottom: '2px solid var(--maroon)', paddingBottom: 10 }}>
         <div style={{ textAlign: 'left' }}>
-          <div style={{ fontWeight: 900, fontSize: 28, color: 'var(--maroon)', letterSpacing: -0.5 }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
-          <div style={{ fontSize: 14, color: '#444', fontWeight: 600 }}>✝ More Than Academics! &nbsp; | &nbsp; P.O. Box 123, Gitombo</div>
-          <div style={{ fontSize: 13, color: '#666' }}>Tel: 0758 922 915 &nbsp; | &nbsp; Email: info@paavgito.sc.ke</div>
+          <div style={{ fontWeight: 900, fontSize: 18, color: 'var(--maroon)', letterSpacing: -0.5 }}>PAAV-GITOMBO SCHOOL</div>
+          <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>✝ More Than Academics!</div>
+          <div style={{ fontSize: 9, color: '#666' }}>Tel: 0758 922 915</div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontWeight: 800, fontSize: 18, background: 'var(--maroon)', color: '#fff', padding: '8px 24px', borderRadius: 8 }}>FEES STATEMENT</div>
-          <div style={{ fontSize: 12, marginTop: 8, color: '#666' }}>Academic Year: {new Date().getFullYear()}</div>
+          <div style={{ fontWeight: 800, fontSize: 12, background: 'var(--maroon)', color: '#fff', padding: '4px 12px', borderRadius: 4 }}>FEES STATEMENT</div>
+          <div style={{ fontSize: 9, marginTop: 4, color: '#666' }}>Year: {new Date().getFullYear()}</div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 30 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 15 }}>
         <div>
-          <div style={{ color: '#666', fontSize: 12, textTransform: 'uppercase' }}>Student Details</div>
-          <div style={{ fontSize: 18, fontWeight: 800, marginTop: 4 }}>{learner.name}</div>
-          <div style={{ fontSize: 14, color: '#444' }}>Admission No: <strong>{learner.adm}</strong></div>
-          <div style={{ fontSize: 14, color: '#444' }}>Grade: {learner.grade}</div>
+          <div style={{ color: '#666', fontSize: 9, textTransform: 'uppercase' }}>Learner</div>
+          <div style={{ fontSize: 14, fontWeight: 800 }}>{learner.name}</div>
+          <div style={{ fontSize: 11, color: '#444' }}>ADM: <strong>{learner.adm}</strong> | {learner.grade}</div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ color: '#666', fontSize: 12, textTransform: 'uppercase' }}>Statement Date</div>
-          <div style={{ fontSize: 16, fontWeight: 600, marginTop: 4 }}>{new Date().toLocaleDateString()}</div>
+          <div style={{ color: '#666', fontSize: 9, textTransform: 'uppercase' }}>Date</div>
+          <div style={{ fontSize: 12, fontWeight: 600 }}>{new Date().toLocaleDateString()}</div>
         </div>
       </div>
 
-      <div style={{ background: '#F8FAFF', padding: '24px', borderRadius: 12, border: '1px solid #E2E8F0', marginBottom: 30 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginBottom: 20, borderBottom: '1px solid #E2E8F0', paddingBottom: 15 }}>
+      <div style={{ background: '#F8FAFF', padding: '12px', borderRadius: 8, border: '1px solid #E2E8F0', marginBottom: 15 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 10, borderBottom: '1px solid #E2E8F0', paddingBottom: 8 }}>
           <div>
-            <div style={{ fontSize: 10, color: '#666', fontWeight: 700 }}>ARREARS (B/F)</div>
-            <div style={{ fontSize: 18, fontWeight: 900, color: arrears > 0 ? '#DC2626' : '#666' }}>KES {arrears.toLocaleString()}</div>
+            <div style={{ fontSize: 8, color: '#666', fontWeight: 700 }}>ARREARS</div>
+            <div style={{ fontSize: 12, fontWeight: 900 }}>{arrears.toLocaleString()}</div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: '#666', fontWeight: 700 }}>CURRENT YEAR FEES</div>
-            <div style={{ fontSize: 18, fontWeight: 900 }}>KES {annualFee.toLocaleString()}</div>
+            <div style={{ fontSize: 8, color: '#666', fontWeight: 700 }}>ANNUAL</div>
+            <div style={{ fontSize: 12, fontWeight: 900 }}>{annualFee.toLocaleString()}</div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: '#666', fontWeight: 700 }}>GRAND TOTAL PAYABLE</div>
-            <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--maroon)' }}>KES {(annualFee + arrears).toLocaleString()}</div>
+            <div style={{ fontSize: 8, color: '#666', fontWeight: 700 }}>PAYABLE</div>
+            <div style={{ fontSize: 12, fontWeight: 900, color: 'var(--maroon)' }}>{(annualFee + arrears).toLocaleString()}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 10, color: '#666', fontWeight: 700 }}>TOTAL PAID TO DATE</div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#059669' }}>KES {paid.toLocaleString()}</div>
+            <div style={{ fontSize: 8, color: '#666', fontWeight: 700 }}>PAID</div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: '#059669' }}>{paid.toLocaleString()}</div>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 15, padding: '10px 0' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, padding: '5px 0' }}>
           <div>
-            <div style={{ fontSize: 10, color: '#666' }}>TERM 1 EXPECTED</div>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>KES {t1Fee.toLocaleString()}</div>
+            <div style={{ fontSize: 7, color: '#666' }}>T1 EXP</div>
+            <div style={{ fontSize: 10, fontWeight: 700 }}>{t1Fee.toLocaleString()}</div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: '#666' }}>TERM 2 EXPECTED</div>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>KES {t2Fee.toLocaleString()}</div>
+            <div style={{ fontSize: 7, color: '#666' }}>T2 EXP</div>
+            <div style={{ fontSize: 10, fontWeight: 700 }}>{t2Fee.toLocaleString()}</div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: '#666' }}>TERM 3 EXPECTED</div>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>KES {t3Fee.toLocaleString()}</div>
+            <div style={{ fontSize: 7, color: '#666' }}>T3 EXP</div>
+            <div style={{ fontSize: 10, fontWeight: 700 }}>{t3Fee.toLocaleString()}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 10, color: '#666', fontWeight: 800 }}>OUTSTANDING BALANCE</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: bal > 0 ? '#DC2626' : '#059669' }}>KES {bal.toLocaleString()}</div>
+            <div style={{ fontSize: 8, color: '#666', fontWeight: 800 }}>BALANCE</div>
+            <div style={{ fontSize: 14, fontWeight: 900, color: bal > 0 ? '#DC2626' : '#059669' }}>{bal.toLocaleString()}</div>
           </div>
         </div>
+      </div>
         
         {(t1Fee > 0 || t2Fee > 0 || t3Fee > 0) && (
           <div style={{ marginTop: 20 }}>
@@ -164,27 +164,22 @@ export default function LearnerReceiptPage() {
       <div style={{ borderTop: '1px dashed #000', margin: '15px 0' }}></div>
 
       <div style={{ fontSize: 11, marginBottom: 5 }}>PAYMENT HISTORY</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
         <thead>
           <tr style={{ background: '#F1F5F9', textAlign: 'left' }}>
-            <th style={{ padding: 10, borderBottom: '2px solid #ddd' }}>Date</th>
-            <th style={{ padding: 10, borderBottom: '2px solid #ddd' }}>Term</th>
-            <th style={{ padding: 10, borderBottom: '2px solid #ddd' }}>Method</th>
-            <th style={{ padding: 10, borderBottom: '2px solid #ddd' }}>Ref</th>
-            <th style={{ padding: 10, borderBottom: '2px solid #ddd', textAlign: 'right' }}>Amount</th>
+            <th style={{ padding: 6, borderBottom: '1px solid #ddd' }}>Date</th>
+            <th style={{ padding: 6, borderBottom: '1px solid #ddd' }}>Term</th>
+            <th style={{ padding: 6, borderBottom: '1px solid #ddd' }}>Method</th>
+            <th style={{ padding: 6, borderBottom: '1px solid #ddd', textAlign: 'right' }}>Amount</th>
           </tr>
         </thead>
         <tbody>
-          {paylog.map((p, i) => (
-            <tr key={i} style={p.status === 'pending' ? { opacity: 0.6, background: '#FFF7ED' } : {}}>
-              <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>
-                {p.date}
-                {p.status === 'pending' && <div style={{ fontSize: 9, color: '#92400E', fontWeight: 800 }}>⚠️ PENDING APPROVAL</div>}
-              </td>
-              <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{p.term}</td>
-              <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{p.method}</td>
-              <td style={{ padding: 10, borderBottom: '1px solid #eee', color: '#666' }}>{p.ref || '—'}</td>
-              <td style={{ padding: 10, borderBottom: '1px solid #eee', textAlign: 'right', fontWeight: 700 }}>{fmtK(p.amount)}</td>
+          {paylog.slice(0, 8).map((p, i) => (
+            <tr key={i}>
+              <td style={{ padding: 6, borderBottom: '1px solid #eee' }}>{p.date.split('-').slice(1).join('/')}</td>
+              <td style={{ padding: 6, borderBottom: '1px solid #eee' }}>{p.term}</td>
+              <td style={{ padding: 6, borderBottom: '1px solid #eee' }}>{p.method}</td>
+              <td style={{ padding: 6, borderBottom: '1px solid #eee', textAlign: 'right', fontWeight: 700 }}>{p.amount}</td>
             </tr>
           ))}
           {paylog.length === 0 && (
@@ -207,16 +202,18 @@ export default function LearnerReceiptPage() {
 
   <style jsx>{`
         @media print {
-          @page { size: landscape; margin: 10mm; }
+          @page { size: portrait; margin: 0; }
           .no-print { display: none !important; }
           body { background: white !important; padding: 0; margin: 0; }
           .receipt-statement-wrap { margin: 0 !important; padding: 0 !important; max-width: none !important; }
           .standard-statement { 
             box-shadow: none !important; 
-            border: none !important; 
+            border: 1px solid #eee !important; 
             margin: 0 !important; 
-            padding: 0 !important; 
-            width: 100% !important;
+            padding: 10mm !important; 
+            width: 105mm !important;
+            height: 148mm !important;
+            overflow: hidden;
           }
         }
       `}</style>
