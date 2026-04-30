@@ -188,27 +188,51 @@ export default function ReportCardPage() {
             ))}
           </div>
 
-          {/* ── PERFORMANCE GRAPH ── */}
-          <div style={{ position: 'relative', zIndex: 1, marginBottom: 15, border: '1.5px solid #e2e8f0', borderRadius: 10, padding: '12px 20px', background: 'white' }}>
-            <div style={{ fontSize: 9, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 12, letterSpacing: 0.5 }}>📊 Assessment Performance Trend</div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 30, height: 70, paddingLeft: 10 }}>
-              {[
-                { label: 'Opener', total: openerTotal, color: '#8B1A1A' },
-                { label: 'Mid-Term', total: midTotal, color: '#D97706' },
-                { label: 'End-Term', total: endTotal, color: '#2563EB' },
-                { label: 'Average', total: avgTotal, color: '#059669' },
-              ].map(g => {
-                const maxVal = Math.max(openerTotal, midTotal, endTotal, avgTotal, 1);
-                const barH = (g.total / maxVal) * 50;
-                return (
-                  <div key={g.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, width: 60 }}>
-                    <div style={{ fontSize: 10, fontWeight: 900, color: g.color }}>{g.total}</div>
-                    <div style={{ width: 35, height: barH, background: g.color, borderRadius: '4px 4px 0 0', opacity: 0.9 }} />
-                    <div style={{ fontSize: 8.5, fontWeight: 700, color: '#64748b' }}>{g.label}</div>
-                  </div>
-                )
-              })}
+          {/* ── PERFORMANCE GRAPHS ── */}
+          <div style={{ position: 'relative', zIndex: 1, marginBottom: 15, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            
+            {/* Trend Graph */}
+            <div style={{ border: '1.5px solid #e2e8f0', borderRadius: 10, padding: '10px 15px', background: 'white' }}>
+              <div style={{ fontSize: 8, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 }}>📊 Termly Assessment Trend</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20, height: 60, paddingLeft: 5 }}>
+                {[
+                  { label: 'Opener', total: openerTotal, color: '#8B1A1A' },
+                  { label: 'Mid-Term', total: midTotal, color: '#D97706' },
+                  { label: 'End-Term', total: endTotal, color: '#2563EB' },
+                  { label: 'Average', total: avgTotal, color: '#059669' },
+                ].map(g => {
+                  const maxVal = Math.max(openerTotal, midTotal, endTotal, avgTotal, 1);
+                  const barH = (g.total / maxVal) * 40;
+                  return (
+                    <div key={g.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: 45 }}>
+                      <div style={{ fontSize: 9, fontWeight: 900, color: g.color }}>{g.total}</div>
+                      <div style={{ width: 25, height: barH, background: g.color, borderRadius: '3px 3px 0 0', opacity: 0.9 }} />
+                      <div style={{ fontSize: 7, fontWeight: 700, color: '#64748b' }}>{g.label}</div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
+
+            {/* Subject Comparison Graph */}
+            <div style={{ border: '1.5px solid #e2e8f0', borderRadius: 10, padding: '10px 15px', background: 'white' }}>
+              <div style={{ fontSize: 8, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 }}>📈 Subject-wise Proficiency</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 60, overflowX: 'auto', paddingBottom: 5 }}>
+                {rows.map(r => {
+                  const score = r.avgCell.score || 0;
+                  const barH = (score / 100) * 40;
+                  const color = r.avgCell.inf?.bg || '#cbd5e1';
+                  return (
+                    <div key={r.subj} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, minWidth: 28 }}>
+                      <div style={{ fontSize: 8, fontWeight: 900, color: r.avgCell.inf?.c || '#666' }}>{score}</div>
+                      <div style={{ width: 14, height: barH, background: color, borderRadius: '2px 2px 0 0' }} />
+                      <div style={{ fontSize: 6, fontWeight: 700, color: '#94a3b8', textAlign: 'center', width: 28, overflow: 'hidden' }}>{r.subj.slice(0,3)}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
           </div>
 
           {/* ── MARKS TABLE ── */}

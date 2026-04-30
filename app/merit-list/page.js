@@ -216,7 +216,7 @@ export default function MeritListPage() {
                     <div key={g.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                       <div style={{ fontSize: 13, fontWeight: 900, color: g.color }}>{g.count}</div>
                       <div style={{ width: '100%', maxWidth: 80, height: barH, background: g.color, borderRadius: '6px 6px 0 0', opacity: 0.85, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b' }}>{g.label}</div>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: '#64748b' }}>{g.label.slice(0,2).toUpperCase()}: {g.count}</div>
                     </div>
                   )
                 })}
