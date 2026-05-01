@@ -49,7 +49,14 @@ export default function FeesPage() {
       ]);
 
       if (!u) { router.push('/login'); return; }
-      if (!['admin','staff','parent'].includes(u.role)) {
+      
+      // Strict Redirection for Parents
+      if (u.role === 'parent') {
+        router.push('/dashboard?tab=fees');
+        return;
+      }
+
+      if (!['admin','staff'].includes(u.role)) {
         router.push('/dashboard'); return;
       }
       setUser(u);

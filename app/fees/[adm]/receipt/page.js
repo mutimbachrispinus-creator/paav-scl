@@ -23,6 +23,16 @@ export default function LearnerReceiptPage() {
         if (!u) { router.push('/'); return; }
         setUser(u);
 
+        // Security: Parents can only see their own children
+        if (u.role === 'parent') {
+          const admList = Array.isArray(u.childAdm)
+            ? u.childAdm
+            : u.childAdm ? String(u.childAdm).split(',').map(s => s.trim()).filter(Boolean) : [];
+          if (!admList.includes(adm)) {
+            router.push('/dashboard'); return;
+          }
+        }
+
         const l = (db.paav6_learners || []).find(x => x.adm === adm);
         if (!l) { router.push('/fees'); return; }
         setLearner(l);
