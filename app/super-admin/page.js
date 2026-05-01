@@ -9,32 +9,44 @@ const M = '#8B1A1A', GOLD = '#D4AF37', NAVY = '#1E293B';
 export default function SuperAdminPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Mock SaaS Data
-  const schools = [
-    { id: 'S001', name: 'PAAV Gitombo', plan: 'Premium', status: 'Active', revenue: 15000, students: 450, lastSync: '2 mins ago' },
-    { id: 'S002', name: 'St. Marys Academy', plan: 'Standard', status: 'Active', revenue: 7500, students: 280, lastSync: '1 hour ago' },
-    { id: 'S003', name: 'Hillside Primary', plan: 'Lite', status: 'Expired', revenue: 0, students: 120, lastSync: '3 days ago' },
-    { id: 'S004', name: 'Riverside High', plan: 'Premium', status: 'Active', revenue: 15000, students: 890, lastSync: 'Just now' }
-  ];
-
-  const chartData = [
-    { name: 'Jan', rev: 45000 }, { name: 'Feb', rev: 52000 }, { name: 'Mar', rev: 48000 },
-    { name: 'Apr', rev: 61000 }, { name: 'May', rev: 75000 }, { name: 'Jun', rev: 89000 }
-  ];
-
   const load = useCallback(async () => {
     const u = await getCachedUser();
-    // In production, this would check for a 'super_admin' flag in the JWT
-    if (!u || u.role !== 'admin') { router.push('/'); return; }
-    setUser(u);
-    setLoading(false);
+    if (!u || (u.tenantId !== 'platform-master' && u.role !== 'super-admin')) { 
+      router.push('/login'); return; 
+    }
+
+    try {
+      const res = await fetch('/api/saas/stats');
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      setData(json);
+    } catch (e) {
+      console.error('Failed to load saas stats:', e);
+    } finally {
+      setLoading(false);
+    }
   }, [router]);
 
   useEffect(() => { load(); }, [load]);
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Opening SaaS Command Center…</div>;
+  if (loading) return (
+    <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div className="spinner" style={{ border: `4px solid ${M}22`, borderTopColor: M, borderRadius: '50%', width: 50, height: 50, animation: 'spin 1s linear infinite', margin: '0 auto 20px' }}></div>
+        <div style={{ color: NAVY, fontWeight: 700, fontSize: 18 }}>👑 Authenticating Super-Admin…</div>
+      </div>
+      <style jsx>{` @keyframes spin { to { transform: rotate(360deg); } } `}</style>
+    </div>
+  );
+
+  const schools = data?.schools || [];
+  const chartData = [
+    { name: 'Jan', rev: 45000 }, { name: 'Feb', rev: 52000 }, { name: 'Mar', rev: 48000 },
+    { name: 'Apr', rev: 61000 }, { name: 'May', rev: 75000 }, { name: 'Jun', rev: (data?.totalRevenue || 0) }
+  ];
 
   return (
     <div className="page on" style={{ background: '#F8FAFC', minHeight: '100vh' }}>
@@ -45,15 +57,15 @@ export default function SuperAdminPage() {
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 12, color: '#94A3B8', textTransform: 'uppercase' }}>Total Monthly Revenue</div>
-          <div style={{ fontSize: 32, fontWeight: 900, color: '#FCD34D' }}>KES 345,500</div>
+          <div style={{ fontSize: 32, fontWeight: 900, color: '#FCD34D' }}>KES {(data?.totalRevenue || 0).toLocaleString()}</div>
         </div>
       </div>
 
       <div className="sg sg4" style={{ marginBottom: 30 }}>
-        <StatCard title="Active Schools" val={schools.filter(s => s.status === 'Active').length} icon="🏫" bg="#F0FDF4" color="#166534" />
+        <StatCard title="Active Schools" val={data?.activeSchools || 0} icon="🏫" bg="#F0FDF4" color="#166534" />
         <StatCard title="Total Students" val={schools.reduce((s,x)=>s+x.students,0)} icon="👥" bg="#F0F9FF" color="#0369A1" />
-        <StatCard title="Expired Licenses" val={schools.filter(s => s.status === 'Expired').length} icon="⚠️" bg="#FEF2F2" color="#991B1B" />
-        <StatCard title="Churn Rate" val="2.4%" icon="📉" bg="#F5F3FF" color="#5B21B6" />
+        <StatCard title="Expired Licenses" val={schools.filter(s => s.status === 'expired').length} icon="⚠️" bg="#FEF2F2" color="#991B1B" />
+        <StatCard title="Churn Rate" val="0.0%" icon="📉" bg="#F5F3FF" color="#5B21B6" />
       </div>
 
       <div className="sg" style={{ gridTemplateColumns: '2fr 1fr', gap: 25 }}>

@@ -56,7 +56,7 @@ class ErrorBoundary extends React.Component {
 }
 
 /* Pages that should NOT show the navbar */
-const NO_NAV_PATHS = ['/', '/fees/pay'];
+const NO_NAV_PATHS = ['/', '/login', '/fees/pay', '/saas/signup', '/api'];
 
 /* Inactivity config */
 const IDLE_WARNING_MS  = 7 * 60 * 1000;   // warn after 7 min
@@ -134,13 +134,33 @@ export default function PortalShell({ children }) {
     return '';
   });
   const [showProfile,  setShowProfile]  = useState(false);
+  const [theme,        setTheme]        = useState(() => {
+    if (typeof window === 'undefined') return { primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B' };
+    try {
+      const raw = localStorage.getItem('paav_cache_db_paav_theme');
+      if (raw) return JSON.parse(raw).v;
+    } catch {}
+    return { primary: '#1E293B', secondary: '#D4AF37', accent: '#334155' };
+  });
 
   const idleTimer    = useRef(null);
   const warnTimer    = useRef(null);
   const countdownRef = useRef(null);
   const heroFileRef  = useRef(null);
 
-  const showNav = !NO_NAV_PATHS.includes(pathname);
+  // Apply theme to document
+  useEffect(() => {
+    if (theme) {
+      document.documentElement.style.setProperty('--primary', theme.primary);
+      document.documentElement.style.setProperty('--secondary', theme.secondary);
+      document.documentElement.style.setProperty('--accent', theme.accent);
+      // Generate some derivatives
+      document.documentElement.style.setProperty('--primary-low', theme.primary + '22');
+      document.documentElement.style.setProperty('--primary-mid', theme.primary + '66');
+    }
+  }, [theme]);
+
+  const showNav = !NO_NAV_PATHS.includes(pathname) && !pathname.startsWith('/api');
 
   const loadSession = useCallback(async () => {
     try {
@@ -151,7 +171,8 @@ export default function PortalShell({ children }) {
           'paav6_msgs',
           'paav_hero_img',
           'paav7_duties',
-          'paav_staff_reqs'
+          'paav_staff_reqs',
+          'paav_theme'
         ])
       ]);
         
@@ -167,6 +188,7 @@ export default function PortalShell({ children }) {
         const ann = db?.paav_announcement;
         if (ann?.text && ann?.active) setAnnouncement(ann.text);
         if (db?.paav_hero_img) setHeroUrl(db.paav_hero_img);
+        if (db?.paav_theme) setTheme(db.paav_theme);
 
         const msgs = db?.paav6_msgs || [];
         const unr  = msgs.filter(m => 
@@ -210,7 +232,7 @@ export default function PortalShell({ children }) {
     const handler = (e) => {
       const changed = e.detail?.changed || [];
       // Refresh shell state if relevant keys changed
-      if (changed.some(k => ['paav_announcement','paav6_msgs','paav_hero_img','paav7_duties','paav_staff_reqs'].includes(k))) {
+      if (changed.some(k => ['paav_announcement','paav6_msgs','paav_hero_img','paav7_duties','paav_staff_reqs', 'paav_theme'].includes(k))) {
         loadSession();
       }
     };

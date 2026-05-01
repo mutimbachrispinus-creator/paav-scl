@@ -167,7 +167,7 @@ export default function ParentHome() {
         <body>
           <div class="receipt">
             <div class="header">
-              <div class="logo">PAAV-GITOMBO</div>
+              <div class="logo">SCHOOL PORTAL</div>
               <div class="school">OFFICIAL FEE RECEIPT</div>
               <div class="title">No: ${p.id || 'N/A'}</div>
             </div>

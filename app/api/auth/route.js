@@ -70,8 +70,9 @@ export async function GET(request) {
 /* ─── login ─────────────────────────────────────────────────────────────── */
 async function handleLogin({ username, password }, request) {
   if (!username || !password) return err('Username and password are required');
+  const tenantId = request.headers.get('x-tenant-id') || 'paav-gitombo';
 
-  const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
+  const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase().trim(), tenantId]);
   const user = rows[0];
 
   if (!user) return err('Account not found (Check your username)');
@@ -94,6 +95,7 @@ async function handleLogin({ username, password }, request) {
   const response = NextResponse.json({
     ok: true,
     user: publicUser(user),
+    redirect: user.tenant_id === 'platform-master' ? '/super-admin' : (user.role === 'parent' ? '/parent-home' : '/dashboard'),
     initialData: {
       db_paav_announcement: ann,
       db_paav6_msgs: msgs,

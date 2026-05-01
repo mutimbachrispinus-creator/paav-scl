@@ -62,7 +62,7 @@ export default function LearnerReceiptPage() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, borderBottom: '2px solid var(--maroon)', paddingBottom: 10 }}>
           <div style={{ textAlign: 'left' }}>
-            <div style={{ fontWeight: 900, fontSize: 18, color: 'var(--maroon)', letterSpacing: -0.5 }}>PAAV-GITOMBO SCHOOL</div>
+            <div style={{ fontWeight: 900, fontSize: 18, color: 'var(--maroon)', letterSpacing: -0.5 }}>SCHOOL PORTAL SCHOOL</div>
             <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>✝ More Than Academics!</div>
             <div style={{ fontSize: 9, color: '#666' }}>Tel: 0758 922 915</div>
           </div>

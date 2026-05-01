@@ -1,16 +1,18 @@
-const withPWA = require("@ducanh2912/next-pwa").default({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-  register: true,
-  skipWaiting: true,
-  cacheOnFrontEndNav: true,
-  reloadOnOnline: true,
-});
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Allow the portal to be embedded in an iframe from the same origin
-  // (used when printing report cards / receipts in a pop-up window)
+  // Disabling PWA temporarily to resolve 404/Network errors on API routes
+  // caused by stale service worker cache in the user's browser.
+  /*
+  const withPWA = require("@ducanh2912/next-pwa").default({
+    dest: "public",
+    disable: process.env.NODE_ENV === "development",
+    register: true,
+    skipWaiting: true,
+    cacheOnFrontEndNav: true,
+    reloadOnOnline: true,
+  });
+  */
+
   async headers() {
     return [
       {
@@ -24,18 +26,15 @@ const nextConfig = {
     ];
   },
 
-  // Redirect /fees/pay to the M-Pesa parent payment page
   async redirects() {
     return [
-      // Legacy HTML anchor links → Next.js routes
       { source: '/index.html', destination: '/', permanent: true },
     ];
   },
 
-  // Turso client uses Node.js crypto — must run in Node runtime, not Edge
   experimental: {
     serverComponentsExternalPackages: ['@libsql/client'],
   },
 };
 
-module.exports = withPWA(nextConfig);
+module.exports = nextConfig;

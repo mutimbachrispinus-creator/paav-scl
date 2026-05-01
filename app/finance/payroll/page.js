@@ -136,7 +136,7 @@ export default function UnifiedPayrollPage() {
             <div className="panel-body">
               <div style={{ border: `2px solid ${M}`, padding: 30, borderRadius: 15, background: '#fff' }}>
                 <div style={{ textAlign: 'center', borderBottom: `2px solid ${M}`, paddingBottom: 20, marginBottom: 20 }}>
-                  <h2 style={{ margin: 0, color: M }}>PAAV-GITOMBO SCHOOL</h2>
+                  <h2 style={{ margin: 0, color: M }}>SCHOOL PORTAL SCHOOL</h2>
                   <p style={{ margin: 5, color: 'var(--muted)' }}>MONTHLY PAYSLIP — {new Date().toLocaleString('en-KE', { month: 'long', year: 'numeric' })}</p>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 30, flexWrap: 'wrap', gap: 15 }}>
@@ -235,7 +235,7 @@ export default function UnifiedPayrollPage() {
             <div className="modal-body" style={{ textAlign: 'center' }}>
               <div style={{ border: '2px solid #ddd', padding: 30, borderRadius: 10, maxWidth: 500, margin: '0 auto', textAlign: 'left' }}>
                  <div style={{ textAlign: 'center', borderBottom: '2px solid #8B1A1A', paddingBottom: 10, marginBottom: 15 }}>
-                    <div style={{ fontWeight: 800, color: '#8B1A1A' }}>PAAV GITOMBO COMMUNITY SCHOOL</div>
+                    <div style={{ fontWeight: 800, color: '#8B1A1A' }}>SCHOOL PORTAL COMMUNITY SCHOOL</div>
                  </div>
                  <table style={{ width: '100%', fontSize: 13 }}>
                    <tbody>

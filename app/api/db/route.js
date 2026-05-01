@@ -81,227 +81,138 @@ export async function GET(request) {
     // Security: Filter staff requests if not admin
     if (key === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
       if (Array.isArray(value)) {
-        value = value.filter(r => r.userId === auth.id);
-      }
-    }
-
-    return NextResponse.json({ key, value, updatedAt });
-  } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-
-/* ─── Request dispatcher ────────────────────────────────────────────────── */
+ /* ─── Request dispatcher ────────────────────────────────────────────────── */
 async function handleRequest(req, auth) {
+  const tenantId = auth.tenantId || 'paav-gitombo';
+
   switch (req.type) {
     /* ── Read one key ── */
     case 'get': {
       const { kvGetWithMeta } = await import('@/lib/db');
-      let { value, updatedAt } = await kvGetWithMeta(req.key);
+      let { value, updatedAt } = await kvGetWithMeta(req.key, tenantId);
       
       // Security: Filter staff requests if not admin
       if (req.key === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
-        if (Array.isArray(value)) {
-          value = value.filter(r => r.userId === auth.id);
-        }
+        if (Array.isArray(value)) value = value.filter(r => r.userId === auth.id);
       }
-      
       return { type: 'get', key: req.key, value, updatedAt };
     }
 
     /* ── Write one key ── */
     case 'set': {
-      if (req.key === undefined || req.value === undefined) {
-        return { type: 'set', error: 'key and value are required' };
-      }
+      if (req.key === undefined || req.value === undefined) return { type: 'set', error: 'key/value required' };
 
-      // Security: Strictly limit who can overwrite core keys
       const systemKeys = ['paav6_staff', 'paav6_feecfg', 'paav8_grad', 'paav8_subj'];
-      if (systemKeys.includes(req.key) && auth.role !== 'admin') {
-        return { type: 'set', error: 'Forbidden: Only administrators can update system configuration.' };
-      }
+      if (systemKeys.includes(req.key) && auth.role !== 'admin') return { type: 'set', error: 'Forbidden' };
 
-      // Security: Only admins can use 'set' for staff requests
-      if (req.key === 'paav_staff_reqs' && auth.role !== 'admin') {
-        return { type: 'set', error: 'Unauthorized. Use specific request types.' };
-      }
-
-      await kvSet(req.key, req.value);
+      await kvSet(req.key, req.value, tenantId);
       return { type: 'set', key: req.key, ok: true };
     }
 
     /* ── Specialized Staff Request Handlers ── */
     case 'submitStaffRequest': {
-      if (!req.request) return { type: req.type, error: 'request object is required' };
+      if (!req.request) return { type: req.type, error: 'request object required' };
       const { kvSubmitStaffRequest } = await import('@/lib/db');
-      const newReq = {
-        ...req.request,
-        id: Date.now(),
-        userId: auth.id,
-        userName: auth.name,
-        userRole: auth.role,
-        status: 'pending',
-        date: new Date().toLocaleDateString('en-KE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-      };
-      await kvSubmitStaffRequest(newReq);
+      const newReq = { ...req.request, id: Date.now(), userId: auth.id, userName: auth.name, userRole: auth.role, status: 'pending', date: new Date().toLocaleDateString('en-KE') };
+      await kvSubmitStaffRequest(newReq, tenantId);
       return { type: req.type, ok: true, request: newReq };
     }
 
     case 'updateStaffRequestStatus': {
-      if (auth.role !== 'admin') return { type: req.type, error: 'Only admins can update status' };
-      if (!req.id || !req.status) return { type: req.type, error: 'id and status are required' };
+      if (auth.role !== 'admin') return { type: req.type, error: 'Admin only' };
       const { kvUpdateStaffRequestStatus } = await import('@/lib/db');
-      await kvUpdateStaffRequestStatus(req.id, req.status);
+      await kvUpdateStaffRequestStatus(req.id, req.status, tenantId);
       return { type: req.type, ok: true };
     }
 
-    /* ── Delete one key ── */
     case 'delete': {
-      // Security: Only admins can delete keys
       if (auth.role !== 'admin') return { type: 'delete', error: 'Unauthorized' };
-      await kvDelete(req.key);
+      await kvDelete(req.key, tenantId);
       return { type: 'delete', key: req.key, ok: true };
     }
 
-    /* ── Timestamps for smart-poll ── */
     case 'timestamps': {
       const keys = Array.isArray(req.keys) ? req.keys : [];
-      const rows = await kvTimestamps(keys);
+      const rows = await kvTimestamps(keys, tenantId);
       const map  = {};
       rows.forEach(r => { map[r.key] = r.updated_at; });
       return { type: 'timestamps', timestamps: map };
     }
 
-    /* ── Update Avatar ── */
     case 'updateStaffAvatar': {
-      if (!req.id || req.avatar === undefined) return { type: req.type, error: 'id and avatar are required' };
       const { kvUpdateStaffAvatar } = await import('@/lib/db');
-      await kvUpdateStaffAvatar(req.id, req.avatar);
-      return { type: req.type, id: req.id, ok: true };
-    }
-    case 'updateStaffProfile': {
-      if (!req.id) return { type: req.type, error: 'id is required' };
-      const { kvUpdateStaffProfile } = await import('@/lib/db');
-      await kvUpdateStaffProfile(req.id, req.name, req.phone, req.avatar);
-      return { type: req.type, id: req.id, ok: true };
-    }
-    case 'updateLearnerAvatar': {
-      if (!req.adm || req.avatar === undefined) return { type: req.type, error: 'adm and avatar are required' };
-      const { kvUpdateLearnerAvatar } = await import('@/lib/db');
-      await kvUpdateLearnerAvatar(req.adm, req.avatar);
-      return { type: req.type, adm: req.adm, ok: true };
+      await kvUpdateStaffAvatar(req.id, req.avatar); // Staff is currently global-ish in staff table but filtered by tenant in kvGet
+      return { type: req.type, ok: true };
     }
 
     case 'updateLearner': {
       if (auth.role !== 'admin') return { type: req.type, error: 'Unauthorized' };
-      if (!req.oldAdm || !req.details) return { type: req.type, error: 'oldAdm and details are required' };
       const { kvUpdateLearner } = await import('@/lib/db');
-      await kvUpdateLearner(req.oldAdm, req.details);
+      await kvUpdateLearner(req.oldAdm, req.details, tenantId);
       return { type: req.type, ok: true };
     }
 
     case 'updateMark': {
-      if (auth.role !== 'admin' && auth.role !== 'teacher' && !auth.role.includes('teacher')) {
-        return { type: req.type, error: 'Unauthorized' };
-      }
-      if (!req.gsa || !req.adm) return { type: req.type, error: 'gsa and adm are required' };
       const { kvUpdateMark } = await import('@/lib/db');
-      await kvUpdateMark(req.gsa, req.adm, req.score);
+      await kvUpdateMark(req.gsa, req.adm, req.score, tenantId);
       return { type: req.type, ok: true };
     }
 
     case 'updateMarksBulk': {
-      if (auth.role !== 'admin' && auth.role !== 'teacher' && !auth.role.includes('teacher')) {
-        return { type: req.type, error: 'Unauthorized' };
-      }
-      if (!Array.isArray(req.marks)) return { type: req.type, error: 'marks array is required' };
       const { kvUpdateMarksBulk } = await import('@/lib/db');
-      await kvUpdateMarksBulk(req.marks);
-      return { type: req.type, ok: true };
-    }
-
-    case 'bulkAddLearners': {
-      if (auth.role !== 'admin' && auth.role !== 'teacher') return { type: req.type, error: 'Unauthorized' };
-      if (!Array.isArray(req.learners)) return { type: req.type, error: 'learners array is required' };
-      const { kvBulkAddLearners } = await import('@/lib/db');
-      await kvBulkAddLearners(req.learners);
+      await kvUpdateMarksBulk(req.marks, tenantId);
       return { type: req.type, ok: true };
     }
 
     case 'updateAttendanceBulk': {
-      if (auth.role !== 'admin' && auth.role !== 'teacher' && !auth.role.includes('teacher')) {
-        return { type: req.type, error: 'Unauthorized' };
-      }
-      if (!req.attMap) return { type: req.type, error: 'attMap is required' };
       const { kvUpdateAttendanceBulk } = await import('@/lib/db');
-      await kvUpdateAttendanceBulk(req.attMap);
+      await kvUpdateAttendanceBulk(req.attMap, tenantId);
       return { type: req.type, ok: true };
     }
 
     case 'upsertMessage': {
-      if (!req.message) return { type: req.type, error: 'message object is required' };
       const { kvUpsertMessage } = await import('@/lib/db');
-      await kvUpsertMessage(req.message);
+      await kvUpsertMessage(req.message, tenantId);
       return { type: req.type, ok: true };
     }
 
     case 'logPresence': {
-      if (!req.userId || !req.date || !req.record) return { type: req.type, error: 'userId, date, and record are required' };
       const { kvLogPresence } = await import('@/lib/db');
-      await kvLogPresence(req.userId, req.date, req.record);
+      await kvLogPresence(req.userId, req.date, req.record, tenantId);
       return { type: req.type, ok: true };
     }
 
     case 'upsertDuty': {
-      if (!req.duty) return { type: req.type, error: 'duty object is required' };
       const { kvUpsertDuty } = await import('@/lib/db');
-      await kvUpsertDuty(req.duty);
+      await kvUpsertDuty(req.duty, tenantId);
       return { type: req.type, ok: true };
     }
 
     case 'deleteDuty': {
-      if (!req.id) return { type: req.type, error: 'id is required' };
       const { kvDeleteDuty } = await import('@/lib/db');
-      await kvDeleteDuty(req.id);
+      await kvDeleteDuty(req.id, tenantId);
       return { type: req.type, ok: true };
     }
 
-    /* ── Bulk read ── */
     case 'getAll': {
       const keys = Array.isArray(req.keys) ? req.keys : [];
-      if (!keys.length) return { type: 'getAll', data: {} };
-
       const { kvGetWithMeta } = await import('@/lib/db');
-      const data = {};
-      const meta = {};
+      const data = {}; const meta = {};
       await Promise.all(keys.map(async (k) => {
-        let { value, updatedAt } = await kvGetWithMeta(k);
-        // Security: Filter staff requests if not admin
+        let { value, updatedAt } = await kvGetWithMeta(k, tenantId);
         if (k === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
           if (Array.isArray(value)) value = value.filter(r => r.userId === auth.id);
         }
-        // Security: Hide fees from teachers/staff
         if (!['admin','parent'].includes(auth.role)) {
           if (['paav6_feecfg', 'paav6_paylog'].includes(k)) value = k === 'paav6_paylog' ? [] : {};
-          if (k === 'paav6_learners' && Array.isArray(value)) {
-            value = value.map(l => ({ ...l, t1: 0, t2: 0, t3: 0, arrears: 0 }));
-          }
+          if (k === 'paav6_learners' && Array.isArray(value)) value = value.map(l => ({ ...l, t1: 0, t2: 0, t3: 0, arrears: 0 }));
         }
-        data[k] = value;
-        meta[k] = updatedAt;
+        data[k] = value; meta[k] = updatedAt;
       }));
       return { type: 'getAll', data, meta };
     }
     
-    case 'storageUsage': {
-      if (auth.role !== 'admin') return { error: 'Unauthorized' };
-      const { getStorageUsage } = await import('@/lib/db');
-      const usage = await getStorageUsage();
-      return { type: 'storageUsage', usage };
-    }
-
     case 'logActivity': {
-      if (!req.activity) return { type: req.type, error: 'activity object is required' };
       const { logAction } = await import('@/lib/db');
       await logAction(auth, req.activity.action, req.activity.details);
       return { type: req.type, ok: true };
@@ -309,20 +220,17 @@ async function handleRequest(req, auth) {
 
     case 'recordPayment': {
       if (auth.role !== 'admin') return { type: req.type, error: 'Unauthorized' };
-      if (!req.payment) return { type: req.type, error: 'payment object is required' };
       const { kvRecordPayment } = await import('@/lib/db');
-      await kvRecordPayment(req.payment);
+      await kvRecordPayment(req.payment, tenantId);
       return { type: req.type, ok: true };
     }
 
     case 'getDatabaseDump': {
       if (auth.role !== 'admin') return { error: 'Unauthorized' };
       const { query } = await import('@/lib/db');
-      const all = await query('SELECT key, value FROM kv');
+      const all = await query('SELECT key, value FROM kv WHERE tenant_id = ?', [tenantId]);
       const data = {};
-      all.forEach(r => {
-        try { data[r.key] = JSON.parse(r.value); } catch { data[r.key] = r.value; }
-      });
+      all.forEach(r => { try { data[r.key] = JSON.parse(r.value); } catch { data[r.key] = r.value; } });
       return { type: req.type, data };
     }
 

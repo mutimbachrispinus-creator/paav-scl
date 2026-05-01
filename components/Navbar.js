@@ -59,7 +59,7 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
           <img src="/logo.png" alt="PAAV Logo" style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%' }} />
         </div>
         <div>
-          <div className="tb-sname">PAAV-GITOMBO — {new Date().getFullYear()}</div>
+          <div className="tb-sname">SCHOOL PORTAL — {new Date().getFullYear()}</div>
           <div className="tb-stag">More Than Academics!</div>
         </div>
       </Link>

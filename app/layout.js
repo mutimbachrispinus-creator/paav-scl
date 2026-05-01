@@ -1,8 +1,7 @@
 /**
  * app/layout.js — Root layout
- *
- * Loads Google Fonts (Inter + Sora), global CSS, and wraps every page
- * in the portal shell (topbar + main content area).
+ * Updated with a Cache Killer to resolve persistent 404/branding issues 
+ * caused by stale service workers and localStorage.
  */
 
 import { Inter, Sora } from 'next/font/google';
@@ -23,24 +22,17 @@ const sora = Sora({
 });
 
 export const metadata = {
-  title:       'PAAV-Gitombo Community School Portal',
-  description: 'School management portal — CBC grades, fees, SMS alerts, merit lists.',
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'PAAV School',
-  },
+  title:       'EduVantage School Management Platform',
+  description: 'The future of school management — Multi-tenant SaaS with CBC & M-Pesa.',
   icons: { 
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: '/eduvantage-logo.png',
   },
 };
 
 export const viewport = {
   width:        'device-width',
   initialScale: 1,
-  themeColor:   '#8B1A1A',
+  themeColor:   '#4F46E5',
 };
 
 export default function RootLayout({ children }) {
@@ -49,6 +41,24 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* 🚨 CACHE KILLER SCRIPT 🚨 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                  for (let reg of regs) { reg.unregister(); }
+                });
+              }
+              // Clear stale tenant themes to force reload
+              try {
+                const keys = ['paav_cache_db_paav_theme', 'paav_cache_user'];
+                keys.forEach(k => localStorage.removeItem(k));
+              } catch(e) {}
+              console.log('🚀 EduVantage Cache Killer Executed');
+            `,
+          }}
+        />
       </head>
       <body style={{ fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
         <PortalShell>{children}</PortalShell>

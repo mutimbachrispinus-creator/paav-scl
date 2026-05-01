@@ -65,7 +65,7 @@ export default function DashboardPage() {
         ])
       ]);
 
-      if (!u) { router.push('/'); return; }
+      if (!u) { router.push('/login'); return; }
       setUser(u);
       if (u.role === 'parent') { 
         router.replace('/parent-home'); 

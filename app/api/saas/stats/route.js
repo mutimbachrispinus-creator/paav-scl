@@ -1,0 +1,73 @@
+import { NextResponse } from 'next/server';
+import { query, getClient } from '@/lib/db';
+import { getSession } from '@/lib/auth';
+
+/**
+ * GET /api/saas/stats
+ * Returns global platform metrics for Super Admins.
+ */
+export async function GET() {
+  try {
+    const session = await getSession();
+    // Only allow platform-master tenant admins or a specific super-admin role
+    if (!session || (session.tenantId !== 'platform-master' && session.role !== 'super-admin')) {
+      return NextResponse.json({ error: 'Unauthorized. Super-Admin access required.' }, { status: 403 });
+    }
+
+    const db = getClient();
+    
+    // 1. Fetch all schools from subscriptions
+    const schoolsRes = await db.execute('SELECT * FROM subscriptions ORDER BY updated_at DESC');
+    const schools = schoolsRes.rows;
+
+    const schoolStats = await Promise.all(schools.map(async (s) => {
+      // Get student count for this tenant
+      const learnerCount = await db.execute({
+        sql: 'SELECT COUNT(*) as count FROM learners WHERE tenant_id = ?',
+        args: [s.tenant_id]
+      });
+      
+      // Get school name from KV (paav_school_profile)
+      const profileRes = await db.execute({
+        sql: "SELECT value FROM kv WHERE key = 'paav_school_profile' AND tenant_id = ?",
+        args: [s.tenant_id]
+      });
+      
+      let name = s.tenant_id;
+      try {
+        if (profileRes.rows.length) {
+          const profile = JSON.parse(profileRes.rows[0].value);
+          name = profile.name || s.tenant_id;
+        }
+      } catch (e) {}
+
+      // Mock revenue logic (In real life, sum up successful paylog entries)
+      const revenueRes = await db.execute({
+        sql: "SELECT SUM(amount) as total FROM paylog WHERE tenant_id = ? AND status = 'approved'",
+        args: [s.tenant_id]
+      });
+
+      return {
+        id: s.tenant_id,
+        name: name,
+        plan: s.plan,
+        status: s.status,
+        expiresAt: s.expires_at,
+        students: Number(learnerCount.rows[0].count),
+        revenue: Number(revenueRes.rows[0].total || 0),
+        lastSync: new Date(s.updated_at * 1000).toLocaleString()
+      };
+    }));
+
+    return NextResponse.json({
+      totalSchools: schools.length,
+      activeSchools: schools.filter(s => s.status === 'active').length,
+      totalRevenue: schoolStats.reduce((acc, s) => acc + s.revenue, 0),
+      schools: schoolStats
+    });
+
+  } catch (err) {
+    console.error('[api/saas/stats] Error:', err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

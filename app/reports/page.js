@@ -111,7 +111,7 @@ export default function ReportsPage() {
         </head>
         <body>
           <div class="header">
-            <div class="school-name">PAAV-GITOMBO COMMUNITY SCHOOL</div>
+            <div class="school-name">SCHOOL PORTAL COMMUNITY SCHOOL</div>
             <div class="doc-title">Official Progress Report</div>
           </div>
           
@@ -186,7 +186,7 @@ export default function ReportsPage() {
                 <div style={{ background: '#fff', padding: '40px', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #E2E8F0', position: 'relative', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
                   {/* Memorandum Header */}
                   <div style={{ textAlign: 'center', marginBottom: 35, borderBottom: '2px solid #1E293B', paddingBottom: 20 }}>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: '#1E293B', letterSpacing: '3px', marginBottom: 6 }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: '#1E293B', letterSpacing: '3px', marginBottom: 6 }}>SCHOOL PORTAL COMMUNITY SCHOOL</div>
                     <div style={{ fontSize: 22, fontWeight: 900, color: '#0F172A', textTransform: 'uppercase' }}>Departmental Progress Memorandum</div>
                   </div>
 

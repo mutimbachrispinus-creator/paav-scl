@@ -108,7 +108,7 @@ export default function PayPage() {
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div style={{ fontSize: 36, marginBottom: 6 }}>🏫</div>
           <div style={{ fontFamily: 'Sora,sans-serif', fontSize: 16, fontWeight: 800,
-            color: '#8B1A1A' }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
+            color: '#8B1A1A' }}>SCHOOL PORTAL COMMUNITY SCHOOL</div>
           <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
             Secure Fee Payment Portal
           </div>

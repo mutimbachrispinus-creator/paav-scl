@@ -226,7 +226,7 @@ function PrintHeader({ title, grade }) {
       {/* School logo */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/logo.png" alt="PAAV Logo" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'contain', margin: '0 auto 8px', border: '2px solid #D97706', background: '#fff', padding: 4 }} />
-      <h1 style={{ fontFamily: 'Sora', fontSize: 17, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>PAAV-GITOMBO COMMUNITY SCHOOL</h1>
+      <h1 style={{ fontFamily: 'Sora', fontSize: 17, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>SCHOOL PORTAL COMMUNITY SCHOOL</h1>
       <p style={{ fontSize: 10, margin: '2px 0', color: '#555' }}>P.O BOX 4091-00100 Nairobi | 0758 922 915 | paavgitomboschool@gmail.com</p>
       <p style={{ fontSize: 10, fontStyle: 'italic', color: '#D97706', fontWeight: 700, margin: '2px 0' }}>✝ More Than Academics!</p>
       <div style={{ background: '#8B1A1A', color: '#fff', display: 'inline-block', padding: '3px 16px', borderRadius: 4, marginTop: 6, fontWeight: 700, fontSize: 12 }}>
@@ -423,7 +423,7 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg })
         <div key={l.adm} className="rc-page" style={{ background: '#FFFDF9', position: 'relative', overflow: 'hidden' }}>
           {/* Subtle watermark or texture could go here */}
           <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-45deg)', fontSize: 150, color: 'rgba(139, 26, 26, 0.03)', fontWeight: 900, pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: 0 }}>
-            PAAV-GITOMBO
+            SCHOOL PORTAL
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <PrintHeader title="STUDENT PROGRESS REPORT" grade={grade} />
@@ -522,7 +522,7 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg })
           </div>
 
           <div style={{ marginTop: 40, textAlign: 'center', fontSize: 11, color: '#666' }}>
-            <p>This is an official document of PAAV-GITOMBO COMMUNITY SCHOOL. Any alterations make it invalid.</p>
+            <p>This is an official document of SCHOOL PORTAL COMMUNITY SCHOOL. Any alterations make it invalid.</p>
             <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-around' }}>
               <div>Stamp: [ ________________ ]</div>
               <div>Date: {new Date().toLocaleDateString()}</div>
@@ -687,7 +687,7 @@ function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
             {/* Letterhead */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, borderBottom: '2px solid #8B1A1A', paddingBottom: 10 }}>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 900, fontSize: 18, color: '#8B1A1A', letterSpacing: -0.5 }}>PAAV-GITOMBO SCHOOL</div>
+                <div style={{ fontWeight: 900, fontSize: 18, color: '#8B1A1A', letterSpacing: -0.5 }}>SCHOOL PORTAL SCHOOL</div>
                 <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>✝ More Than Academics!</div>
                 <div style={{ fontSize: 9, color: '#666' }}>Tel: 0758 922 915</div>
               </div>
@@ -821,7 +821,7 @@ function IDCardTemplate({ learners, grade }) {
           {/* Header */}
           <div style={{ background: '#8B1A1A', color: '#fff', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <img src="/logo.png" alt="L" style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', padding: 2 }} />
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5 }}>PAAV-GITOMBO COMMUNITY SCHOOL</div>
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5 }}>SCHOOL PORTAL COMMUNITY SCHOOL</div>
           </div>
           
           <div style={{ flex: 1, display: 'flex', padding: 10, gap: 12 }}>
@@ -855,7 +855,7 @@ function IDCardTemplate({ learners, grade }) {
           <div style={{ background: '#F8FAFC', borderTop: '1px solid #E2E8F0', padding: '4px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 7, color: '#94A3B8', fontStyle: 'italic' }}>✝ More Than Academics!</div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 8, fontWeight: 700, color: '#1E293B' }}>PAAV-GITOMBO</div>
+              <div style={{ fontSize: 8, fontWeight: 700, color: '#1E293B' }}>SCHOOL PORTAL</div>
               <div style={{ fontSize: 6, color: '#94A3B8' }}>P.O BOX 4091-00100</div>
             </div>
           </div>
