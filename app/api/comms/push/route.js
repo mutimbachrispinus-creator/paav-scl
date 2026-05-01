@@ -92,7 +92,8 @@ export async function POST(request) {
       const maxPts = gradeSubjects.length * (['GRADE 7', 'GRADE 8', 'GRADE 9'].includes(learner.grade) ? 8 : 4);
       const pct = maxPts > 0 ? Math.round((totalPts / maxPts) * 100) : 0;
 
-      const portalLink = `https://portal.paavgitombo.ac.ke/parent-home?adm=${learner.adm}`;
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://portal.eduvantage.app';
+      const portalLink = `${baseUrl}/parent-home?adm=${learner.adm}`;
 
       if (channel === 'sms' || channel === 'both') {
         if (parentPhone) {

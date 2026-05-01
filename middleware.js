@@ -20,7 +20,8 @@ export function middleware(request) {
   // 2. Platform Main Domain Check
   // We use a broader check to handle Vercel deployment variations
   const isMainPlatform = 
-    host === 'paav-scl.vercel.app' || 
+    host === 'eduvantage.app' || 
+    host === 'portal.eduvantage.app' ||
     host === 'localhost:3000' || 
     host.endsWith('.vercel.app') && !host.includes('--'); // Basic check for production domain
 
@@ -37,7 +38,7 @@ export function middleware(request) {
     if (!ignore.includes(subdomain)) {
       if (url.pathname === '/') {
         url.pathname = '/login';
-        const finalTenant = subdomain === 'gitombo' ? 'paav-gitombo' : subdomain;
+        const finalTenant = subdomain;
         url.searchParams.set('tenant', finalTenant);
         return NextResponse.rewrite(url);
       }

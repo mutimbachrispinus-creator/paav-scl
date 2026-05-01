@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+import { useSchoolProfile } from '@/lib/school-profile';
 
 export default function LearnerReceiptPage() {
   const router = useRouter();
@@ -11,7 +12,7 @@ export default function LearnerReceiptPage() {
   const [learner, setLearner] = useState(null);
   const [paylog, setPaylog] = useState([]);
   const [feecfg, setFeecfg] = useState({});
-  const [school, setSchool] = useState({ name: 'SCHOOL PORTAL', motto: '✝ More Than Academics!', phone: '0758 922 915' });
+  const school = useSchoolProfile({ name: 'SCHOOL PORTAL', motto: '✝ More Than Academics!', phone: '0758 922 915' });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,18 +43,6 @@ export default function LearnerReceiptPage() {
         setPaylog(p);
 
         setFeecfg(db.paav6_feecfg || {});
-        
-        if (db.paav_school_profile) {
-          try {
-            const prof = typeof db.paav_school_profile === 'string' ? JSON.parse(db.paav_school_profile) : db.paav_school_profile;
-            setSchool({
-              name: prof.name || 'SCHOOL PORTAL',
-              motto: prof.motto || '✝ More Than Academics!',
-              phone: prof.phone || '0758 922 915',
-              logo: prof.logo || ''
-            });
-          } catch(e) {}
-        }
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     }

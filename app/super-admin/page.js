@@ -177,7 +177,7 @@ export default function SuperAdminPage() {
                 <div className="panel-body">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
                     <div className="activity-item"><strong>New Signup:</strong> Bright Future Academy joined.</div>
-                    <div className="activity-item"><strong>Payment:</strong> EduVantage Gitombo renewed Premium.</div>
+                    <div className="activity-item"><strong>Payment:</strong> St. Peters Academy renewed Premium.</div>
                     <div className="activity-item"><strong>Alert:</strong> St. Marys nearing data limit.</div>
                   </div>
                   <button className="btn btn-primary" style={{ width: '100%', marginTop: 25 }} onClick={() => setTab('broadcast')}>Broadcast Message</button>
@@ -302,7 +302,7 @@ export default function SuperAdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="hover-row"><td>Today, 10:45 AM</td><td>paav-gitombo</td><td>mutimba.junior</td><td><span className="badge bg-blue">IMPERSONATE</span></td><td>Login as Admin for St. Peters</td></tr>
+                  <tr className="hover-row"><td>Today, 10:45 AM</td><td>st-peters</td><td>mutimba.junior</td><td><span className="badge bg-blue">IMPERSONATE</span></td><td>Login as Admin for St. Peters</td></tr>
                   <tr className="hover-row"><td>Today, 09:20 AM</td><td>bright-future</td><td>admin</td><td><span className="badge bg-green">LOGIN</span></td><td>Standard Dashboard Access</td></tr>
                   <tr className="hover-row"><td>Yesterday, 04:30 PM</td><td>platform-master</td><td>mutimba.junior</td><td><span className="badge bg-amber">CONFIG</span></td><td>Updated Global SMS Gateway</td></tr>
                 </tbody>

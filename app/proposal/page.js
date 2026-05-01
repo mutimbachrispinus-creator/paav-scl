@@ -68,7 +68,7 @@ export default function ProposalPage() {
 
         <div style={{ marginTop: 60, display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #E2E8F0', paddingTop: 20, fontSize: '10pt', color: '#64748B' }}>
           <div>Prepared By: <strong style={{ color: '#1E293B' }}>Antigravity AI Systems</strong></div>
-          <div>Date: <strong style={{ color: '#1E293B' }}>April 26, 2026</strong></div>
+          <div>Date: <strong style={{ color: '#1E293B' }}>{new Date().toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' })}</strong></div>
         </div>
       </div>
     </div>

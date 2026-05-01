@@ -9,6 +9,7 @@ import {
   DEFAULT_SUBJECTS, gInfo, maxPts, promotionStatus,
   JSS_SCALE, PRIMARY_SCALE, isJSSGrade,
 } from '@/lib/cbe';
+import { useSchoolProfile } from '@/lib/school-profile';
 
 const ASSESSMENTS = [
   { key: 'op1', label: 'Opener'   },
@@ -25,7 +26,7 @@ export default function ReportCardPage() {
   const [marks,   setMarks]   = useState({});
   const [feeCfg,  setFeeCfg]  = useState({});
   const [gradCfg, setGradCfg] = useState(null);
-  const [school,  setSchool]  = useState({ name: 'EDUVANTAGE PORTAL', motto: '"More Than Academics!"', tel: '0758 922 915', location: 'Embu County, Kenya' });
+  const school = useSchoolProfile({ name: 'EDUVANTAGE PORTAL', motto: '"More Than Academics!"', tel: '0758 922 915', location: 'Embu County, Kenya' });
   const [term,    setTerm]    = useState('T1');
   const [loading, setLoading] = useState(true);
 
@@ -43,7 +44,6 @@ export default function ReportCardPage() {
           { type: 'get', key: 'paav6_marks'    },
           { type: 'get', key: 'paav6_feecfg'   },
           { type: 'get', key: 'paav8_grad'     },
-          { type: 'get', key: 'paav_school_profile' },
         ]}),
       });
       const db = await dbRes.json();
@@ -56,19 +56,6 @@ export default function ReportCardPage() {
       setMarks(  db.results[1]?.value || {});
       setFeeCfg( db.results[2]?.value || {});
       setGradCfg(db.results[3]?.value || null);
-      
-      const prof = db.results[4]?.value;
-      if (prof) {
-        try {
-          const p = typeof prof === 'string' ? JSON.parse(prof) : prof;
-          setSchool({
-            name: p.name || 'SCHOOL PORTAL',
-            motto: p.motto || '"More Than Academics!"',
-            tel: p.phone || '0758 922 915',
-            location: p.address || p.location || 'Embu County, Kenya'
-          });
-        } catch(e) {}
-      }
 
       setLoading(false);
     }

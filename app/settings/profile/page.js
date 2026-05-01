@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDB, invalidateDB, fetchWithRetry } from '@/lib/client-cache';
+import { writeSchoolProfileCache } from '@/lib/school-profile';
 import { useProfile } from '@/app/PortalShell';
 
 const PRESET_COLORS = [
@@ -60,12 +61,11 @@ export default function SchoolProfilePage() {
       });
       if (!res.ok) throw new Error('Server error ' + res.status);
 
-      // Immediately write the new values into localStorage cache
-      // so every page/component that reads getCachedDB gets fresh data right away
+      // Write fresh values into cache so all pages see them immediately
+      writeSchoolProfileCache(profile);
       const PREFIX = 'paav_cache_';
       const stamp = Date.now();
-      localStorage.setItem(PREFIX + 'db_paav_school_profile', JSON.stringify({ v: profile, t: stamp, s: stamp }));
-      localStorage.setItem(PREFIX + 'db_paav_theme',           JSON.stringify({ v: theme,   t: stamp, s: stamp }));
+      localStorage.setItem(PREFIX + 'db_paav_theme', JSON.stringify({ v: theme, t: stamp, s: stamp }));
 
       playSuccessSound();
       // Broadcast to all other open tabs/components

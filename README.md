@@ -1,9 +1,9 @@
-# PAAV-Gitombo Community School Portal
+# EduVantage School Management Platform
 
 **Next.js 14 · Turso (libSQL) · Africa's Talking · M-Pesa Daraja**
 
-> "More Than Academics!" — Rebuilt from a single-file HTML prototype into a
-> production-grade Next.js App Router project.
+> "Empowering Education Excellence" — A production-grade Next.js App Router SaaS platform
+> for centralized school operations, automated academic tracking, and real-time parent engagement.
 
 ---
 
@@ -82,8 +82,8 @@ paav-school-portal/
 ### 1. Clone & install
 
 ```bash
-git clone https://github.com/your-org/paav-school-portal.git
-cd paav-school-portal
+git clone https://github.com/eduvantage-app/school-portal.git
+cd school-portal
 npm install
 ```
 
@@ -171,7 +171,7 @@ Uses **Africa's Talking**. Set `AT_USERNAME=sandbox` for testing.
 ```js
 import { sendSMS, sendBulkSMS } from '@/lib/sms-client';
 
-await sendSMS({ to: '0712345678', message: 'Hello from PAAV Portal!' });
+await sendSMS({ to: '0712345678', message: 'Hello from EduVantage Portal!' });
 await sendBulkSMS(['+254712345678', '+254723456789'], 'School closed tomorrow.');
 ```
 
@@ -218,4 +218,4 @@ const result = await stkPush({
 
 ## License
 
-MIT — PAAV-Gitombo Community School, Embu County, Kenya.
+MIT — EduVantage SaaS Platform. All Rights Reserved 2026.

@@ -1,13 +1,14 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { invalidateDB } from '@/lib/client-cache';
+import { useSchoolProfile } from '@/lib/school-profile';
 
 export default function ReportsPage() {
   const [user, setUser] = useState(null);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [school, setSchool] = useState({ name: 'EDUVANTAGE PORTAL', motto: '"More Than Academics!"', tel: '0758 922 915', location: 'Embu County, Kenya' });
+  const school = useSchoolProfile({ name: 'EDUVANTAGE PORTAL', motto: '"More Than Academics!"', tel: '0758 922 915', location: 'Embu County, Kenya' });
   const [form, setForm] = useState({ dept: '', title: '', text: '' });
   const [msg, setMsg] = useState({ type: '', text: '' });
 
@@ -21,17 +22,12 @@ export default function ReportsPage() {
       const dbRes = await fetch('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_dept_reports' }, { type: 'get', key: 'paav_school_profile' }] })
+        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_dept_reports' }] })
       });
       const db = await dbRes.json();
       const allReports = db.results[0]?.value || [];
-      const prof = db.results[1]?.value || {};
-      
-      if (prof.name) {
-        setSchool(typeof prof === 'string' ? JSON.parse(prof) : prof);
-      }
 
-      
+
       // Admins see all, others see nothing or just a success confirmation
       if (auth.user.role === 'admin') {
         setReports(allReports.reverse());
