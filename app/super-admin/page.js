@@ -103,34 +103,69 @@ export default function SuperAdminPage() {
         </div>
       </div>
 
+      {/* ── Trials Overview ── */}
+      <div className="panel" style={{ marginTop: 25, borderLeft: `6px solid ${M}` }}>
+        <div className="panel-hdr"><h3>⏳ Schools on 30-Day Trial</h3></div>
+        <div className="panel-body">
+           <div className="sg sg3">
+              {schools.filter(s => s.plan === 'trial').map(s => (
+                <div key={s.id} style={{ padding: 15, background: '#F1F5F9', borderRadius: 12, border: '1px solid #E2E8F0' }}>
+                   <div style={{ fontWeight: 800, fontSize: 15 }}>{s.name}</div>
+                   <div style={{ fontSize: 11, color: SLATE }}>Tenant: {s.id}</div>
+                   <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className="badge bg-blue" style={{ fontSize: 10 }}>TRIAL ACTIVE</span>
+                      <button className="btn btn-sm btn-primary" style={{ padding: '4px 8px', fontSize: 10 }}>Activate Full Plan</button>
+                   </div>
+                </div>
+              ))}
+              {schools.filter(s => s.plan === 'trial').length === 0 && (
+                <div style={{ color: SLATE, fontStyle: 'italic', fontSize: 14 }}>No schools currently on trial.</div>
+              )}
+           </div>
+        </div>
+      </div>
+
       <div className="panel" style={{ marginTop: 25 }}>
-        <div className="panel-hdr"><h3>🏫 School Directory & Subscription Management</h3></div>
+        <div className="panel-hdr"><h3>🏫 All Institutional Partitions</h3></div>
         <div className="tbl-wrap">
           <table>
             <thead>
               <tr style={{ background: '#F8FAFC' }}>
-                <th>School Name</th>
-                <th>Plan</th>
-                <th>Students</th>
-                <th>Status</th>
-                <th>Revenue</th>
-                <th>Actions</th>
+                <th>School Identity</th>
+                <th>Service Plan</th>
+                <th>Learners</th>
+                <th>System Status</th>
+                <th>Net Revenue</th>
+                <th>Operations</th>
               </tr>
             </thead>
             <tbody>
               {schools.map(s => (
                 <tr key={s.id}>
-                  <td><strong>{s.name}</strong><br/><span style={{ fontSize: 10, color: 'var(--muted)' }}>Last Sync: {s.lastSync}</span></td>
-                  <td><span className={`badge ${s.plan === 'Premium' ? 'bg-gold' : 'bg-blue'}`}>{s.plan}</span></td>
-                  <td>{s.students}</td>
-                  <td><span className={`badge ${s.status === 'Active' ? 'bg-green' : 'bg-red'}`}>{s.status}</span></td>
-                  <td style={{ fontWeight: 800 }}>KSH {s.revenue.toLocaleString()}</td>
                   <td>
-                    <button className="btn btn-sm btn-primary" onClick={() => {
-                      localStorage.setItem('paav_impersonate_id', s.id);
-                      window.location.href = '/dashboard';
-                    }}>Impersonate</button>
-                    <button className="btn btn-sm btn-ghost" style={{ marginLeft: 5 }}>Manage</button>
+                    <div style={{ fontWeight: 800 }}>{s.name}</div>
+                    <div style={{ fontSize: 10, color: SLATE }}>ID: {s.id} · Sync: {s.lastSync}</div>
+                  </td>
+                  <td>
+                    <span className={`badge ${s.plan === 'Premium' ? 'bg-gold' : 'bg-blue'}`}>
+                      {s.plan.toUpperCase()}
+                    </span>
+                  </td>
+                  <td><strong style={{ color: NAVY }}>{s.students}</strong></td>
+                  <td>
+                    <span className={`badge ${s.status === 'active' ? 'bg-green' : 'bg-red'}`}>
+                      {s.status.toUpperCase()}
+                    </span>
+                  </td>
+                  <td style={{ fontWeight: 900, color: EMERALD }}>KES {s.revenue.toLocaleString()}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button className="btn btn-sm btn-primary" onClick={() => {
+                        localStorage.setItem('paav_impersonate_id', s.id);
+                        window.location.href = '/dashboard';
+                      }}>Login as Admin</button>
+                      <button className="btn btn-sm btn-ghost">Config</button>
+                    </div>
                   </td>
                 </tr>
               ))}
