@@ -18,6 +18,14 @@ export default function PrintHeader() {
       }
     }
     loadProfile();
+
+    const handleSync = (e) => {
+      if (e.detail?.changed?.includes('paav_school_profile')) {
+        loadProfile();
+      }
+    };
+    window.addEventListener('paav:sync', handleSync);
+    return () => window.removeEventListener('paav:sync', handleSync);
   }, []);
 
   if (!profile) return null;

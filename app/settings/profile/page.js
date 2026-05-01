@@ -80,6 +80,16 @@ export default function SchoolProfilePage() {
   };
   const removeBank = (i) => setProfile({ ...profile, bankAccounts: profile.bankAccounts.filter((_, idx) => idx !== i) });
 
+  const handleLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      setProfile({ ...profile, logo: ev.target.result });
+    };
+    reader.readAsDataURL(file);
+  };
+
   if (loading || !user) return <div className="page on"><p>Loading...</p></div>;
 
   return (
@@ -144,9 +154,23 @@ export default function SchoolProfilePage() {
           {tab === 'branding' && (
             <div className="sg sg1">
               <div className="field">
-                <label>Logo URL (PNG/JPG)</label>
-                <input value={profile.logo} onChange={e => setProfile({...profile, logo: e.target.value})} placeholder="https://..." />
-                <p style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>High resolution PNG with transparent background is recommended.</p>
+                <label>School Logo (Upload Image or Paste URL)</label>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <input 
+                    type="file" 
+                    accept="image/png, image/jpeg" 
+                    onChange={handleLogoUpload} 
+                    style={{ flex: 1, padding: '8px', border: '1px solid var(--border)', borderRadius: 8 }} 
+                  />
+                  <div style={{ padding: '8px', color: 'var(--muted)', fontWeight: 600 }}>OR</div>
+                  <input 
+                    value={profile.logo} 
+                    onChange={e => setProfile({...profile, logo: e.target.value})} 
+                    placeholder="https://..." 
+                    style={{ flex: 2 }}
+                  />
+                </div>
+                <p style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>Upload a file from your device, or paste an image URL. High resolution PNG with transparent background is recommended.</p>
               </div>
               
               <div style={{ marginBottom: 25, display: 'flex', gap: 20, alignItems: 'center', background: '#F8FAFC', padding: 15, borderRadius: 12 }}>
