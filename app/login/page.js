@@ -39,6 +39,12 @@ function LoginContent() {
   const [schools, setSchools] = useState([]);
   const [links, setLinks] = useState([{ schoolId: '', adm: '' }]);
   const [usernameStatus, setUsernameStatus] = useState({ checking: false, taken: false });
+  const [form, setForm] = useState({
+    username: '', password: '', 
+    name: '', phone: '', role: 'parent', 
+  });
+
+  const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   useEffect(() => {
     async function loadSchools() {
@@ -68,20 +74,39 @@ function LoginContent() {
       if (form.username && tab === 'register') checkUsername(form.username);
     }, 500);
     return () => clearTimeout(t);
-  }, [form.username]);
+  }, [form.username, tab]);
 
   useEffect(() => {
     async function loadConfig() {
-      // ... same as before ...
+      try {
+        const res = await fetch(`/api/saas/config?tenant=${tenantId}`);
+        const data = await res.json();
+        if (data.profile) {
+          setProfile({
+            name: data.profile.name,
+            tagline: data.profile.tagline || data.profile.motto || 'Education Portal',
+            phone: data.profile.phone,
+            email: data.profile.email,
+            logo: data.profile.logo || '/eduvantage-logo.png'
+          });
+        }
+        if (data.announcement) setAnnouncement(data.announcement);
+        if (data.theme) {
+          setTheme(data.theme);
+          document.documentElement.style.setProperty('--primary', data.theme.primary);
+          document.documentElement.style.setProperty('--secondary', data.theme.secondary);
+        }
+
+        const endpoint = tenantId === 'platform-master' ? '/api/saas/stats' : `/api/stats?tenant=${tenantId}`;
+        const sRes = await fetch(endpoint);
+        const s = await sRes.json();
+        setStats(s);
+      } catch (e) {
+        console.error('Config load error:', e);
+      }
     }
+    loadConfig();
   }, [tenantId]);
-
-  const [form, setForm] = useState({
-    username: '', password: '', 
-    name: '', phone: '', role: 'parent', 
-  });
-
-  const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   async function handleAction(e) {
     if (e) e.preventDefault();
