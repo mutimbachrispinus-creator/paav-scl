@@ -50,12 +50,11 @@ export default function RootLayout({ children }) {
                   for (let reg of regs) { reg.unregister(); }
                 });
               }
-              // Clear stale tenant themes to force reload
+              // Clear only the system/auth caches if needed, but preserve school branding
               try {
-                const keys = ['paav_cache_db_paav_theme', 'paav_cache_db_paav_school_profile'];
-                keys.forEach(k => localStorage.removeItem(k));
+                // localStorage.removeItem('paav_cache_user'); // Optional: force re-login
               } catch(e) {}
-              console.log('🚀 EduVantage Cache Killer Executed');
+              console.log('🚀 EduVantage Cache Killer Active');
             `,
           }}
         />

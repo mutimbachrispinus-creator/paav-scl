@@ -148,13 +148,6 @@ export default function PortalShell({ children }) {
     logo: '/eduvantage-logo.png' 
   });
 
-  // Branding Guard: Purge legacy identity from hydrated state
-  useEffect(() => {
-    if (profile?.name?.includes('PAAV-Gitombo')) {
-      setProfile(p => ({ ...p, name: 'Gitombo School', logo: '/eduvantage-logo.png' }));
-    }
-  }, [profile]);
-
   const idleTimer    = useRef(null);
   const warnTimer    = useRef(null);
   const countdownRef = useRef(null);
@@ -238,10 +231,9 @@ export default function PortalShell({ children }) {
         const config = await configRes.json();
         
         if (config.profile) {
-          // Final sanitize before setting state
-          const safeName = config.profile.name?.includes('PAAV-Gitombo') ? 'Gitombo School' : config.profile.name;
+          // Sanitize: never allow legacy logo to leak
           const safeLogo = (config.profile.logo === '/logo.png' || !config.profile.logo) ? '/eduvantage-logo.png' : config.profile.logo;
-          setProfile({ ...config.profile, name: safeName, logo: safeLogo });
+          setProfile({ ...config.profile, logo: safeLogo });
         }
         if (config.theme) setTheme(config.theme);
 

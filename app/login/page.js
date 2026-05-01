@@ -81,20 +81,20 @@ function LoginContent() {
       try {
         const res = await fetch(`/api/saas/config?tenant=${tenantId}`);
         const data = await res.json();
-        if (data.profile) {
-          setProfile({
-            name: data.profile.name,
-            tagline: data.profile.tagline || data.profile.motto || 'Education Portal',
-            phone: data.profile.phone,
-            email: data.profile.email,
-            logo: data.profile.logo || '/eduvantage-logo.png'
-          });
-        }
+        // Login page always maintains EduVantage Platform identity
+        setProfile({
+          name: 'EduVantage School Management Platform',
+          tagline: 'Global Education SaaS Network',
+          logo: '/eduvantage-logo.png'
+        });
         if (data.announcement) setAnnouncement(data.announcement);
         if (data.theme) {
-          setTheme(data.theme);
-          document.documentElement.style.setProperty('--primary', data.theme.primary);
-          document.documentElement.style.setProperty('--secondary', data.theme.secondary);
+          // You can choose to keep the school's theme colors or force EduVantage theme
+          // The user said "Eduvantage should mantain its theme on login page"
+          const eduTheme = { primary: '#4F46E5', secondary: '#10B981' };
+          setTheme(eduTheme);
+          document.documentElement.style.setProperty('--primary', eduTheme.primary);
+          document.documentElement.style.setProperty('--secondary', eduTheme.secondary);
         }
 
         const endpoint = tenantId === 'platform-master' ? '/api/saas/stats' : `/api/stats?tenant=${tenantId}`;
