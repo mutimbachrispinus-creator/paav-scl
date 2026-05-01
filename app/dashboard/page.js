@@ -259,6 +259,19 @@ function SuperAdminDashboard() {
 
   return (
     <div className="sa-dashboard">
+      <div className="panel" style={{ marginBottom: 24 }}>
+        <div className="panel-hdr" style={{ background: '#1E40AF' }}>
+          <h3 style={{ color: '#fff' }}>⚡ Master Quick Access</h3>
+        </div>
+        <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
+          {ALL_NAV.filter(n => n.roles.includes('super-admin')).map(t => (
+            <Link key={t.key} href={t.key === 'classes' ? '/classes' : `/${t.key}`} className="quick-access-btn">
+              <span className="qa-icon">{t.icon}</span> {t.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
       <div className="sg sg3" style={{ marginBottom: 24 }}>
         <StatCard icon="🏫" bg="#DBEAFE" value={data.stats.totalSchools} label="Schools Onboarded" />
         <StatCard icon="👥" bg="#DCFCE7" value={data.stats.totalStudents} label="Global Students" />
