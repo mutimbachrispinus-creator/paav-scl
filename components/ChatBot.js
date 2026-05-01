@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 
 export default function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState([
     { role: 'bot', text: 'Hello! I am your EduVantage assistant. How can I help you today? 🎓' }
   ]);
@@ -13,40 +14,54 @@ export default function ChatBot() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isTyping]);
 
   const responses = {
-    'features': 'EduVantage offers Academic Management, Financial Control, Communication Hub, and more! 🚀',
-    'price': 'We offer a 30-day free trial. Afterwards, plans start from just $1 per student per term. 💰',
-    'trial': 'You can start your 30-day free trial by clicking the "Get Started Free" button! ✨',
-    'contact': 'You can reach our support team at support@eduvantage.app or call 0700111222. 📞',
-    'default': 'That is a great question! I am still learning, but you can explore our features or start a trial to see for yourself! 🌟'
+    'features': 'EduVantage offers a complete suite including Academic Analytics, Automated Payroll, M-Pesa Fee Collection, and a dynamic Parent Portal! 🚀',
+    'price': 'We offer a 30-day free trial! Afterward, plans are KES 150 per student per term for Basic, and KES 300 for Premium. 💰',
+    'trial': 'You can start your 30-day free trial instantly. No credit card required! Just click "Get Started" on the homepage. ✨',
+    'contact': 'Our team is ready to help! 📞 Call us at +254 700 111 222 or email hello@eduvantage.app',
+    'demo': 'I can definitely show you around! Would you like to see the Admin Dashboard or the Parent Portal first? 📺',
+    'default': 'That is a great question! I am still learning, but I can tell you about our Features, Pricing, or help you start a Free Trial. 🌟'
   };
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const userMsg = input.trim();
+  const handleSend = (text) => {
+    const userMsg = text || input.trim();
+    if (!userMsg) return;
+
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setInput('');
+    setIsTyping(true);
 
     setTimeout(() => {
+      setIsTyping(false);
       let botResponse = responses.default;
       const q = userMsg.toLowerCase();
-      if (q.includes('feature')) botResponse = responses.features;
-      else if (q.includes('price') || q.includes('cost')) botResponse = responses.price;
-      else if (q.includes('trial')) botResponse = responses.trial;
-      else if (q.includes('contact') || q.includes('help')) botResponse = responses.contact;
+      
+      if (q.includes('feature') || q.includes('what can you do')) botResponse = responses.features;
+      else if (q.includes('price') || q.includes('cost') || q.includes('how much')) botResponse = responses.price;
+      else if (q.includes('trial') || q.includes('free')) botResponse = responses.trial;
+      else if (q.includes('contact') || q.includes('help') || q.includes('support')) botResponse = responses.contact;
+      else if (q.includes('demo') || q.includes('show me')) botResponse = responses.demo;
 
       setMessages(prev => [...prev, { role: 'bot', text: botResponse }]);
-    }, 1000);
+    }, 1200);
   };
+
+  const quickReplies = [
+    { label: '🚀 Features', val: 'features' },
+    { label: '💰 Pricing', val: 'price' },
+    { label: '✨ Free Trial', val: 'trial' },
+    { label: '📺 Book Demo', val: 'demo' }
+  ];
 
   return (
     <div className="chatbot-root">
       {!isOpen && (
         <button className="chat-trigger" onClick={() => setIsOpen(true)}>
+          <div className="trigger-pulse"></div>
           <span className="icon">💬</span>
-          <span className="label">Need Help?</span>
+          <span className="label">Chat with EduBot</span>
         </button>
       )}
 
@@ -56,8 +71,8 @@ export default function ChatBot() {
             <div className="bot-info">
               <div className="avatar">🤖</div>
               <div>
-                <div className="name">EduBot</div>
-                <div className="status">Online</div>
+                <div className="name">EduBot AI</div>
+                <div className="status">Always Active</div>
               </div>
             </div>
             <button className="close" onClick={() => setIsOpen(false)}>✕</button>
@@ -69,6 +84,19 @@ export default function ChatBot() {
                 <div className="msg-bubble">{m.text}</div>
               </div>
             ))}
+            {isTyping && (
+              <div className="msg-wrap bot">
+                <div className="msg-bubble typing">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="chat-quick-replies">
+            {quickReplies.map(r => (
+              <button key={r.val} onClick={() => handleSend(r.label)}>{r.label}</button>
+            ))}
           </div>
 
           <div className="chat-input">
@@ -76,59 +104,74 @@ export default function ChatBot() {
               value={input} 
               onChange={e => setInput(e.target.value)} 
               onKeyDown={e => e.key === 'Enter' && handleSend()}
-              placeholder="Type your question..."
+              placeholder="Ask me anything..."
             />
-            <button onClick={handleSend}>➔</button>
+            <button onClick={() => handleSend()} className="send-btn">➔</button>
           </div>
         </div>
       )}
 
       <style jsx>{`
-        .chatbot-root { position: fixed; bottom: 40px; right: 40px; z-index: 2000; }
+        .chatbot-root { position: fixed; bottom: 30px; right: 30px; z-index: 2000; }
         
         .chat-trigger { 
-          display: flex; align-items: center; gap: 12px; padding: 12px 24px;
+          display: flex; align-items: center; gap: 12px; padding: 14px 28px;
           background: #4F46E5; color: #fff; border-radius: 99px; border: none;
           cursor: pointer; font-weight: 800; box-shadow: 0 20px 40px rgba(79, 70, 229, 0.4);
-          transition: 0.3s;
+          transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative;
         }
-        .chat-trigger:hover { transform: scale(1.05) translateY(-5px); }
-        .chat-trigger .icon { fontSize: 24px; }
+        .chat-trigger:hover { transform: scale(1.05) translateY(-5px); box-shadow: 0 30px 60px rgba(79, 70, 229, 0.5); }
+        .trigger-pulse { position: absolute; inset: 0; border-radius: 99px; background: #4F46E5; z-index: -1; animation: pulse 2s infinite; opacity: 0.5; }
+        @keyframes pulse { from { transform: scale(1); opacity: 0.5; } to { transform: scale(1.4); opacity: 0; } }
 
         .chat-window {
-          width: 380px; height: 500px; background: #fff; border-radius: 24px;
+          width: 400px; height: 580px; background: #fff; border-radius: 30px;
           display: flex; flex-direction: column; overflow: hidden;
-          box-shadow: 0 40px 100px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.05);
-          animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 40px 100px rgba(15, 23, 42, 0.2); border: 1px solid rgba(0,0,0,0.08);
+          animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px) scale(0.95); } }
 
         .chat-hdr { 
-          padding: 20px; background: #4F46E5; color: #fff; 
+          padding: 24px; background: linear-gradient(135deg, #4F46E5, #3730A3); color: #fff; 
           display: flex; justify-content: space-between; align-items: center;
         }
-        .bot-info { display: flex; gap: 12px; align-items: center; }
-        .bot-info .avatar { width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; fontSize: 20px; }
-        .name { font-weight: 800; }
-        .status { font-size: 11px; opacity: 0.8; display: flex; align-items: center; gap: 4px; }
-        .status::before { content: ''; width: 6px; height: 6px; background: #10B981; border-radius: 50%; }
-        .close { background: none; border: none; color: #fff; cursor: pointer; fontSize: 18px; opacity: 0.6; }
-        .close:hover { opacity: 1; }
+        .bot-info { display: flex; gap: 14px; align-items: center; }
+        .bot-info .avatar { width: 44px; height: 44px; background: rgba(255,255,255,0.2); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; backdrop-filter: blur(10px); }
+        .name { font-weight: 800; font-size: 16px; letter-spacing: -0.01em; }
+        .status { font-size: 11px; opacity: 0.8; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+        .status::before { content: ''; width: 8px; height: 8px; background: #10B981; border-radius: 50%; box-shadow: 0 0 10px #10B981; }
+        .close { background: rgba(255,255,255,0.1); border: none; color: #fff; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: 0.2s; }
+        .close:hover { background: rgba(255,255,255,0.2); transform: rotate(90deg); }
 
-        .chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #F8FAFC; }
-        .msg-wrap { display: flex; width: 100%; }
+        .chat-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 18px; background: #F8FAFC; scroll-behavior: smooth; }
+        .msg-wrap { display: flex; width: 100%; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } }
         .msg-wrap.bot { justify-content: flex-start; }
         .msg-wrap.user { justify-content: flex-end; }
         .msg-bubble { 
-          max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; font-weight: 500;
+          max-width: 85%; padding: 14px 18px; border-radius: 20px; font-size: 14.5px; line-height: 1.6; font-weight: 500;
         }
-        .bot .msg-bubble { background: #fff; color: #1E293B; border-bottom-left-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-        .user .msg-bubble { background: #4F46E5; color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
+        .bot .msg-bubble { background: #fff; color: #1E293B; border-bottom-left-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); }
+        .user .msg-bubble { background: #4F46E5; color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2); }
 
-        .chat-input { padding: 16px; background: #fff; display: flex; gap: 12px; border-top: 1px solid #F1F5F9; }
-        .chat-input input { flex: 1; border: none; background: #F1F5F9; padding: 12px 16px; border-radius: 12px; font-size: 14px; outline: none; }
-        .chat-input button { width: 44px; height: 44px; background: #4F46E5; color: #fff; border: none; border-radius: 12px; cursor: pointer; font-weight: 800; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .chat-input button:hover { transform: scale(1.1); }
+        .typing { display: flex; gap: 4px; padding: 12px 16px !important; }
+        .typing span { width: 6px; height: 6px; background: #94A3B8; border-radius: 50%; animation: blink 1.4s infinite; }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        .chat-quick-replies { padding: 12px 20px; display: flex; gap: 8px; flex-wrap: wrap; background: #fff; border-top: 1px solid #F1F5F9; }
+        .chat-quick-replies button { 
+          padding: 8px 14px; background: #F1F5F9; border: 1.5px solid #E2E8F0; border-radius: 12px; 
+          font-size: 12px; font-weight: 700; color: #475569; cursor: pointer; transition: 0.2s;
+        }
+        .chat-quick-replies button:hover { background: #EEF2FF; border-color: #4F46E5; color: #4F46E5; transform: translateY(-2px); }
+
+        .chat-input { padding: 18px 24px; background: #fff; display: flex; gap: 14px; align-items: center; }
+        .chat-input input { flex: 1; border: none; background: #F1F5F9; padding: 14px 20px; border-radius: 16px; font-size: 14px; outline: none; font-weight: 500; }
+        .send-btn { width: 48px; height: 48px; background: #4F46E5; color: #fff; border: none; border-radius: 14px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: 0.3s; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
+        .send-btn:hover { transform: scale(1.1) rotate(-10deg); background: #3730A3; }
       `}</style>
     </div>
   );

@@ -158,48 +158,99 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── VIBE SECTION ── */}
-      <section className="vibe-section" id="solutions">
-        <div className="container vibe-grid">
-          <div className="vibe-image">
-            <img src="/classroom-vibe.png" alt="Modern Classroom" />
-            <div className="vibe-overlay"></div>
+      {/* ── STAKEHOLDER SOLUTIONS ── */}
+      <section style={{ padding: '100px 0', background: '#fff' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 60 }}>
+            <h2 style={{ fontSize: 42, fontWeight: 900, color: DARK }}>Solutions for <span className="text-gradient">Every Stakeholder</span></h2>
+            <p style={{ color: SLATE, fontSize: 18 }}>A unified ecosystem that keeps everyone connected and informed.</p>
           </div>
-          <div className="vibe-content">
-            <h2 className="tag-line">MODERN LEARNING</h2>
-            <h3 style={{ fontSize: 48, fontWeight: 900, marginBottom: 24, lineHeight: 1.1 }}>Empowering the next generation of African leaders</h3>
-            <p>
-              We believe that technology should be an enabler, not a hurdle. 
-              EduVantage is designed to be intuitive, fast, and reliable, 
-              giving teachers more time to focus on what matters: teaching.
-            </p>
-            <ul className="check-list">
-              <li><span style={{ color: ACCENT }}>✓</span> Offline-first capability for remote areas</li>
-              <li><span style={{ color: ACCENT }}>✓</span> Mobile-responsive for on-the-go access</li>
-              <li><span style={{ color: ACCENT }}>✓</span> Multi-tenant isolation for total data security</li>
-            </ul>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+            <SolutionCard 
+              target="School Administrators" 
+              desc="Total oversight of finances, staff performance, and platform-wide metrics with automated daily reports."
+              features={['M-Pesa Reconciliation', 'Bulk Payroll', 'SaaS Command Center']}
+            />
+            <SolutionCard 
+              target="Teachers & Educators" 
+              desc="Reduce paperwork with digital attendance, instant grade entry, and automated timetable generation."
+              features={['Digital Markbooks', 'Attendance Logs', 'Lesson Planning']}
+            />
+            <SolutionCard 
+              target="Parents & Guardians" 
+              desc="Real-time transparency into fees, academic progress, and student welfare from any mobile device."
+              features={['Instant Fee Statements', 'Report Card Access', 'SMS Alerts']}
+            />
+            <SolutionCard 
+              target="Students" 
+              desc="Stay organized with personalized timetables, digital learning resources, and achievement tracking."
+              features={['Exam Rankings', 'Student Diary', 'Resource Hub']}
+            />
           </div>
         </div>
       </section>
 
-      {/* ── TESTIMONIAL ── */}
-      <section className="testimonials" id="testimonials">
+      {/* ── COMPARISON SECTION ── */}
+      <section style={{ padding: '100px 0', background: '#F8FAFC' }}>
         <div className="container">
-          <div className="testi-card">
-            <div className="testi-quote">“</div>
-            <p>
-              EduVantage has completely transformed how we operate. The academic reporting 
-              that used to take us weeks now takes minutes. It's truly world-class software 
-              made for our specific needs.
-            </p>
-            <div className="testi-user">
-              <div className="avatar">👨‍🏫</div>
-              <div>
-                <strong>Principal David Mwangi</strong>
-                <span>St. Peters Academy, Nairobi</span>
-              </div>
-            </div>
+          <div className="comparison-box">
+             <div className="comp-hdr">
+               <h3>Why Switch to EduVantage?</h3>
+               <p>The difference between "Managing" and "Optimising" your institution.</p>
+             </div>
+             <div className="tbl-wrap">
+               <table className="comp-table">
+                 <thead>
+                   <tr>
+                     <th>Capability</th>
+                     <th className="bad">Legacy Systems / Manual</th>
+                     <th className="good">EduVantage AI Platform</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   <tr><td>Fee Reconciliation</td><td>3-5 Days (Manual Audit)</td><td className="hl">Instant (Auto-Sync)</td></tr>
+                   <tr><td>Report Generation</td><td>Weeks of Paperwork</td><td className="hl">30 Seconds (One-Click)</td></tr>
+                   <tr><td>Parent Communication</td><td>Reactive (Calls/Notes)</td><td className="hl">Proactive (Auto-SMS)</td></tr>
+                   <tr><td>Data Security</td><td>Risk of Loss / Leaks</td><td className="hl">Encrypted Multi-Tenant</td></tr>
+                   <tr><td>Payroll Processing</td><td>Hours of Spreadsheet Work</td><td className="hl">2 Minutes (Bulk Sync)</td></tr>
+                 </tbody>
+               </table>
+             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── PRICING SECTION ── */}
+      <section id="pricing" style={{ padding: '120px 0', background: DARK, color: '#fff' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 80 }}>
+            <div className="badge-pill" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}>Simple, Transparent Pricing</div>
+            <h2 style={{ fontSize: 52, fontWeight: 900, letterSpacing: '-0.02em' }}>Invest in <span className="text-gradient">Excellence</span></h2>
+          </div>
+
+          <div className="pricing-grid">
+            <PriceCard 
+              name="Basic" 
+              price="150" 
+              desc="Perfect for growing primary schools."
+              features={['Learner Management', 'Academic Grading', 'Basic Reporting', 'SMS Integration', 'Email Support']}
+            />
+            <PriceCard 
+              name="Premium" 
+              price="300" 
+              featured={true}
+              desc="Comprehensive control for top-tier institutions."
+              features={['Everything in Basic', 'M-Pesa Auto-Payment', 'Bulk Payroll Engine', 'Advanced Analytics', 'Priority 24/7 Support', 'Custom Branding']}
+            />
+            <PriceCard 
+              name="Enterprise" 
+              price="Custom" 
+              desc="Multi-campus networks & universities."
+              features={['Unlimited Institutions', 'Dedicated Database Instance', 'Custom API Integrations', 'On-Site Training', 'White-Label Branding']}
+            />
+          </div>
+          <p style={{ textAlign: 'center', marginTop: 40, opacity: 0.6, fontSize: 14 }}>* Prices in KES per student per term. Annual discounts available.</p>
         </div>
       </section>
 
@@ -224,6 +275,7 @@ export default function LandingPage() {
               <a href="#features">Features</a>
               <a href="/login">Parent Portal</a>
               <a href="/saas/signup">Admin Demo</a>
+              <a href="#pricing">Pricing</a>
             </div>
             <div>
               <h4>Company</h4>
@@ -351,6 +403,19 @@ export default function LandingPage() {
           .mockup-img { width: 100%; }
           .desktop-only { display: none; }
         }
+
+        .comparison-box { background: #fff; border-radius: 40px; padding: 60px; box-shadow: 0 40px 100px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03); }
+        .comp-hdr { text-align: center; margin-bottom: 50px; }
+        .comp-hdr h3 { font-family: var(--font-sora, sans-serif); font-size: 32px; font-weight: 800; color: ${DARK}; margin-bottom: 12px; }
+        .comp-hdr p { color: ${SLATE}; font-size: 16px; }
+        .comp-table { width: 100%; border-collapse: collapse; }
+        .comp-table th { padding: 24px; text-align: left; border-bottom: 2px solid #F1F5F9; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: ${SLATE}; }
+        .comp-table td { padding: 24px; border-bottom: 1px solid #F1F5F9; font-size: 15px; font-weight: 600; color: ${DARK}; }
+        .comp-table td.hl { color: ${PRIMARY}; font-weight: 800; }
+        .bad { color: #EF4444; }
+        .good { color: ${ACCENT}; }
+
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; align-items: stretch; }
       `}</style>
     </div>
   );
@@ -371,6 +436,48 @@ function FeatureCard({ icon, title, items, color }) {
         h4 { font-family: var(--font-sora, sans-serif); font-size: 22px; font-weight: 800; margin-bottom: 16px; color: ${DARK}; }
         .f-list { list-style: none; padding: 0; margin: 0; }
         .f-list li { color: ${SLATE}; line-height: 2; font-size: 14px; font-weight: 500; }
+      `}</style>
+    </div>
+  );
+}
+
+function SolutionCard({ target, desc, features }) {
+  return (
+    <div className="s-card">
+      <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', color: PRIMARY, marginBottom: 12 }}>{target}</div>
+      <p style={{ color: SLATE, fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>{desc}</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {features.map(f => <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 700, color: DARK }}> <span style={{ color: ACCENT }}>✓</span> {f}</div>)}
+      </div>
+      <style jsx>{`
+        .s-card { padding: 32px; background: #fff; border-radius: 24px; border: 1px solid rgba(0,0,0,0.05); transition: 0.3s; }
+        .s-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); border-color: ${PRIMARY}33; }
+      `}</style>
+    </div>
+  );
+}
+
+function PriceCard({ name, price, desc, features, featured }) {
+  return (
+    <div className={`p-card ${featured ? 'featured' : ''}`}>
+      {featured && <div className="feat-badge">MOST POPULAR</div>}
+      <div style={{ marginBottom: 30 }}>
+        <h4 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>{name}</h4>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+          <span style={{ fontSize: 42, fontWeight: 900 }}>{price === 'Custom' ? '' : 'KES '}{price}</span>
+          {price !== 'Custom' && <span style={{ opacity: 0.6, fontSize: 14 }}>/ student</span>}
+        </div>
+        <p style={{ fontSize: 14, opacity: 0.7, marginTop: 12 }}>{desc}</p>
+      </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 40 }}>
+        {features.map(f => <div key={f} style={{ display: 'flex', gap: 10, fontSize: 14, fontWeight: 500 }}> <span>✨</span> {f}</div>)}
+      </div>
+      <Link href="/saas/signup" className={`btn ${featured ? 'btn-primary' : 'btn-outline'}`} style={{ width: '100%', justifyContent: 'center' }}>Get Started</Link>
+      <style jsx>{`
+        .p-card { padding: 48px; border-radius: 32px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); display: flex; flex-direction: column; position: relative; transition: 0.4s; }
+        .p-card.featured { background: rgba(255,255,255,0.08); border-color: ${PRIMARY}; transform: scale(1.05); z-index: 2; }
+        .p-card:hover { border-color: ${PRIMARY}; background: rgba(255,255,255,0.1); }
+        .feat-badge { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: ${ACCENT}; color: #fff; padding: 6px 16px; border-radius: 99px; font-size: 11px; font-weight: 800; }
       `}</style>
     </div>
   );
