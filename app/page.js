@@ -2,401 +2,362 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-const PRIMARY = '#2563EB'; // Deep Blue
-const SECONDARY = '#10B981'; // Emerald
-const NAVY = '#0F172A';
-const SLATE = '#64748B';
+const PRIMARY = '#4F46E5'; // Indigo
+const ACCENT  = '#10B981'; // Emerald
+const DARK    = '#0F172A';
+const SLATE   = '#64748B';
 
-export default function ZerakiStyleLanding() {
+export default function DribbbleLanding() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
+    const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    <div className="edu-landing">
-      {/* ── HEADER ── */}
+    <div className="landing-wrap">
+      {/* ── STICKY NAV ── */}
       <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
-        <div className="container nav-content">
-          <Link href="/" className="landing-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', background: 'none', padding: 0 }}>
-            <img src="/eduvantage-logo.png" alt="EduVantage" style={{ width: '36px', height: '36px', minWidth: '36px', objectFit: 'contain', display: 'block' }} />
-            <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>EduVantage</span>
-          </Link>
-          <div className="nav-links">
-            <div className="dropdown-wrap">
-              <span>Solutions ▾</span>
-              <div className="dropdown-menu">
-                <a href="#analytics">EduVantage Analytics</a>
-                <a href="#finance">EduVantage Finance</a>
-                <a href="#messages">EduVantage SMS</a>
-                <a href="#learning">EduVantage Learning</a>
-              </div>
+        <div className="container nav-box">
+          <Link href="/" className="logo-group">
+            <div className="logo-icon">
+              <img src="/eduvantage-logo.png" alt="E" />
             </div>
-            <a href="#about">About Us</a>
-            <Link href="/login" style={{ fontWeight: 700, color: NAVY }}>School Login</Link>
-            <Link href="/saas/signup" className="btn btn-solid">Try for Free</Link>
+            <span className="logo-text">EduVantage</span>
+          </Link>
+          
+          <div className="nav-actions">
+            <div className="nav-links desktop-only">
+              <a href="#features">Features</a>
+              <a href="#solutions">Solutions</a>
+              <a href="#testimonials">Impact</a>
+            </div>
+            <div className="nav-btns">
+              <Link href="/login" className="btn btn-ghost">Sign In</Link>
+              <Link href="/saas/signup" className="btn btn-primary btn-glow">Get Started Free</Link>
+            </div>
           </div>
         </div>
       </nav>
 
       {/* ── HERO ── */}
       <section className="hero">
-        <div className="container hero-grid">
-          <div className="hero-content">
-            <h1>Revolutionizing <br/> <span className="text-gradient">School Management</span></h1>
-            <p>
-              Join 1,000+ top-performing schools across Africa using EduVantage to automate 
-              academics, finances, and administration.
-            </p>
-            <div className="hero-btns">
-              <Link href="/saas/signup" className="btn btn-xl btn-solid">Get Started Now</Link>
-              <button className="btn btn-xl btn-ghost">📊 See how it works</button>
-            </div>
-            <div className="hero-stats">
-              <div><strong>1.2M+</strong> <span>Students</span></div>
-              <div className="divider"></div>
-              <div><strong>50K+</strong> <span>Teachers</span></div>
-              <div className="divider"></div>
-              <div><strong>1K+</strong> <span>Schools</span></div>
-            </div>
+        <div className="hero-bg">
+          <div className="blob blob-1"></div>
+          <div className="blob blob-2"></div>
+        </div>
+        
+        <div className="container hero-content">
+          <div className="badge-pill">🚀 The #1 School Management SaaS in Africa</div>
+          <h1 className="hero-title">
+            The Future of <span className="text-gradient">School Intelligence</span>
+          </h1>
+          <p className="hero-subtitle">
+            Transform your institution with a high-performance platform for academic analytics, 
+            automated fee collection, and seamless communication.
+          </p>
+          
+          <div className="hero-actions">
+            <Link href="/saas/signup" className="btn btn-xl btn-primary">Start Your 30-Day Trial</Link>
+            <button className="btn btn-xl btn-outline">Watch Demo 🍿</button>
           </div>
-          <div className="hero-image">
-            <div className="browser-frame">
-              <div className="browser-top">
-                <span className="dot"></span><span className="dot"></span><span className="dot"></span>
+
+          <div className="hero-mockup">
+            <div className="mockup-frame">
+              <img src="/eduvantage-hero-new.png" alt="Dashboard Mockup" className="mockup-img" />
+              
+              {/* Floating Glass Cards */}
+              <div className="floating-card card-1">
+                <div className="icon-wrap">📈</div>
+                <div>
+                  <div className="card-val">+24%</div>
+                  <div className="card-lab">Academic Growth</div>
+                </div>
               </div>
-              <img src="/eduvantage-hero.png" alt="Dashboard" />
+              <div className="floating-card card-2">
+                <div className="icon-wrap">💰</div>
+                <div>
+                  <div className="card-val">KES 4.2M</div>
+                  <div className="card-lab">Fees Collected</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── SOLUTIONS ── */}
-      <section className="solutions" id="solutions">
+      {/* ── STATS STRIP ── */}
+      <section className="stats-strip">
+        <div className="container stats-box">
+          <div className="stat-item">
+            <strong>1,200+</strong>
+            <span>Active Schools</span>
+          </div>
+          <div className="stat-sep"></div>
+          <div className="stat-item">
+            <strong>500k+</strong>
+            <span>Learners Registered</span>
+          </div>
+          <div className="stat-sep"></div>
+          <div className="stat-item">
+            <strong>99.9%</strong>
+            <span>Uptime Reliability</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURES ── */}
+      <section className="features" id="features">
         <div className="container">
           <div className="section-hdr">
-            <h2 className="tag">OUR SOLUTIONS</h2>
-            <h3>Empowering Every Aspect of School Life</h3>
+            <h2 className="tag-line">POWERFUL FEATURES</h2>
+            <h3>Everything you need to <br/> run a modern school</h3>
           </div>
 
-          <div className="solution-grid">
-            <SolutionCard 
-              id="analytics"
-              icon="📈" 
-              color="#3B82F6"
-              title="EduVantage Analytics" 
-              desc="Turn your exam results into actionable insights. Identify performance trends, track teacher impact, and boost student scores with data-driven reports."
-              features={['Merit Lists', 'Trend Analysis', 'Grade Distribution', 'Subject Ranking']}
+          <div className="feature-grid">
+            <FeatureCard 
+              icon="📊" 
+              title="Academic Analytics" 
+              desc="Deep insights into student performance. Generate CBC-compliant report cards and merit lists in seconds."
+              color="#6366F1"
             />
-            <SolutionCard 
-              id="finance"
+            <FeatureCard 
               icon="💳" 
+              title="Finance & M-Pesa" 
+              desc="Automated fee tracking with M-Pesa integration. Real-time receipts and balance management."
               color="#10B981"
-              title="EduVantage Finance" 
-              desc="Simplify fee collection with M-Pesa automation. Track arrears, generate instant receipts, and manage budgets in a secure, transparent environment."
-              features={['M-Pesa Paybill Sync', 'Automated Receipts', 'Expense Tracking', 'Fee Reminders']}
             />
-            <SolutionCard 
-              id="messages"
-              icon="💬" 
+            <FeatureCard 
+              icon="📱" 
+              title="Parent Portals" 
+              desc="Keep parents engaged with real-time updates on grades, attendance, and fee status via SMS and Web."
               color="#F59E0B"
-              title="EduVantage SMS" 
-              desc="Bridge the gap between home and school. Send bulk SMS alerts for fees, events, and results with 99% delivery rates across all networks."
-              features={['Bulk Messaging', 'Custom Templates', 'Delivery Reports', 'Auto-Alerts']}
             />
-            <SolutionCard 
-              id="learning"
-              icon="🎓" 
-              color="#8B5CF6"
-              title="EduVantage Learning" 
-              desc="The classroom of the future. Manage assignments, host online classes, and track curriculum coverage from any device, anywhere."
-              features={['Assignment Portal', 'E-Library', 'Progress Tracking', 'Curriculum Mapping']}
+            <FeatureCard 
+              icon="🗓️" 
+              title="Smart Timetabling" 
+              desc="AI-powered timetable generator that resolves teacher conflicts and optimizes resource usage."
+              color="#EC4899"
             />
           </div>
         </div>
       </section>
 
-      {/* ── ABOUT ── */}
-      <section className="about" id="about">
-        <div className="container about-grid">
-           <div className="about-content">
-             <h2 className="tag">WHO WE ARE</h2>
-             <h3>Driving Digital Transformation in African Schools</h3>
-             <p>EduVantage was born out of a simple observation: schools spend too much time on paperwork and not enough time on people. Our mission is to provide every school with the tools they need to operate like a world-class institution.</p>
-             <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                <div className="about-item">
-                   <strong>Innovation First</strong>
-                   <span>We constantly push the boundaries of what school software can do.</span>
-                </div>
-                <div className="about-item">
-                   <strong>Secure & Private</strong>
-                   <span>Your data is encrypted and isolated. We prioritize your privacy above all else.</span>
-                </div>
-             </div>
-           </div>
-           <div className="about-visual">
-              <div className="stat-circle">
-                 <span className="sc-val">100%</span>
-                 <span className="sc-lbl">Reliability</span>
-              </div>
-           </div>
-        </div>
-      </section>
-
-      {/* ── TRUSTED BY ── */}
-      <section className="trusted">
-        <div className="container">
-          <p>TRUSTED BY INSTITUTIONS NATIONWIDE</p>
-          <div className="logo-strip">
-             <span>Alliance High</span>
-             <span>Mang'u High</span>
-             <span>Kenya High</span>
-             <span>Starehe Centre</span>
-             <span>Pangani Girls</span>
+      {/* ── VIBE SECTION ── */}
+      <section className="vibe-section">
+        <div className="container vibe-grid">
+          <div className="vibe-image">
+            <img src="/classroom-vibe.png" alt="Modern Classroom" />
+            <div className="vibe-overlay"></div>
           </div>
-        </div>
-      </section>
-
-      {/* ── CONTACT ── */}
-      <section className="contact" id="contact">
-        <div className="container contact-grid">
-           <div className="section-hdr" style={{ textAlign: 'left', marginBottom: 0 }}>
-              <h2 className="tag">GET IN TOUCH</h2>
-              <h3>We'd Love to Hear From You</h3>
-              <p style={{ marginTop: 15, fontSize: 18, color: SLATE }}>Whether you're a small primary school or a large university, our team is ready to help you onboard.</p>
-              <div className="contact-details">
-                 <div className="c-item">📍 <strong>Headquarters:</strong> Nairobi, Kenya</div>
-                 <div className="c-item">📞 <strong>Phone:</strong> +254 792 656 579</div>
-                 <div className="c-item">✉️ <strong>Email:</strong> hello@eduvantage.app</div>
-              </div>
-           </div>
-           <div className="contact-form">
-              <div className="panel">
-                 <div className="field">
-                    <label>Your Name</label>
-                    <input className="input" placeholder="Enter your name" />
-                 </div>
-                 <div className="field" style={{ marginTop: 15 }}>
-                    <label>School Name</label>
-                    <input className="input" placeholder="e.g. Bright Future Academy" />
-                 </div>
-                 <button className="btn btn-solid" style={{ width: '100%', marginTop: 20 }}>Request a Demo</button>
-              </div>
-           </div>
+          <div className="vibe-content">
+            <h2 className="tag-line">MODERN LEARNING</h2>
+            <h3>Empowering the next generation of African leaders</h3>
+            <p>
+              We believe that technology should be an enabler, not a hurdle. 
+              EduVantage is designed to be intuitive, fast, and reliable, 
+              giving teachers more time to focus on what matters: teaching.
+            </p>
+            <ul className="check-list">
+              <li>✅ Offline-first capability for remote areas</li>
+              <li>✅ Mobile-responsive for on-the-go access</li>
+              <li>✅ Multi-tenant isolation for total data security</li>
+            </ul>
+          </div>
         </div>
       </section>
 
       {/* ── TESTIMONIAL ── */}
-      <section className="testimonial">
+      <section className="testimonials" id="testimonials">
         <div className="container">
-          <div className="t-box">
-             <div className="t-icon">❝</div>
-             <p>EduVantage has transformed how we handle data. Our teachers spend less time on paperwork and more time in the classroom. It's simply the best tool for modern schools.</p>
-             <div className="t-author">
-                <div className="t-avatar">👨‍💼</div>
-                <div>
-                   <strong>Dr. James Mbugua</strong>
-                   <span>Principal, Elite Academy</span>
-                </div>
-             </div>
+          <div className="testi-card">
+            <div className="testi-quote">“</div>
+            <p>
+              EduVantage has completely transformed how we operate. The academic reporting 
+              that used to take us weeks now takes minutes. It's truly world-class software 
+              made for our specific needs.
+            </p>
+            <div className="testi-user">
+              <div className="avatar">👨‍🏫</div>
+              <div>
+                <strong>Principal David Mwangi</strong>
+                <span>St. Peters Academy, Nairobi</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* ── CTA ── */}
-      <section className="bottom-cta">
-        <div className="container">
-           <div className="b-cta-card">
-              <h2>Join the EduVantage Network Today</h2>
-              <p>Sign up in minutes and take your institution to the next level.</p>
-              <Link href="/saas/signup" className="btn btn-xl btn-white">Get Started for Free</Link>
-           </div>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
       <footer className="footer">
-        <div className="container">
-          <div className="footer-grid">
-            <div className="f-col">
-              <div className="logo white">
-                <img src="/eduvantage-logo.png" alt="Logo" />
-                <span>EduVantage</span>
-              </div>
-              <p>Building the digital infrastructure for African education.</p>
-              <div className="socials">
-                 <span>𝕏</span> <span>🅕</span> <span>🅘</span> <span>🅛</span>
-              </div>
+        <div className="container footer-grid">
+          <div className="footer-info">
+            <div className="logo-group white">
+              <img src="/eduvantage-logo.png" alt="Logo" />
+              <span>EduVantage</span>
             </div>
-            <div className="f-col">
-              <h4>Solutions</h4>
-              <a href="#">Analytics</a>
-              <a href="#">Finance</a>
-              <a href="#">Timetable</a>
-              <a href="#">SMS</a>
-            </div>
-            <div className="f-col">
-              <h4>Company</h4>
-              <a href="#">About</a>
-              <a href="#">Careers</a>
-              <a href="#">Contact</a>
-              <a href="#">Privacy</a>
+            <p>The leading school management platform for the digital age.</p>
+            <div className="social-links">
+              <span>𝕏</span> <span>LinkedIn</span> <span>Facebook</span>
             </div>
           </div>
-          <div className="footer-bottom">
+          <div className="footer-links">
+            <div>
+              <h4>Product</h4>
+              <a href="#">Features</a>
+              <a href="#">Pricing</a>
+              <a href="#">Solutions</a>
+            </div>
+            <div>
+              <h4>Company</h4>
+              <a href="#">About Us</a>
+              <a href="#">Contact</a>
+              <a href="#">Privacy Policy</a>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <div className="container">
             <p>&copy; {new Date().getFullYear()} EduVantage Platform. All rights reserved.</p>
           </div>
         </div>
       </footer>
 
       <style jsx>{`
-        .edu-landing { background: #fff; color: ${NAVY}; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; box-sizing: border-box; }
+        .landing-wrap { background: #fff; color: ${DARK}; font-family: var(--font-inter, sans-serif); overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
         
         /* Nav */
-        .nav { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; transition: 0.3s; padding: 20px 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid transparent; }
-        .nav.scrolled { padding: 12px 0; border-bottom: 1px solid #F1F5F9; }
-        .nav-content { display: flex; justify-content: space-between; align-items: center; }
-        .landing-logo { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 20px; color: ${PRIMARY}; text-decoration: none; z-index: 1001; background: none !important; padding: 0 !important; }
-        .landing-logo img { width: 36px; height: 36px; object-fit: contain; }
-        .nav-links { display: flex; align-items: center; gap: 28px; }
-        .nav-links a, .dropdown-wrap { font-size: 14.5px; font-weight: 600; color: ${NAVY}; text-decoration: none; cursor: pointer; }
-        .dropdown-wrap { position: relative; }
-        .dropdown-menu { position: absolute; top: 100%; left: 0; background: #fff; min-width: 220px; padding: 12px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); opacity: 0; visibility: hidden; transform: translateY(10px); transition: 0.3s; }
-        .dropdown-wrap:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
-        .dropdown-menu a { display: block; padding: 10px; border-radius: 8px; font-size: 13.5px; }
-        .dropdown-menu a:hover { background: #F1F5F9; color: ${PRIMARY}; }
-
+        .nav { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 24px 0; }
+        .nav.scrolled { padding: 12px 0; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .nav-box { display: flex; justify-content: space-between; align-items: center; }
+        
+        .logo-group { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo-icon { width: 40px; height: 40px; background: ${PRIMARY}; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2); }
+        .logo-icon img { width: 24px; height: 24px; object-fit: contain; filter: brightness(0) invert(1); }
+        .logo-text { font-family: var(--font-sora, sans-serif); font-size: 22px; font-weight: 800; color: ${DARK}; }
+        
+        .nav-actions { display: flex; align-items: center; gap: 40px; }
+        .nav-links { display: flex; gap: 32px; }
+        .nav-links a { text-decoration: none; color: ${SLATE}; font-weight: 600; font-size: 15px; transition: 0.2s; }
+        .nav-links a:hover { color: ${PRIMARY}; }
+        .nav-btns { display: flex; gap: 12px; }
+        
+        /* Buttons */
+        .btn { padding: 10px 24px; border-radius: 14px; font-weight: 700; font-size: 15px; text-decoration: none; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: none; cursor: pointer; display: inline-flex; align-items: center; }
+        .btn-primary { background: ${PRIMARY}; color: #fff; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(79, 70, 229, 0.25); }
+        .btn-ghost { color: ${DARK}; }
+        .btn-ghost:hover { background: rgba(0,0,0,0.04); }
+        .btn-outline { border: 2.5px solid ${DARK}; color: ${DARK}; }
+        .btn-outline:hover { background: ${DARK}; color: #fff; }
+        .btn-xl { padding: 18px 42px; font-size: 17px; border-radius: 18px; }
+        .btn-glow { position: relative; }
+        .btn-glow::after { content: ''; position: absolute; inset: -2px; border-radius: 16px; background: linear-gradient(45deg, ${PRIMARY}, #818CF8); z-index: -1; opacity: 0.4; }
+        
         /* Hero */
-        .hero { padding: 160px 0 100px; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); position: relative; overflow: hidden; }
-        .hero-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 80px; align-items: center; }
-        .hero-content h1 { font-family: 'Sora', sans-serif; font-size: 68px; font-weight: 800; line-height: 1.05; margin-bottom: 24px; color: ${NAVY}; }
-        .text-gradient { background: linear-gradient(135deg, ${PRIMARY}, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-content p { font-size: 20px; line-height: 1.6; color: ${SLATE}; margin-bottom: 40px; max-width: 550px; }
-        .hero-btns { display: flex; gap: 16px; margin-bottom: 50px; }
-        .hero-stats { display: flex; gap: 30px; align-items: center; }
-        .hero-stats div span { display: block; font-size: 12px; color: ${SLATE}; font-weight: 600; text-transform: uppercase; }
-        .hero-stats div strong { font-size: 24px; font-weight: 800; color: ${NAVY}; }
-        .divider { width: 1px; height: 30px; background: #CBD5E1; }
+        .hero { padding: 200px 0 120px; position: relative; text-align: center; }
+        .hero-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+        .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; }
+        .blob-1 { width: 600px; height: 600px; background: ${PRIMARY}; top: -200px; right: -100px; animation: float 10s infinite alternate; }
+        .blob-2 { width: 500px; height: 500px; background: ${ACCENT}; bottom: -100px; left: -100px; animation: float 8s infinite alternate-reverse; }
+        @keyframes float { from { transform: translate(0,0); } to { transform: translate(50px, 50px); } }
 
-        .hero-image { position: relative; }
-        .browser-frame { background: #fff; border-radius: 16px; box-shadow: 0 40px 100px rgba(15, 23, 42, 0.12); overflow: hidden; border: 1px solid #E2E8F0; }
-        .browser-top { height: 32px; background: #F1F5F9; display: flex; align-items: center; padding: 0 12px; gap: 6px; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #CBD5E1; }
-        .hero-image img { width: 100%; display: block; }
+        .badge-pill { display: inline-block; padding: 8px 16px; background: rgba(79, 70, 229, 0.08); color: ${PRIMARY}; border-radius: 99px; font-weight: 800; font-size: 13px; margin-bottom: 24px; }
+        .hero-title { font-family: var(--font-sora, sans-serif); font-size: 82px; font-weight: 800; line-height: 1.1; letter-spacing: -2px; margin-bottom: 32px; color: ${DARK}; }
+        .text-gradient { background: linear-gradient(135deg, ${PRIMARY}, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-subtitle { font-size: 22px; color: ${SLATE}; line-height: 1.6; max-width: 800px; margin: 0 auto 48px; }
+        .hero-actions { display: flex; gap: 20px; justify-content: center; margin-bottom: 80px; }
+        
+        .hero-mockup { perspective: 1000px; margin-top: 40px; }
+        .mockup-frame { position: relative; background: #fff; padding: 12px; border-radius: 32px; box-shadow: 0 100px 150px -50px rgba(15, 23, 42, 0.25); border: 1px solid rgba(0,0,0,0.05); display: inline-block; transform: rotateX(5deg); transition: 0.5s; }
+        .mockup-frame:hover { transform: rotateX(0deg) scale(1.02); }
+        .mockup-img { width: 1000px; max-width: 90vw; border-radius: 24px; display: block; }
+        
+        .floating-card { position: absolute; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.3); padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: left; animation: bounce 4s infinite ease-in-out; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .card-1 { top: 20%; left: -60px; }
+        .card-2 { bottom: 15%; right: -60px; animation-delay: 2s; }
+        .icon-wrap { width: 48px; height: 48px; background: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .card-val { font-family: var(--font-sora, sans-serif); font-size: 20px; font-weight: 800; color: ${DARK}; }
+        .card-lab { font-size: 13px; color: ${SLATE}; font-weight: 600; }
 
-        /* Solutions */
-        .solutions { padding: 120px 0; }
+        /* Stats */
+        .stats-strip { padding: 40px 0; border-top: 1px solid rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .stats-box { display: flex; justify-content: space-around; align-items: center; }
+        .stat-item { text-align: center; }
+        .stat-item strong { display: block; font-family: var(--font-sora, sans-serif); font-size: 32px; font-weight: 800; color: ${DARK}; }
+        .stat-item span { color: ${SLATE}; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-sep { width: 1px; height: 50px; background: rgba(0,0,0,0.05); }
+
+        /* Features */
+        .features { padding: 120px 0; background: #FAFAFB; }
         .section-hdr { text-align: center; margin-bottom: 80px; }
-        .tag { color: ${PRIMARY}; font-weight: 800; font-size: 13px; letter-spacing: 2px; margin-bottom: 12px; }
-        .section-hdr h3 { font-family: 'Sora', sans-serif; font-size: 42px; font-weight: 800; color: ${NAVY}; }
-        .solution-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+        .tag-line { color: ${PRIMARY}; font-weight: 800; font-size: 14px; letter-spacing: 2px; margin-bottom: 16px; }
+        .section-hdr h3 { font-family: var(--font-sora, sans-serif); font-size: 48px; font-weight: 800; line-height: 1.2; color: ${DARK}; }
+        .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
 
-        /* Cards */
-        .btn { padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s; text-decoration: none; display: inline-block; }
-        .btn-solid { background: ${PRIMARY}; color: #fff; }
-        .btn-solid:hover { background: #1D4ED8; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25); }
-        .btn-outline { border: 2px solid ${PRIMARY}; color: ${PRIMARY}; }
-        .btn-outline:hover { background: ${PRIMARY}; color: #fff; }
-        .btn-ghost { color: ${PRIMARY}; }
-        .btn-xl { padding: 18px 40px; font-size: 17px; }
-        .btn-white { background: #fff; color: ${PRIMARY}; }
+        /* Vibe */
+        .vibe-section { padding: 120px 0; }
+        .vibe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+        .vibe-image { position: relative; border-radius: 40px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.1); }
+        .vibe-image img { width: 100%; display: block; transform: scale(1.05); transition: 1s; }
+        .vibe-image:hover img { transform: scale(1); }
+        .vibe-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2)); }
+        .vibe-content h3 { font-family: var(--font-sora, sans-serif); font-size: 40px; font-weight: 800; margin-bottom: 24px; color: ${DARK}; }
+        .vibe-content p { font-size: 18px; color: ${SLATE}; line-height: 1.7; margin-bottom: 32px; }
+        .check-list { list-style: none; padding: 0; }
+        .check-list li { margin-bottom: 16px; font-weight: 700; color: ${DARK}; display: flex; align-items: center; gap: 12px; }
 
-        /* Trusted */
-        .trusted { padding: 60px 0; border-top: 1px solid #F1F5F9; border-bottom: 1px solid #F1F5F9; }
-        .trusted p { text-align: center; font-size: 11px; font-weight: 800; color: ${SLATE}; letter-spacing: 1px; margin-bottom: 30px; }
-        .logo-strip { display: flex; justify-content: space-around; align-items: center; opacity: 0.5; font-weight: 800; font-size: 18px; filter: grayscale(1); }
-
-        /* Testimonial */
-        .testimonial { padding: 100px 0; background: #F8FAFC; }
-        .t-box { max-width: 800px; margin: 0 auto; text-align: center; }
-        .t-icon { font-size: 80px; color: ${PRIMARY}; opacity: 0.1; line-height: 1; margin-bottom: -40px; }
-        .t-box p { font-size: 24px; line-height: 1.6; color: ${NAVY}; font-weight: 500; margin-bottom: 40px; font-style: italic; }
-        .t-author { display: flex; align-items: center; justify-content: center; gap: 16px; }
-        .t-avatar { width: 50px; height: 50px; background: ${PRIMARY}; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .t-author div { text-align: left; }
-        .t-author strong { display: block; font-size: 16px; }
-        .t-author span { font-size: 13px; color: ${SLATE}; }
-
-        /* Bottom CTA */
-        .bottom-cta { padding: 100px 0; }
-        .b-cta-card { background: ${PRIMARY}; border-radius: 32px; padding: 80px 40px; text-align: center; color: #fff; }
-        .b-cta-card h2 { font-family: 'Sora', sans-serif; font-size: 48px; font-weight: 800; margin-bottom: 20px; }
-        .b-cta-card p { font-size: 20px; opacity: 0.9; margin-bottom: 40px; }
-
-        /* About */
-        .about { padding: 120px 0; background: #fff; }
-        .about-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 80px; align-items: center; }
-        .about-item strong { display: block; font-size: 16px; margin-bottom: 4px; color: ${PRIMARY}; }
-        .about-item span { font-size: 13.5px; color: ${SLATE}; }
-        .stat-circle { width: 200px; height: 200px; border-radius: 50%; border: 15px solid ${PRIMARY}15; border-top-color: ${PRIMARY}; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; }
-        .sc-val { font-size: 40px; font-weight: 900; color: ${PRIMARY}; }
-        .sc-lbl { font-size: 12px; font-weight: 700; color: ${SLATE}; text-transform: uppercase; }
-
-        /* Contact */
-        .contact { padding: 120px 0; background: #F8FAFC; }
-        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-        .contact-details { margin-top: 32px; }
-        .c-item { margin-bottom: 12px; font-size: 16px; color: ${NAVY}; }
-        .contact-form .panel { padding: 40px; background: #fff; border-radius: 24px; box-shadow: 0 30px 60px rgba(0,0,0,0.05); }
+        /* Testimonials */
+        .testimonials { padding: 120px 0; background: ${DARK}; color: #fff; }
+        .testi-card { max-width: 800px; margin: 0 auto; text-align: center; }
+        .testi-quote { font-size: 120px; font-family: serif; color: ${PRIMARY}; opacity: 0.3; line-height: 1; margin-bottom: -40px; }
+        .testi-card p { font-size: 32px; font-weight: 500; font-style: italic; line-height: 1.5; margin-bottom: 48px; }
+        .testi-user { display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .avatar { width: 64px; height: 64px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+        .testi-user strong { display: block; font-size: 18px; font-weight: 700; }
+        .testi-user span { opacity: 0.6; font-size: 14px; }
 
         /* Footer */
-        .footer { background: ${NAVY}; padding: 100px 0 40px; color: #fff; }
-        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 80px; margin-bottom: 80px; }
-        .f-col h4 { font-size: 16px; font-weight: 800; margin-bottom: 24px; color: ${SECONDARY}; }
-        .f-col a { display: block; color: rgba(255,255,255,0.6); text-decoration: none; margin-bottom: 12px; font-size: 14.5px; transition: 0.2s; }
-        .f-col a:hover { color: #fff; }
-        .f-col p { color: rgba(255,255,255,0.6); margin-top: 20px; line-height: 1.6; }
-        .logo.white { color: #fff; }
-        .socials { display: flex; gap: 16px; margin-top: 24px; font-size: 20px; opacity: 0.6; }
-        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 40px; text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; }
+        .footer { padding: 100px 0 0; background: #FAFAFB; border-top: 1px solid rgba(0,0,0,0.05); }
+        .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 100px; margin-bottom: 80px; }
+        .footer-info p { color: ${SLATE}; margin: 24px 0 32px; font-size: 16px; max-width: 300px; }
+        .social-links { display: flex; gap: 24px; font-weight: 700; color: ${DARK}; }
+        .footer-links { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .footer-links h4 { font-family: var(--font-sora, sans-serif); margin-bottom: 24px; font-weight: 800; }
+        .footer-links a { display: block; text-decoration: none; color: ${SLATE}; margin-bottom: 12px; font-weight: 600; }
+        .footer-links a:hover { color: ${PRIMARY}; }
+        .footer-bottom { padding: 40px 0; border-top: 1px solid rgba(0,0,0,0.05); text-align: center; color: ${SLATE}; font-weight: 600; font-size: 14px; }
 
-        @media (max-width: 900px) {
-          .nav { padding: 15px 0; }
-          .hero { padding: 120px 0 60px; }
-          .hero-grid { grid-template-columns: 1fr; text-align: center; gap: 40px; }
-          .hero-content h1 { font-size: 38px; }
-          .hero-content p { margin: 0 auto 30px; font-size: 17px; }
-          .hero-btns { justify-content: center; flex-direction: column; gap: 12px; }
-          .hero-stats { justify-content: center; gap: 15px; }
-          .hero-stats div strong { font-size: 20px; }
-          .section-hdr h3 { font-size: 30px; }
-          .solution-grid { grid-template-columns: 1fr; }
-          .about-grid { grid-template-columns: 1fr; gap: 40px; }
-          .b-cta-card { padding: 40px 20px; border-radius: 20px; }
-          .b-cta-card h2 { font-size: 28px; }
-          .contact-grid { grid-template-columns: 1fr; gap: 40px; }
-          .nav-links { display: none; }
-          .footer-grid { grid-template-columns: 1fr; gap: 40px; text-align: center; }
-          .f-col .logo { justify-content: center; }
-          .socials { justify-content: center; }
+        @media (max-width: 1000px) {
+          .hero-title { font-size: 52px; }
+          .hero-subtitle { font-size: 18px; }
+          .vibe-grid, .feature-grid, .footer-grid { grid-template-columns: 1fr; gap: 60px; }
+          .card-1, .card-2 { display: none; }
+          .mockup-img { width: 100%; }
+          .desktop-only { display: none; }
+          .footer-links { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
     </div>
   );
 }
 
-function SolutionCard({ icon, title, desc, features, color, id }) {
+function FeatureCard({ icon, title, desc, color }) {
   return (
-    <div className="s-card" id={id}>
-      <div className="s-icon" style={{ background: color + '15', color: color }}>{icon}</div>
+    <div className="f-card">
+      <div className="f-icon" style={{ background: color + '15', color: color }}>{icon}</div>
       <h4>{title}</h4>
       <p>{desc}</p>
-      <ul className="s-list">
-        {features.map(f => <li key={f}><span>✓</span> {f}</li>)}
-      </ul>
       <style jsx>{`
-        .s-card { padding: 48px; background: #fff; border-radius: 24px; border: 1px solid #F1F5F9; transition: 0.3s; }
-        .s-card:hover { border-color: ${PRIMARY}33; transform: translateY(-8px); box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08); }
-        .s-icon { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 28px; }
-        h4 { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 16px; color: ${NAVY}; }
-        p { color: ${SLATE}; line-height: 1.7; margin-bottom: 24px; font-size: 15.5px; }
-        .s-list { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .s-list li { font-size: 13.5px; font-weight: 600; color: ${NAVY}; display: flex; align-items: center; gap: 8px; }
-        .s-list li span { color: ${PRIMARY}; font-weight: 900; }
+        .f-card { padding: 50px; background: #fff; border-radius: 32px; border: 1px solid rgba(0,0,0,0.03); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+        .f-card:hover { transform: translateY(-10px); border-color: ${PRIMARY}22; box-shadow: 0 40px 80px rgba(0,0,0,0.08); }
+        .f-icon { width: 72px; height: 72px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 32px; }
+        h4 { font-family: var(--font-sora, sans-serif); font-size: 24px; font-weight: 800; margin-bottom: 16px; color: ${DARK}; }
+        p { color: ${SLATE}; line-height: 1.7; font-size: 16px; }
       `}</style>
     </div>
   );
