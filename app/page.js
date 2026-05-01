@@ -36,7 +36,7 @@ export default function ZerakiStyleLanding() {
               </div>
             </div>
             <a href="#about">About Us</a>
-            <a href="#contact">Contact</a>
+            <Link href="/login" style={{ fontWeight: 700, color: NAVY }}>School Login</Link>
             <Link href="/saas/signup" className="btn btn-solid">Try for Free</Link>
           </div>
         </div>
