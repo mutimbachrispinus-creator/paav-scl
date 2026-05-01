@@ -70,26 +70,54 @@ export async function GET(request) {
 /* ─── login ─────────────────────────────────────────────────────────────── */
 async function handleLogin({ username, password }, request) {
   if (!username || !password) return err('Username and password are required');
-  const tenantId = request.headers.get('x-tenant-id') || 'paav-gitombo';
+  
+  let tenantId = request.headers.get('x-tenant-id');
+  let user = null;
 
-  const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase().trim(), tenantId]);
-  const user = rows[0];
+  if (!tenantId || tenantId === 'platform-master') {
+    // Global login attempt: search across all tenants
+    const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
+    if (rows.length > 1) {
+      return err('Multiple accounts found with this username. Please use your school-specific portal link.');
+    }
+    user = rows[0];
+    if (user) tenantId = user.tenant_id;
+  } else {
+    // School-specific login
+    const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase().trim(), tenantId]);
+    user = rows[0];
+  }
 
-  if (!user) return err('Account not found (Check your username)');
+  if (!user) return err('Account not found (Check your username or school link)');
   if (user.status === 'inactive') return err('Your account is deactivated. Contact admin.');
 
-  // Strictly verify against hashed passwords (Legacy or PBKDF2)
-  const match = await verifyPassword(password, user.password);
+  // Check Subscription Status for the tenant (unless it's platform-master)
+  if (tenantId !== 'platform-master') {
+    const subRows = await query('SELECT * FROM subscriptions WHERE tenant_id = ?', [tenantId]);
+    const sub = subRows[0];
+    if (!sub || sub.status !== 'active') {
+      return err('Your school subscription is inactive or has expired. Contact your principal.');
+    }
+    // Check expiration date if exists
+    if (sub.expires_at) {
+      const exp = new Date(sub.expires_at);
+      if (exp < new Date()) {
+        return err('Your school subscription has expired. Please contact EduVantage support.');
+      }
+    }
+  }
 
+  // Strictly verify against hashed passwords
+  const match = await verifyPassword(password, user.password);
   if (!match) return err('Incorrect password (Check your credentials)');
 
   // Prefetch common dashboard data to include in login response
   const [ann, msgs, hero, feecfg, learners] = await Promise.all([
-    kvGet('paav_announcement'),
-    kvGet('paav6_msgs'),
-    kvGet('paav7_hero_img'),
-    kvGet('paav6_feecfg'),
-    kvGet('paav6_learners')
+    kvGet('paav_announcement', null, tenantId),
+    kvGet('paav6_msgs', [], tenantId),
+    kvGet('paav7_hero_img', null, tenantId),
+    kvGet('paav6_feecfg', {}, tenantId),
+    kvGet('paav6_learners', [], tenantId)
   ]);
 
   const response = NextResponse.json({

@@ -226,8 +226,8 @@ export default function DribbbleLanding() {
       </footer>
 
       <style jsx>{`
-        .landing-wrap { background: #fff; color: ${DARK}; font-family: var(--font-inter, sans-serif); overflow-x: hidden; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+        .landing-wrap { background: #fff; color: ${DARK}; font-family: var(--font-inter, sans-serif); overflow-x: hidden; max-width: 100vw; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; width: 100%; box-sizing: border-box; }
         
         /* Nav */
         .nav { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 24px 0; }
