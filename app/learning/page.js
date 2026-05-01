@@ -50,6 +50,8 @@ export default function EducationHubPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  const [uploading, setUploading] = useState(false);
+
   async function saveDoc() {
     if (!newDoc.title || !newDoc.url) return;
     const doc = { ...newDoc, id: Date.now(), author: user.name, date: new Date().toISOString() };
@@ -63,6 +65,33 @@ export default function EducationHubPage() {
     setDocs(updated);
     setShowUpload(false);
     setNewDoc({ title: '', grade: 'GRADE 1', subject: '', category: 'notes', url: '' });
+  }
+
+  async function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('name', file.name);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setNewDoc(prev => ({ ...prev, url: data.url, title: prev.title || file.name }));
+      } else {
+        alert('Upload failed: ' + data.error);
+      }
+    } catch (err) {
+      alert('Upload error: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
   }
 
   if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading Education Hub…</div>;
@@ -81,7 +110,6 @@ export default function EducationHubPage() {
         </div>
       </div>
 
-      {/* ... existing content ... */}
       <div className="sg sg4" style={{ marginBottom: 25 }}>
         {CATEGORIES.map(c => (
           <div key={c.id} className={`panel cat-card ${selCat === c.id ? 'active' : ''}`} onClick={() => setSelCat(c.id)}>
@@ -128,7 +156,6 @@ export default function EducationHubPage() {
         </div>
 
         <div className="sidebar" style={{ width: 350, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* ... existing sidebar ... */}
           <div className="panel">
             <div className="panel-hdr" style={{ background: 'linear-gradient(135deg, #0369A1, #075985)', color: '#fff' }}>
               <h3 style={{ color: '#fff' }}>🇰🇪 Official Portals</h3>
@@ -209,13 +236,30 @@ export default function EducationHubPage() {
                 <input value={newDoc.subject} onChange={e => setNewDoc({...newDoc, subject: e.target.value})} placeholder="e.g. Mathematics" />
               </div>
               <div className="field">
-                <label>File / Link URL</label>
+                <label>File Upload</label>
+                <div style={{ border: '2px dashed #E2E8F0', padding: 20, borderRadius: 12, textAlign: 'center', background: '#F8FAFC' }}>
+                   {uploading ? (
+                     <div style={{ fontSize: 12, fontWeight: 700 }}>⏳ Uploading...</div>
+                   ) : (
+                     <>
+                        <input type="file" id="file-up" style={{ display: 'none' }} onChange={handleFileChange} />
+                        <label htmlFor="file-up" style={{ cursor: 'pointer', display: 'block' }}>
+                           <div style={{ fontSize: 32, marginBottom: 5 }}>📁</div>
+                           <div style={{ fontSize: 12, fontWeight: 700 }}>{newDoc.url ? '✅ File Ready' : 'Click to Select File'}</div>
+                           <div style={{ fontSize: 10, color: 'var(--muted)' }}>{newDoc.url || 'PDF, Docs, Images (Max 10MB)'}</div>
+                        </label>
+                     </>
+                   )}
+                </div>
+              </div>
+              <div className="field">
+                <label>Or External Link URL</label>
                 <input value={newDoc.url} onChange={e => setNewDoc({...newDoc, url: e.target.value})} placeholder="https://..." />
               </div>
             </div>
             <div className="modal-ftr">
                <button className="btn btn-ghost" onClick={() => setShowUpload(false)}>Cancel</button>
-               <button className="btn btn-primary" onClick={saveDoc}>Upload & Share</button>
+               <button className="btn btn-primary" onClick={saveDoc} disabled={uploading}>Upload & Share</button>
             </div>
           </div>
         </div>

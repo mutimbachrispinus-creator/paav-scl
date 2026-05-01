@@ -139,8 +139,8 @@ export default function BudgetingPage() {
       </div>
 
       {showAdd && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: 400 }}>
+        <div className="modal-overlay open">
+          <div className="modal" style={{ maxWidth: 400 }}>
             <div className="modal-hdr">
               <h3>Create New Vote Head</h3>
               <button className="btn-close" onClick={() => setShowAdd(false)}>✕</button>
