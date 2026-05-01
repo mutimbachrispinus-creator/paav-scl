@@ -80,8 +80,17 @@ export async function GET(request) {
 
     // Security: Filter staff requests if not admin
     if (key === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
-      if (Array.isArray(value)) {
- /* ─── Request dispatcher ────────────────────────────────────────────────── */
+      if (Array.isArray(value)) value = value.filter(r => r.userId === auth.id);
+    }
+
+    return NextResponse.json({ value, updatedAt });
+
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+/* ─── Request dispatcher ────────────────────────────────────────────────── */
 async function handleRequest(req, auth) {
   const tenantId = auth.tenantId || 'paav-gitombo';
 
