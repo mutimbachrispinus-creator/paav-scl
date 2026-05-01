@@ -1,12 +1,7 @@
 'use client';
 /**
- * app/page.js — Faithfully Restored Legacy Login Page (v122 Styles)
- * 
- * Restores:
- *   • Authentic v122 CSS styling and layout
- *   • Left panel with school crest, tagline, feature pills, and dynamic stats
- *   • Right panel with Login/Register toggle and role-based registration
- *   • Selection of role BEFORE registration (as requested)
+ * app/login/page.js — Faithfully Restored Legacy Login Page (v122 Styles)
+ * Updated for EduVantage SaaS Platform.
  */
 
 import { useState, useEffect, Suspense } from 'react';
@@ -16,22 +11,27 @@ import { prefetchKeys, clearAllCache, fetchWithRetry, hydrateCache } from '@/lib
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tenantId = searchParams.get('tenant') || 'paav-gitombo';
+  
+  // Default to empty or neutral if no tenant provided
+  const tenantId = searchParams.get('tenant') || 'platform-master';
 
   const [tab, setTab] = useState('login'); 
   const [busy, setBusy] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [expectedOtp, setExpectedOtp] = useState('');
-  const [enteredOtp, setEnteredOtp] = useState('');
   const [err, setErr] = useState('');
   const [okMsg, setOkMsg] = useState('');
   
   const [stats, setStats] = useState({ learners: 0, classes: 0 });
-  const [announcement, setAnnouncement] = useState('Loading school announcement...');
-  const [profile, setProfile] = useState({ name: 'School Portal', tagline: 'EduVantage SaaS Network' });
+  const [announcement, setAnnouncement] = useState('Welcome to the EduVantage School Network.');
+  const [profile, setProfile] = useState({ 
+    name: 'EduVantage Console', 
+    tagline: 'Global Education SaaS Network',
+    logo: '/eduvantage-logo.png'
+  });
   const [heroImg, setHeroImg] = useState('');
-  const [theme, setTheme] = useState(null);
+  const [theme, setTheme] = useState({ primary: '#4F46E5', secondary: '#D4AF37' });
 
   useEffect(() => {
     async function loadConfig() {
@@ -44,7 +44,7 @@ function LoginContent() {
             tagline: data.profile.motto || 'Community School',
             phone: data.profile.phone,
             email: data.profile.email,
-            logo: data.profile.logo
+            logo: data.profile.logo || '/eduvantage-logo.png'
           });
         }
         if (data.announcement) setAnnouncement(data.announcement);
@@ -79,11 +79,10 @@ function LoginContent() {
     setBusy(true); setErr(''); setOkMsg('');
 
     try {
-      if (tab === 'register' && form.role === 'admin' && form.adminCode !== 'PAAV2024') {
+      if (tab === 'register' && form.role === 'admin' && form.adminCode !== 'EDU2026') {
         throw new Error('Invalid administrator registration code');
       }
 
-      // OTP Generation
       if (tab === 'register') {
         const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
         setExpectedOtp(generatedOtp);
@@ -106,35 +105,27 @@ function LoginContent() {
       });
 
       let data;
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        throw new Error(`Server returned invalid response (${res.status})`);
-      }
+      try { data = await res.json(); } catch { throw new Error(`Server error (${res.status})`); }
       
       if (!res.ok) {
-        setErr(data.error || `Error (${res.status}): Please check your credentials.`);
+        setErr(data.error || `Error: Please check your credentials.`);
         setBusy(false);
         return;
       }
       
       if (data.ok) {
         if (tab === 'login') {
-          if (rememberMe) localStorage.setItem('paav_remember', JSON.stringify({ u: form.username }));
-          else localStorage.removeItem('paav_remember');
-          
           clearAllCache();
           if (data.initialData) hydrateCache(data.initialData);
-          prefetchKeys(['paav6_learners', 'paav6_paylog', 'paav6_msgs', 'paav6_feecfg', 'paav7_hero_img']);
           router.push(data.redirect || '/dashboard');
-        } else if (tab === 'otp' || tab === 'register') {
+        } else {
           setOkMsg(`✅ Registered! Your username is: ${data.username}. Please login.`);
           setTab('login');
           setForm(f => ({ ...f, username: data.username, password: '' }));
         }
       }
     } catch (e) {
-      setErr(e.message || 'An unexpected error occurred during processing');
+      setErr(e.message || 'An unexpected error occurred');
     } finally {
       setBusy(false);
     }
@@ -144,16 +135,16 @@ function LoginContent() {
     <div id="auth" style={heroImg ? { background: `linear-gradient(135deg, rgba(5,15,28,0.85) 0%, rgba(13,31,60,0.85) 40%, rgba(21,45,79,0.9) 100%), url(${heroImg})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
       <div className="auth-bg" />
       
-      {/* ── LEFT PANEL (Branding & Stats) ── */}
+      {/* ── LEFT PANEL ── */}
       <div className="auth-left">
         <div className="auth-logo">
-           <img src={profile.logo || "/logo.png"} alt={`${profile.name} Logo`} style={{ width: 120, height: 120, objectFit: 'contain', borderRadius: '50%', background: '#fff', padding: 8, boxShadow: '0 20px 60px rgba(0,0,0,.4)', display:'block', margin:'0 auto' }} />
+           <img src={profile.logo || "/eduvantage-logo.png"} alt="Logo" style={{ width: 120, height: 120, objectFit: 'contain', borderRadius: '50%', background: '#fff', padding: 8, boxShadow: '0 20px 60px rgba(0,0,0,.4)', display:'block', margin:'0 auto' }} />
         </div>
         <div className="auth-h">{profile.name}<br/><span style={{ color: 'var(--secondary, #F4A460)' }}>{profile.tagline}</span></div>
-        <div className="auth-tagline">{profile.phone || 'P.O BOX 4091-00100 Nairobi'} · {profile.email || 'portal@paav.app'}</div>
+        <div className="auth-tagline">{profile.phone || 'EduVantage SaaS Network'} · {profile.email || 'portal@eduvantage.app'}</div>
         
         <div className="auth-pills">
-          <div className="auth-pill"><div className="auth-pill-i">📝</div>CBC marks entry per subject — Senior/JSS 72pts · Primary 4pts/subject</div>
+          <div className="auth-pill"><div className="auth-pill-i">📝</div>CBC marks entry per subject — Complete & automated</div>
           <div className="auth-pill"><div className="auth-pill-i">💰</div>Configurable fee structure — admin sets termly amounts</div>
           <div className="auth-pill"><div className="auth-pill-i">👨‍👩‍👧</div>Parent portal — child&apos;s fees, grades & school messages</div>
           <div className="auth-pill"><div className="auth-pill-i">💬</div>Direct messaging between staff and parents</div>
@@ -171,14 +162,14 @@ function LoginContent() {
         </div>
       </div>
 
-      {/* ── RIGHT PANEL (Auth Card) ── */}
+      {/* ── RIGHT PANEL ── */}
       <div className="auth-right">
         <div className="auth-card">
           <div style={{ textAlign: 'center', marginBottom: 14 }}>
-            <img src={profile.logo || "/logo.png"} alt="Logo" style={{ width: 70, height: 70, objectFit: 'contain', borderRadius: '50%', boxShadow: `0 4px 16px ${theme?.primary || '#8B1A1A'}33` }} />
+            <img src={profile.logo || "/eduvantage-logo.png"} alt="Logo" style={{ width: 70, height: 70, objectFit: 'contain', borderRadius: '50%', boxShadow: `0 4px 16px ${theme?.primary || '#4F46E5'}33` }} />
           </div>
-          <div className="auth-card-title">{tab === 'login' ? 'Welcome Back' : tab === 'register' ? 'Join the Portal' : 'Reset Password'}</div>
-          <div className="auth-card-sub">{tab === 'login' ? 'Sign in to access your school portal' : tab === 'register' ? 'Create your professional account' : 'Enter your details to recover access'}</div>
+          <div className="auth-card-title">{tab === 'login' ? 'Welcome Back' : tab === 'register' ? 'Get Started' : 'Security Check'}</div>
+          <div className="auth-card-sub">{tab === 'login' ? 'Sign in to access your dashboard' : tab === 'register' ? 'Create your institutional account' : 'Verify your identity'}</div>
           
           <div className="auth-sw-row">
             <button className={`auth-sw ${tab === 'login' ? 'on' : ''}`} onClick={() => setTab('login')} style={tab === 'login' ? { background: 'var(--primary)', boxShadow: `0 2px 8px ${theme?.primary}4D` } : {}}>Sign In</button>
@@ -192,7 +183,7 @@ function LoginContent() {
                 <input required value={form.username} onChange={e => F('username', e.target.value.toLowerCase())} placeholder="your.username" />
               </div>
             )}
-            {/* ... rest of form ... */}
+            
             <div className="field" style={{ position: 'relative' }}>
               <label>Password</label>
               <input required type={showPass ? "text" : "password"} value={form.password} onChange={e => F('password', e.target.value)} placeholder="••••••••" style={{ paddingRight: 40 }} />
@@ -212,18 +203,46 @@ function LoginContent() {
       </div>
       <style jsx global>{`
         :root {
-          --primary: ${theme?.primary || '#8B1A1A'};
-          --secondary: ${theme?.secondary || '#F4A460'};
+          --primary: ${theme?.primary || '#4F46E5'};
+          --secondary: ${theme?.secondary || '#D4AF37'};
         }
-        #auth { min-height: 100vh; display: flex; align-items: stretch; }
+        #auth { min-height: 100vh; display: flex; align-items: stretch; background: #0F172A; }
+        .auth-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.1), transparent); pointer-events: none; }
         .auth-left { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 64px; position: relative; z-index: 1; color: #fff; }
-        .auth-logo { width: 90px; height: 90px; margin-bottom: 28px; }
-        .auth-h { font-family: 'Sora', sans-serif; font-size: 36px; font-weight: 800; line-height: 1.15; margin-bottom: 10px; }
-        .auth-sw.on { background: var(--primary); color: #fff; }
-        .btn-primary { background: var(--primary) !important; }
+        .auth-h { font-family: 'Sora', sans-serif; font-size: 36px; font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
+        .auth-tagline { font-size: 14px; opacity: 0.6; margin-bottom: 40px; }
+        .auth-pills { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
+        .auth-pill { display: flex; align-items: center; gap: 12px; font-size: 13.5px; background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
+        .auth-pill-i { font-size: 18px; }
+        .auth-stats { display: flex; gap: 32px; border-top: 1px solid rgba(255,255,255,0.1); pt: 32px; }
+        .auth-stat-n { font-size: 24px; font-weight: 800; color: var(--secondary); }
+        .auth-stat-l { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.5; }
+        
+        .auth-right { width: 480px; background: #fff; position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; }
+        .auth-card { width: 100%; max-width: 360px; padding: 20px; }
+        .auth-card-title { font-size: 24px; font-weight: 800; text-align: center; color: #1E293B; margin-bottom: 8px; }
+        .auth-card-sub { font-size: 13px; text-align: center; color: #64748B; margin-bottom: 32px; }
+        
+        .auth-sw-row { display: flex; background: #F1F5F9; padding: 4px; border-radius: 12px; margin-bottom: 24px; }
+        .auth-sw { flex: 1; border: none; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; color: #64748B; background: transparent; transition: all 0.2s; }
+        .auth-sw.on { color: #fff; }
+        
+        .field { margin-bottom: 20px; }
+        .field label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; }
+        .field input { width: 100%; padding: 12px 16px; border-radius: 10px; border: 1.5px solid #E2E8F0; font-size: 14px; outline: none; transition: all 0.2s; box-sizing: border-box; }
+        .field input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+        
+        .btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; color: #fff; transition: all 0.2s; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .alert { padding: 12px; border-radius: 10px; font-size: 12.5px; font-weight: 600; margin-bottom: 20px; display: none; }
+        .alert.show { display: block; }
+        .alert-err { background: #FEF2F2; color: #DC2626; border: 1px solid #FEE2E2; }
+        .alert-ok { background: #F0FDF4; color: #16A34A; border: 1px solid #DCFCE7; }
+
         @media(max-width: 900px) {
           .auth-left { display: none; }
-          .auth-right { width: 100%; min-height: 100vh; background: #fff; display: flex; align-items: center; justify-content: center; }
+          .auth-right { width: 100%; background: #fff; }
         }
       `}</style>
     </div>
@@ -232,7 +251,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div>Loading Portal...</div>}>
+    <Suspense fallback={<div>Loading EduVantage...</div>}>
       <LoginContent />
     </Suspense>
   );
