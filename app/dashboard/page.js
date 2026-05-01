@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getCachedUser, getCachedDBMulti, prefetchKeys } from '@/lib/client-cache';
@@ -15,6 +15,14 @@ const ALL_GRADE_GROUPS = [
 ];
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="skeleton" style={{ height: '80vh' }} />}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
   const router      = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState(null);

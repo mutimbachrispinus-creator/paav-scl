@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getClient } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/saas/subscription?tenant=...
  * Returns subscription status for a specific school.

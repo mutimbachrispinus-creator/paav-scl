@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { query, getClient } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/saas/stats
  * Returns global platform metrics for Super Admins.
