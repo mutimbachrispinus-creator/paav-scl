@@ -142,6 +142,7 @@ export default function PortalShell({ children }) {
     } catch {}
     return { primary: '#1E293B', secondary: '#D4AF37', accent: '#334155' };
   });
+  const [profile,      setProfile]      = useState({ name: 'EduVantage Portal', motto: 'Innovation in Education', logo: '/logo.png' });
 
   const idleTimer    = useRef(null);
   const warnTimer    = useRef(null);
@@ -193,6 +194,7 @@ export default function PortalShell({ children }) {
         if (ann?.text && ann?.active) setAnnouncement(ann.text);
         if (db?.paav_hero_img) setHeroUrl(db.paav_hero_img);
         if (db?.paav_theme) setTheme(db.paav_theme);
+        if (db?.paav_school_profile) setProfile(db.paav_school_profile);
 
         const msgs = db?.paav6_msgs || [];
         const unr  = msgs.filter(m => 
@@ -378,6 +380,7 @@ export default function PortalShell({ children }) {
       {showNav && user && (
         <Navbar 
           user={user} 
+          profile={profile}
           unreadCount={unreadCount} 
           pendingDuties={pendingDuties}
           pendingReqs={pendingReqs}

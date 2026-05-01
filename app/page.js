@@ -21,9 +21,9 @@ export default function ZerakiStyleLanding() {
       {/* ── HEADER ── */}
       <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
         <div className="container nav-content">
-          <Link href="/" className="logo">
-            <img src="/eduvantage-logo.png" alt="EduVantage" />
-            <span>EduVantage</span>
+          <Link href="/" className="landing-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', background: 'none', padding: 0 }}>
+            <img src="/eduvantage-logo.png" alt="EduVantage" style={{ width: '36px', height: '36px', minWidth: '36px', objectFit: 'contain', display: 'block' }} />
+            <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>EduVantage</span>
           </Link>
           <div className="nav-links">
             <div className="dropdown-wrap">
@@ -119,18 +119,73 @@ export default function ZerakiStyleLanding() {
         </div>
       </section>
 
+      {/* ── ABOUT ── */}
+      <section className="about" id="about">
+        <div className="container about-grid">
+           <div className="about-content">
+             <h2 className="tag">WHO WE ARE</h2>
+             <h3>Driving Digital Transformation in African Schools</h3>
+             <p>EduVantage was born out of a simple observation: schools spend too much time on paperwork and not enough time on people. Our mission is to provide every school with the tools they need to operate like a world-class institution.</p>
+             <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                <div className="about-item">
+                   <strong>Innovation First</strong>
+                   <span>We constantly push the boundaries of what school software can do.</span>
+                </div>
+                <div className="about-item">
+                   <strong>Secure & Private</strong>
+                   <span>Your data is encrypted and isolated. We prioritize your privacy above all else.</span>
+                </div>
+             </div>
+           </div>
+           <div className="about-visual">
+              <div className="stat-circle">
+                 <span className="sc-val">100%</span>
+                 <span className="sc-lbl">Reliability</span>
+              </div>
+           </div>
+        </div>
+      </section>
+
       {/* ── TRUSTED BY ── */}
       <section className="trusted">
         <div className="container">
           <p>TRUSTED BY INSTITUTIONS NATIONWIDE</p>
           <div className="logo-strip">
-             {/* Use generic school names as placeholders */}
              <span>Alliance High</span>
              <span>Mang'u High</span>
              <span>Kenya High</span>
              <span>Starehe Centre</span>
              <span>Pangani Girls</span>
           </div>
+        </div>
+      </section>
+
+      {/* ── CONTACT ── */}
+      <section className="contact" id="contact">
+        <div className="container contact-grid">
+           <div className="section-hdr" style={{ textAlign: 'left', marginBottom: 0 }}>
+              <h2 className="tag">GET IN TOUCH</h2>
+              <h3>We'd Love to Hear From You</h3>
+              <p style={{ marginTop: 15, fontSize: 18, color: SLATE }}>Whether you're a small primary school or a large university, our team is ready to help you onboard.</p>
+              <div className="contact-details">
+                 <div className="c-item">📍 <strong>Headquarters:</strong> Nairobi, Kenya</div>
+                 <div className="c-item">📞 <strong>Phone:</strong> +254 792 656 579</div>
+                 <div className="c-item">✉️ <strong>Email:</strong> hello@eduvantage.app</div>
+              </div>
+           </div>
+           <div className="contact-form">
+              <div className="panel">
+                 <div className="field">
+                    <label>Your Name</label>
+                    <input className="input" placeholder="Enter your name" />
+                 </div>
+                 <div className="field" style={{ marginTop: 15 }}>
+                    <label>School Name</label>
+                    <input className="input" placeholder="e.g. Bright Future Academy" />
+                 </div>
+                 <button className="btn btn-solid" style={{ width: '100%', marginTop: 20 }}>Request a Demo</button>
+              </div>
+           </div>
         </div>
       </section>
 
@@ -202,11 +257,11 @@ export default function ZerakiStyleLanding() {
         .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; box-sizing: border-box; }
         
         /* Nav */
-        .nav { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; transition: 0.3s; padding: 20px 0; }
-        .nav.scrolled { background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.06); padding: 12px 0; }
+        .nav { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; transition: 0.3s; padding: 20px 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid transparent; }
+        .nav.scrolled { padding: 12px 0; border-bottom: 1px solid #F1F5F9; }
         .nav-content { display: flex; justify-content: space-between; align-items: center; }
-        .logo { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 20px; color: ${PRIMARY}; text-decoration: none; }
-        .logo img { width: 36px; height: 36px; }
+        .landing-logo { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 20px; color: ${PRIMARY}; text-decoration: none; z-index: 1001; background: none !important; padding: 0 !important; }
+        .landing-logo img { width: 36px; height: 36px; object-fit: contain; }
         .nav-links { display: flex; align-items: center; gap: 28px; }
         .nav-links a, .dropdown-wrap { font-size: 14.5px; font-weight: 600; color: ${NAVY}; text-decoration: none; cursor: pointer; }
         .dropdown-wrap { position: relative; }
@@ -271,6 +326,22 @@ export default function ZerakiStyleLanding() {
         .b-cta-card { background: ${PRIMARY}; border-radius: 32px; padding: 80px 40px; text-align: center; color: #fff; }
         .b-cta-card h2 { font-family: 'Sora', sans-serif; font-size: 48px; font-weight: 800; margin-bottom: 20px; }
         .b-cta-card p { font-size: 20px; opacity: 0.9; margin-bottom: 40px; }
+
+        /* About */
+        .about { padding: 120px 0; background: #fff; }
+        .about-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 80px; align-items: center; }
+        .about-item strong { display: block; font-size: 16px; margin-bottom: 4px; color: ${PRIMARY}; }
+        .about-item span { font-size: 13.5px; color: ${SLATE}; }
+        .stat-circle { width: 200px; height: 200px; border-radius: 50%; border: 15px solid ${PRIMARY}15; border-top-color: ${PRIMARY}; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; }
+        .sc-val { font-size: 40px; font-weight: 900; color: ${PRIMARY}; }
+        .sc-lbl { font-size: 12px; font-weight: 700; color: ${SLATE}; text-transform: uppercase; }
+
+        /* Contact */
+        .contact { padding: 120px 0; background: #F8FAFC; }
+        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+        .contact-details { margin-top: 32px; }
+        .c-item { margin-bottom: 12px; font-size: 16px; color: ${NAVY}; }
+        .contact-form .panel { padding: 40px; background: #fff; border-radius: 24px; box-shadow: 0 30px 60px rgba(0,0,0,0.05); }
 
         /* Footer */
         .footer { background: ${NAVY}; padding: 100px 0 40px; color: #fff; }

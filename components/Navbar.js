@@ -16,7 +16,7 @@ import { ALL_NAV } from '@/lib/navigation';
 import { prefetchKeys, clearAllCache } from '@/lib/client-cache';
 
 
-export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendingReqs = 0, onProfileClick }) {
+export default function Navbar({ user, profile, unreadCount = 0, pendingDuties = 0, pendingReqs = 0, onProfileClick }) {
 
   const router   = useRouter();
   const pathname = usePathname();
@@ -55,12 +55,19 @@ export default function Navbar({ user, unreadCount = 0, pendingDuties = 0, pendi
     <div id="topbar">
       <Link href="/dashboard" className="tb-brand" style={{ cursor: 'pointer', textDecoration: 'none' }}>
         <div className="tb-crest">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="PAAV Logo" style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%' }} />
+          <img 
+            src={user.tenantId === 'platform-master' ? '/eduvantage-logo.png' : (profile.logo || '/logo.png')} 
+            alt="Logo" 
+            style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%' }} 
+          />
         </div>
         <div>
-          <div className="tb-sname">SCHOOL PORTAL — {new Date().getFullYear()}</div>
-          <div className="tb-stag">More Than Academics!</div>
+          <div className="tb-sname">
+            {user.tenantId === 'platform-master' ? 'EDUVANTAGE PLATFORM' : (profile.name?.toUpperCase() || 'SCHOOL PORTAL')} — {new Date().getFullYear()}
+          </div>
+          <div className="tb-stag">
+            {user.tenantId === 'platform-master' ? 'Empowering Education' : (profile.motto || 'More Than Academics!')}
+          </div>
         </div>
       </Link>
 

@@ -58,9 +58,14 @@ function LoginContent() {
         }
 
         // Load stats for this tenant
-        const sRes = await fetch(`/api/stats?tenant=${tenantId}`);
+        const endpoint = tenantId === 'platform-master' ? '/api/saas/stats' : `/api/stats?tenant=${tenantId}`;
+        const sRes = await fetch(endpoint);
         const s = await sRes.json();
-        setStats(s);
+        if (tenantId === 'platform-master') {
+          setStats({ totalSchools: s.stats?.totalSchools, totalStudents: s.stats?.totalStudents });
+        } else {
+          setStats(s);
+        }
 
       } catch (e) {
         console.error('Config load error:', e);
@@ -159,8 +164,17 @@ function LoginContent() {
         </div>
 
         <div className="auth-stats">
-          <div className="auth-stat"><div className="auth-stat-n">{stats.learners || '—'}</div><div className="auth-stat-l">Learners</div></div>
-          <div className="auth-stat"><div className="auth-stat-n">{stats.classes || '—'}</div><div className="auth-stat-l">Grades Active</div></div>
+          {tenantId === 'platform-master' ? (
+            <>
+              <div className="auth-stat"><div className="auth-stat-n">{stats.totalSchools || '1.2K+'}</div><div className="auth-stat-l">Schools</div></div>
+              <div className="auth-stat"><div className="auth-stat-n">{stats.totalStudents || '1.2M+'}</div><div className="auth-stat-l">Students</div></div>
+            </>
+          ) : (
+            <>
+              <div className="auth-stat"><div className="auth-stat-n">{stats.learners || '—'}</div><div className="auth-stat-l">Learners</div></div>
+              <div className="auth-stat"><div className="auth-stat-n">{stats.classes || '—'}</div><div className="auth-stat-l">Grades Active</div></div>
+            </>
+          )}
           <div className="auth-stat"><div className="auth-stat-n">{new Date().getFullYear()}</div><div className="auth-stat-l">Academic Year</div></div>
         </div>
       </div>
