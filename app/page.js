@@ -37,7 +37,6 @@ export default function ZerakiStyleLanding() {
             </div>
             <a href="#about">About Us</a>
             <a href="#contact">Contact</a>
-            <Link href="/login?tenant=platform-master" className="btn btn-outline">Console</Link>
             <Link href="/saas/signup" className="btn btn-solid">Try for Free</Link>
           </div>
         </div>

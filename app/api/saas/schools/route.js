@@ -9,8 +9,6 @@ export async function GET() {
   }
 
   try {
-    // Fetch all tenants and their metadata
-    // We join subscriptions with kv to get school names
     const schools = await query(`
       SELECT 
         s.tenant_id, 
@@ -18,7 +16,9 @@ export async function GET() {
         s.status, 
         s.updated_at,
         (SELECT value FROM kv WHERE key = 'paav_school_profile' AND tenant_id = s.tenant_id) as profile_raw,
-        (SELECT COUNT(*) FROM staff WHERE tenant_id = s.tenant_id AND role = 'parent') as student_count
+        (SELECT COUNT(*) FROM staff WHERE tenant_id = s.tenant_id AND role = 'parent') as student_count,
+        (SELECT phone FROM staff WHERE tenant_id = s.tenant_id AND role = 'admin' LIMIT 1) as admin_phone,
+        (SELECT name FROM staff WHERE tenant_id = s.tenant_id AND role = 'admin' LIMIT 1) as admin_name
       FROM subscriptions s
     `);
 
@@ -31,7 +31,8 @@ export async function GET() {
         plan: s.plan,
         status: s.status,
         updatedAt: s.updated_at,
-        studentCount: s.student_count
+        studentCount: s.student_count,
+        adminContact: s.admin_phone ? `${s.admin_name} (${s.admin_phone})` : 'N/A'
       };
     });
 

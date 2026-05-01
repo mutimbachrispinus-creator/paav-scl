@@ -191,9 +191,39 @@ export default function DashboardPage() {
 
 function SuperAdminDashboard() {
   const [data, setData] = useState(null);
+  const [globalConfig, setGlobalConfig] = useState({ paymentMethods: [] });
+  const [newMethod, setNewMethod] = useState('');
+
   useEffect(() => {
-    fetch('/api/saas/schools').then(r => r.json()).then(setData);
+    Promise.all([
+      fetch('/api/saas/schools').then(r => r.json()),
+      fetch('/api/saas/global-config').then(r => r.json())
+    ]).then(([d, c]) => {
+      setData(d);
+      setGlobalConfig(c);
+    });
   }, []);
+
+  async function saveConfig(newConfig) {
+    await fetch('/api/saas/global-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newConfig)
+    });
+    setGlobalConfig(newConfig);
+  }
+
+  function addMethod() {
+    if (!newMethod) return;
+    const next = { ...globalConfig, paymentMethods: [...globalConfig.paymentMethods, newMethod] };
+    saveConfig(next);
+    setNewMethod('');
+  }
+
+  function removeMethod(m) {
+    const next = { ...globalConfig, paymentMethods: globalConfig.paymentMethods.filter(x => x !== m) };
+    saveConfig(next);
+  }
 
   if (!data) return <div className="skeleton" style={{ height: 400 }} />;
 
@@ -203,6 +233,47 @@ function SuperAdminDashboard() {
         <StatCard icon="🏫" bg="#DBEAFE" value={data.stats.totalSchools} label="Schools Onboarded" />
         <StatCard icon="👥" bg="#DCFCE7" value={data.stats.totalStudents} label="Global Students" />
         <StatCard icon="💎" bg="#FEF3C7" value={data.stats.activeSchools} label="Premium Schools" />
+      </div>
+
+      <div className="sg sg2" style={{ marginBottom: 24 }}>
+        {/* Global Payment Methods */}
+        <div className="panel">
+          <div className="panel-hdr" style={{ background: '#059669' }}>
+            <h3 style={{ color: '#fff' }}>💳 Global Payment Methods</h3>
+          </div>
+          <div className="panel-body">
+             <div style={{ display: 'flex', gap: 10, marginBottom: 15 }}>
+                <input 
+                  className="input" 
+                  style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #ddd' }}
+                  placeholder="e.g. Bank Transfer" 
+                  value={newMethod} 
+                  onChange={e => setNewMethod(e.target.value)}
+                />
+                <button className="btn btn-primary" style={{ width: 'auto', padding: '8px 16px' }} onClick={addMethod}>Add</button>
+             </div>
+             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {globalConfig.paymentMethods.map(m => (
+                  <div key={m} className="badge bg-blue" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {m} <span style={{ cursor: 'pointer', opacity: 0.7 }} onClick={() => removeMethod(m)}>✕</span>
+                  </div>
+                ))}
+             </div>
+             <p style={{ fontSize: 11, color: '#64748B', marginTop: 12 }}>Note: These methods are visible to all school administrators when recording fees.</p>
+          </div>
+        </div>
+
+        {/* Rapid Support */}
+        <div className="panel">
+          <div className="panel-hdr" style={{ background: '#7C3AED' }}>
+            <h3 style={{ color: '#fff' }}>📞 Platform Support</h3>
+          </div>
+          <div className="panel-body">
+             <p style={{ fontSize: 13, marginBottom: 10 }}>Direct line for institutional support and escalation.</p>
+             <div style={{ fontSize: 18, fontWeight: 800, color: '#7C3AED' }}>+254 792 656 579</div>
+             <div style={{ fontSize: 12, color: '#64748B' }}>Available 24/7 for Super Admin queries.</div>
+          </div>
+        </div>
       </div>
 
       <div className="panel">
@@ -216,6 +287,7 @@ function SuperAdminDashboard() {
                 <th>Tenant ID</th>
                 <th>School Name</th>
                 <th>Students</th>
+                <th>Admin Contact</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -225,6 +297,7 @@ function SuperAdminDashboard() {
                   <td style={{ fontFamily: 'monospace' }}>{s.tenantId}</td>
                   <td style={{ fontWeight: 700 }}>{s.name}</td>
                   <td>{s.studentCount}</td>
+                  <td style={{ fontSize: 12 }}>{s.adminContact}</td>
                   <td><span className={`badge ${s.status === 'active' ? 'bg-green' : 'bg-red'}`}>{s.status}</span></td>
                 </tr>
               ))}
@@ -235,6 +308,7 @@ function SuperAdminDashboard() {
     </div>
   );
 }
+
 
 function StatCard({ icon, bg, value, label, sub, subBg, subColor, onClick }) {
   return (

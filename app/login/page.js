@@ -141,18 +141,18 @@ function LoginContent() {
            <img src={profile.logo || "/eduvantage-logo.png"} alt="Logo" style={{ width: 120, height: 120, objectFit: 'contain', borderRadius: '50%', background: '#fff', padding: 8, boxShadow: '0 20px 60px rgba(0,0,0,.4)', display:'block', margin:'0 auto' }} />
         </div>
         <div className="auth-h">{profile.name}<br/><span style={{ color: 'var(--secondary, #F4A460)' }}>{profile.tagline}</span></div>
-        <div className="auth-tagline">{profile.phone || 'EduVantage SaaS Network'} · {profile.email || 'portal@eduvantage.app'}</div>
+        <div className="auth-tagline">Support: +254 792 656 579 · portal@eduvantage.app</div>
         
         <div className="auth-pills">
-          <div className="auth-pill"><div className="auth-pill-i">📝</div>CBC marks entry per subject — Complete & automated</div>
-          <div className="auth-pill"><div className="auth-pill-i">💰</div>Configurable fee structure — admin sets termly amounts</div>
-          <div className="auth-pill"><div className="auth-pill-i">👨‍👩‍👧</div>Parent portal — child&apos;s fees, grades & school messages</div>
-          <div className="auth-pill"><div className="auth-pill-i">💬</div>Direct messaging between staff and parents</div>
+          <div className="auth-pill"><div className="auth-pill-i">📊</div>Advanced Academic Analytics — Performance tracking for all levels</div>
+          <div className="auth-pill"><div className="auth-pill-i">💸</div>Automated Financial Management — Seamless fee collection</div>
+          <div className="auth-pill"><div className="auth-pill-i">📲</div>Instant Communication — Reliable Bulk SMS and Parent Portals</div>
+          <div className="auth-pill"><div className="auth-pill-i">🏗️</div>Scalable Multi-Tenant Architecture — Isolated, secure databases</div>
         </div>
 
         <div className="auth-announcement" style={{ background: 'rgba(255,255,255,0.05)', padding: '16px 20px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', marginBottom: 40, backdropFilter: 'blur(10px)' }}>
-           <h4 style={{ color: '#FCD34D', fontSize: 10, textTransform: 'uppercase', marginBottom: 5, letterSpacing: 1.2 }}>📢 Latest Announcement</h4>
-           <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12.5, lineHeight: 1.6 }}>{announcement}</p>
+           <h4 style={{ color: '#FCD34D', fontSize: 10, textTransform: 'uppercase', marginBottom: 5, letterSpacing: 1.2 }}>📢 EDUVANTAGE NETWORK NEWS</h4>
+           <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12.5, lineHeight: 1.6 }}>Join the growing network of digitally-empowered schools across East Africa. High-performance school management at your fingertips.</p>
         </div>
 
         <div className="auth-stats">
