@@ -52,7 +52,7 @@ export default function RootLayout({ children }) {
               }
               // Clear stale tenant themes to force reload
               try {
-                const keys = ['paav_cache_db_paav_theme', 'paav_cache_user', 'paav_cache_db_paav_school_profile'];
+                const keys = ['paav_cache_db_paav_theme', 'paav_cache_db_paav_school_profile'];
                 keys.forEach(k => localStorage.removeItem(k));
               } catch(e) {}
               console.log('🚀 EduVantage Cache Killer Executed');

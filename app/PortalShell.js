@@ -160,15 +160,22 @@ export default function PortalShell({ children }) {
 
   // Sync document title with active branding to prevent stale metadata
   useEffect(() => {
+    const siteName = 'EduVantage School Management Platform';
+    const publicPaths = ['/', '/login', '/saas/signup'];
+    
+    if (publicPaths.includes(pathname)) {
+      document.title = siteName;
+      return;
+    }
+
     if (profile?.name) {
-      const siteName = 'EduVantage School Management Platform';
       if (profile.name.includes('EduVantage')) {
         document.title = profile.name;
       } else {
         document.title = `${profile.name} — ${siteName}`;
       }
     }
-  }, [profile]);
+  }, [profile, pathname]);
 
   // Apply theme to document
   useEffect(() => {

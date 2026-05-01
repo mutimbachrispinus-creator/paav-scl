@@ -109,51 +109,71 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FEATURES SECTION ── */}
-      <section id="features" style={{ padding: '120px 0', background: '#F8FAFC' }}>
+      {/* ── MODULES SECTION ── */}
+      <section id="features" className="modules-section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 80 }}>
-            <div style={{ color: PRIMARY, fontWeight: 800, fontSize: 14, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 16 }}>Unmatched Capabilities</div>
-            <h2 style={{ fontSize: 56, fontWeight: 900, letterSpacing: '-0.03em', color: DARK, lineHeight: 1.1 }}>Everything you need to <br/> <span style={{ color: PRIMARY }}>scale excellence</span></h2>
+            <div className="badge-pill">Premium Modules</div>
+            <h2 className="section-title">A unified suite for <br/> <span className="text-gradient">total school management</span></h2>
+            <p className="section-subtitle">Replace fragmented systems with one seamlessly integrated platform.</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 32 }}>
-            <FeatureCard 
-              icon="🎓" 
-              title="Academic Management" 
-              items={['Real-time Attendance Tracking', 'Automated Timetable Generation', 'Dynamic Grading & Merit Lists', 'Digital Learning Hub & Docs', 'Performance Analytics']}
-              color="#6366F1"
-            />
-            <FeatureCard 
-              icon="💰" 
-              title="Financial Control" 
-              items={['Automated Fee Collection', 'Intelligent Ledger Tracking', 'Bulk Payroll & Salary Sync', 'Bank Statement Reconciliation', 'Revenue Projections']}
-              color="#10B981"
-            />
-            <FeatureCard 
-              icon="📲" 
-              title="Communication Hub" 
-              items={['Reliable Bulk SMS Center', 'Secure In-Portal Messaging', 'Push Notifications', 'Automated Email Report Cards', 'Parent Engagement Tools']}
-              color="#F59E0B"
-            />
-            <FeatureCard 
-              icon="🏗️" 
-              title="SaaS Architecture" 
-              items={['Isolated Tenant Databases', 'Global Smart Sign-In', 'Customizable School Branding', 'Subscription Management', 'Super Admin Control Center']}
-              color="#EC4899"
-            />
-            <FeatureCard 
-              icon="👤" 
-              title="Parent Empowerment" 
-              items={['Self-Service Registration', 'Online Payment Gateway', 'Daily Progress Notifications', 'Child Welfare Monitoring', 'Achievement Portfolios']}
-              color="#8B5CF6"
-            />
-            <FeatureCard 
-              icon="🛡️" 
-              title="Security & Reliability" 
-              items={['Role-Based Access Control', 'Encrypted User Sessions', 'Comprehensive Activity Logs', 'High-Availability Hosting', 'Automated Daily Backups']}
-              color="#3B82F6"
-            />
+          <div className="module-grid">
+            {/* Analytics */}
+            <div className="module-card">
+              <div className="mod-icon" style={{ background: '#EEF2FF', color: '#4F46E5' }}>📊</div>
+              <div className="mod-content">
+                <h3>EduVantage Analytics</h3>
+                <p>Actionable insights into academic performance. Instantly generate comprehensive report cards, dynamic merit lists, and multi-term performance trend graphs. Identify strengths and areas for improvement with AI-driven grading.</p>
+                <ul className="mod-features">
+                  <li>CBC & 8-4-4 Ready Grading</li>
+                  <li>Automated Merit Lists & Rankings</li>
+                  <li>Subject-level Trend Analysis</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Finance */}
+            <div className="module-card reverse">
+              <div className="mod-content">
+                <h3>EduVantage Finance</h3>
+                <p>Take absolute control of your institution's financial health. Automate fee collection, reconcile M-Pesa payments instantly, and generate detailed fee arrears reports. Eliminate manual ledger errors and streamline payroll processing.</p>
+                <ul className="mod-features">
+                  <li>Automated Fee Reconciliation</li>
+                  <li>Instant Parent E-Receipts</li>
+                  <li>Staff Payroll & Bulk Sync</li>
+                </ul>
+              </div>
+              <div className="mod-icon" style={{ background: '#ECFDF5', color: '#10B981' }}>💰</div>
+            </div>
+
+            {/* Timetable */}
+            <div className="module-card">
+              <div className="mod-icon" style={{ background: '#FFFBEB', color: '#D97706' }}>📅</div>
+              <div className="mod-content">
+                <h3>EduVantage Timetable</h3>
+                <p>Intelligent, conflict-free timetable generation. Automatically allocate teachers, subjects, and classrooms while respecting complex constraints and availability. Keep staff and students aligned with real-time digital schedules.</p>
+                <ul className="mod-features">
+                  <li>Auto-resolve Scheduling Conflicts</li>
+                  <li>Teacher Workload Optimization</li>
+                  <li>Digital Class & Exam Routines</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Communication */}
+            <div className="module-card reverse">
+              <div className="mod-content">
+                <h3>EduVantage Communication</h3>
+                <p>Bridge the gap between school and home. Send instant bulk SMS notifications, digital fee statements, and termly academic reports directly to parents' phones. Foster a transparent and engaged school community.</p>
+                <ul className="mod-features">
+                  <li>Targeted Bulk SMS Campaigns</li>
+                  <li>Automated Absence Alerts</li>
+                  <li>Direct Parent-Teacher Messaging</li>
+                </ul>
+              </div>
+              <div className="mod-icon" style={{ background: '#F5F3FF', color: '#8B5CF6' }}>📲</div>
+            </div>
           </div>
         </div>
       </section>
@@ -416,6 +436,28 @@ export default function LandingPage() {
         .good { color: ${ACCENT}; }
 
         .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; align-items: stretch; }
+
+        .modules-section { padding: 120px 0; background: #fff; }
+        .section-title { font-size: 56px; font-weight: 900; letter-spacing: -0.03em; color: ${DARK}; line-height: 1.1; margin-bottom: 24px; font-family: var(--font-sora, sans-serif); }
+        .section-subtitle { font-size: 20px; color: ${SLATE}; }
+        .module-grid { display: flex; flex-direction: column; gap: 60px; margin-top: 40px; }
+        .module-card { display: flex; gap: 40px; align-items: center; padding: 40px; background: #F8FAFC; border-radius: 32px; border: 1px solid rgba(0,0,0,0.03); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .module-card:hover { transform: translateY(-10px); box-shadow: 0 40px 80px rgba(0,0,0,0.05); background: #fff; border-color: rgba(79, 70, 229, 0.1); }
+        .module-card.reverse { flex-direction: row-reverse; }
+        .mod-icon { width: 120px; height: 120px; border-radius: 32px; display: flex; align-items: center; justify-content: center; font-size: 60px; flex-shrink: 0; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+        .mod-content { flex: 1; }
+        .mod-content h3 { font-family: var(--font-sora, sans-serif); font-size: 32px; font-weight: 800; margin-bottom: 16px; color: ${DARK}; }
+        .mod-content p { color: ${SLATE}; font-size: 16px; line-height: 1.8; margin-bottom: 24px; }
+        .mod-features { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+        .mod-features li { display: flex; align-items: center; gap: 12px; font-weight: 700; color: ${DARK}; font-size: 15px; }
+        .mod-features li::before { content: '✓'; color: #10B981; font-weight: 900; font-size: 18px; }
+
+        @media (max-width: 1000px) {
+          .module-card { flex-direction: column; text-align: center; padding: 30px; }
+          .module-card.reverse { flex-direction: column; }
+          .mod-features li { justify-content: center; }
+          .section-title { font-size: 42px; }
+        }
       `}</style>
     </div>
   );

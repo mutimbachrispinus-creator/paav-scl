@@ -38,6 +38,8 @@ export async function POST(request) {
 
     const body = await request.json();
     const { requests } = body;
+    const headerTenant = request.headers.get('x-tenant-id');
+    const impTenant = (auth.role === 'super-admin' && headerTenant) ? headerTenant : null;
 
     if (!Array.isArray(requests)) {
       return NextResponse.json({ error: 'requests must be an array' }, { status: 400 });
@@ -45,7 +47,7 @@ export async function POST(request) {
 
     const results = await Promise.all(requests.map(async (req, index) => {
       try {
-        return await handleRequest(req, auth);
+        return await handleRequest(req, auth, impTenant);
       } catch (reqErr) {
         console.error(`[api/db] Request #${index} (${req.type}) failed:`, reqErr.message);
         return { 
@@ -91,8 +93,8 @@ export async function GET(request) {
 }
 
 /* ─── Request dispatcher ────────────────────────────────────────────────── */
-async function handleRequest(req, auth) {
-  const tenantId = auth.tenantId || 'platform-master';
+async function handleRequest(req, auth, impTenant = null) {
+  const tenantId = impTenant || auth.tenantId || 'platform-master';
 
   switch (req.type) {
     /* ── Read one key ── */

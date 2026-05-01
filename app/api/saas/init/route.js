@@ -36,10 +36,10 @@ export async function GET() {
         sql: "INSERT INTO kv (key, tenant_id, value, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET value=excluded.value",
         args: ['paav_theme', 'platform-master', JSON.stringify({ primary: '#4F46E5', secondary: '#D4AF37', accent: '#1E293B' }), now]
       },
-      // 4. Ensure PAAV Gitombo Branding
+      // 4. Ensure EduVantage Gitombo Branding
       {
         sql: "INSERT INTO kv (key, tenant_id, value, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET value=excluded.value",
-        args: ['paav_school_profile', 'paav-gitombo', JSON.stringify({ name: 'PAAV GITOMBO', motto: 'Quality Education for Every Child', phone: '0758 922 915', email: 'paavgitomboschool@gmail.com' }), now]
+        args: ['paav_school_profile', 'paav-gitombo', JSON.stringify({ name: 'EduVantage Gitombo', motto: 'Quality Education for Every Child', phone: '0700000000', email: 'portal@eduvantage.com' }), now]
       },
       {
         sql: "INSERT INTO kv (key, tenant_id, value, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET value=excluded.value",
