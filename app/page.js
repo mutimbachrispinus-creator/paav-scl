@@ -108,45 +108,57 @@ export default function DribbbleLanding() {
         </div>
       </section>
 
-      {/* ── FEATURES ── */}
-      <section className="features" id="features">
+      {/* ── FEATURES SECTION ── */}
+      <section id="features" style={{ padding: '120px 0', background: '#F8FAFC' }}>
         <div className="container">
-          <div className="section-hdr">
-            <h2 className="tag-line">POWERFUL FEATURES</h2>
-            <h3>Everything you need to <br/> run a modern school</h3>
+          <div style={{ textAlign: 'center', marginBottom: 80 }}>
+            <div style={{ color: PRIMARY, fontWeight: 800, fontSize: 14, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 16 }}>Unmatched Capabilities</div>
+            <h2 style={{ fontSize: 56, fontWeight: 900, letterSpacing: '-0.03em', color: DARK, lineHeight: 1.1 }}>Everything you need to <br/> <span style={{ color: PRIMARY }}>scale excellence</span></h2>
           </div>
 
-          <div className="feature-grid">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 32 }}>
             <FeatureCard 
-              icon="📊" 
-              title="Academic Analytics" 
-              desc="Deep insights into student performance. Generate CBC-compliant report cards and merit lists in seconds."
+              icon="🎓" 
+              title="Academic Management" 
+              items={['Real-time Attendance Tracking', 'Automated Timetable Generation', 'Dynamic Grading & Merit Lists', 'Digital Learning Hub & Docs', 'Performance Analytics']}
               color="#6366F1"
             />
             <FeatureCard 
-              icon="💳" 
-              title="Finance & M-Pesa" 
-              desc="Automated fee tracking with M-Pesa integration. Real-time receipts and balance management."
+              icon="💰" 
+              title="Financial Control" 
+              items={['Automated Fee Collection', 'Intelligent Ledger Tracking', 'Bulk Payroll & Salary Sync', 'Bank Statement Reconciliation', 'Revenue Projections']}
               color="#10B981"
             />
             <FeatureCard 
-              icon="📱" 
-              title="Parent Portals" 
-              desc="Keep parents engaged with real-time updates on grades, attendance, and fee status via SMS and Web."
+              icon="📲" 
+              title="Communication Hub" 
+              items={['Reliable Bulk SMS Center', 'Secure In-Portal Messaging', 'Push Notifications', 'Automated Email Report Cards', 'Parent Engagement Tools']}
               color="#F59E0B"
             />
             <FeatureCard 
-              icon="🗓️" 
-              title="Smart Timetabling" 
-              desc="AI-powered timetable generator that resolves teacher conflicts and optimizes resource usage."
+              icon="🏗️" 
+              title="SaaS Architecture" 
+              items={['Isolated Tenant Databases', 'Global Smart Sign-In', 'Customizable School Branding', 'Subscription Management', 'Super Admin Control Center']}
               color="#EC4899"
+            />
+            <FeatureCard 
+              icon="👤" 
+              title="Parent Empowerment" 
+              items={['Self-Service Registration', 'Online Payment Gateway', 'Daily Progress Notifications', 'Child Welfare Monitoring', 'Achievement Portfolios']}
+              color="#8B5CF6"
+            />
+            <FeatureCard 
+              icon="🛡️" 
+              title="Security & Reliability" 
+              items={['Role-Based Access Control', 'Encrypted User Sessions', 'Comprehensive Activity Logs', 'High-Availability Hosting', 'Automated Daily Backups']}
+              color="#3B82F6"
             />
           </div>
         </div>
       </section>
 
       {/* ── VIBE SECTION ── */}
-      <section className="vibe-section">
+      <section className="vibe-section" id="solutions">
         <div className="container vibe-grid">
           <div className="vibe-image">
             <img src="/classroom-vibe.png" alt="Modern Classroom" />
@@ -154,16 +166,16 @@ export default function DribbbleLanding() {
           </div>
           <div className="vibe-content">
             <h2 className="tag-line">MODERN LEARNING</h2>
-            <h3>Empowering the next generation of African leaders</h3>
+            <h3 style={{ fontSize: 48, fontWeight: 900, marginBottom: 24, lineHeight: 1.1 }}>Empowering the next generation of African leaders</h3>
             <p>
               We believe that technology should be an enabler, not a hurdle. 
               EduVantage is designed to be intuitive, fast, and reliable, 
               giving teachers more time to focus on what matters: teaching.
             </p>
             <ul className="check-list">
-              <li>✅ Offline-first capability for remote areas</li>
-              <li>✅ Mobile-responsive for on-the-go access</li>
-              <li>✅ Multi-tenant isolation for total data security</li>
+              <li><span style={{ color: ACCENT }}>✓</span> Offline-first capability for remote areas</li>
+              <li><span style={{ color: ACCENT }}>✓</span> Mobile-responsive for on-the-go access</li>
+              <li><span style={{ color: ACCENT }}>✓</span> Multi-tenant isolation for total data security</li>
             </ul>
           </div>
         </div>
@@ -194,11 +206,13 @@ export default function DribbbleLanding() {
       <footer className="footer">
         <div className="container footer-grid">
           <div className="footer-info">
-            <div className="logo-group white">
-              <img src="/eduvantage-logo.png" alt="Logo" />
-              <span>EduVantage</span>
-            </div>
-            <p>The leading school management platform for the digital age.</p>
+            <Link href="/" className="logo-group">
+              <div className="logo-icon">
+                <img src="/eduvantage-logo.png" alt="Logo" />
+              </div>
+              <span className="logo-text">EduVantage</span>
+            </Link>
+            <p>The leading school management platform for the digital age. Empowering 1,200+ schools across Africa.</p>
             <div className="social-links">
               <span>𝕏</span> <span>LinkedIn</span> <span>Facebook</span>
             </div>
@@ -206,21 +220,21 @@ export default function DribbbleLanding() {
           <div className="footer-links">
             <div>
               <h4>Product</h4>
-              <a href="#">Features</a>
-              <a href="#">Pricing</a>
-              <a href="#">Solutions</a>
+              <a href="#features">Features</a>
+              <a href="/login">Parent Portal</a>
+              <a href="/saas/signup">Admin Demo</a>
             </div>
             <div>
               <h4>Company</h4>
               <a href="#">About Us</a>
-              <a href="#">Contact</a>
-              <a href="#">Privacy Policy</a>
+              <a href="#">Support</a>
+              <a href="#">Privacy</a>
             </div>
           </div>
         </div>
         <div className="footer-bottom">
           <div className="container">
-            <p>&copy; {new Date().getFullYear()} EduVantage Platform. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} EduVantage Platform. Built with ❤️ for African Education.</p>
           </div>
         </div>
       </footer>
@@ -292,13 +306,6 @@ export default function DribbbleLanding() {
         .stat-item span { color: ${SLATE}; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
         .stat-sep { width: 1px; height: 50px; background: rgba(0,0,0,0.05); }
 
-        /* Features */
-        .features { padding: 120px 0; background: #FAFAFB; }
-        .section-hdr { text-align: center; margin-bottom: 80px; }
-        .tag-line { color: ${PRIMARY}; font-weight: 800; font-size: 14px; letter-spacing: 2px; margin-bottom: 16px; }
-        .section-hdr h3 { font-family: var(--font-sora, sans-serif); font-size: 48px; font-weight: 800; line-height: 1.2; color: ${DARK}; }
-        .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
-
         /* Vibe */
         .vibe-section { padding: 120px 0; }
         .vibe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
@@ -306,10 +313,11 @@ export default function DribbbleLanding() {
         .vibe-image img { width: 100%; display: block; transform: scale(1.05); transition: 1s; }
         .vibe-image:hover img { transform: scale(1); }
         .vibe-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.2)); }
-        .vibe-content h3 { font-family: var(--font-sora, sans-serif); font-size: 40px; font-weight: 800; margin-bottom: 24px; color: ${DARK}; }
+        .vibe-content h3 { font-family: var(--font-sora, sans-serif); }
         .vibe-content p { font-size: 18px; color: ${SLATE}; line-height: 1.7; margin-bottom: 32px; }
         .check-list { list-style: none; padding: 0; }
         .check-list li { margin-bottom: 16px; font-weight: 700; color: ${DARK}; display: flex; align-items: center; gap: 12px; }
+        .tag-line { color: ${PRIMARY}; font-weight: 800; font-size: 14px; letter-spacing: 2px; margin-bottom: 16px; }
 
         /* Testimonials */
         .testimonials { padding: 120px 0; background: ${DARK}; color: #fff; }
@@ -335,29 +343,31 @@ export default function DribbbleLanding() {
         @media (max-width: 1000px) {
           .hero-title { font-size: 52px; }
           .hero-subtitle { font-size: 18px; }
-          .vibe-grid, .feature-grid, .footer-grid { grid-template-columns: 1fr; gap: 60px; }
+          .vibe-grid, .footer-grid { grid-template-columns: 1fr; gap: 60px; }
           .card-1, .card-2 { display: none; }
           .mockup-img { width: 100%; }
           .desktop-only { display: none; }
-          .footer-links { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
     </div>
   );
 }
 
-function FeatureCard({ icon, title, desc, color }) {
+function FeatureCard({ icon, title, items, color }) {
   return (
     <div className="f-card">
       <div className="f-icon" style={{ background: color + '15', color: color }}>{icon}</div>
       <h4>{title}</h4>
-      <p>{desc}</p>
+      <ul className="f-list">
+        {items.map(item => <li key={item}>• {item}</li>)}
+      </ul>
       <style jsx>{`
-        .f-card { padding: 50px; background: #fff; border-radius: 32px; border: 1px solid rgba(0,0,0,0.03); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+        .f-card { padding: 40px; background: #fff; border-radius: 32px; border: 1px solid rgba(0,0,0,0.03); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
         .f-card:hover { transform: translateY(-10px); border-color: ${PRIMARY}22; box-shadow: 0 40px 80px rgba(0,0,0,0.08); }
-        .f-icon { width: 72px; height: 72px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 32px; }
-        h4 { font-family: var(--font-sora, sans-serif); font-size: 24px; font-weight: 800; margin-bottom: 16px; color: ${DARK}; }
-        p { color: ${SLATE}; line-height: 1.7; font-size: 16px; }
+        .f-icon { width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 24px; }
+        h4 { font-family: var(--font-sora, sans-serif); font-size: 22px; font-weight: 800; margin-bottom: 16px; color: ${DARK}; }
+        .f-list { list-style: none; padding: 0; margin: 0; }
+        .f-list li { color: ${SLATE}; line-height: 2; font-size: 14px; font-weight: 500; }
       `}</style>
     </div>
   );
