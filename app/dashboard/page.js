@@ -31,21 +31,25 @@ function DashboardContent() {
   const [loading, setLoading]   = useState(true);
   const [themePrimary, setThemePrimary] = useState('#1E293B');
 
+  const [announcement, setAnnouncement] = useState(null);
+
   const load = useCallback(async () => {
     try {
-      const [u, db] = await Promise.all([
+      const [u, db, glob] = await Promise.all([
         getCachedUser(),
         getCachedDBMulti([
           'paav6_learners', 
           'paav6_msgs', 
           'paav_theme'
-        ])
+        ]),
+        fetch('/api/saas/global-config').then(r => r.json())
       ]);
 
       if (!u) { router.push('/login'); return; }
       setUser(u);
       
       if (db.paav_theme) setThemePrimary(db.paav_theme.primary || '#1E293B');
+      if (glob.announcement?.active) setAnnouncement(glob.announcement);
 
       const l = db.paav6_learners || [];
       setLearners(l);
@@ -88,11 +92,33 @@ function DashboardContent() {
         </div>
       </div>
 
+      {/* ── Global Network Announcement ── */}
+      {announcement && (
+        <div className="panel" style={{ 
+          marginBottom: 18, 
+          background: announcement.priority === 'critical' ? '#FEE2E2' : announcement.priority === 'high' ? '#FEF9C3' : '#EFF6FF',
+          border: `2px solid ${announcement.priority === 'critical' ? '#EF4444' : announcement.priority === 'high' ? '#FDE047' : '#3B82F6'}`,
+          borderRadius: 15,
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, width: 6, height: '100%', background: announcement.priority === 'critical' ? '#EF4444' : announcement.priority === 'high' ? '#FDE047' : '#3B82F6' }} />
+          <div className="panel-body" style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+            <div style={{ fontSize: 24 }}>{announcement.priority === 'critical' ? '🚨' : announcement.priority === 'high' ? '⚠️' : '📢'}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 2 }}>Platform Announcement</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>{announcement.message}</div>
+            </div>
+            <button className="btn btn-sm btn-ghost" onClick={() => setAnnouncement(null)}>✕</button>
+          </div>
+        </div>
+      )}
+
       {/* ── Super Admin Oversight Info ── */}
       {isSuper && (
-        <div className="panel" style={{ marginBottom: 18, background: '#FEF9C3', border: '1px solid #FDE047' }}>
+        <div className="panel" style={{ marginBottom: 18, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 15 }}>
           <div className="panel-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-             <div style={{ fontSize: 13, fontWeight: 700, color: '#854D0E' }}>👑 You are in Platform Oversight Mode. Access the Command Center for global metrics.</div>
+             <div style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>👑 You are in Platform Oversight Mode. Access the Command Center for global metrics.</div>
              <Link href="/super-admin" className="btn btn-primary btn-sm">Enter Command Center</Link>
           </div>
         </div>
