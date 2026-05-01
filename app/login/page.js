@@ -97,10 +97,13 @@ function LoginContent() {
           document.documentElement.style.setProperty('--secondary', eduTheme.secondary);
         }
 
-        const endpoint = tenantId === 'platform-master' ? '/api/saas/stats' : `/api/stats?tenant=${tenantId}`;
-        const sRes = await fetch(endpoint);
-        const s = await sRes.json();
-        setStats(s);
+        if (data.stats) {
+          setStats(data.stats);
+        } else if (tenantId !== 'platform-master') {
+          const sRes = await fetch(`/api/stats?tenant=${tenantId}`);
+          const s = await sRes.json();
+          setStats(s);
+        }
       } catch (e) {
         console.error('Config load error:', e);
       }
@@ -190,8 +193,8 @@ function LoginContent() {
         <div className="auth-stats">
           {tenantId === 'platform-master' ? (
             <>
-              <div className="auth-stat"><div className="auth-stat-n">{stats.totalSchools || '0'}</div><div className="auth-stat-l">Enrolled Schools</div></div>
-              <div className="auth-stat"><div className="auth-stat-n">{stats.activeSchools || '0'}</div><div className="auth-stat-l">Active Licenses</div></div>
+              <div className="auth-stat"><div className="auth-stat-n">{stats.schools || '0'}</div><div className="auth-stat-l">Enrolled Schools</div></div>
+              <div className="auth-stat"><div className="auth-stat-n">{stats.learners || '0'}</div><div className="auth-stat-l">Total Learners</div></div>
             </>
           ) : (
             <>

@@ -26,6 +26,20 @@ export async function GET(request) {
 
     const isMaster = tenantId === 'platform-master';
 
+    let stats = null;
+    if (isMaster) {
+      try {
+        const schoolsRows = await query("SELECT COUNT(*) as count FROM subscriptions WHERE tenant_id != 'platform-master'");
+        const learnersRows = await query("SELECT COUNT(*) as count FROM learners");
+        stats = {
+          schools: Number(schoolsRows[0]?.count || 0),
+          learners: Number(learnersRows[0]?.count || 0)
+        };
+      } catch (e) {
+        console.error('Failed to fetch public stats:', e);
+      }
+    }
+
     // Override profile if it's the master tenant to prevent flickering or incorrect DB data
     let profileData = config.paav_school_profile;
     if (isMaster) {
@@ -46,6 +60,7 @@ export async function GET(request) {
         phone: '+254 792 656 579', 
         logo: '/eduvantage-logo.png' 
       },
+      stats,
       announcement: isMaster ? 'Welcome to the EduVantage Global Network.' : (config.paav_announcement?.text || 'Welcome to the EduVantage School Network.'),
       theme: isMaster ? { 
         primary: '#1E40AF', 
