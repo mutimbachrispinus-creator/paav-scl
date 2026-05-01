@@ -88,14 +88,17 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* ── Redirect Super Admin ── */}
+      {/* ── Super Admin Oversight Info ── */}
       {isSuper && (
-        <div style={{ padding: 40, textAlign: 'center' }}>
-          <p>Redirecting to Command Center...</p>
-          <SuperAdminRedirect />
+        <div className="panel" style={{ marginBottom: 18, background: '#FEF9C3', border: '1px solid #FDE047' }}>
+          <div className="panel-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+             <div style={{ fontSize: 13, fontWeight: 700, color: '#854D0E' }}>👑 You are in Platform Oversight Mode. All data reflects the global platform or the currently impersonated school.</div>
+             <Link href="/super-admin" className="btn btn-primary btn-sm">Enter Command Center</Link>
+          </div>
         </div>
       )}
-      {!isSuper && (
+
+      {true && (
         <>
           <div className="panel" style={{ marginBottom: 18 }}>
             <div className="panel-hdr" style={{ background: `linear-gradient(135deg, ${themePrimary}, #1E3A8A)` }}>
