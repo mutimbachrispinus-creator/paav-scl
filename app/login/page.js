@@ -209,10 +209,12 @@ function LoginContent() {
             
             <div className="field" style={{ position: 'relative' }}>
               <label>Password</label>
-              <input required type={showPass ? "text" : "password"} value={form.password} onChange={e => F('password', e.target.value)} placeholder="••••••••" style={{ paddingRight: 40 }} />
-              <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: 10, top: 28, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16 }}>
-                {showPass ? '🙈' : '👁️'}
-              </button>
+              <div style={{ position: 'relative' }}>
+                <input required type={showPass ? "text" : "password"} value={form.password} onChange={e => F('password', e.target.value)} placeholder="••••••••" style={{ paddingRight: 45 }} />
+                <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: 0 }}>
+                  {showPass ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
 
             {err && <div className="alert alert-err show">{err}</div>}
@@ -241,31 +243,34 @@ function LoginContent() {
         .auth-stat-n { font-size: 24px; font-weight: 800; color: var(--secondary); }
         .auth-stat-l { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.5; }
         
-        .auth-right { width: 480px; background: #fff; position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; }
-        .auth-card { width: 100%; max-width: 360px; padding: 20px; }
-        .auth-card-title { font-size: 24px; font-weight: 800; text-align: center; color: #1E293B; margin-bottom: 8px; }
-        .auth-card-sub { font-size: 13px; text-align: center; color: #64748B; margin-bottom: 32px; }
+        .auth-right { width: 480px; background: #fff; position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; box-shadow: -20px 0 60px rgba(0,0,0,0.1); }
+        .auth-card { width: 100%; max-width: 360px; padding: 40px 20px; }
+        .auth-card-title { font-size: 28px; font-weight: 800; text-align: center; color: #0F172A; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .auth-card-sub { font-size: 14px; text-align: center; color: #64748B; margin-bottom: 32px; line-height: 1.5; }
         
-        .auth-sw-row { display: flex; background: #F1F5F9; padding: 4px; border-radius: 12px; margin-bottom: 24px; }
-        .auth-sw { flex: 1; border: none; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; color: #64748B; background: transparent; transition: all 0.2s; }
-        .auth-sw.on { color: #fff; }
+        .auth-sw-row { display: flex; background: #F1F5F9; padding: 5px; border-radius: 14px; margin-bottom: 24px; }
+        .auth-sw { flex: 1; border: none; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; color: #64748B; background: transparent; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .auth-sw.on { color: #fff; transform: scale(1.02); }
         
-        .field { margin-bottom: 20px; }
-        .field label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; }
-        .field input { width: 100%; padding: 12px 16px; border-radius: 10px; border: 1.5px solid #E2E8F0; font-size: 14px; outline: none; transition: all 0.2s; box-sizing: border-box; }
-        .field input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+        .field { margin-bottom: 24px; }
+        .field label { display: block; font-size: 12px; font-weight: 800; color: #1E293B; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .field input { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid #E2E8F0; font-size: 15px; outline: none; transition: all 0.2s; box-sizing: border-box; background: #F8FAFC; }
+        .field input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
         
-        .btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; color: #fff; transition: all 0.2s; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; color: #fff; transition: all 0.3s; font-size: 16px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
-        .alert { padding: 12px; border-radius: 10px; font-size: 12.5px; font-weight: 600; margin-bottom: 20px; display: none; }
-        .alert.show { display: block; }
+        .alert { padding: 14px; border-radius: 12px; font-size: 13px; font-weight: 600; margin-bottom: 24px; display: none; line-height: 1.5; }
+        .alert.show { display: block; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .alert-err { background: #FEF2F2; color: #DC2626; border: 1px solid #FEE2E2; }
         .alert-ok { background: #F0FDF4; color: #16A34A; border: 1px solid #DCFCE7; }
 
         @media(max-width: 900px) {
           .auth-left { display: none; }
-          .auth-right { width: 100%; background: #fff; }
+          .auth-right { width: 100%; background: #0F172A; }
+          .auth-card { background: #fff; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); margin: 20px; }
         }
       `}</style>
     </div>

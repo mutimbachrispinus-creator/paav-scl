@@ -126,7 +126,10 @@ export default function SuperAdminPage() {
                   <td><span className={`badge ${s.status === 'Active' ? 'bg-green' : 'bg-red'}`}>{s.status}</span></td>
                   <td style={{ fontWeight: 800 }}>KSH {s.revenue.toLocaleString()}</td>
                   <td>
-                    <button className="btn btn-sm btn-ghost">Impersonate</button>
+                    <button className="btn btn-sm btn-primary" onClick={() => {
+                      localStorage.setItem('paav_impersonate_id', s.id);
+                      window.location.href = '/dashboard';
+                    }}>Impersonate</button>
                     <button className="btn btn-sm btn-ghost" style={{ marginLeft: 5 }}>Manage</button>
                   </td>
                 </tr>

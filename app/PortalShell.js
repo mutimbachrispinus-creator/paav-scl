@@ -149,12 +149,20 @@ export default function PortalShell({ children }) {
   const countdownRef = useRef(null);
   const heroFileRef  = useRef(null);
 
+  const [impersonateId, setImpersonateId] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('paav_impersonate_id');
+  });
+
   // Apply theme to document
   useEffect(() => {
     let activeTheme = theme;
-    if (user?.tenantId === 'platform-master') {
+    const isSuper = user?.tenantId === 'platform-master';
+    
+    if (isSuper && !impersonateId) {
       activeTheme = { primary: '#2563EB', secondary: '#D4AF37', accent: '#0F172A' };
     }
+    
     if (activeTheme) {
       document.documentElement.style.setProperty('--primary', activeTheme.primary);
       document.documentElement.style.setProperty('--secondary', activeTheme.secondary);
@@ -163,7 +171,7 @@ export default function PortalShell({ children }) {
       document.documentElement.style.setProperty('--primary-low', activeTheme.primary + '22');
       document.documentElement.style.setProperty('--primary-mid', activeTheme.primary + '66');
     }
-  }, [theme, user]);
+  }, [theme, user, impersonateId]);
 
   const showNav = !NO_NAV_PATHS.includes(pathname) && !pathname.startsWith('/api');
 
@@ -190,11 +198,18 @@ export default function PortalShell({ children }) {
 
       if (u) {
         setUser(u);
+        const activeTenant = impersonateId || u.tenantId;
+
+        // Fetch profile and theme for the active tenant
+        const configRes = await fetch(`/api/saas/config?tenant=${activeTenant}`);
+        const config = await configRes.json();
+        
+        if (config.profile) setProfile(config.profile);
+        if (config.theme) setTheme(config.theme);
+
         const ann = db?.paav_announcement;
         if (ann?.text && ann?.active) setAnnouncement(ann.text);
         if (db?.paav_hero_img) setHeroUrl(db.paav_hero_img);
-        if (db?.paav_theme) setTheme(db.paav_theme);
-        if (db?.paav_school_profile) setProfile(db.paav_school_profile);
 
         const msgs = db?.paav6_msgs || [];
         const unr  = msgs.filter(m => 
@@ -374,7 +389,7 @@ export default function PortalShell({ children }) {
 
   return (
 
-    <ProfileContext.Provider value={{ openProfile: () => setShowProfile(true), setUser, playSuccessSound }}>
+    <ProfileContext.Provider value={{ openProfile: () => setShowProfile(true), setUser, playSuccessSound, impersonateId, setImpersonateId }}>
       <input ref={heroFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadHero} />
 
       {showNav && user && (

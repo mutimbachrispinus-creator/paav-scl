@@ -14,6 +14,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ALL_NAV } from '@/lib/navigation';
 import { prefetchKeys, clearAllCache } from '@/lib/client-cache';
+import { useProfile } from '@/app/PortalShell';
 
 
 export default function Navbar({ user, profile, unreadCount = 0, pendingDuties = 0, pendingReqs = 0, onProfileClick }) {
@@ -22,7 +23,13 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
   const pathname = usePathname();
   const [showMobileNav, setShowMobileNav] = useState(false);
 
-  const nav = ALL_NAV.filter(n => n.roles.includes(user?.role || 'member'));
+  const { impersonateId } = useProfile() || {};
+  const activeRoles = [user?.role || 'member'];
+  if (user?.role === 'super-admin' && impersonateId) {
+    activeRoles.push('admin'); // Add admin role to see school management tabs
+  }
+
+  const nav = ALL_NAV.filter(n => n.roles.some(r => activeRoles.includes(r)));
 
   function isActive(key) {
     if (key === 'dashboard') return pathname === '/dashboard';
@@ -56,17 +63,17 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
       <Link href="/dashboard" className="tb-brand" style={{ cursor: 'pointer', textDecoration: 'none' }}>
         <div className="tb-crest">
           <img 
-            src={user.tenantId === 'platform-master' ? '/eduvantage-logo.png' : (profile.logo || '/logo.png')} 
+            src={(user.tenantId === 'platform-master' && !impersonateId) ? '/eduvantage-logo.png' : (profile.logo || '/logo.png')} 
             alt="Logo" 
             style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%' }} 
           />
         </div>
         <div>
           <div className="tb-sname">
-            {user.tenantId === 'platform-master' ? 'EDUVANTAGE PLATFORM' : (profile.name?.toUpperCase() || 'SCHOOL PORTAL')} — {new Date().getFullYear()}
+            {(user.tenantId === 'platform-master' && !impersonateId) ? 'EDUVANTAGE PLATFORM' : (profile.name?.toUpperCase() || 'SCHOOL PORTAL')} — {new Date().getFullYear()}
           </div>
           <div className="tb-stag">
-            {user.tenantId === 'platform-master' ? 'Empowering Education' : (profile.motto || 'More Than Academics!')}
+            {(user.tenantId === 'platform-master' && !impersonateId) ? 'Empowering Education' : (profile.motto || 'Education Portal')}
           </div>
         </div>
       </Link>
@@ -208,6 +215,12 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
         </div>
 
         {/* Logout */}
+        {user.role === 'super-admin' && impersonateId && (
+          <button className="btn btn-warning btn-sm" style={{ marginRight: 10, fontWeight: 900, border: '2px solid #000' }} onClick={() => {
+            localStorage.removeItem('paav_impersonate_id');
+            window.location.href = '/super-admin';
+          }}>⏹ STOP VIEWING SCHOOL</button>
+        )}
         <button className="btn-logout" onClick={logout}>⏻ Out</button>
       </div>
     </div>

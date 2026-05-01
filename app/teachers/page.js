@@ -177,7 +177,7 @@ export default function TeachersPage() {
 
 /* ─── Add / Edit User Modal ─────────────────────────────────────────────── */
 function UserModal({ user, currentUser, allStaff, onClose }) {
-  const { playSuccessSound } = useProfile();
+  const { playSuccessSound, profile } = useProfile();
   const isEdit = !!user;
 
   const [form, setForm] = useState({
@@ -240,12 +240,15 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
             <div className="field">
               <label style={{ display: 'flex', justifyContent: 'space-between' }}>
                 Username 
-                {!isEdit && <span style={{ color: 'var(--primary)', cursor: 'pointer' }} onClick={() => {
-                  const rand = Math.floor(1000 + Math.random() * 9000);
-                  F('username', `EDU-${rand}`);
-                }}>✨ Auto</span>}
+                {!isEdit && <span style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 800 }} onClick={() => {
+                  const prefix = (profile.name || 'EDU').replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase();
+                  const rand   = Math.floor(100 + Math.random() * 899);
+                  const first  = form.name.split(' ')[0] || 'USER';
+                  F('username', `${prefix}-${first}-${rand}`);
+                }}>✨ Auto-Generate</span>}
               </label>
-              <input value={form.username} onChange={e => F('username', e.target.value)}
+              <input value={form.username} onChange={e => F('username', e.target.value.toLowerCase())}
+                placeholder="e.g. GIT-JOHN-123"
                 disabled={isEdit} />
             </div>
           </div>
@@ -278,17 +281,19 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
                 setShowPw(true);
               }}>🎲 Rand</span>}
             </label>
-            <input
-              value={form.password}
-              onChange={e => F('password', e.target.value)}
-              type={showPw ? 'text' : 'password'}
-              placeholder={isEdit ? 'Enter new password…' : 'Min 6 chars'}
-              style={{ paddingRight: 40 }}
-            />
-            <button type="button" onClick={() => setShowPw(!showPw)}
-              style={{ position:'absolute', right:10, top:28, background:'none', border:'none', cursor:'pointer', fontSize:16 }}>
-              {showPw ? '🙈' : '👁️'}
-            </button>
+            <div style={{ position: 'relative' }}>
+              <input
+                value={form.password}
+                onChange={e => F('password', e.target.value)}
+                type={showPw ? 'text' : 'password'}
+                placeholder={isEdit ? 'Enter new password…' : 'Min 6 chars'}
+                style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
+              />
+              <button type="button" onClick={() => setShowPw(!showPw)}
+                style={{ position:'absolute', right:12, top:'50%', transform: 'translateY(-50%)', background:'none', border:'none', cursor:'pointer', fontSize:16, padding: 0 }}>
+                {showPw ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
           {isEdit && (

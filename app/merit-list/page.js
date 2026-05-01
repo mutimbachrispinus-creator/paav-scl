@@ -242,11 +242,18 @@ export default function MeritListPage() {
                       className={l.rank <= 3 ? `merit-rank-${l.rank}` : ''}
                       style={{ transition: 'background .15s' }}>
                       <td style={{ padding: '4px' }}>
-                        <span style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 14,
-                          color: l.rank === 1 ? '#B45309' : l.rank === 2 ? '#475569'
-                               : l.rank === 3 ? '#C2410C' : 'var(--navy)' }}>
-                          {MEDALS[l.rank] || `#${l.rank}`}
-                        </span>
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <span style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 14,
+                            color: l.rank === 1 ? '#B45309' : l.rank === 2 ? '#475569'
+                                 : l.rank === 3 ? '#C2410C' : 'var(--navy)' }}>
+                            {MEDALS[l.rank] || `#${l.rank}`}
+                          </span>
+                          <button className="btn btn-ghost btn-sm no-print" title="View Profile"
+                            style={{ padding: '2px 6px', fontSize: 14 }}
+                            onClick={() => router.push(`/learners/${l.adm}`)}>
+                            👁
+                          </button>
+                        </div>
                       </td>
                       <td style={{ fontWeight: 700, fontSize: 11.5, padding: '4px' }}>{l.adm}</td>
                       <td style={{ fontWeight: 600, padding: '4px 8px' }}>{l.name}</td>
@@ -276,12 +283,7 @@ export default function MeritListPage() {
                         color: l.totalPts/max >= 0.5 ? 'var(--green)' : 'var(--red)', padding: '4px' }}>
                         {Math.round((l.totalPts/max)*100)}%
                       </td>
-                      <td>
-                        <button className="btn btn-ghost btn-sm"
-                          onClick={() => router.push(`/learners/${l.adm}`)}>
-                          👁
-                        </button>
-                      </td>
+                      <td></td>
                     </tr>
                   ))}
                   {ranked.length > 0 && (

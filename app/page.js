@@ -355,15 +355,22 @@ export default function ZerakiStyleLanding() {
         .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 40px; text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; }
 
         @media (max-width: 900px) {
-          .hero-grid { grid-template-columns: 1fr; text-align: center; gap: 50px; }
-          .hero-content h1 { font-size: 42px; }
-          .hero-content p { margin: 0 auto 40px; }
-          .hero-btns { justify-content: center; }
-          .hero-stats { justify-content: center; }
+          .nav { padding: 15px 0; }
+          .hero { padding: 120px 0 60px; }
+          .hero-grid { grid-template-columns: 1fr; text-align: center; gap: 40px; }
+          .hero-content h1 { font-size: 38px; }
+          .hero-content p { margin: 0 auto 30px; font-size: 17px; }
+          .hero-btns { justify-content: center; flex-direction: column; gap: 12px; }
+          .hero-stats { justify-content: center; gap: 15px; }
+          .hero-stats div strong { font-size: 20px; }
+          .section-hdr h3 { font-size: 30px; }
           .solution-grid { grid-template-columns: 1fr; }
-          .b-cta-card h2 { font-size: 32px; }
+          .about-grid { grid-template-columns: 1fr; gap: 40px; }
+          .b-cta-card { padding: 40px 20px; border-radius: 20px; }
+          .b-cta-card h2 { font-size: 28px; }
+          .contact-grid { grid-template-columns: 1fr; gap: 40px; }
           .nav-links { display: none; }
-          .footer-grid { grid-template-columns: 1fr; gap: 50px; text-align: center; }
+          .footer-grid { grid-template-columns: 1fr; gap: 40px; text-align: center; }
           .f-col .logo { justify-content: center; }
           .socials { justify-content: center; }
         }

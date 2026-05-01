@@ -117,64 +117,48 @@ async function handleLogout() {
 }
 
 /* ─── register ──────────────────────────────────────────────────────────── */
-async function handleRegister({ role, name, phone, password, childAdm, teachingLevels, secQ, secA }) {
+async function handleRegister({ role, name, phone, password, childAdm, teachingLevels, secQ, secA }, request) {
   if (!role || !name || !phone || !password) {
     return err('role, name, phone and password are required');
   }
-  if (password.length < 8) return err('Password must be at least 8 characters for security');
+  if (password.length < 6) return err('Password must be at least 6 characters');
 
-  const staff = await getStaffList();
+  const tenantId = request.headers.get('x-tenant-id') || 'paav-gitombo';
+  const { query, execute } = await import('@/lib/db');
 
-  // Generate username: firstname.lastname
-  const username = name
-    .toLowerCase()
-    .replace(/[^a-z\s]/g, '')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .join('.')
-    .slice(0, 30);
+  // Generate unique username: firstname.lastname.rand
+  const base = name.toLowerCase().replace(/[^a-z]/g, '').slice(0, 15);
+  const rand = Math.floor(100 + Math.random() * 899);
+  const username = `${base}.${rand}`;
 
-  if (staff.find(s => s.username === username)) {
-    return err(`Username "${username}" is already taken`);
-  }
+  // Check if username taken in this school
+  const existing = await query('SELECT id FROM staff WHERE username = ? AND tenant_id = ?', [username, tenantId]);
+  if (existing.length) return err(`Username ${username} is taken in this school. Try again.`);
 
   // Parents must link to valid learner(s)
   let childAdmString = '';
   if (role === 'parent') {
     if (!childAdm) return err('Admission number is required for parent registration');
-    
     const adms = String(childAdm).split(',').map(s => s.trim()).filter(Boolean);
-    if (!adms.length) return err('Invalid admission number format');
-
-    const learners = (await kvGet('paav6_learners')) || [];
+    const learnersRes = await query('SELECT adm FROM learners WHERE tenant_id = ?', [tenantId]);
+    const learners = learnersRes.map(l => l.adm);
     for (const adm of adms) {
-      const learner = learners.find(l => l.adm === adm);
-      if (!learner) return err(`Learner with admission number ${adm} not found`);
+      if (!learners.includes(adm)) return err(`Learner with admission number ${adm} not found`);
     }
     childAdmString = adms.join(',');
   }
 
-  const newUser = {
-    id:       'u' + Date.now(),
-    name:     name.toUpperCase(),
-    role,
-    phone,
-    username,
-    password: await hashPassword(password),
-    status:   role === 'parent' ? 'active' : 'pending',  // parents auto-active
-    childAdm: childAdmString,
-    grade:    '',
-    teachingAreas: teachingLevels || [],
-    secQ: secQ || '',
-    secA: secA || '',
-    createdAt: new Date().toISOString(),
-  };
+  const id = 'u' + Date.now();
+  const hashedPw = await hashPassword(password);
+  const status = role === 'parent' ? 'active' : 'pending';
 
-  staff.push(newUser);
-  await kvSet('paav6_staff', staff);
+  await execute(
+    `INSERT INTO staff (id, tenant_id, name, username, role, phone, password, status, child_adm, createdAt) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, tenantId, name.toUpperCase(), username, role, phone, hashedPw, status, childAdmString, new Date().toISOString()]
+  );
 
-  return NextResponse.json({ ok: true, username, status: newUser.status });
+  return NextResponse.json({ ok: true, username, status });
 }
 
 /* ─── Google Sign-In ────────────────────────────────────────────────────── */
