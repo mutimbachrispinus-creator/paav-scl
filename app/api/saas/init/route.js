@@ -30,7 +30,7 @@ export async function GET() {
       // 3. Set Master Branding
       {
         sql: "INSERT INTO kv (key, tenant_id, value, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET value=excluded.value",
-        args: ['paav_school_profile', 'platform-master', JSON.stringify({ name: 'EduVantage Platform Console', motto: 'The Future of Education Management' }), now]
+        args: ['paav_school_profile', 'platform-master', JSON.stringify({ name: 'EduVantage School Management Platform', motto: 'The Future of Education Management' }), now]
       },
       {
         sql: "INSERT INTO kv (key, tenant_id, value, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET value=excluded.value",

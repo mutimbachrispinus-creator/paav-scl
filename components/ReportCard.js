@@ -40,7 +40,7 @@ export default function ReportCard({
       <div className="rc-hdr">
         <div className="rc-school">🏫 {school.name}</div>
         <div style={{ fontSize: 11, color: '#64748B', margin: '2px 0' }}>
-          PAAV-Gitombo, Embu County, Kenya &nbsp;|&nbsp; Tel: 0758 922 915
+          {school.address || 'Smart School Management'} &nbsp;|&nbsp; {school.phone || 'Digital Education'}
         </div>
         <div style={{
           fontFamily: 'Sora,sans-serif', fontSize: 14, fontWeight: 700,

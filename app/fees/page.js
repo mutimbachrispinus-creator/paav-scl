@@ -307,7 +307,7 @@ export default function FeesPage() {
         <div className="panel">
           <div className="panel-hdr">
             <h3>📋 Learner Fee Balances</h3>
-            <div className="print-only" style={{ display: 'none' }}>PAAV Gitombo - Fee Balances Report</div>
+            <div className="print-only" style={{ display: 'none' }}>EduVantage - Fee Balances Report</div>
             <div className="no-print" style={{ display: 'flex', gap: 8 }}>
               <button className="btn btn-maroon btn-sm"
                 onClick={() => {

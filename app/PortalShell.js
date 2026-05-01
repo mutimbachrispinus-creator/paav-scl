@@ -142,7 +142,7 @@ export default function PortalShell({ children }) {
     } catch {}
     return { primary: '#1E293B', secondary: '#D4AF37', accent: '#334155' };
   });
-  const [profile,      setProfile]      = useState({ name: 'EduVantage Portal', motto: 'Innovation in Education', logo: '/logo.png' });
+  const [profile,      setProfile]      = useState({ name: 'EduVantage School Management Platform', motto: 'The Future of Education Management', logo: '/eduvantage-logo.png' });
 
   const idleTimer    = useRef(null);
   const warnTimer    = useRef(null);

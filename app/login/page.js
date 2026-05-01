@@ -26,7 +26,7 @@ function LoginContent() {
   const [stats, setStats] = useState({ learners: 0, classes: 0 });
   const [announcement, setAnnouncement] = useState('Welcome to the EduVantage School Network.');
   const [profile, setProfile] = useState({ 
-    name: tenantId === 'platform-master' ? 'EduVantage Master Console' : 'EduVantage School', 
+    name: 'EduVantage School Management Platform', 
     tagline: 'Global Education SaaS Network',
     logo: '/eduvantage-logo.png'
   });

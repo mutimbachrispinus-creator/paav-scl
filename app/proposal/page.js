@@ -17,13 +17,13 @@ export default function ProposalPage() {
         
         <div style={{ borderBottom: '6px solid #8B1A1A', paddingBottom: 20, marginBottom: 40 }}>
           <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '36pt', margin: 0, color: '#8B1A1A', fontWeight: 800 }}>MARKETING PROPOSAL</h1>
-          <div style={{ fontSize: '14pt', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 3, marginTop: 5 }}>PAAV School Management Portal</div>
+          <div style={{ fontSize: '14pt', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 3, marginTop: 5 }}>EduVantage School Management Platform</div>
         </div>
 
         <section style={{ marginBottom: 30 }}>
           <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18pt', color: '#8B1A1A', borderLeft: '5px solid #8B1A1A', paddingLeft: 15, marginBottom: 15 }}>1. Executive Summary</h2>
           <p style={{ lineHeight: 1.7, fontSize: '11pt', color: '#1E293B' }}>
-            The **PAAV School Management Portal** is a high-performance digital solution designed to centralize school operations, enhance parent engagement, and streamline academic tracking. By transitioning from manual to automated systems, PAAV-Gitombo Community School will achieve greater efficiency, data accuracy, and professional visibility.
+            The **EduVantage School Management Platform** is a high-performance digital solution designed to centralize school operations, enhance parent engagement, and streamline academic tracking. By transitioning from manual to automated systems, your institution will achieve greater efficiency, data accuracy, and professional visibility.
           </p>
         </section>
 

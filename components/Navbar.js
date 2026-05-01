@@ -70,10 +70,10 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
         </div>
         <div>
           <div className="tb-sname">
-            {(user.tenantId === 'platform-master' && !impersonateId) ? 'EDUVANTAGE PLATFORM' : (profile.name?.toUpperCase() || 'SCHOOL PORTAL')} — {new Date().getFullYear()}
+            {(user.tenantId === 'platform-master' && !impersonateId) ? 'EDUVANTAGE SCHOOL MANAGEMENT PLATFORM' : (profile.name?.toUpperCase() || 'SCHOOL PORTAL')} — {new Date().getFullYear()}
           </div>
           <div className="tb-stag">
-            {(user.tenantId === 'platform-master' && !impersonateId) ? 'Empowering Education' : (profile.motto || 'Education Portal')}
+            {(user.tenantId === 'platform-master' && !impersonateId) ? 'The Future of Education Management' : (profile.motto || 'Education Portal')}
           </div>
         </div>
       </Link>

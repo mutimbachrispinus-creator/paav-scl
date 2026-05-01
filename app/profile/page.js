@@ -378,7 +378,7 @@ export default function ProfilePage() {
         return (
           <div>
             <button className="btn btn-ghost btn-sm no-print" style={{ marginBottom: 14 }} onClick={() => setSelectedStaff(null)}>← Back to Directory</button>
-            <div className="print-only" style={{ display:'none' }}>PAAV Gitombo - Staff Profile</div>
+            <div className="print-only" style={{ display:'none' }}>EduVantage - Staff Profile</div>
             <div className="sg sg2">
               <div className="panel" style={{ background: `linear-gradient(135deg, ${M}, #6B1212)`, color: '#fff' }}>
                 <div className="panel-body" style={{ textAlign:'center' }}>
@@ -451,7 +451,7 @@ export default function ProfilePage() {
         return (
           <div>
             <button className="btn btn-ghost btn-sm no-print" style={{ marginBottom: 14 }} onClick={() => setSelectedLearner(null)}>← Back to Results</button>
-            <div className="print-only" style={{ display:'none' }}>PAAV Gitombo - Learner Profile</div>
+            <div className="print-only" style={{ display:'none' }}>EduVantage - Learner Profile</div>
             <div className="sg sg2">
               <div className="panel" style={{ background: `linear-gradient(135deg, ${M}, #6B1212)`, color: '#fff' }}>
                 <div className="panel-body">

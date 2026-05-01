@@ -92,7 +92,7 @@ export async function GET(request) {
 
 /* ─── Request dispatcher ────────────────────────────────────────────────── */
 async function handleRequest(req, auth) {
-  const tenantId = auth.tenantId || 'paav-gitombo';
+  const tenantId = auth.tenantId || 'platform-master';
 
   switch (req.type) {
     /* ── Read one key ── */

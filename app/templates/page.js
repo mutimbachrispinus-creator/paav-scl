@@ -231,7 +231,7 @@ function PrintHeader({ title, grade, profile = {} }) {
     <div style={{ textAlign: 'center', borderBottom: '3px double #8B1A1A', paddingBottom: 12, marginBottom: 16 }}>
       {/* School logo */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={profile.logo || "/logo.png"} alt="School Logo" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'contain', margin: '0 auto 8px', border: '2px solid #D97706', background: '#fff', padding: 4 }} />
+      <img src={profile.logo || "/eduvantage-logo.png"} alt="School Logo" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'contain', margin: '0 auto 8px', border: '2px solid #D97706', background: '#fff', padding: 4 }} />
       <h1 style={{ fontFamily: 'Sora', fontSize: 17, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>{profile.name?.toUpperCase() || 'EDUVANTAGE PORTAL'}</h1>
       <p style={{ fontSize: 10, margin: '2px 0', color: '#555' }}>{profile.address || 'Nairobi, Kenya'} | {profile.phone || '0758 922 915'} | {profile.email || 'portal@eduvantage.com'}</p>
       <p style={{ fontSize: 10, fontStyle: 'italic', color: '#D97706', fontWeight: 700, margin: '2px 0' }}>{profile.motto || 'Education Portal'}</p>
@@ -826,7 +826,7 @@ function IDCardTemplate({ learners, grade, profile }) {
         <div key={l.adm} style={{ width: 340, height: 215, border: '1.5px solid #8B1A1A', borderRadius: 10, overflow: 'hidden', position: 'relative', background: '#fff', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
           {/* Header */}
           <div style={{ background: '#8B1A1A', color: '#fff', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <img src={profile.logo || "/logo.png"} alt="L" style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', padding: 2 }} />
+            <img src={profile.logo || "/eduvantage-logo.png"} alt="L" style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', padding: 2 }} />
             <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5 }}>{profile.name?.toUpperCase() || 'EDUVANTAGE PORTAL'}</div>
           </div>
           
