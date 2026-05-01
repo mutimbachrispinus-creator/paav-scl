@@ -232,8 +232,8 @@ export default function PortalShell({ children }) {
         const config = await configRes.json();
         
         if (config.profile) {
-          // Sanitize: never allow legacy name or logo to leak
-          const safeName = (config.profile.name?.includes('PAAV') || config.profile.name?.includes('Gitombo')) ? 'EduVantage School Management System' : config.profile.name;
+          // Sanitize: only block the specific legacy placeholder full name
+          const safeName = (config.profile.name === 'PAAV-Gitombo Community School' || !config.profile.name) ? 'EduVantage School Management System' : config.profile.name;
           const safeLogo = (config.profile.logo === '/ev-brand-v3.png' || !config.profile.logo) ? '/ev-brand-v3.png' : config.profile.logo;
           setProfile({ ...config.profile, name: safeName, logo: safeLogo });
         }

@@ -63,6 +63,8 @@ export default function SchoolProfilePage() {
 
       // Write fresh values into cache so all pages see them immediately
       writeSchoolProfileCache(profile);
+      invalidateDB(['paav_school_profile', 'paav_theme']);
+      
       const PREFIX = 'paav_cache_';
       const stamp = Date.now();
       localStorage.setItem(PREFIX + 'db_paav_theme', JSON.stringify({ v: theme, t: stamp, s: stamp }));
