@@ -272,10 +272,4 @@ async function handleRequest(req, auth, impTenant = null) {
   }
 }
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
-};
+
