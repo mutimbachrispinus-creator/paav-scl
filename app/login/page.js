@@ -28,7 +28,7 @@ function LoginContent() {
   const [profile, setProfile] = useState({ 
     name: 'EduVantage School Management Platform', 
     tagline: 'Global Education SaaS Network',
-    logo: '/eduvantage-logo.png'
+    logo: '/ev-brand-v3.png'
   });
   const [heroImg, setHeroImg] = useState('');
   const [theme, setTheme] = useState({ 
@@ -85,7 +85,7 @@ function LoginContent() {
         setProfile({
           name: 'EduVantage School Management Platform',
           tagline: 'Global Education SaaS Network',
-          logo: '/eduvantage-logo.png'
+          logo: '/ev-brand-v3.png'
         });
         if (data.announcement) setAnnouncement(data.announcement);
         if (data.theme) {
@@ -173,7 +173,7 @@ function LoginContent() {
     <div id="auth" style={heroImg ? { background: `linear-gradient(135deg, rgba(5,15,28,0.85) 0%, rgba(13,31,60,0.85) 40%, rgba(21,45,79,0.9) 100%), url(${heroImg})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
       <div className="auth-left">
         <div className="auth-logo">
-           <img src={profile.logo || "/eduvantage-logo.png"} alt="Logo" style={{ width: 120, height: 120, objectFit: 'contain', borderRadius: '50%', background: '#fff', padding: 8, boxShadow: '0 20px 60px rgba(0,0,0,.4)', display:'block', margin:'0 auto' }} />
+           <img src={profile.logo || "/ev-brand-v3.png"} alt="Logo" style={{ width: 120, height: 120, objectFit: 'contain', borderRadius: '50%', background: '#fff', padding: 8, boxShadow: '0 20px 60px rgba(0,0,0,.4)', display:'block', margin:'0 auto' }} />
         </div>
         <div className="auth-h">{profile.name}<br/><span style={{ color: 'var(--secondary, #F4A460)' }}>{profile.tagline}</span></div>
         <div className="auth-tagline">Support: +254 792 656 579 · portal@eduvantage.app</div>
@@ -209,7 +209,7 @@ function LoginContent() {
       <div className="auth-right">
         <div className="auth-card">
           <div style={{ textAlign: 'center', marginBottom: 14 }}>
-            <img src={profile.logo || "/eduvantage-logo.png"} alt="Logo" style={{ width: 70, height: 70, objectFit: 'contain', borderRadius: '50%', boxShadow: `0 4px 16px ${theme?.primary || '#4F46E5'}33` }} />
+            <img src={profile.logo || "/ev-brand-v3.png"} alt="Logo" style={{ width: 70, height: 70, objectFit: 'contain', borderRadius: '50%', boxShadow: `0 4px 16px ${theme?.primary || '#4F46E5'}33` }} />
           </div>
           <div className="auth-card-title">{tab === 'login' ? 'Welcome Back' : tab === 'register' ? 'Parent Registration' : 'Security Check'}</div>
           

@@ -70,7 +70,7 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
           } : {}}
         >
           <img 
-            src={(user.role === 'super-admin' && !impersonateId) ? '/eduvantage-logo.png' : (profile.logo && profile.logo !== '/logo.png' ? profile.logo : '/eduvantage-logo.png')} 
+            src={(user.role === 'super-admin' && !impersonateId) ? '/ev-brand-v3.png' : (profile.logo && profile.logo !== '/ev-brand-v3.png' ? profile.logo : '/ev-brand-v3.png')} 
             alt="Logo" 
             style={(user.role === 'super-admin' && !impersonateId) ? {
               width: 24, height: 24, objectFit: 'contain', filter: 'brightness(0) invert(1)'

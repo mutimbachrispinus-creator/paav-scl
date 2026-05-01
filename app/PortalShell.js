@@ -145,7 +145,7 @@ export default function PortalShell({ children }) {
   const [profile,      setProfile]      = useState({ 
     name: 'EduVantage School Management System', 
     motto: 'The Future of Education Management', 
-    logo: '/eduvantage-logo.png' 
+    logo: '/ev-brand-v3.png' 
   });
 
   const idleTimer    = useRef(null);
@@ -169,7 +169,7 @@ export default function PortalShell({ children }) {
     }
 
     // Force Platform Name if legacy institutional name is detected
-    if (!profile?.name || profile.name.includes('PAAV') || profile.name.includes('Gitombo')) {
+    if (!profile?.name || profile.name.includes('PAAV') || profile.name.includes('Gitombo') || profile.name.toLowerCase().includes('community school')) {
       document.title = siteName;
       return;
     }
@@ -234,7 +234,7 @@ export default function PortalShell({ children }) {
         if (config.profile) {
           // Sanitize: never allow legacy name or logo to leak
           const safeName = (config.profile.name?.includes('PAAV') || config.profile.name?.includes('Gitombo')) ? 'EduVantage School Management System' : config.profile.name;
-          const safeLogo = (config.profile.logo === '/logo.png' || !config.profile.logo) ? '/eduvantage-logo.png' : config.profile.logo;
+          const safeLogo = (config.profile.logo === '/ev-brand-v3.png' || !config.profile.logo) ? '/ev-brand-v3.png' : config.profile.logo;
           setProfile({ ...config.profile, name: safeName, logo: safeLogo });
         }
         if (config.theme) setTheme(config.theme);

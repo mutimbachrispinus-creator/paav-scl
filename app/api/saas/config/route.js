@@ -47,7 +47,7 @@ export async function GET(request) {
         name: 'EduVantage School Management System',
         email: 'portal@eduvantage.app',
         phone: '+254 792 656 579',
-        logo: '/eduvantage-logo.png',
+        logo: '/ev-brand-v3.png',
         tagline: 'Global Education SaaS Network'
       };
     }
@@ -58,7 +58,7 @@ export async function GET(request) {
         name: 'EduVantage School Management System', 
         email: 'portal@eduvantage.app', 
         phone: '+254 792 656 579', 
-        logo: '/eduvantage-logo.png' 
+        logo: '/ev-brand-v3.png' 
       },
       stats,
       announcement: isMaster ? 'Welcome to the EduVantage Global Network.' : (config.paav_announcement?.text || 'Welcome to the EduVantage School Network.'),

@@ -25,8 +25,10 @@ export const metadata = {
   title:       'EduVantage School Management System',
   description: 'The future of school management — Multi-tenant SaaS with CBC & M-Pesa.',
   icons: { 
-    icon: '/eduvantage-logo.png',
+    icon: '/ev-brand-v3.png',
+    apple: '/ev-brand-v3.png',
   },
+  manifest: '/manifest.json',
 };
 
 export const viewport = {
@@ -41,6 +43,7 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="manifest" href="/manifest.json" />
         {/* 🚨 CACHE KILLER SCRIPT 🚨 */}
         <script
           dangerouslySetInnerHTML={{
@@ -48,6 +51,14 @@ export default function RootLayout({ children }) {
               if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(regs => {
                   for (let reg of regs) { reg.unregister(); }
+                });
+              }
+              // Force clear any icon caches
+              if ('caches' in window) {
+                caches.keys().then(names => {
+                  for (let name of names) {
+                    if (name.includes('image') || name.includes('static')) caches.delete(name);
+                  }
                 });
               }
               // Aggressive Legacy Branding Purge

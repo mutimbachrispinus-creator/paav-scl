@@ -1,6 +1,6 @@
 {
   "name": "paav-school-portal",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "EduVantage School Management Platform — Next.js 14 + Turso",
   "private": true,
   "scripts": {
