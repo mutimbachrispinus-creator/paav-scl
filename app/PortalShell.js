@@ -143,7 +143,7 @@ export default function PortalShell({ children }) {
     return { primary: '#1E293B', secondary: '#D4AF37', accent: '#334155' };
   });
   const [profile,      setProfile]      = useState({ 
-    name: 'EduVantage School Management Platform', 
+    name: 'EduVantage School Management System', 
     motto: 'The Future of Education Management', 
     logo: '/eduvantage-logo.png' 
   });
@@ -160,7 +160,7 @@ export default function PortalShell({ children }) {
 
   // Sync document title with active branding to prevent stale metadata
   useEffect(() => {
-    const siteName = 'EduVantage School Management Platform';
+    const siteName = 'EduVantage School Management System';
     const publicPaths = ['/', '/login', '/saas/signup'];
     
     if (publicPaths.includes(pathname)) {
@@ -168,7 +168,8 @@ export default function PortalShell({ children }) {
       return;
     }
 
-    if (!profile?.name || profile.name.includes('PAAV-Gitombo')) {
+    // Force Platform Name if legacy institutional name is detected
+    if (!profile?.name || profile.name.includes('PAAV') || profile.name.includes('Gitombo')) {
       document.title = siteName;
       return;
     }

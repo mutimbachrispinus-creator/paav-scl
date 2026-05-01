@@ -30,7 +30,7 @@ export async function GET(request) {
     let profileData = config.paav_school_profile;
     if (isMaster) {
       profileData = {
-        name: 'EduVantage School Management Platform',
+        name: 'EduVantage School Management System',
         email: 'portal@eduvantage.app',
         phone: '+254 792 656 579',
         logo: '/eduvantage-logo.png',
@@ -41,7 +41,7 @@ export async function GET(request) {
     const response = NextResponse.json({
       tenantId,
       profile: profileData || { 
-        name: 'EduVantage School Management Platform', 
+        name: 'EduVantage School Management System', 
         email: 'portal@eduvantage.app', 
         phone: '+254 792 656 579', 
         logo: '/eduvantage-logo.png' 

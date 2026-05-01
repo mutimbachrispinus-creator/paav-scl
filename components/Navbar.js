@@ -81,7 +81,7 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
           <div className="tb-sname" style={(user.role === 'super-admin' && !impersonateId) ? {
             fontFamily: 'var(--font-sora), sans-serif', fontSize: 18, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px'
           } : {}}>
-            {(user.role === 'super-admin' && !impersonateId) ? 'EduVantage' : (profile.name?.toUpperCase() || 'SCHOOL PORTAL')}
+            {(user.role === 'super-admin' && !impersonateId) ? 'EduVantage' : (profile.name?.includes('PAAV') || profile.name?.includes('Gitombo') ? 'EduVantage School Management System' : (profile.name?.toUpperCase() || 'SCHOOL PORTAL'))}
             {(user.role !== 'super-admin' || impersonateId) && ` — ${new Date().getFullYear()}`}
           </div>
           <div className="tb-stag">
