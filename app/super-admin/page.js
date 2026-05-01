@@ -193,6 +193,7 @@ export default function SuperAdminPage() {
                   </td>
                   <td style={{ fontWeight: 900, color: EMERALD }}>KES {s.revenue.toLocaleString()}</td>
                   <td>
+                    <div style={{ display: 'flex', gap: 6 }}>
                       <button className="btn btn-sm btn-primary" onClick={() => {
                         localStorage.setItem('paav_impersonate_id', s.id);
                         window.location.href = '/dashboard';
