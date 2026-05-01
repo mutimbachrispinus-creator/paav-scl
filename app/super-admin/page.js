@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { getCachedUser } from '@/lib/client-cache';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
-const M = '#2563EB', GOLD = '#D4AF37', NAVY = '#0F172A', EMERALD = '#10B981', SLATE = '#64748B';
+const M = '#4F46E5', GOLD = '#FCD34D', NAVY = '#0F172A', EMERALD = '#10B981', SLATE = '#64748B';
 
 export default function SuperAdminPage() {
   const router = useRouter();
@@ -123,7 +123,7 @@ export default function SuperAdminPage() {
 
   return (
     <div className="page on" style={{ background: '#F8FAFC', minHeight: '100vh' }}>
-      <div className="page-hdr" style={{ background: NAVY, color: '#fff', padding: '30px 40px', borderRadius: '0 0 30px 30px', marginBottom: 30 }}>
+      <div className="page-hdr" style={{ background: `linear-gradient(135deg, ${NAVY}, ${M})`, color: '#fff', padding: '30px 40px', borderRadius: '0 0 30px 30px', marginBottom: 30, boxShadow: '0 10px 40px rgba(15,23,42,0.2)' }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 28 }}>👑 EduVantage Command Center</h1>
           <p style={{ color: '#94A3B8', margin: '5px 0 0 0' }}>Global Oversight: {globalConfig.platformName}</p>

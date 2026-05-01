@@ -61,19 +61,31 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
   return (
     <div id="topbar">
       <Link href="/dashboard" className="tb-brand" style={{ cursor: 'pointer', textDecoration: 'none' }}>
-        <div className="tb-crest">
+        <div 
+          className="tb-crest" 
+          style={(user.role === 'super-admin' && !impersonateId) ? {
+            width: 40, height: 40, background: '#4F46E5', borderRadius: 12, 
+            display: 'flex', alignItems: 'center', justifyContent: 'center', 
+            boxShadow: '0 10px 20px rgba(79, 70, 229, 0.2)', padding: 0
+          } : {}}
+        >
           <img 
-            src={(user.role === 'super-admin' && !impersonateId) ? '/eduvantage-logo.png' : (profile.logo || '/logo.png')} 
+            src={(user.role === 'super-admin' && !impersonateId) ? '/eduvantage-logo.png' : (profile.logo && profile.logo !== '/logo.png' ? profile.logo : '/eduvantage-logo.png')} 
             alt="Logo" 
-            style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%' }} 
+            style={(user.role === 'super-admin' && !impersonateId) ? {
+              width: 24, height: 24, objectFit: 'contain', filter: 'brightness(0) invert(1)'
+            } : { width: 36, height: 36, objectFit: 'cover', borderRadius: '50%' }} 
           />
         </div>
         <div>
-          <div className="tb-sname">
-            {(user.role === 'super-admin' && !impersonateId) ? 'EDUVANTAGE SCHOOL MANAGEMENT PLATFORM' : (profile.name?.toUpperCase() || 'SCHOOL PORTAL')} — {new Date().getFullYear()}
+          <div className="tb-sname" style={(user.role === 'super-admin' && !impersonateId) ? {
+            fontFamily: 'var(--font-sora), sans-serif', fontSize: 18, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px'
+          } : {}}>
+            {(user.role === 'super-admin' && !impersonateId) ? 'EduVantage' : (profile.name?.toUpperCase() || 'SCHOOL PORTAL')}
+            {(user.role !== 'super-admin' || impersonateId) && ` — ${new Date().getFullYear()}`}
           </div>
           <div className="tb-stag">
-            {(user.role === 'super-admin' && !impersonateId) ? 'The Future of Education Management' : (profile.motto || 'Education Portal')}
+            {(user.role === 'super-admin' && !impersonateId) ? 'SaaS Management Platform' : (profile.motto || 'Education Portal')}
           </div>
         </div>
       </Link>

@@ -134,7 +134,7 @@ export default function ProfilePanel({ user, onClose }) {
       style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:10000, display:'flex', justifyContent:'flex-end' }}>
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoPick} />
       <div style={{ width: 360, background:'#fff', height:'100%', overflowY:'auto', boxShadow:'-8px 0 40px rgba(0,0,0,.2)', display:'flex', flexDirection:'column' }}>
-        <div style={{ background:'linear-gradient(135deg,#8B1A1A,#6B1212)', padding:'28px 24px 20px', color:'#fff', position:'relative' }}>
+        <div style={{ background: (user.role === 'super-admin' && !user.tenantId.includes('gitombo')) ? 'linear-gradient(135deg,#4F46E5,#0F172A)' : 'linear-gradient(135deg,#8B1A1A,#6B1212)', padding:'28px 24px 20px', color:'#fff', position:'relative' }}>
           <button onClick={onClose} style={{ position:'absolute', top:16, right:16, background:'rgba(255,255,255,.2)', border:'none', borderRadius:'50%', width:30, height:30, color:'#fff', cursor:'pointer', fontSize:16 }}>✕</button>
           <div onClick={() => fileRef.current?.click()} 
             style={{ width:80, height:80, borderRadius:'50%', background: user.color||'#2563EB', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, margin:'0 auto 12px', overflow:'hidden', border:'3px solid rgba(255,255,255,.4)', cursor:'pointer' }}>

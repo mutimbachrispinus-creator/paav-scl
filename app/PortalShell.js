@@ -148,6 +148,13 @@ export default function PortalShell({ children }) {
     logo: '/eduvantage-logo.png' 
   });
 
+  // Branding Guard: Purge legacy identity from hydrated state
+  useEffect(() => {
+    if (profile?.name?.includes('PAAV-Gitombo')) {
+      setProfile(p => ({ ...p, name: 'Gitombo School', logo: '/eduvantage-logo.png' }));
+    }
+  }, [profile]);
+
   const idleTimer    = useRef(null);
   const warnTimer    = useRef(null);
   const countdownRef = useRef(null);
@@ -168,12 +175,15 @@ export default function PortalShell({ children }) {
       return;
     }
 
-    if (profile?.name) {
-      if (profile.name.includes('EduVantage')) {
-        document.title = profile.name;
-      } else {
-        document.title = `${profile.name} — ${siteName}`;
-      }
+    if (!profile?.name || profile.name.includes('PAAV-Gitombo')) {
+      document.title = siteName;
+      return;
+    }
+
+    if (profile.name.includes('EduVantage')) {
+      document.title = profile.name;
+    } else {
+      document.title = `${profile.name} — ${siteName}`;
     }
   }, [profile, pathname]);
 
@@ -183,7 +193,7 @@ export default function PortalShell({ children }) {
     const isSuper = user?.tenantId === 'platform-master';
     
     if (isSuper && !impersonateId) {
-      activeTheme = { primary: '#2563EB', secondary: '#D4AF37', accent: '#0F172A' };
+      activeTheme = { primary: '#4F46E5', secondary: '#10B981', accent: '#0F172A' };
     }
     
     if (activeTheme) {
@@ -227,7 +237,12 @@ export default function PortalShell({ children }) {
         const configRes = await fetch(`/api/saas/config?tenant=${activeTenant}`);
         const config = await configRes.json();
         
-        if (config.profile) setProfile(config.profile);
+        if (config.profile) {
+          // Final sanitize before setting state
+          const safeName = config.profile.name?.includes('PAAV-Gitombo') ? 'Gitombo School' : config.profile.name;
+          const safeLogo = (config.profile.logo === '/logo.png' || !config.profile.logo) ? '/eduvantage-logo.png' : config.profile.logo;
+          setProfile({ ...config.profile, name: safeName, logo: safeLogo });
+        }
         if (config.theme) setTheme(config.theme);
 
         const ann = db?.paav_announcement;
