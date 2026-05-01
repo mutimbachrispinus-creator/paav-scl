@@ -40,36 +40,38 @@ export default function MeritListPage() {
   const [school,   setSchool]   = useState({ name: 'SCHOOL PORTAL' });
 
   const load = useCallback(async () => {
-    const authRes = await fetch('/api/auth');
-    const auth    = await authRes.json();
-    if (!auth.ok) { router.push('/'); return; }
-        setUser(auth.user);
-    // Note: grade filter is set by user selection only
+    try {
+      const [u, db] = await Promise.all([
+        getCachedUser(),
+        getCachedDBMulti([
+          'paav6_learners',
+          'paav6_marks',
+          'paav8_grad',
+          'paav_school_profile'
+        ])
+      ]);
 
-    const dbRes = await fetch('/api/db', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ requests: [
-        { type: 'get', key: 'paav6_learners' },
-        { type: 'get', key: 'paav6_marks'    },
-        { type: 'get', key: 'paav8_grad'     },
-        { type: 'get', key: 'paav_school_profile' },
-      ]}),
-    });
-    const db = await dbRes.json();
-    setLearners(db.results[0]?.value || []);
-    setMarks(   db.results[1]?.value || {});
-    setGradCfg( db.results[2]?.value || null);
-    
-    if (db.results[3]?.value) {
-      try {
-        const prof = typeof db.results[3].value === 'string' ? JSON.parse(db.results[3].value) : db.results[3].value;
-        if (prof.name) setSchool({ name: prof.name });
-      } catch(e) {}
+      if (!u) { router.push('/'); return; }
+      setUser(u);
+
+      setLearners(db.paav6_learners || []);
+      setMarks(db.paav6_marks || {});
+      setGradCfg(db.paav8_grad || null);
+
+      if (db.paav_school_profile) {
+        try {
+          const prof = typeof db.paav_school_profile === 'string' 
+            ? JSON.parse(db.paav_school_profile) 
+            : db.paav_school_profile;
+          if (prof.name) setSchool({ name: prof.name });
+        } catch (e) {}
+      }
+    } catch (e) {
+      console.error('Merit list load error:', e);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-  }, [router, setGrade]);
+  }, [router]);
 
   useEffect(() => { load(); }, [load]);
 

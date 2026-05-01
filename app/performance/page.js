@@ -35,23 +35,21 @@ export default function PerformancePage() {
   useEffect(() => {
     async function load() {
       try {
-        const [ar, dr] = await Promise.all([
-          fetch('/api/auth'),
-          fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ requests:[
-              {type:'get',key:'paav6_learners'},{type:'get',key:'paav6_marks'},
-              {type:'get',key:'paav8_subj'},{type:'get',key:'paav8_grad'},
-            ]})
-          })
+        const [u, db] = await Promise.all([
+          getCachedUser(),
+          getCachedDBMulti(['paav6_learners', 'paav6_marks', 'paav8_subj', 'paav8_grad'])
         ]);
-        const auth = await ar.json();
-        if (!auth.ok) { router.push('/'); return; }
-        const db = await dr.json();
-        setLearners(db.results[0]?.value||[]);
-        setMarks(db.results[1]?.value||{});
-        setSubjCfg(db.results[2]?.value||{});
-        setGradCfg(db.results[3]?.value||null);
-      } catch(e){ console.error(e); } finally { setLoading(false); }
+
+        if (!u) { router.push('/'); return; }
+        setLearners(db.paav6_learners || []);
+        setMarks(db.paav6_marks || {});
+        setSubjCfg(db.paav8_subj || {});
+        setGradCfg(db.paav8_grad || null);
+      } catch (e) {
+        console.error('Performance load error:', e);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, [router]);

@@ -32,18 +32,13 @@ export default function TeachersPage() {
   const [sel,   setSel]   = useState(null);
 
   const load = useCallback(async () => {
-    const authRes = await fetch('/api/auth');
-    const auth    = await authRes.json();
-    if (!auth.ok) { router.push('/login'); return; }
-    if (auth.user?.role !== 'admin') { router.push('/dashboard'); return; }
-    setUser(auth.user);
+    const auth = await getCachedUser();
+    if (!auth) { router.push('/login'); return; }
+    if (auth.role !== 'admin') { router.push('/dashboard'); return; }
+    setUser(auth);
 
-    const dbRes = await fetch('/api/db', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_staff' }] }),
-    });
-    const db = await dbRes.json();
-    setStaff(db.results[0]?.value || []);
+    const db = await getCachedDBMulti(['paav6_staff']);
+    setStaff(db.paav6_staff || []);
     setLoading(false);
   }, [router]);
 
@@ -192,6 +187,21 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
   const [busy, setBusy]       = useState(false);
   const [err,  setErr]        = useState('');
   const [showPw, setShowPw]   = useState(false);
+
+  // Auto-generate username and password for new users
+  useEffect(() => {
+    if (!isEdit && form.name.length > 3 && !form.username) {
+      const prefix = (profile.name || 'EDU').replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase();
+      const rand   = Math.floor(100 + Math.random() * 899);
+      const first  = form.name.split(' ')[0] || 'USER';
+      setForm(f => ({ 
+        ...f, 
+        username: `${prefix}-${first}-${rand}`.toLowerCase(),
+        password: Math.floor(100000 + Math.random() * 899999).toString()
+      }));
+      setShowPw(true);
+    }
+  }, [form.name, isEdit, profile.name, form.username]);
 
   const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
