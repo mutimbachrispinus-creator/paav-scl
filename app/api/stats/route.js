@@ -6,11 +6,16 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const tenantId = searchParams.get('tenant') || 'platform-master';
 
-    // If it's the platform master, we don't show any specific school stats
+    // If it's the platform master, show global metrics
     if (tenantId === 'platform-master') {
+      const [sRes, lRes] = await Promise.all([
+        query('SELECT COUNT(*) as count FROM subscriptions WHERE tenant_id != ?', ['platform-master']),
+        query('SELECT COUNT(*) as count FROM learners WHERE tenant_id != ?', ['platform-master'])
+      ]);
       return NextResponse.json({
-        learners: 0,
-        classes: 0,
+        totalSchools: sRes[0]?.count || 0,
+        activeSchools: sRes[0]?.count || 0, // Simplified for public view
+        totalStudents: lRes[0]?.count || 0,
         year: new Date().getFullYear(),
       });
     }

@@ -43,6 +43,7 @@ export default function ReportCardPage() {
           { type: 'get', key: 'paav6_marks'    },
           { type: 'get', key: 'paav6_feecfg'   },
           { type: 'get', key: 'paav8_grad'     },
+          { type: 'get', key: 'paav_school_profile' },
         ]}),
       });
       const db = await dbRes.json();
@@ -55,6 +56,20 @@ export default function ReportCardPage() {
       setMarks(  db.results[1]?.value || {});
       setFeeCfg( db.results[2]?.value || {});
       setGradCfg(db.results[3]?.value || null);
+      
+      const prof = db.results[4]?.value;
+      if (prof) {
+        try {
+          const p = typeof prof === 'string' ? JSON.parse(prof) : prof;
+          setSchool({
+            name: p.name || 'SCHOOL PORTAL',
+            motto: p.motto || '"More Than Academics!"',
+            tel: p.phone || '0758 922 915',
+            location: p.address || p.location || 'Embu County, Kenya'
+          });
+        } catch(e) {}
+      }
+
       setLoading(false);
     }
     load();
@@ -144,7 +159,7 @@ export default function ReportCardPage() {
             transform: 'translate(-50%,-50%) rotate(-25deg)',
             fontSize: 140, fontWeight: 900, color: 'rgba(139,26,26,0.035)',
             pointerEvents: 'none', zIndex: 0, userSelect: 'none',
-            fontFamily: 'Sora,sans-serif', letterSpacing: 8 }}>PAAV</div>
+            fontFamily: 'Sora,sans-serif', letterSpacing: 8 }}>{school.name.split(' ')[0]}</div>
 
           {/* ── HEADER ── */}
           <div className="rc-hdr" style={{ position: 'relative', zIndex: 1 }}>
@@ -396,7 +411,7 @@ export default function ReportCardPage() {
               <strong>{school.name}</strong>
             </div>
             <div style={{ color:'#8B1A1A', fontStyle:'italic' }}>{school.motto}</div>
-            <div>Generated: {dateStr} &nbsp;·&nbsp; PAAV School Portal</div>
+            <div>Generated: {dateStr} &nbsp;·&nbsp; {school.name}</div>
           </div>
         </div>
       </div>

@@ -62,7 +62,10 @@ function LoginContent() {
         const sRes = await fetch(endpoint);
         const s = await sRes.json();
         if (tenantId === 'platform-master') {
-          setStats({ totalSchools: s.stats?.totalSchools, totalStudents: s.stats?.totalStudents });
+          setStats({ 
+            totalSchools: s.totalSchools, 
+            activeSchools: s.activeSchools || 0 
+          });
         } else {
           setStats(s);
         }
@@ -166,8 +169,8 @@ function LoginContent() {
         <div className="auth-stats">
           {tenantId === 'platform-master' ? (
             <>
-              <div className="auth-stat"><div className="auth-stat-n">{stats.totalSchools || '1.2K+'}</div><div className="auth-stat-l">Schools</div></div>
-              <div className="auth-stat"><div className="auth-stat-n">{stats.totalStudents || '1.2M+'}</div><div className="auth-stat-l">Students</div></div>
+              <div className="auth-stat"><div className="auth-stat-n">{stats.totalSchools || '0'}</div><div className="auth-stat-l">Enrolled Schools</div></div>
+              <div className="auth-stat"><div className="auth-stat-n">{stats.activeSchools || '0'}</div><div className="auth-stat-l">Active Licenses</div></div>
             </>
           ) : (
             <>

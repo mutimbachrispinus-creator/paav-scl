@@ -11,14 +11,14 @@ export default function LearnerReceiptPage() {
   const [learner, setLearner] = useState(null);
   const [paylog, setPaylog] = useState([]);
   const [feecfg, setFeecfg] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [school, setSchool] = useState({ name: 'SCHOOL PORTAL', motto: '✝ More Than Academics!', phone: '0758 922 915' });
 
   useEffect(() => {
     async function load() {
       try {
         const [u, db] = await Promise.all([
           getCachedUser(),
-          getCachedDBMulti(['paav6_learners', 'paav6_payments', 'paav6_feecfg'])
+          getCachedDBMulti(['paav6_learners', 'paav6_payments', 'paav6_feecfg', 'paav_school_profile'])
         ]);
         if (!u) { router.push('/'); return; }
         setUser(u);
@@ -31,6 +31,17 @@ export default function LearnerReceiptPage() {
         setPaylog(p);
 
         setFeecfg(db.paav6_feecfg || {});
+        
+        if (db.paav_school_profile) {
+          try {
+            const prof = typeof db.paav_school_profile === 'string' ? JSON.parse(db.paav_school_profile) : db.paav_school_profile;
+            setSchool({
+              name: prof.name || 'SCHOOL PORTAL',
+              motto: prof.motto || '✝ More Than Academics!',
+              phone: prof.phone || '0758 922 915'
+            });
+          } catch(e) {}
+        }
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     }
@@ -62,9 +73,9 @@ export default function LearnerReceiptPage() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, borderBottom: '2px solid var(--maroon)', paddingBottom: 10 }}>
           <div style={{ textAlign: 'left' }}>
-            <div style={{ fontWeight: 900, fontSize: 18, color: 'var(--maroon)', letterSpacing: -0.5 }}>SCHOOL PORTAL SCHOOL</div>
-            <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>✝ More Than Academics!</div>
-            <div style={{ fontSize: 9, color: '#666' }}>Tel: 0758 922 915</div>
+            <div style={{ fontWeight: 900, fontSize: 18, color: 'var(--maroon)', letterSpacing: -0.5 }}>{school.name}</div>
+            <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>{school.motto}</div>
+            <div style={{ fontSize: 9, color: '#666' }}>Tel: {school.phone}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontWeight: 800, fontSize: 12, background: 'var(--maroon)', color: '#fff', padding: '4px 12px', borderRadius: 4 }}>FEES STATEMENT</div>

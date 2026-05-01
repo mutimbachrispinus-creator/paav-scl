@@ -10,10 +10,36 @@
  */
 
 import { useRouter } from 'next/navigation';
+import { ALL_NAV } from '@/lib/navigation';
 
 /* ── All possible shortcuts ── */
 const ALL_SHORTCUTS = [
-  /* admin */
+  /* Super Admin Specific */
+  {
+    roles:  ['super-admin'],
+    icon:   '👑',
+    label:  'Command Center',
+    color:  '#0F172A',
+    bg:     '#F1F5F9',
+    path:   '/super-admin',
+  },
+  {
+    roles:  ['super-admin'],
+    icon:   '🏫',
+    label:  'Manage Schools',
+    color:  '#2563EB',
+    bg:     '#EFF6FF',
+    path:   '/super-admin',
+  },
+  {
+    roles:  ['super-admin'],
+    icon:   '📢',
+    label:  'Global Broadcast',
+    color:  '#7C3AED',
+    bg:     '#F5F3FF',
+    path:   '/sms',
+  },
+  /* admin / school staff */
   {
     roles:  ['admin'],
     icon:   '➕',
@@ -66,7 +92,7 @@ const ALL_SHORTCUTS = [
   {
     roles:  ['admin','teacher','staff'],
     icon:   '🎓',
-    label:  'Learners',
+    label:  'Learners List',
     color:  '#2563EB',
     bg:     '#EFF6FF',
     path:   '/learners',
@@ -81,6 +107,14 @@ const ALL_SHORTCUTS = [
     action: 'report-cards',
   },
   /* parent */
+  {
+    roles:  ['parent'],
+    icon:   '🏠',
+    label:  'Parent Home',
+    color:  '#2563EB',
+    bg:     '#EFF6FF',
+    path:   '/parent-home',
+  },
   {
     roles:  ['parent'],
     icon:   '📋',
@@ -110,6 +144,7 @@ const ALL_SHORTCUTS = [
 export default function QuickAccess({ role, grade, admNo, cols = 4 }) {
   const router = useRouter();
 
+  // Filter shortcuts based on role
   const shortcuts = ALL_SHORTCUTS.filter(s => s.roles.includes(role));
 
   function navigate(s) {

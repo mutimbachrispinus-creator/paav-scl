@@ -37,6 +37,7 @@ export default function MeritListPage() {
   const [grade,  setGrade]  = useState('GRADE 7');
   const [term,   setTerm]   = useState('T1');
   const [assess, setAssess] = useState('mt1');
+  const [school,   setSchool]   = useState({ name: 'SCHOOL PORTAL' });
 
   const load = useCallback(async () => {
     const authRes = await fetch('/api/auth');
@@ -52,12 +53,21 @@ export default function MeritListPage() {
         { type: 'get', key: 'paav6_learners' },
         { type: 'get', key: 'paav6_marks'    },
         { type: 'get', key: 'paav8_grad'     },
+        { type: 'get', key: 'paav_school_profile' },
       ]}),
     });
     const db = await dbRes.json();
     setLearners(db.results[0]?.value || []);
     setMarks(   db.results[1]?.value || {});
     setGradCfg( db.results[2]?.value || null);
+    
+    if (db.results[3]?.value) {
+      try {
+        const prof = typeof db.results[3].value === 'string' ? JSON.parse(db.results[3].value) : db.results[3].value;
+        if (prof.name) setSchool({ name: prof.name });
+      } catch(e) {}
+    }
+
     setLoading(false);
   }, [router, setGrade]);
 
@@ -114,7 +124,8 @@ export default function MeritListPage() {
     <div className="page on">
       <div className="page-hdr">
         <div>
-          <h2>🏆 Merit List</h2>
+          <h1 className="print-only" style={{ display: 'none', textAlign: 'center', marginBottom: 10, fontSize: 24, fontWeight: 900 }}>{school.name.toUpperCase()}</h1>
+          <h2>🏆 {school.name} Merit List</h2>
           <p>CBC top performers — ranked by total points · <span style={{fontWeight:700,color:'#8B1A1A'}}>{ASSESS_LABELS[assess]}</span></p>
         </div>
         <div className="page-hdr-acts">
@@ -353,6 +364,12 @@ export default function MeritListPage() {
           </div>
         </>
       )}
+      <style jsx global>{`
+        @media print {
+          .print-only { display: block !important; }
+          .no-print { display: none !important; }
+        }
+      `}</style>
     </div>
   );
 }
