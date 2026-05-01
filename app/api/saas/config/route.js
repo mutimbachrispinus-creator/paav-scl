@@ -38,7 +38,7 @@ export async function GET(request) {
       };
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       tenantId,
       profile: profileData || { 
         name: 'EduVantage School', 
@@ -58,7 +58,10 @@ export async function GET(request) {
       })
     });
 
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
+    return response;
+
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500, headers: { 'Cache-Control': 'no-store' } });
   }
 }
