@@ -18,13 +18,17 @@ export default function FinanceDashboardPage() {
     if (!u || u.role !== 'admin') { router.push('/'); return; }
     setUser(u);
 
-    const res = await fetch('/api/finance/ledger');
-    const data = await res.json();
-    setLedger(data.ledger || []);
+    const db = await getCachedDBMulti(['paav_finance_ledger', 'paav_finance_budgets', 'paav_petty_cash']);
+    setLedger(db.paav_finance_ledger || []);
+    setBudgets(db.paav_finance_budgets || []);
+    setPettyCash(db.paav_petty_cash || []);
     setLoading(false);
   }, [router]);
 
   useEffect(() => { load(); }, [load]);
+
+  const [budgets, setBudgets] = useState([]);
+  const [pettyCash, setPettyCash] = useState([]);
 
   const stats = useMemo(() => {
     const months = {};
@@ -35,7 +39,6 @@ export default function FinanceDashboardPage() {
       const month = tx.date.slice(0, 7); // YYYY-MM
       if (!months[month]) months[month] = { month, income: 0, expense: 0 };
       
-      // Simplified: Assume 4000 series is Income, 5000 is Expense
       if (tx.creditAcc.startsWith('4')) {
         months[month].income += tx.amount;
         totalIncome += tx.amount;
@@ -45,37 +48,46 @@ export default function FinanceDashboardPage() {
       }
     });
 
+    const budgetTotal = budgets.reduce((s, b) => s + b.amount, 0);
+    const pettyBalance = pettyCash.reduce((sum, tx) => tx.type === 'income' ? sum + tx.amount : sum - tx.amount, 0);
+
     return { 
       chartData: Object.values(months).sort((a,b) => a.month.localeCompare(b.month)),
       totalIncome,
       totalExpense,
-      balance: totalIncome - totalExpense
+      balance: totalIncome - totalExpense,
+      budgetTotal,
+      pettyBalance
     };
-  }, [ledger]);
+  }, [ledger, budgets, pettyCash]);
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading Finance Dashboard…</div>;
+  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading Finance Hub…</div>;
 
   return (
     <div className="page on">
       <div className="page-hdr">
         <div>
-          <h2>💰 Enterprise Finance Dashboard</h2>
-          <p>Real-time school financial health and cash flow analytics</p>
+          <h2>💎 Enterprise Finance Hub</h2>
+          <p>Real-time institutional liquidity and strategic financial analytics</p>
         </div>
       </div>
 
-      <div className="sg sg3" style={{ marginBottom: 20 }}>
+      <div className="sg sg4" style={{ marginBottom: 20 }}>
         <div className="panel" style={{ textAlign: 'center', background: '#F0FDF4' }}>
-          <div style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>TOTAL INCOME</div>
-          <div style={{ fontSize: 32, fontWeight: 900, color: '#166534' }}>KSH {stats.totalIncome.toLocaleString()}</div>
+          <div style={{ fontSize: 10, color: '#166534', fontWeight: 800 }}>REVENUE</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: '#166534' }}>KSH {stats.totalIncome.toLocaleString()}</div>
         </div>
         <div className="panel" style={{ textAlign: 'center', background: '#FEF2F2' }}>
-          <div style={{ fontSize: 11, color: '#991B1B', fontWeight: 700 }}>TOTAL EXPENSES</div>
-          <div style={{ fontSize: 32, fontWeight: 900, color: '#991B1B' }}>KSH {stats.totalExpense.toLocaleString()}</div>
+          <div style={{ fontSize: 10, color: '#991B1B', fontWeight: 800 }}>EXPENDITURE</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: '#991B1B' }}>KSH {stats.totalExpense.toLocaleString()}</div>
         </div>
-        <div className="panel" style={{ textAlign: 'center', background: '#F0F9FF', border: '2px solid #0369A1' }}>
-          <div style={{ fontSize: 11, color: '#0369A1', fontWeight: 700 }}>NET BALANCE</div>
-          <div style={{ fontSize: 32, fontWeight: 900, color: '#0369A1' }}>KSH {stats.balance.toLocaleString()}</div>
+        <div className="panel" style={{ textAlign: 'center', background: '#F0F9FF' }}>
+          <div style={{ fontSize: 10, color: '#0369A1', fontWeight: 800 }}>PETTY CASH</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: '#0369A1' }}>KSH {stats.pettyBalance.toLocaleString()}</div>
+        </div>
+        <div className="panel" style={{ textAlign: 'center', background: '#FFF7ED', border: '2px solid #EA580C' }}>
+          <div style={{ fontSize: 10, color: '#9A3412', fontWeight: 800 }}>BUDGET TARGET</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: '#9A3412' }}>KSH {stats.budgetTotal.toLocaleString()}</div>
         </div>
       </div>
 
@@ -83,24 +95,23 @@ export default function FinanceDashboardPage() {
         <div className="panel-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
-              <span style={{ fontSize: 24 }}>🤖</span>
-              <h3 style={{ margin: 0, color: '#fff' }}>Smart AI Budget Forecast</h3>
+              <span style={{ fontSize: 24 }}>🧠</span>
+              <h3 style={{ margin: 0, color: '#fff' }}>Strategic Sustainability Forecast</h3>
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: '#94A3B8' }}>Based on your average monthly burn rate of <strong>KSH {Math.round(stats.totalExpense / (stats.chartData.length || 1)).toLocaleString()}</strong></p>
+            <p style={{ margin: 0, fontSize: 13, color: '#94A3B8' }}>Based on current burn rate of <strong>KSH {Math.round(stats.totalExpense / (stats.chartData.length || 1)).toLocaleString()} / mo</strong></p>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 11, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1 }}>Estimated Sustainability</div>
+            <div style={{ fontSize: 11, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1 }}>Financial Runway</div>
             <div style={{ fontSize: 28, fontWeight: 900, color: '#FCD34D' }}>
-              {stats.balance > 0 ? `${Math.floor(stats.balance / (stats.totalExpense / (stats.chartData.length || 1)))} Months` : 'Urgent Funding Needed'}
+              {stats.balance > 0 ? `${Math.floor(stats.balance / (stats.totalExpense / (stats.chartData.length || 1)))} Months` : 'Immediate Attention Required'}
             </div>
-            <div style={{ fontSize: 10, color: '#94A3B8' }}>*Predicted with current spending trends</div>
           </div>
         </div>
       </div>
 
       <div className="sg-responsive">
         <div className="panel">
-          <div className="panel-hdr"><h3>📊 Cash Flow (Monthly)</h3></div>
+          <div className="panel-hdr"><h3>📊 Liquidity Trends</h3></div>
           <div className="panel-body" style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.chartData}>
@@ -116,35 +127,18 @@ export default function FinanceDashboardPage() {
         </div>
 
         <div className="panel">
-          <div className="panel-hdr"><h3>🔮 Revenue Forecast</h3></div>
-          <div className="panel-body" style={{ height: 300 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={[
-                ...stats.chartData.slice(-3),
-                { month: 'Next Month (Est.)', income: Math.round(stats.totalIncome / (stats.chartData.length || 1) * 1.1), isForecast: true }
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                <YAxis axisLine={false} tickLine={false} />
-                <Tooltip />
-                <Bar dataKey="income" radius={[4, 4, 0, 0]}>
-                   {stats.chartData.slice(-3).concat([{ month: 'Next Month (Est.)' }]).map((entry, index) => (
-                     <Cell key={`cell-${index}`} fill={index === 3 ? '#9333EA' : '#0369A1'} fillOpacity={index === 3 ? 0.6 : 1} />
-                   ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="panel-hdr"><h3>⚡ Finance Command Center</h3></div>
+          <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <button className="quick-access-btn" onClick={() => router.push('/finance/invoices')}>📄 Invoicing</button>
+            <button className="quick-access-btn" onClick={() => router.push('/finance/expenses')}>🧾 Expenses</button>
+            <button className="quick-access-btn" onClick={() => router.push('/finance/budgets')}>📊 Budgets</button>
+            <button className="quick-access-btn" onClick={() => router.push('/finance/petty-cash')}>💵 Petty Cash</button>
+            <button className="quick-access-btn" onClick={() => router.push('/finance/reconcile')}>🏦 Reconcile</button>
+            <button className="quick-access-btn" onClick={() => router.push('/finance/payroll')}>💸 Payroll</button>
           </div>
         </div>
-
-        <div className="panel">
-          <div className="panel-hdr"><h3>⚡ Quick Actions</h3></div>
-          <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <button className="quick-access-btn" onClick={() => router.push('/finance/invoices')}>📄 Generate Invoices</button>
-            <button className="quick-access-btn" onClick={() => router.push('/finance/expenses')}>🧾 Record Expenditure</button>
-            <button className="quick-access-btn" onClick={() => router.push('/finance/payroll')}>🇰🇪 Process Payroll</button>
-            <button className="quick-access-btn" onClick={() => router.push('/finance/reconcile')}>🏦 Bank Reconciliation</button>
-          </div>
+      </div>
+v>
         </div>
       </div>
 
