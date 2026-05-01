@@ -30,6 +30,7 @@ export default function PerformancePage() {
   const [term, setTerm] = useState('T1');
   const [assess, setAssess] = useState('et1');
   const [grade, setGrade] = useState('GRADE 7');
+  const [stream, setStream] = useState('');
   const [tab, setTab] = useState('class');
 
   useEffect(() => {
@@ -54,12 +55,16 @@ export default function PerformancePage() {
     load();
   }, [router]);
 
+  const streams = useMemo(() => {
+    return [...new Set(learners.filter(l => l.grade === grade).map(l => l.stream || 'Default'))].sort();
+  }, [learners, grade]);
+
   const subjects = useMemo(() =>
     (subjCfg[grade]?.length>0) ? subjCfg[grade] : (DEFAULT_SUBJECTS[grade]||[]),
   [subjCfg,grade]);
 
   const gradeData = useMemo(() => {
-    const gl = learners.filter(l=>l.grade===grade);
+    const gl = learners.filter(l => l.grade === grade && (!stream || (l.stream || 'Default') === stream));
     return gl.map(l => {
       let totalPts=0, totalScore=0, count=0;
       const detail = subjects.map(s => {
@@ -75,7 +80,7 @@ export default function PerformancePage() {
       });
       return {...l,totalPts,totalScore,count,avgScore:count?Math.round(totalScore/count):0,detail};
     }).filter(l=>l.count>0).sort((a,b)=>b.totalPts-a.totalPts).map((l,i)=>({...l,rank:i+1}));
-  },[learners,marks,grade,term,assess,subjects,gradCfg]);
+  },[learners,marks,grade,stream,term,assess,subjects,gradCfg]);
 
   // Most improved: compare two assessments
   const improved = useMemo(() => {
@@ -148,9 +153,15 @@ export default function PerformancePage() {
           <p style={{color:'var(--muted)'}}>Deep academic insights — {grade} · {ASSESS_LABELS[assess]} · Term {term.replace('T','')}</p>
         </div>
         <div className="page-hdr-acts">
-          <select value={grade} onChange={e=>setGrade(e.target.value)} style={{borderRadius:8,padding:'7px 10px',border:`2px solid ${MB}`,fontSize:12,outline:'none',color:M,fontWeight:700}}>
+          <select value={grade} onChange={e=>{setGrade(e.target.value); setStream('');}} style={{borderRadius:8,padding:'7px 10px',border:`2px solid ${MB}`,fontSize:12,outline:'none',color:M,fontWeight:700}}>
             {ALL_GRADES.map(g=><option key={g}>{g}</option>)}
           </select>
+          {streams.length > 1 && (
+            <select value={stream} onChange={e=>setStream(e.target.value)} style={{borderRadius:8,padding:'7px 10px',border:`2px solid ${MB}`,fontSize:12,outline:'none',color:M,fontWeight:700}}>
+              <option value="">All Streams</option>
+              {streams.map(s => <option key={s} value={s}>Stream {s}</option>)}
+            </select>
+          )}
           <select value={term} onChange={e=>setTerm(e.target.value)} style={{borderRadius:8,padding:'7px 10px',border:`2px solid ${MB}`,fontSize:12,outline:'none'}}>
             <option value="T1">Term 1</option><option value="T2">Term 2</option><option value="T3">Term 3</option>
           </select>

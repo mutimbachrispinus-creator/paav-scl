@@ -23,6 +23,7 @@ export default function TemplatesPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState('merit');
+  const [profile, setProfile] = useState({ name: 'EDUVANTAGE PORTAL' });
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
   const [marks, setMarks] = useState({});
@@ -45,7 +46,7 @@ export default function TemplatesPage() {
         setUser(auth);
         
         const db = await getCachedDBMulti([
-          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog', 'paav6_feecfg', 'paav_student_attendance'
+          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog', 'paav6_feecfg', 'paav_student_attendance', 'paav_school_profile'
         ]);
         
         setLearners(db.paav6_learners || []);
@@ -58,6 +59,11 @@ export default function TemplatesPage() {
         const paylogList = db.paav6_paylog || [];
         setFees([...feeList, ...paylogList]);
         setAtt(db.paav_student_attendance || {});
+        
+        if (db.paav_school_profile) {
+          const prof = typeof db.paav_school_profile === 'string' ? JSON.parse(db.paav_school_profile) : db.paav_school_profile;
+          setProfile(prof);
+        }
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     }
@@ -193,25 +199,25 @@ export default function TemplatesPage() {
       {/* Instant tab switching — all tabs rendered, only active is shown */}
       <div className="print-container">
         <div style={{ display: tab === 'merit'   ? 'block' : 'none' }}>
-          <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} gradCfg={gradCfg} />
+          <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} gradCfg={gradCfg} profile={profile} />
         </div>
         <div style={{ display: tab === 'report'  ? 'block' : 'none' }}>
-          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} />
+          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} profile={profile} />
         </div>
         <div style={{ display: tab === 'class'   ? 'block' : 'none' }}>
-          <ClassListTemplate learners={filteredLearners} grade={grade} />
+          <ClassListTemplate learners={filteredLearners} grade={grade} profile={profile} />
         </div>
         <div style={{ display: tab === 'balance' ? 'block' : 'none' }}>
-          <FeeBalanceListTemplate learners={filteredLearners} fees={fees} grade={grade} feeCfg={feeCfg} />
+          <FeeBalanceListTemplate learners={filteredLearners} fees={fees} grade={grade} feeCfg={feeCfg} profile={profile} />
         </div>
         <div style={{ display: tab === 'receipt' ? 'block' : 'none' }}>
-          <ReceiptTemplate learners={filteredLearners} fees={fees} grade={grade} selLearner={selLearner} feeCfg={feeCfg} />
+          <ReceiptTemplate learners={filteredLearners} fees={fees} grade={grade} selLearner={selLearner} feeCfg={feeCfg} profile={profile} />
         </div>
         <div style={{ display: tab === 'id'      ? 'block' : 'none' }}>
-          <IDCardTemplate learners={filteredLearners} grade={grade} />
+          <IDCardTemplate learners={filteredLearners} grade={grade} profile={profile} />
         </div>
         <div style={{ display: tab === 'register'? 'block' : 'none' }}>
-          <AttendanceRegisterTemplate learners={filteredLearners} grade={grade} type={regType} att={att} />
+          <AttendanceRegisterTemplate learners={filteredLearners} grade={grade} type={regType} att={att} profile={profile} />
         </div>
       </div>
     </div>
@@ -220,15 +226,15 @@ export default function TemplatesPage() {
 
 /* ── SUB-COMPONENTS ── */
 
-function PrintHeader({ title, grade }) {
+function PrintHeader({ title, grade, profile = {} }) {
   return (
     <div style={{ textAlign: 'center', borderBottom: '3px double #8B1A1A', paddingBottom: 12, marginBottom: 16 }}>
       {/* School logo */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.png" alt="PAAV Logo" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'contain', margin: '0 auto 8px', border: '2px solid #D97706', background: '#fff', padding: 4 }} />
-      <h1 style={{ fontFamily: 'Sora', fontSize: 17, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>SCHOOL PORTAL COMMUNITY SCHOOL</h1>
-      <p style={{ fontSize: 10, margin: '2px 0', color: '#555' }}>P.O BOX 4091-00100 Nairobi | 0758 922 915 | paavgitomboschool@gmail.com</p>
-      <p style={{ fontSize: 10, fontStyle: 'italic', color: '#D97706', fontWeight: 700, margin: '2px 0' }}>✝ More Than Academics!</p>
+      <img src={profile.logo || "/logo.png"} alt="School Logo" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'contain', margin: '0 auto 8px', border: '2px solid #D97706', background: '#fff', padding: 4 }} />
+      <h1 style={{ fontFamily: 'Sora', fontSize: 17, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>{profile.name?.toUpperCase() || 'EDUVANTAGE PORTAL'}</h1>
+      <p style={{ fontSize: 10, margin: '2px 0', color: '#555' }}>{profile.address || 'Nairobi, Kenya'} | {profile.phone || '0758 922 915'} | {profile.email || 'portal@eduvantage.com'}</p>
+      <p style={{ fontSize: 10, fontStyle: 'italic', color: '#D97706', fontWeight: 700, margin: '2px 0' }}>{profile.motto || 'Education Portal'}</p>
       <div style={{ background: '#8B1A1A', color: '#fff', display: 'inline-block', padding: '3px 16px', borderRadius: 4, marginTop: 6, fontWeight: 700, fontSize: 12 }}>
         {title} — {grade}
       </div>
@@ -236,7 +242,7 @@ function PrintHeader({ title, grade }) {
   );
 }
 
-function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gradCfg }) {
+function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gradCfg, profile }) {
   const data = learners.map(l => {
     let total = 0;
     let totalMarks = 0;
@@ -279,14 +285,14 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
     ? { EE1:0, EE2:0, ME1:0, ME2:0, AE1:0, AE2:0, BE1:0, BE2:0 }
     : { EE: 0, ME: 0, AE: 0, BE: 0 };
     
-  data.forEach(l => {
-    const info = gInfo(l.totalMarks / (subjects.length || 1), grade, gradCfg);
-    if (dist[info.lv] !== undefined) dist[info.lv]++;
-  });
+    data.forEach(l => {
+      const info = gInfo(l.totalMarks / (subjects.length || 1), grade, gradCfg);
+      if (dist[info.lv] !== undefined) dist[info.lv]++;
+    });
 
   return (
     <div>
-      <PrintHeader title="MERIT LIST" grade={grade} />
+      <PrintHeader title="MERIT LIST" grade={grade} profile={profile} />
       
 
       <div style={{ textAlign: 'center', marginBottom: 15, fontSize: 13, fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -404,7 +410,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
   );
 }
 
-function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg }) {
+function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, profile }) {
   // Pre-calculate ranks based on average points
   const rankedData = learners.map(l => {
     const report = calcLearnerReportData(marks, l.adm, grade, term, subjects, gradCfg);
@@ -423,10 +429,10 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg })
         <div key={l.adm} className="rc-page" style={{ background: '#FFFDF9', position: 'relative', overflow: 'hidden' }}>
           {/* Subtle watermark or texture could go here */}
           <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-45deg)', fontSize: 150, color: 'rgba(139, 26, 26, 0.03)', fontWeight: 900, pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: 0 }}>
-            SCHOOL PORTAL
+            {profile.name?.split(' ')[0] || 'PORTAL'}
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <PrintHeader title="STUDENT PROGRESS REPORT" grade={grade} />
+            <PrintHeader title="STUDENT PROGRESS REPORT" grade={grade} profile={profile} />
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 15, marginBottom: 25, border: '1.5px solid #8B1A1A', padding: 15, borderRadius: 8 }}>
@@ -522,7 +528,7 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg })
           </div>
 
           <div style={{ marginTop: 40, textAlign: 'center', fontSize: 11, color: '#666' }}>
-            <p>This is an official document of SCHOOL PORTAL COMMUNITY SCHOOL. Any alterations make it invalid.</p>
+            <p>This is an official document of {profile.name || 'EDUVANTAGE PORTAL'}. Any alterations make it invalid.</p>
             <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-around' }}>
               <div>Stamp: [ ________________ ]</div>
               <div>Date: {new Date().toLocaleDateString()}</div>
@@ -534,10 +540,10 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg })
   );
 }
 
-function ClassListTemplate({ learners, grade }) {
+function ClassListTemplate({ learners, grade, profile }) {
   return (
     <div>
-      <PrintHeader title="OFFICIAL CLASS LIST" grade={grade} />
+      <PrintHeader title="OFFICIAL CLASS LIST" grade={grade} profile={profile} />
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
         <thead>
           <tr style={{ background: '#f4f4f4' }}>
@@ -564,7 +570,7 @@ function ClassListTemplate({ learners, grade }) {
   );
 }
 
-function FeeBalanceListTemplate({ learners, fees, grade, feeCfg }) {
+function FeeBalanceListTemplate({ learners, fees, grade, feeCfg, profile }) {
   const getAnnualFee = g => feeCfg[g]?.annual || 5000;
   
   let totalExpected = 0;
@@ -585,7 +591,7 @@ function FeeBalanceListTemplate({ learners, fees, grade, feeCfg }) {
 
   return (
     <div>
-      <PrintHeader title="FEE BALANCE LIST" grade={grade} />
+      <PrintHeader title="FEE BALANCE LIST" grade={grade} profile={profile} />
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
         <thead>
           <tr style={{ background: '#f4f4f4' }}>
@@ -639,7 +645,7 @@ function FeeBalanceListTemplate({ learners, fees, grade, feeCfg }) {
   );
 }
 
-function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
+function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg, profile }) {
   const targetLearners = learners.filter(l => {
     if (grade && l.grade !== grade) return false;
     if (selLearner && l.adm !== selLearner) return false;
@@ -687,9 +693,9 @@ function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
             {/* Letterhead */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, borderBottom: '2px solid #8B1A1A', paddingBottom: 10 }}>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 900, fontSize: 18, color: '#8B1A1A', letterSpacing: -0.5 }}>SCHOOL PORTAL SCHOOL</div>
-                <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>✝ More Than Academics!</div>
-                <div style={{ fontSize: 9, color: '#666' }}>Tel: 0758 922 915</div>
+                <div style={{ fontWeight: 900, fontSize: 18, color: '#8B1A1A', letterSpacing: -0.5 }}>{profile.name || 'SCHOOL PORTAL'}</div>
+                <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>{profile.motto || '✝ More Than Academics!'}</div>
+                <div style={{ fontSize: 9, color: '#666' }}>Tel: {profile.phone || '0758 922 915'}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontWeight: 800, fontSize: 12, background: '#8B1A1A', color: '#fff', padding: '4px 12px', borderRadius: 4 }}>FEES STATEMENT</div>
@@ -813,15 +819,15 @@ function ReceiptTemplate({ learners, fees, grade, selLearner, feeCfg }) {
   );
 }
 
-function IDCardTemplate({ learners, grade }) {
+function IDCardTemplate({ learners, grade, profile }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
       {learners.map(l => (
         <div key={l.adm} style={{ width: 340, height: 215, border: '1.5px solid #8B1A1A', borderRadius: 10, overflow: 'hidden', position: 'relative', background: '#fff', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
           {/* Header */}
           <div style={{ background: '#8B1A1A', color: '#fff', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <img src="/logo.png" alt="L" style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', padding: 2 }} />
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5 }}>SCHOOL PORTAL COMMUNITY SCHOOL</div>
+            <img src={profile.logo || "/logo.png"} alt="L" style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', padding: 2 }} />
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5 }}>{profile.name?.toUpperCase() || 'EDUVANTAGE PORTAL'}</div>
           </div>
           
           <div style={{ flex: 1, display: 'flex', padding: 10, gap: 12 }}>
@@ -853,10 +859,10 @@ function IDCardTemplate({ learners, grade }) {
 
           {/* Footer */}
           <div style={{ background: '#F8FAFC', borderTop: '1px solid #E2E8F0', padding: '4px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: 7, color: '#94A3B8', fontStyle: 'italic' }}>✝ More Than Academics!</div>
+            <div style={{ fontSize: 7, color: '#94A3B8', fontStyle: 'italic' }}>{profile.motto || 'Education Portal'}</div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 8, fontWeight: 700, color: '#1E293B' }}>SCHOOL PORTAL</div>
-              <div style={{ fontSize: 6, color: '#94A3B8' }}>P.O BOX 4091-00100</div>
+              <div style={{ fontSize: 8, fontWeight: 700, color: '#1E293B' }}>{profile.name || 'PORTAL'}</div>
+              <div style={{ fontSize: 6, color: '#94A3B8' }}>{profile.address || 'Kenya'}</div>
             </div>
           </div>
         </div>
@@ -865,7 +871,7 @@ function IDCardTemplate({ learners, grade }) {
   );
 }
 
-function AttendanceRegisterTemplate({ learners, grade, type, att }) {
+function AttendanceRegisterTemplate({ learners, grade, type, att, profile }) {
   // Helper to generate days for the register
   const getDays = () => {
     const year = new Date().getFullYear();
@@ -906,7 +912,7 @@ function AttendanceRegisterTemplate({ learners, grade, type, att }) {
 
   return (
     <div style={{ pageBreakInside: 'avoid' }}>
-      <PrintHeader title={`ATTENDANCE REGISTER (${type.toUpperCase()})`} grade={grade} />
+      <PrintHeader title={`ATTENDANCE REGISTER (${type.toUpperCase()})`} grade={grade} profile={profile} />
       <div style={{ marginBottom: 15, fontSize: 13, display: 'flex', gap: 30, borderBottom: '1px solid #eee', paddingBottom: 10 }}>
         <div><strong>Period:</strong> {isAnnual ? new Date().getFullYear() : new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</div>
         <div><strong>Teacher:</strong> ____________________</div>

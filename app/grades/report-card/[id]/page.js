@@ -25,7 +25,7 @@ export default function ReportCardPage() {
   const [marks,   setMarks]   = useState({});
   const [feeCfg,  setFeeCfg]  = useState({});
   const [gradCfg, setGradCfg] = useState(null);
-  const [school,  setSchool]  = useState({ name: 'SCHOOL PORTAL COMMUNITY SCHOOL', motto: '"More Than Academics!"', tel: '0758 922 915', location: 'Gitombo, Embu County, Kenya' });
+  const [school,  setSchool]  = useState({ name: 'EDUVANTAGE PORTAL', motto: '"More Than Academics!"', tel: '0758 922 915', location: 'Embu County, Kenya' });
   const [term,    setTerm]    = useState('T1');
   const [loading, setLoading] = useState(true);
 

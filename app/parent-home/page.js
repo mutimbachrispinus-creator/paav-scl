@@ -170,8 +170,10 @@ export default function ParentHome() {
         <body>
           <div class="receipt">
             <div class="header">
-              <div class="logo">SCHOOL PORTAL</div>
-              <div class="school">OFFICIAL FEE RECEIPT</div>
+              <div class="logo">
+                <img src="${payInfo.profile?.logo || ''}" style="width:50px; height:50px; border-radius:50%;" />
+              </div>
+              <div class="school">${payInfo.profile?.name || 'OFFICIAL FEE RECEIPT'}</div>
               <div class="title">No: ${p.id || 'N/A'}</div>
             </div>
             <div class="row"><span class="label">Student Name:</span> <span class="val">${child.name}</span></div>

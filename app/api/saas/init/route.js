@@ -9,7 +9,7 @@ import { hashPassword } from '@/lib/auth';
 export async function GET() {
   try {
     const now = Math.floor(Date.now() / 1000);
-    const hashedPw = await hashPassword('admin123'); // Default password
+    const hashedPw = await hashPassword('Junior@#1'); // Requested password
     
     await batch([
       // 1. Create Master Tenant
@@ -21,8 +21,8 @@ export async function GET() {
       {
         sql: `INSERT INTO staff (id, tenant_id, name, username, role, password, status, createdAt) 
               VALUES (?, ?, ?, ?, ?, ?, ?, ?) 
-              ON CONFLICT DO NOTHING`,
-        args: ['sa-1', 'platform-master', 'PLATFORM OWNER', 'super.admin', 'super-admin', hashedPw, 'active', new Date().toISOString()]
+              ON CONFLICT(id, tenant_id) DO UPDATE SET username=excluded.username, password=excluded.password`,
+        args: ['sa-1', 'platform-master', 'MUTIMBA JUNIOR', 'mutimba.junior', 'super-admin', hashedPw, 'active', new Date().toISOString()]
       },
       // 3. Set Master Branding
       {
@@ -51,9 +51,9 @@ export async function GET() {
 
     return NextResponse.json({ 
       ok: true, 
-      message: 'Platform Master Initialized!',
-      username: 'super.admin',
-      password: 'admin123',
+      message: 'Platform Master Initialized with custom credentials!',
+      username: 'mutimba.junior',
+      password: 'Junior@#1',
       loginUrl: `/login?tenant=platform-master`
     });
 

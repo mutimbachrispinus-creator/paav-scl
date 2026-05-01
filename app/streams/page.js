@@ -7,22 +7,24 @@ import { ALL_GRADES } from '@/lib/cbe';
 export default function StreamsPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const [streams, setStaffStreams] = useState([]); // Array of { grade, name }
+  const [streams, setStaffStreams] = useState([]); // Array of { grade, name, teacherId }
+  const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newStream, setNewStream] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('GRADE 1');
+  const [selectedTeacher, setSelectedTeacher] = useState('');
 
   const load = useCallback(async () => {
     const u = await getCachedUser();
     if (!u || u.role !== 'admin') { router.push('/'); return; }
     setUser(u);
 
-    const db = await getCachedDBMulti(['paav7_streams', 'paav_school_streams']);
-    // Migrate old flat streams if needed or just use new ones
+    const db = await getCachedDBMulti(['paav7_streams', 'paav6_staff']);
     let list = db.paav7_streams || [];
     if (!Array.isArray(list)) list = [];
     
     setStaffStreams(list);
+    setStaff(db.paav6_staff || []);
     setLoading(false);
   }, [router]);
 
@@ -37,9 +39,10 @@ export default function StreamsPage() {
       alert('Stream already exists for this grade'); return; 
     }
     
-    const updated = [...streams, { grade, name }];
+    const updated = [...streams, { grade, name, teacherId: selectedTeacher }];
     setStaffStreams(updated);
     setNewStream('');
+    setSelectedTeacher('');
 
     await fetch('/api/db', {
       method: 'POST',
@@ -91,7 +94,16 @@ export default function StreamsPage() {
                 onKeyDown={e => e.key === 'Enter' && addStream()}
               />
             </div>
-            <button className="btn btn-primary" style={{ width: '100%', marginTop: 10 }} onClick={addStream}>
+            <div className="field">
+              <label>Class Teacher</label>
+              <select value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)}>
+                <option value="">— Select Teacher —</option>
+                {staff.filter(s => s.role !== 'parent').map(s => (
+                  <option key={s.id} value={s.id}>{s.name} ({s.role})</option>
+                ))}
+              </select>
+            </div>
+            <button className="btn btn-primary" style={{ width: '100%', marginTop: 15 }} onClick={addStream}>
               ✅ Create Stream
             </button>
           </div>
@@ -106,19 +118,26 @@ export default function StreamsPage() {
                   <tr>
                     <th>Grade</th>
                     <th>Stream Name</th>
+                    <th>Class Teacher</th>
                     <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {streams.sort((a,b) => a.grade.localeCompare(b.grade)).map((s, i) => (
-                    <tr key={i}>
-                      <td><span className="badge bg-blue">{s.grade}</span></td>
-                      <td style={{ fontWeight: 800 }}>{s.name}</td>
-                      <td style={{ textAlign: 'right' }}>
-                        <button className="btn btn-danger btn-sm" onClick={() => removeStream(i)}>🗑️</button>
-                      </td>
-                    </tr>
-                  ))}
+                  {streams.sort((a,b) => a.grade.localeCompare(b.grade)).map((s, i) => {
+                    const t = staff.find(x => x.id === s.teacherId);
+                    return (
+                      <tr key={i}>
+                        <td><span className="badge bg-blue">{s.grade}</span></td>
+                        <td style={{ fontWeight: 800 }}>{s.name}</td>
+                        <td style={{ fontSize: 12, color: 'var(--muted)' }}>
+                          {t ? <strong>{t.name}</strong> : <span style={{ fontStyle: 'italic' }}>No teacher assigned</span>}
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <button className="btn btn-danger btn-sm" onClick={() => removeStream(i)}>🗑️</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {streams.length === 0 && (
                     <tr>
                       <td colSpan="3" style={{ textAlign: 'center', padding: 40, color: 'var(--muted)', fontStyle: 'italic' }}>

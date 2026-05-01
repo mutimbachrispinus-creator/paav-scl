@@ -20,6 +20,7 @@ export default function PayPage() {
   const [feeCfg,  setFeeCfg]  = useState({});
   const [paybillAccounts, setPaybillAccounts] = useState([]);
   const [looking, setLooking] = useState(false);
+  const [profile, setProfile] = useState({ name: 'EDUVANTAGE PORTAL' });
   const [err,     setErr]     = useState('');
 
   const [phone,   setPhone]   = useState('');
@@ -28,6 +29,21 @@ export default function PayPage() {
   const [paying,  setPaying]  = useState(false);
   const [payMsg,  setPayMsg]  = useState('');
   const [success, setSuccess] = useState(false);
+
+  // Fetch profile on load
+  useEffect(() => {
+    async function loadProf() {
+      const res = await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav_school_profile' }] })
+      });
+      const db = await res.json();
+      const p = db.results[0]?.value;
+      if (p) setProfile(typeof p === 'string' ? JSON.parse(p) : p);
+    }
+    loadProf();
+  }, []);
 
   async function lookup(e) {
     e?.preventDefault();
@@ -108,7 +124,7 @@ export default function PayPage() {
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div style={{ fontSize: 36, marginBottom: 6 }}>🏫</div>
           <div style={{ fontFamily: 'Sora,sans-serif', fontSize: 16, fontWeight: 800,
-            color: '#8B1A1A' }}>SCHOOL PORTAL COMMUNITY SCHOOL</div>
+            color: '#8B1A1A' }}>{profile.name?.toUpperCase() || 'EDUVANTAGE PORTAL'}</div>
           <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
             Secure Fee Payment Portal
           </div>

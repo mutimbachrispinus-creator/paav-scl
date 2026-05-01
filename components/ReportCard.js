@@ -25,7 +25,7 @@ export default function ReportCard({
   year      = new Date().getFullYear(),
   feeBal    = 0,
   scale     = [],
-  school    = { name: 'SCHOOL PORTAL COMMUNITY SCHOOL', motto: '"More Than Academics!"' },
+  school    = { name: 'EDUVANTAGE PORTAL', motto: '"More Than Academics!"' },
   promoSt   = 'review',
 }) {
   /* ── End-term totals ── */

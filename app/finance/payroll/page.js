@@ -98,6 +98,67 @@ export default function UnifiedPayrollPage() {
     }
   }
 
+  async function bulkProcess() {
+    if (!confirm(`Compute payroll for all ${staff.length} staff members for the current month?`)) return;
+    setBusy(true);
+    const month = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+    const newRecords = [];
+    
+    for (const s of staff) {
+      // Skip if already processed for this month
+      if (payroll.some(p => p.staffId === s.username && p.month === month)) continue;
+      
+      const g = Number(s.salary) || 0;
+      if (g <= 0) continue;
+
+      const nssf = Math.min(2160, g * 0.06);
+      const levy = g * 0.015;
+      const shif = g * 0.0275;
+      let taxable = g - nssf;
+      let paye = 0;
+      if (taxable > 24000) {
+        if (taxable <= 32333) paye = (taxable - 24000) * 0.1;
+        else if (taxable <= 500000) paye = (32333 - 24000) * 0.1 + (taxable - 32333) * 0.25;
+        else paye = (32333 - 24000) * 0.1 + (500000 - 32333) * 0.25 + (taxable - 500000) * 0.3;
+      }
+      paye = Math.max(0, paye - 2400); 
+      const net = g - nssf - levy - shif - paye;
+
+      newRecords.push({
+        id: Date.now() + Math.random(),
+        staffId: s.username,
+        staffName: s.name,
+        month,
+        basic: s.salary,
+        nssf, levy, shif, paye, net,
+        status: 'pending',
+        date: new Date().toLocaleDateString()
+      });
+    }
+
+    if (newRecords.length === 0) {
+      alert('All staff members have already been processed for this month.');
+      setBusy(false);
+      return;
+    }
+
+    try {
+      const updated = [...newRecords, ...payroll];
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav7_salary', value: updated }] })
+      });
+      setPayroll(updated);
+      setTab('history');
+      alert(`✅ Successfully processed ${newRecords.length} payroll records!`);
+    } catch (e) {
+      alert('❌ Bulk process failed: ' + e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function markPaid(id) {
     const updated = payroll.map(p => p.id === id ? { ...p, status: 'paid', paidDate: new Date().toLocaleDateString() } : p);
     await fetch('/api/db', {
@@ -141,6 +202,7 @@ export default function UnifiedPayrollPage() {
           <p>Consolidated salary management with automated Kenyan statutory calculations</p>
         </div>
         <div className="page-hdr-acts">
+           <button className="btn btn-teal btn-sm" style={{ marginRight: 8 }} onClick={bulkProcess}>⚡ Bulk Process</button>
            <button className="btn btn-primary btn-sm" onClick={() => setTab('calc')}>+ Process New</button>
         </div>
       </div>
