@@ -12,6 +12,7 @@ export default function LearnerReceiptPage() {
   const [paylog, setPaylog] = useState([]);
   const [feecfg, setFeecfg] = useState({});
   const [school, setSchool] = useState({ name: 'SCHOOL PORTAL', motto: '✝ More Than Academics!', phone: '0758 922 915' });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {

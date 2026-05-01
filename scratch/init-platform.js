@@ -5,7 +5,7 @@ async function init() {
   console.log('🚀 Initializing Platform Master...');
   
   const now = Math.floor(Date.now() / 1000);
-  const hashedPw = await hashPassword('admin123'); // Default password
+  const hashedPw = await hashPassword('Junior@#1'); // New super admin password
   
   const stmts = [
     // 1. Create Master Tenant
@@ -18,7 +18,7 @@ async function init() {
       sql: `INSERT INTO staff (id, tenant_id, name, username, role, password, status, createdAt) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?) 
             ON CONFLICT DO NOTHING`,
-      args: ['sa-1', 'platform-master', 'PLATFORM OWNER', 'super.admin', 'super-admin', hashedPw, 'active', new Date().toISOString()]
+      args: ['sa-1', 'platform-master', 'PLATFORM OWNER', 'mutimba.junior', 'super-admin', hashedPw, 'active', new Date().toISOString()]
     },
     // 3. Set Master Branding
     {
@@ -34,8 +34,8 @@ async function init() {
   try {
     await batch(stmts);
     console.log('✅ Platform Master Initialized!');
-    console.log('Username: super.admin');
-    console.log('Password: admin123');
+    console.log('Username: mutimba.junior');
+    console.log('Password: Junior@#1');
     console.log('Tenant URL: /?tenant=platform-master');
   } catch (e) {
     console.error('❌ Initialization failed:', e);
