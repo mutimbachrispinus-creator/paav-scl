@@ -11,7 +11,7 @@
  *  3. Parent completes payment on phone → payment is logged
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { fmtK } from '@/lib/cbe';
 
 export default function PayPage() {
