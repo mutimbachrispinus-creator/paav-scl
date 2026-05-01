@@ -3,6 +3,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ALL_GRADES, gInfo, DEFAULT_SUBJECTS, buildMeritList, getMark } from '@/lib/cbe';
+import PrintHeader from '@/components/PrintHeader';
+import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
 const M = '#8B1A1A', M2 = '#6B1212', ML = '#FDF2F2', MB = '#F5E6E6';
 const ASSESS_LABELS = { op1: 'Opener', mt1: 'Mid-Term', et1: 'End-Term' };
@@ -133,19 +135,35 @@ export default function PerformancePage() {
     return {grade:g,count:gl.length,avg:cnt?Math.round(tot/cnt):0,entries:cnt};
   }),[learners,marks,subjCfg,term,assess]);
 
+  // Stream comparison within the selected grade
+  const streamStats = useMemo(() => {
+    if (streams.length <= 1) return []; // Only show if multiple streams exist
+    return streams.map(s => {
+      const gl = learners.filter(l => l.grade === grade && (l.stream || 'Default') === s);
+      let tot=0,cnt=0;
+      gl.forEach(l => subjects.forEach(subj => {
+        const sc = getMark(marks, term, grade, subj, assess, l.adm);
+        if (sc !== null) { tot += sc; cnt++; }
+      }));
+      return { stream: s, count: gl.length, avg: cnt ? Math.round(tot/cnt) : 0, entries: cnt };
+    }).sort((a,b) => b.avg - a.avg);
+  }, [streams, learners, marks, grade, term, assess, subjects]);
+
   if (loading) return <div className="page on" style={{padding:60,textAlign:'center',color:'var(--muted)'}}>📊 Loading analytics…</div>;
 
   const TABS=[
     {id:'class',label:'🏆 Class Detail'},
+    {id:'streams',label:'🌊 Streams', hidden: streams.length <= 1},
     {id:'subjects',label:'📚 Subjects'},
     {id:'improved',label:'📈 Most Improved'},
     {id:'school',label:'🏫 School-Wide'},
     {id:'levels',label:'📊 Level Dist.'},
     {id:'trends',label:'📈 Long-Term Trends'},
-  ];
+  ].filter(t => !t.hidden);
 
   return (
     <div className="page on">
+      <PrintHeader />
       {/* Header */}
       <div className="page-hdr" style={{borderBottom:`3px solid ${MB}`,paddingBottom:16,marginBottom:20}}>
         <div>
@@ -244,6 +262,36 @@ export default function PerformancePage() {
                 {gradeData.length===0&&<tr><td colSpan={subjects.length+7} style={{textAlign:'center',padding:30,color:'var(--muted)'}}>No marks entered yet for {grade} — {ASSESS_LABELS[assess]}</td></tr>}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* STREAMS TAB */}
+      {tab==='streams' && (
+        <div className="panel" style={{border:`1.5px solid ${MB}`}}>
+          <div className="panel-hdr" style={{background:`linear-gradient(135deg,${M},${M2})`,color:'#fff'}}>
+            <h3 style={{color:'#fff'}}>🌊 {grade} Stream Comparison — {ASSESS_LABELS[assess]}</h3>
+          </div>
+          <div className="panel-body">
+            {streamStats.map(s => {
+              const barColor = s.avg>=70?'#059669':s.avg>=50?'#2563EB':s.avg>=30?'#D97706':'#DC2626';
+              const info = s.avg ? gInfo(s.avg, grade, gradCfg) : {lv:'—'};
+              return (
+                <div key={s.stream} onClick={()=>setStream(s.stream)} style={{cursor:'pointer',marginBottom:12,padding:'12px 15px',borderRadius:12,background:s.stream===stream?ML:'#FAFBFF',border:`1.5px solid ${s.stream===stream?M:MB}`,transition:'all .2s'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                    <span style={{fontWeight:800,fontSize:14,color:s.stream===stream?M:'var(--navy)'}}>{grade} {s.stream}</span>
+                    <div style={{display:'flex',gap:12,alignItems:'center'}}>
+                      <span style={{fontSize:11,color:'var(--muted)'}}>{s.count} learners · {s.entries} entries</span>
+                      <LvBadge lv={info.lv} />
+                      <span style={{fontWeight:900, fontSize:16, color:barColor}}>{s.avg}%</span>
+                    </div>
+                  </div>
+                  <div style={{height:12,background:'#F1F5F9',borderRadius:6,overflow:'hidden'}}>
+                    <div style={{width:`${Math.max(s.avg,1)}%`,height:'100%',background:barColor,borderRadius:6}} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DEFAULT_SUBJECTS, fmtK } from '@/lib/cbe';
+import PrintHeader from '@/components/PrintHeader';
 
 export default function ClassPage() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function ClassPage() {
   const grade = decodeURIComponent(gradeParam || '');
 
   const [learners, setLearners] = useState([]);
-  const [streams,  setStreams]  = useState({});
+  const [streams,  setStreams]  = useState([]);
   const [feeCfg,   setFeeCfg]  = useState({});
   const [loading,  setLoading] = useState(true);
   const [streamF,  setStreamF] = useState('');
@@ -34,7 +35,7 @@ export default function ClassPage() {
       const db = await dbRes.json();
       const all = (db.results[0]?.value || []).filter(l => l.grade === grade);
       setLearners(all);
-      setStreams( db.results[1]?.value || {});
+      setStreams( Array.isArray(db.results[1]?.value) ? db.results[1].value : []);
       setFeeCfg(  db.results[2]?.value || {});
       setLoading(false);
     }
@@ -42,7 +43,6 @@ export default function ClassPage() {
   }, [grade, router]);
 
   const annualFee  = feeCfg[grade]?.annual || 5000;
-  const streamName = streams[grade] || '';
   const allStreams  = [...new Set(learners.map(l => l.stream || 'Default').filter(Boolean))];
   const filtered   = learners.filter(l => !streamF || (l.stream || 'Default') === streamF);
   const subjects   = DEFAULT_SUBJECTS[grade] || [];
@@ -51,14 +51,18 @@ export default function ClassPage() {
 
   return (
     <div className="page on">
+      <PrintHeader />
       <div className="page-hdr">
         <div>
-          <h2>🏫 {grade}{streamName ? ` — ${streamName}` : ''}</h2>
+          <h2>🏫 {grade}{streamF && streamF !== 'Default' ? ` — ${streamF}` : ''}</h2>
           <p>{learners.length} learners enrolled · {subjects.length} learning areas</p>
         </div>
         <div className="page-hdr-acts">
           <button className="btn btn-ghost btn-sm" onClick={() => router.push('/learners')}>
             ← All Learners
+          </button>
+          <button className="btn btn-primary btn-sm no-print" onClick={() => router.push(`/grades/report-card/bulk?grade=${encodeURIComponent(grade)}&stream=${encodeURIComponent(streamF === 'Default' ? '' : streamF)}`)}>
+            🖨️ Stream Report Cards
           </button>
           <button className="btn btn-ghost btn-sm no-print" onClick={() => {
             document.body.classList.add('print-landscape');

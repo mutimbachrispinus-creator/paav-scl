@@ -21,10 +21,16 @@ export default function ReportsPage() {
       const dbRes = await fetch('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_dept_reports' }] })
+        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_dept_reports' }, { type: 'get', key: 'paav_school_profile' }] })
       });
       const db = await dbRes.json();
       const allReports = db.results[0]?.value || [];
+      const prof = db.results[1]?.value || {};
+      
+      if (prof.name) {
+        setSchool(typeof prof === 'string' ? JSON.parse(prof) : prof);
+      }
+
       
       // Admins see all, others see nothing or just a success confirmation
       if (auth.user.role === 'admin') {
@@ -187,7 +193,7 @@ export default function ReportsPage() {
                 <div style={{ background: '#fff', padding: '40px', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #E2E8F0', position: 'relative', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
                   {/* Memorandum Header */}
                   <div style={{ textAlign: 'center', marginBottom: 35, borderBottom: '2px solid #1E293B', paddingBottom: 20 }}>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: '#1E293B', letterSpacing: '3px', marginBottom: 6 }}>{profile.name?.toUpperCase() || 'EDUVANTAGE PORTAL'}</div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: '#1E293B', letterSpacing: '3px', marginBottom: 6 }}>{school.name?.toUpperCase() || 'EDUVANTAGE PORTAL'}</div>
                     <div style={{ fontSize: 22, fontWeight: 900, color: '#0F172A', textTransform: 'uppercase' }}>Departmental Progress Memorandum</div>
                   </div>
 

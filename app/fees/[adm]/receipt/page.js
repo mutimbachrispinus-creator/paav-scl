@@ -49,7 +49,8 @@ export default function LearnerReceiptPage() {
             setSchool({
               name: prof.name || 'SCHOOL PORTAL',
               motto: prof.motto || '✝ More Than Academics!',
-              phone: prof.phone || '0758 922 915'
+              phone: prof.phone || '0758 922 915',
+              logo: prof.logo || ''
             });
           } catch(e) {}
         }
@@ -83,10 +84,15 @@ export default function LearnerReceiptPage() {
       <div style={{ margin: '0 auto', padding: '10mm', background: '#fff', border: '1px solid #ddd', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', width: '148mm', minHeight: '105mm' }} className="standard-statement">
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, borderBottom: '2px solid var(--maroon)', paddingBottom: 10 }}>
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ fontWeight: 900, fontSize: 18, color: 'var(--maroon)', letterSpacing: -0.5 }}>{school.name}</div>
-            <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>{school.motto}</div>
-            <div style={{ fontSize: 9, color: '#666' }}>Tel: {school.phone}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+            {school.logo && (
+              <img src={school.logo} alt="Logo" style={{ width: 50, height: 50, objectFit: 'contain' }} />
+            )}
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontWeight: 900, fontSize: 18, color: 'var(--maroon)', letterSpacing: -0.5 }}>{school.name}</div>
+              <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>{school.motto}</div>
+              <div style={{ fontSize: 9, color: '#666' }}>Tel: {school.phone}</div>
+            </div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontWeight: 800, fontSize: 12, background: 'var(--maroon)', color: '#fff', padding: '4px 12px', borderRadius: 4 }}>FEES STATEMENT</div>

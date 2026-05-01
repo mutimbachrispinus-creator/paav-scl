@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { buildMeritList, ALL_GRADES, maxPts, DEFAULT_SUBJECTS, gInfo, JSS, SENIOR } from '@/lib/cbe';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+import PrintHeader from '@/components/PrintHeader';
 
 const ASSESS_LABELS = { op1:'Opener Exam', mt1:'Mid-Term Exam', et1:'End-Term Exam' };
 
@@ -125,9 +126,9 @@ export default function MeritListPage() {
 
   return (
     <div className="page on">
+      <PrintHeader />
       <div className="page-hdr">
         <div>
-          <h1 className="print-only" style={{ display: 'none', textAlign: 'center', marginBottom: 10, fontSize: 24, fontWeight: 900 }}>{school.name.toUpperCase()}</h1>
           <h2>🏆 {school.name} Merit List</h2>
           <p>CBC top performers — ranked by total points · <span style={{fontWeight:700,color:'#8B1A1A'}}>{ASSESS_LABELS[assess]}</span></p>
         </div>
