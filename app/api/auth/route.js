@@ -77,11 +77,29 @@ async function handleLogin({ username, password }, request) {
   if (!tenantId || tenantId === 'platform-master') {
     // Global login attempt: search across all tenants
     const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
+    
     if (rows.length > 1) {
-      return err('Multiple accounts found with this username. Please use your school-specific portal link.');
+      // SMART LOGOUT: Try to identify the user by password among the duplicates
+      const matches = [];
+      for (const row of rows) {
+        if (await verifyPassword(password, row.password)) {
+          matches.push(row);
+        }
+      }
+
+      if (matches.length === 1) {
+        user = matches[0];
+        user.passwordChecked = true;
+        tenantId = user.tenant_id;
+      } else if (matches.length > 1) {
+        return err('Multiple accounts found with this username and password. Please use your school-specific login link.');
+      } else {
+        return err('Incorrect password or account not found.');
+      }
+    } else {
+      user = rows[0];
+      if (user) tenantId = user.tenant_id;
     }
-    user = rows[0];
-    if (user) tenantId = user.tenant_id;
   } else {
     // School-specific login
     const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase().trim(), tenantId]);
@@ -98,18 +116,16 @@ async function handleLogin({ username, password }, request) {
     if (!sub || sub.status !== 'active') {
       return err('Your school subscription is inactive or has expired. Contact your principal.');
     }
-    // Check expiration date if exists
-    if (sub.expires_at) {
-      const exp = new Date(sub.expires_at);
-      if (exp < new Date()) {
-        return err('Your school subscription has expired. Please contact EduVantage support.');
-      }
+    if (sub.expires_at && new Date(sub.expires_at) < new Date()) {
+      return err('Your school subscription has expired. Please contact EduVantage support.');
     }
   }
 
-  // Strictly verify against hashed passwords
-  const match = await verifyPassword(password, user.password);
-  if (!match) return err('Incorrect password (Check your credentials)');
+  // Double check password match if not already verified by smart login
+  if (!user.passwordChecked) {
+    const match = await verifyPassword(password, user.password);
+    if (!match) return err('Incorrect password (Check your credentials)');
+  }
 
   // Prefetch common dashboard data to include in login response
   const [ann, msgs, hero, feecfg, learners] = await Promise.all([
