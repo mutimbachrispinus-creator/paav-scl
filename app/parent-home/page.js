@@ -50,6 +50,7 @@ export default function ParentHome() {
           { type: 'get', key: 'paav_calendar_events' },
           { type: 'get', key: 'paav_documents' },
           { type: 'get', key: 'paav6_paylog' },
+          { type: 'get', key: 'paav_school_profile' },
         ]})
       });
       const db = await dbRes.json();
@@ -57,8 +58,9 @@ export default function ParentHome() {
       const msgs = db.results[1]?.value || [];
       const fees = db.results[2]?.value || {};
       const mks = db.results[3]?.value || {};
+      const profile = db.results[8]?.value || {};
 
-      // Support multiple children — user.childAdm can be string (comma-separated) or array
+      // Support multiple children
       const admList = Array.isArray(auth.user.childAdm)
         ? auth.user.childAdm
         : auth.user.childAdm ? String(auth.user.childAdm).split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -73,6 +75,7 @@ export default function ParentHome() {
       setPayInfo({
         accounts: db.results[4]?.value || [],
         documents: db.results[6]?.value || [],
+        profile: profile
       });
       setEvents(db.results[5]?.value || []);
       setPaylog(db.results[7]?.value || []);
@@ -231,16 +234,24 @@ export default function ParentHome() {
     <div className="page on" id="pg-parent-home">
       {/* Header */}
       <div style={{background:`linear-gradient(135deg,${M},${M2})`,padding:'20px 24px',borderRadius:12,color:'#fff',marginBottom:18,display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
-        {/* Profile photo */}
-        <div className="photo-upload-wrapper" onClick={()=>fileRef.current?.click()} title="Click to change photo">
-          <div style={{width:60,height:60,borderRadius:'50%',background:'rgba(255,255,255,.2)',border:'2px solid rgba(255,255,255,.4)',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,cursor:'pointer'}}>
-            {user.avatar ? <img src={user.avatar} style={{width:'100%',height:'100%',objectFit:'cover'}} alt="Profile" /> : '👤'}
+        {/* School Logo / Profile photo */}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <div className="photo-upload-wrapper" onClick={()=>fileRef.current?.click()} title="Click to change photo">
+            <div style={{width:60,height:60,borderRadius:'50%',background:'rgba(255,255,255,.2)',border:'2px solid rgba(255,255,255,.4)',overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,cursor:'pointer'}}>
+              {user.avatar ? <img src={user.avatar} style={{width:'100%',height:'100%',objectFit:'cover'}} alt="Profile" /> : '👤'}
+            </div>
+            <div className="photo-upload-btn">📷</div>
+            <input ref={fileRef} type="file" accept="image/*" capture="user" style={{display:'none'}} onChange={uploadPhoto} />
           </div>
-          <div className="photo-upload-btn">📷</div>
-          <input ref={fileRef} type="file" accept="image/*" capture="user" style={{display:'none'}} onChange={uploadPhoto} />
+          {payInfo.profile?.logo && (
+            <div style={{ width: 60, height: 60, borderRadius: 12, background: '#fff', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(255,255,255,0.4)' }}>
+               <img src={payInfo.profile.logo} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="School Logo" />
+            </div>
+          )}
         </div>
         <div style={{flex:1}}>
           <h2 style={{fontSize:20,margin:0}}>Welcome, {user?.name}</h2>
+          <div style={{ fontSize: 12, opacity: 0.9, marginTop: 2, fontWeight: 700 }}>{payInfo.profile?.name || 'EduVantage School'}</div>
           {children.length > 1 && (
             <div style={{marginTop:6,display:'flex',gap:6,flexWrap:'wrap'}}>
               {children.map(c=>(
@@ -545,9 +556,11 @@ export default function ParentHome() {
               <h3 style={{color:'#fff'}}>💳 How to Pay</h3>
             </div>
             <div className="panel-body">
-              {payInfo.accounts?.length > 0 ? (
+              {/* M-Pesa Accounts */}
+              {(payInfo.accounts?.length > 0 || payInfo.profile?.bankAccounts?.length > 0) ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 15 }}>
-                  {payInfo.accounts.map(acc => (
+                  {/* M-Pesa Accounts */}
+                  {payInfo.accounts?.map(acc => (
                     <div key={acc.id} style={{ background: '#fff', border: '2px solid #A7F3D0', borderRadius: 12, padding: 15, display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
@@ -567,6 +580,27 @@ export default function ParentHome() {
                       >
                         💚 Pay with STK Push
                       </button>
+                    </div>
+                  ))}
+
+                  {/* Bank Accounts */}
+                  {payInfo.profile?.bankAccounts?.map((acc, i) => (
+                    <div key={i} style={{ background: '#fff', border: '2px solid #BFDBFE', borderRadius: 12, padding: 15, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase' }}>Bank Transfer</div>
+                          <div style={{ fontSize: 20, fontWeight: 900, color: '#1E40AF' }}>{acc.accNo}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700 }}>{acc.bank}</div>
+                        </div>
+                        <div style={{ background: '#EFF6FF', padding: '4px 8px', borderRadius: 8, fontSize: 10, color: '#1D4ED8', fontWeight: 800 }}>BANK</div>
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                         Branch: <strong>{acc.branch}</strong><br/>
+                         Name: <strong>{acc.accName}</strong>
+                      </div>
+                      <div style={{ background: '#F8FAFF', padding: 8, borderRadius: 8, fontSize: 11, marginTop: 'auto' }}>
+                        Ref: <strong>{child?.adm}</strong>
+                      </div>
                     </div>
                   ))}
                 </div>

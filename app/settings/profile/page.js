@@ -4,15 +4,29 @@ import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDB, invalidateDB } from '@/lib/client-cache';
 import { useProfile } from '@/app/PortalShell';
 
+const PRESET_COLORS = [
+  { name: 'Maroon (Default)', p: '#8B1A1A', s: '#D4AF37' },
+  { name: 'Navy Blue', p: '#1E3A8A', s: '#3B82F6' },
+  { name: 'Forest Green', p: '#065F46', s: '#10B981' },
+  { name: 'Deep Purple', p: '#581C87', s: '#8B5CF6' },
+  { name: 'Sleek Black', p: '#0F172A', s: '#64748B' },
+];
+
 export default function SchoolProfilePage() {
   const router = useRouter();
   const { playSuccessSound } = useProfile();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState({
-    name: '', motto: '', phone: '', email: '', logo: ''
+    name: '', motto: '', phone: '', email: '', address: '', website: '', logo: '',
+    bankAccounts: [] // { bank: '', branch: '', accName: '', accNo: '' }
   });
+  const [theme, setTheme] = useState({
+    primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B'
+  });
+  
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState('info'); // info | branding | payments
 
   useEffect(() => {
     async function load() {
@@ -20,8 +34,14 @@ export default function SchoolProfilePage() {
       if (!u || u.role !== 'admin') { router.push('/'); return; }
       setUser(u);
       
-      const db = await getCachedDB('paav_school_profile');
-      if (db) setProfile(db);
+      const [p, t] = await Promise.all([
+        getCachedDB('paav_school_profile'),
+        getCachedDB('paav_theme')
+      ]);
+      
+      if (p) setProfile({ ...profile, ...p });
+      if (t) setTheme({ ...theme, ...t });
+      
       setLoading(false);
     }
     load();
@@ -34,12 +54,17 @@ export default function SchoolProfilePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          requests: [{ type: 'set', key: 'paav_school_profile', value: profile }]
+          requests: [
+            { type: 'set', key: 'paav_school_profile', value: profile },
+            { type: 'set', key: 'paav_theme', value: theme }
+          ]
         })
       });
-      invalidateDB(['paav_school_profile']);
+      invalidateDB(['paav_school_profile', 'paav_theme']);
       playSuccessSound();
-      alert('✅ School profile updated successfully!');
+      alert('✅ School configuration updated successfully!');
+      // Force reload to apply theme immediately across shell
+      window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_theme', 'paav_school_profile'] } }));
     } catch (e) {
       alert('❌ Failed to save: ' + e.message);
     } finally {
@@ -47,56 +72,204 @@ export default function SchoolProfilePage() {
     }
   }
 
+  const addBank = () => setProfile({ ...profile, bankAccounts: [...(profile.bankAccounts || []), { bank: '', branch: '', accName: '', accNo: '' }] });
+  const updateBank = (i, k, v) => {
+    const list = [...profile.bankAccounts];
+    list[i][k] = v;
+    setProfile({ ...profile, bankAccounts: list });
+  };
+  const removeBank = (i) => setProfile({ ...profile, bankAccounts: profile.bankAccounts.filter((_, idx) => idx !== i) });
+
   if (loading || !user) return <div className="page on"><p>Loading...</p></div>;
 
   return (
     <div className="page on">
       <div className="page-hdr">
         <div>
-          <h2>🏫 School Profile</h2>
-          <p>Customize how your school appears across the portal</p>
+          <h2>🏫 School Configuration</h2>
+          <p>Branding, Contacts, and Payment Accounts</p>
         </div>
         <div className="page-hdr-acts">
            <button className="btn btn-primary btn-sm" onClick={save} disabled={busy}>
-             {busy ? 'Saving...' : '💾 Save Profile'}
+             {busy ? 'Saving...' : '💾 Save Changes'}
            </button>
         </div>
       </div>
 
-      <div className="panel" style={{ maxWidth: 600 }}>
+      <div className="tabs no-print" style={{ marginBottom: 20 }}>
+        <button className={`tab-btn ${tab === 'info' ? 'on' : ''}`} onClick={() => setTab('info')}>📞 Info & Contacts</button>
+        <button className={`tab-btn ${tab === 'branding' ? 'on' : ''}`} onClick={() => setTab('branding')}>🎨 Branding & Theme</button>
+        <button className={`tab-btn ${tab === 'payments' ? 'on' : ''}`} onClick={() => setTab('payments')}>💰 Payment Accounts</button>
+      </div>
+
+      <div className="panel" style={{ maxWidth: 800 }}>
         <div className="panel-body">
-          <div className="field">
-            <label>School Name</label>
-            <input value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} placeholder="e.g. Hilltop Academy" />
-          </div>
-          <div className="field">
-            <label>School Motto / Tagline</label>
-            <input value={profile.motto} onChange={e => setProfile({...profile, motto: e.target.value})} placeholder="e.g. Excellence in Education" />
-          </div>
-          <div className="field-row">
-            <div className="field">
-              <label>Official Phone</label>
-              <input value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} placeholder="07XXXXXXXX" />
-            </div>
-            <div className="field">
-              <label>Official Email</label>
-              <input value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} placeholder="info@school.com" />
-            </div>
-          </div>
-          <div className="field">
-            <label>Logo URL (PNG/JPG)</label>
-            <input value={profile.logo} onChange={e => setProfile({...profile, logo: e.target.value})} placeholder="https://..." />
-            <p style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>Note: High resolution PNG with transparent background is recommended.</p>
-          </div>
           
-          {profile.logo && (
-            <div style={{ marginTop: 20, textAlign: 'center', padding: 20, background: '#F8FAFC', borderRadius: 12 }}>
-               <p style={{ fontSize: 11, color: '#64748B', marginBottom: 10 }}>Preview:</p>
-               <img src={profile.logo} alt="Preview" style={{ height: 100, objectFit: 'contain' }} />
+          {tab === 'info' && (
+            <div className="sg sg1">
+              <div className="field">
+                <label>School Name</label>
+                <input value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} placeholder="e.g. Hilltop Academy" />
+              </div>
+              <div className="field">
+                <label>School Motto / Tagline</label>
+                <input value={profile.motto} onChange={e => setProfile({...profile, motto: e.target.value})} placeholder="e.g. Excellence in Education" />
+              </div>
+              <div className="field-row">
+                <div className="field">
+                  <label>Official Phone</label>
+                  <input value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} placeholder="07XXXXXXXX" />
+                </div>
+                <div className="field">
+                  <label>Official Email</label>
+                  <input value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} placeholder="info@school.com" />
+                </div>
+              </div>
+              <div className="field">
+                <label>Physical Address</label>
+                <textarea 
+                  value={profile.address} 
+                  onChange={e => setProfile({...profile, address: e.target.value})} 
+                  placeholder="Street, City, Country"
+                  style={{ minHeight: 80 }}
+                />
+              </div>
+              <div className="field">
+                <label>Website URL</label>
+                <input value={profile.website} onChange={e => setProfile({...profile, website: e.target.value})} placeholder="https://www.school.com" />
+              </div>
             </div>
           )}
+
+          {tab === 'branding' && (
+            <div className="sg sg1">
+              <div className="field">
+                <label>Logo URL (PNG/JPG)</label>
+                <input value={profile.logo} onChange={e => setProfile({...profile, logo: e.target.value})} placeholder="https://..." />
+                <p style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>High resolution PNG with transparent background is recommended.</p>
+              </div>
+              
+              <div style={{ marginBottom: 25, display: 'flex', gap: 20, alignItems: 'center', background: '#F8FAFC', padding: 15, borderRadius: 12 }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 10, color: '#64748B', marginBottom: 5 }}>Logo Preview</div>
+                  <div style={{ width: 80, height: 80, background: '#fff', borderRadius: 8, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {profile.logo ? <img src={profile.logo} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Logo" /> : '🖼️'}
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                   <h4 style={{ margin: 0, color: theme.primary }}>{profile.name || 'School Name'}</h4>
+                   <p style={{ margin: 0, fontSize: 12, opacity: 0.7 }}>{profile.motto || 'Motto goes here...'}</p>
+                </div>
+              </div>
+
+              <div className="field">
+                <label>Portal Theme Colors</label>
+                <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginTop: 10 }}>
+                   <div>
+                     <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 5 }}>Primary Color</div>
+                     <input type="color" value={theme.primary} onChange={e => setTheme({...theme, primary: e.target.value})} style={{ width: 60, height: 40, border: 'none', borderRadius: 8, cursor: 'pointer' }} />
+                   </div>
+                   <div>
+                     <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 5 }}>Secondary Color</div>
+                     <input type="color" value={theme.secondary} onChange={e => setTheme({...theme, secondary: e.target.value})} style={{ width: 60, height: 40, border: 'none', borderRadius: 8, cursor: 'pointer' }} />
+                   </div>
+                   <div>
+                     <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 5 }}>Accent/Nav Color</div>
+                     <input type="color" value={theme.accent} onChange={e => setTheme({...theme, accent: e.target.value})} style={{ width: 60, height: 40, border: 'none', borderRadius: 8, cursor: 'pointer' }} />
+                   </div>
+                </div>
+              </div>
+
+              <div className="field">
+                <label>Presets</label>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 10 }}>
+                  {PRESET_COLORS.map(p => (
+                    <button 
+                      key={p.name} 
+                      className="btn btn-ghost btn-sm" 
+                      onClick={() => setTheme({ primary: p.p, secondary: p.s, accent: '#1E293B' })}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11 }}
+                    >
+                      <div style={{ width: 14, height: 14, borderRadius: '50%', background: p.p }}></div>
+                      {p.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {tab === 'payments' && (
+            <div className="sg sg1">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+                <h3 style={{ margin: 0, fontSize: 16 }}>🏦 Bank Accounts</h3>
+                <button className="btn btn-ghost btn-sm" onClick={addBank}>+ Add Account</button>
+              </div>
+              
+              <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 20 }}>
+                These bank details will be visible to parents in their dashboard. 
+                For M-Pesa Paybill/Till configuration, use the <a href="/fees" style={{ color: 'var(--primary)', fontWeight: 700 }}>Fees Dashboard</a>.
+              </p>
+
+              {(profile.bankAccounts || []).map((acc, i) => (
+                <div key={i} style={{ padding: 15, border: '1.5px solid var(--border)', borderRadius: 12, marginBottom: 15, background: '#FAFBFF', position: 'relative' }}>
+                  <button 
+                    onClick={() => removeBank(i)}
+                    style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: 18 }}
+                  >✕</button>
+                  <div className="field-row">
+                    <div className="field">
+                      <label>Bank Name</label>
+                      <input value={acc.bank} onChange={e => updateBank(i, 'bank', e.target.value)} placeholder="e.g. Equity Bank" />
+                    </div>
+                    <div className="field">
+                      <label>Branch</label>
+                      <input value={acc.branch} onChange={e => updateBank(i, 'branch', e.target.value)} placeholder="e.g. Westlands" />
+                    </div>
+                  </div>
+                  <div className="field-row">
+                    <div className="field">
+                      <label>Account Name</label>
+                      <input value={acc.accName} onChange={e => updateBank(i, 'accName', e.target.value)} placeholder="e.g. Hilltop Primary School" />
+                    </div>
+                    <div className="field">
+                      <label>Account Number</label>
+                      <input value={acc.accNo} onChange={e => updateBank(i, 'accNo', e.target.value)} placeholder="e.g. 1234567890" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {(!profile.bankAccounts || profile.bankAccounts.length === 0) && (
+                <div style={{ textAlign: 'center', padding: 40, border: '2px dashed var(--border)', borderRadius: 12, color: 'var(--muted)' }}>
+                  No bank accounts added yet.
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
+      
+      <style jsx>{`
+        .tab-btn {
+          padding: 10px 20px;
+          border: none;
+          background: none;
+          border-bottom: 3px solid transparent;
+          cursor: pointer;
+          font-weight: 700;
+          color: var(--muted);
+          transition: all 0.2s;
+        }
+        .tab-btn.on {
+          color: var(--primary);
+          border-bottom-color: var(--primary);
+        }
+        .tab-btn:hover:not(.on) {
+          background: #F8FAFC;
+        }
+      `}</style>
     </div>
   );
 }
