@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { getCachedUser } from '@/lib/client-cache';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
-const M = '#2563EB', GOLD = '#D4AF37', NAVY = '#0F172A', EMERALD = '#10B981';
+const M = '#2563EB', GOLD = '#D4AF37', NAVY = '#0F172A', EMERALD = '#10B981', SLATE = '#64748B';
 
 export default function SuperAdminPage() {
   const router = useRouter();
