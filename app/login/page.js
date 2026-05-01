@@ -26,22 +26,25 @@ function LoginContent() {
   const [stats, setStats] = useState({ learners: 0, classes: 0 });
   const [announcement, setAnnouncement] = useState('Welcome to the EduVantage School Network.');
   const [profile, setProfile] = useState({ 
-    name: 'EduVantage Console', 
+    name: tenantId === 'platform-master' ? 'EduVantage Master Console' : 'EduVantage School', 
     tagline: 'Global Education SaaS Network',
     logo: '/eduvantage-logo.png'
   });
   const [heroImg, setHeroImg] = useState('');
-  const [theme, setTheme] = useState({ primary: '#4F46E5', secondary: '#D4AF37' });
+  const [theme, setTheme] = useState({ 
+    primary: tenantId === 'platform-master' ? '#1E40AF' : '#2563EB', 
+    secondary: '#D4AF37' 
+  });
 
   useEffect(() => {
     async function loadConfig() {
       try {
-        const res = await fetch(`/api/saas/config?tenant=${tenantId}&v=${Date.now()}`);
+        const res = await fetch(`/api/saas/config?tenant=${tenantId}`);
         const data = await res.json();
         if (data.profile) {
           setProfile({
-            name: data.profile.name || 'School Portal',
-            tagline: data.profile.motto || 'Community School',
+            name: data.profile.name,
+            tagline: data.profile.tagline || data.profile.motto || 'Education Portal',
             phone: data.profile.phone,
             email: data.profile.email,
             logo: data.profile.logo || '/eduvantage-logo.png'
@@ -141,9 +144,6 @@ function LoginContent() {
            <img src={profile.logo || "/eduvantage-logo.png"} alt="Logo" style={{ width: 120, height: 120, objectFit: 'contain', borderRadius: '50%', background: '#fff', padding: 8, boxShadow: '0 20px 60px rgba(0,0,0,.4)', display:'block', margin:'0 auto' }} />
         </div>
         <div className="auth-h">{profile.name}<br/><span style={{ color: 'var(--secondary, #F4A460)' }}>{profile.tagline}</span></div>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 20, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 1.5 }}>
-           🔐 Secure Login — {tenantId.replace(/-/g, ' ')}
-        </div>
         <div className="auth-tagline">Support: +254 792 656 579 · portal@eduvantage.app</div>
         
         <div className="auth-pills">

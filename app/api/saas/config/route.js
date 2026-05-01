@@ -26,24 +26,36 @@ export async function GET(request) {
 
     const isMaster = tenantId === 'platform-master';
 
-    const defaultProfile = { 
-      name: isMaster ? 'EduVantage Master Console' : 'EduVantage School', 
-      email: 'portal@eduvantage.app', 
-      phone: '+254 792 656 579', 
-      logo: '/eduvantage-logo.png' 
-    };
-
-    const defaultTheme = { 
-      primary: isMaster ? '#1E40AF' : '#2563EB', 
-      secondary: '#D4AF37', 
-      accent: '#0F172A' 
-    };
+    // Override profile if it's the master tenant to prevent flickering or incorrect DB data
+    let profileData = config.paav_school_profile;
+    if (isMaster) {
+      profileData = {
+        name: 'EduVantage Master Console',
+        email: 'portal@eduvantage.app',
+        phone: '+254 792 656 579',
+        logo: '/eduvantage-logo.png',
+        tagline: 'Global Education SaaS Network'
+      };
+    }
 
     return NextResponse.json({
       tenantId,
-      profile: isMaster ? defaultProfile : (config.paav_school_profile || defaultProfile),
-      announcement: isMaster ? 'Welcome to the EduVantage Master Console.' : (config.paav_announcement?.text || 'Welcome to the EduVantage School Network.'),
-      theme: isMaster ? defaultTheme : (config.paav_theme || defaultTheme)
+      profile: profileData || { 
+        name: 'EduVantage School', 
+        email: 'portal@eduvantage.app', 
+        phone: '+254 792 656 579', 
+        logo: '/eduvantage-logo.png' 
+      },
+      announcement: isMaster ? 'Welcome to the EduVantage Global Network.' : (config.paav_announcement?.text || 'Welcome to the EduVantage School Network.'),
+      theme: isMaster ? { 
+        primary: '#1E40AF', 
+        secondary: '#D4AF37', 
+        accent: '#0F172A' 
+      } : (config.paav_theme || { 
+        primary: '#2563EB', 
+        secondary: '#D4AF37', 
+        accent: '#0F172A' 
+      })
     });
 
   } catch (err) {
