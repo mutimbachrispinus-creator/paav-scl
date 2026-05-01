@@ -1,24 +1,30 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { getCachedDB } from '@/lib/client-cache';
+
+const CACHE_KEY = 'paav_cache_db_paav_school_profile';
+
+function readProfileFromCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { v } = JSON.parse(raw);
+    return typeof v === 'string' ? JSON.parse(v) : v;
+  } catch { return null; }
+}
 
 export default function PrintHeader() {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    async function loadProfile() {
-      try {
-        const dbProfile = await getCachedDB('paav_school_profile');
-        if (dbProfile) {
-          const parsed = typeof dbProfile === 'string' ? JSON.parse(dbProfile) : dbProfile;
-          setProfile(parsed);
-        }
-      } catch (e) {
-        console.error('Failed to load profile for print header', e);
-      }
+    // Read directly from localStorage — always up-to-date after save()
+    function loadProfile() {
+      const p = readProfileFromCache();
+      if (p) setProfile(p);
     }
+
     loadProfile();
 
+    // Re-read whenever admin saves settings
     const handleSync = (e) => {
       if (e.detail?.changed?.includes('paav_school_profile')) {
         loadProfile();

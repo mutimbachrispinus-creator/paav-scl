@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCachedUser, getCachedDB, invalidateDB } from '@/lib/client-cache';
+import { getCachedUser, getCachedDB, invalidateDB, fetchWithRetry } from '@/lib/client-cache';
 import { useProfile } from '@/app/PortalShell';
 
 const PRESET_COLORS = [
@@ -34,13 +34,11 @@ export default function SchoolProfilePage() {
       if (!u || u.role !== 'admin') { router.push('/'); return; }
       setUser(u);
       
-      const [p, t] = await Promise.all([
-        getCachedDB('paav_school_profile'),
-        getCachedDB('paav_theme')
-      ]);
+      const pRaw = await getCachedDB('paav_school_profile');
+      const tRaw = await getCachedDB('paav_theme');
       
-      if (p) setProfile({ ...profile, ...p });
-      if (t) setTheme({ ...theme, ...t });
+      if (pRaw) setProfile(prev => ({ ...prev, ...pRaw }));
+      if (tRaw) setTheme(prev => ({ ...prev, ...tRaw }));
       
       setLoading(false);
     }
@@ -50,7 +48,7 @@ export default function SchoolProfilePage() {
   async function save() {
     setBusy(true);
     try {
-      await fetch('/api/db', {
+      const res = await fetch('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -60,11 +58,19 @@ export default function SchoolProfilePage() {
           ]
         })
       });
-      invalidateDB(['paav_school_profile', 'paav_theme']);
+      if (!res.ok) throw new Error('Server error ' + res.status);
+
+      // Immediately write the new values into localStorage cache
+      // so every page/component that reads getCachedDB gets fresh data right away
+      const PREFIX = 'paav_cache_';
+      const stamp = Date.now();
+      localStorage.setItem(PREFIX + 'db_paav_school_profile', JSON.stringify({ v: profile, t: stamp, s: stamp }));
+      localStorage.setItem(PREFIX + 'db_paav_theme',           JSON.stringify({ v: theme,   t: stamp, s: stamp }));
+
       playSuccessSound();
-      alert('✅ School configuration updated successfully!');
-      // Force reload to apply theme immediately across shell
+      // Broadcast to all other open tabs/components
       window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_theme', 'paav_school_profile'] } }));
+      alert('✅ School configuration updated successfully!');
     } catch (e) {
       alert('❌ Failed to save: ' + e.message);
     } finally {
