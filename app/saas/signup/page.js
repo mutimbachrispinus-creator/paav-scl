@@ -98,8 +98,20 @@ export default function EduVantageSignup() {
                 <input required placeholder="Principal Name" value={form.adminName} onChange={e => setForm({...form, adminName: e.target.value})} />
               </div>
               <div className="form-group">
-                <label>Admin Username</label>
-                <input required placeholder="admin-user" value={form.adminUsername} onChange={e => setForm({...form, adminUsername: e.target.value})} />
+                <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  Admin Username 
+                  <span 
+                    onClick={() => {
+                      if (!form.schoolName) return;
+                      const slug = form.schoolName.toLowerCase().replace(/[^a-z]/g, '').slice(0, 10);
+                      setForm({...form, adminUsername: `${slug}.admin`});
+                    }}
+                    style={{ color: '#2563EB', cursor: 'pointer', fontSize: 9 }}
+                  >
+                    Suggest?
+                  </span>
+                </label>
+                <input required placeholder="admin-user" value={form.adminUsername} onChange={e => setForm({...form, adminUsername: e.target.value.toLowerCase().replace(/\s/g, '')})} />
               </div>
             </div>
 

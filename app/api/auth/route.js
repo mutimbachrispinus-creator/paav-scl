@@ -161,51 +161,37 @@ async function handleLogout() {
 }
 
 /* ─── register ──────────────────────────────────────────────────────────── */
-async function handleRegister({ role, name, phone, password, childAdm, tenantId: selectedTenant }, request) {
+async function handleRegister({ role, name, phone, password, username: chosenUsername, links }, request) {
   if (role !== 'parent') {
     return err('Only parents can create accounts. Staff accounts are managed by school administrators.');
   }
-  if (!name || !phone || !password || !childAdm) {
-    return err('Name, phone, password and learner admission number are required');
+  if (!name || !phone || !password || !chosenUsername || !links?.length) {
+    return err('All fields including at least one school link are required');
   }
   if (password.length < 6) return err('Password must be at least 6 characters');
 
-  const tenantId = selectedTenant || request.headers.get('x-tenant-id') || 'paav-gitombo';
   const { query, execute } = await import('@/lib/db');
+  const { hashPassword } = await import('@/lib/auth');
 
-  // Generate unique username: parent.firstname.rand
-  const base = name.toLowerCase().split(' ')[0].replace(/[^a-z]/g, '').slice(0, 10);
-  const rand = Math.floor(100 + Math.random() * 899);
-  const username = `pr.${base}.${rand}`;
+  // Check if username taken GLOBALLY
+  const existing = await query('SELECT id FROM staff WHERE LOWER(username) = ?', [chosenUsername.toLowerCase()]);
+  if (existing.length) return err(`Username "${chosenUsername}" is already taken.`);
 
-  // Check if username taken in this school
-  const existing = await query('SELECT id FROM staff WHERE username = ? AND tenant_id = ?', [username, tenantId]);
-  if (existing.length) return err(`Registration failed. Please try again.`);
+  const hashedPassword = await hashPassword(password);
+  const userId = `p${Date.now()}${Math.floor(Math.random() * 100)}`;
 
-  // Parents must link to valid learner(s)
-  let childAdmString = '';
-  if (role === 'parent') {
-    if (!childAdm) return err('Admission number is required for parent registration');
-    const adms = String(childAdm).split(',').map(s => s.trim()).filter(Boolean);
-    const learnersRes = await query('SELECT adm FROM learners WHERE tenant_id = ?', [tenantId]);
-    const learners = learnersRes.map(l => l.adm);
-    for (const adm of adms) {
-      if (!learners.includes(adm)) return err(`Learner with admission number ${adm} not found`);
-    }
-    childAdmString = adms.join(',');
+  // Register across all linked schools
+  for (const link of links) {
+    if (!link.schoolId || !link.adm) continue;
+    
+    await execute(
+      `INSERT INTO staff (id, tenant_id, name, username, role, phone, password, status, childAdm, createdAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, link.schoolId, name, chosenUsername.toLowerCase(), 'parent', phone, hashedPassword, 'active', link.adm, new Date().toISOString()]
+    );
   }
 
-  const id = 'u' + Date.now();
-  const hashedPw = await hashPassword(password);
-  const status = role === 'parent' ? 'active' : 'pending';
-
-  await execute(
-    `INSERT INTO staff (id, tenant_id, name, username, role, phone, password, status, child_adm, createdAt) 
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, tenantId, name.toUpperCase(), username, role, phone, hashedPw, status, childAdmString, new Date().toISOString()]
-  );
-
-  return NextResponse.json({ ok: true, username, status });
+  return NextResponse.json({ ok: true, username: chosenUsername.toLowerCase() });
 }
 
 /* ─── Google Sign-In ────────────────────────────────────────────────────── */
