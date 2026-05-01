@@ -57,7 +57,7 @@ export default function TimetablePage() {
   const load = useCallback(async () => {
     try {
       const u = await getCachedUser();
-      if (!u) { router.push('/'); return; }
+      if (!u) { router.push('/login'); return; }
       setUser(u);
       const data = await getCachedDBMulti(['paav_calendar_events','paav_timetable','paav6_staff']);
       setEvents(data['paav_calendar_events'] || []);

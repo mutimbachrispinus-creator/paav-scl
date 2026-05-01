@@ -75,7 +75,7 @@ export default function AttendancePage() {
         ])
       ]);
 
-      if (!u) { router.push('/'); return; }
+      if (!u) { router.push('/login'); return; }
       setUser(u);
 
       const allLearners = db.paav6_learners || [];

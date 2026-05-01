@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
@@ -10,6 +10,7 @@ export default function ReconcilePage() {
   const [loading, setLoading] = useState(true);
   const [csvData, setCsvData] = useState([]);
   const [matches, setMatches] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   const load = useCallback(async () => {
     const u = await getCachedUser();
@@ -23,8 +24,7 @@ export default function ReconcilePage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
+  const processFile = (file) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (f) => {
@@ -32,10 +32,10 @@ export default function ReconcilePage() {
       const rows = text.split('\n').map(r => r.split(','));
       // Assume CSV: Date, Ref, Name, Amount
       const parsed = rows.slice(1).map(r => ({
-        date: r[0],
-        ref: r[1],
-        name: r[2],
-        amount: Number(r[3])
+        date: r[0]?.trim(),
+        ref: r[1]?.trim(),
+        name: r[2]?.trim(),
+        amount: Number(r[3]?.replace(/[^0-9.]/g, ''))
       })).filter(r => r.amount > 0);
       setCsvData(parsed);
       
@@ -49,83 +49,119 @@ export default function ReconcilePage() {
     reader.readAsText(file);
   };
 
+  const handleFileUpload = (e) => processFile(e.target.files[0]);
+
+  const stats = useMemo(() => {
+    const matched = matches.filter(m => m.status === 'matched').length;
+    const total = matches.length;
+    const pct = total ? Math.round((matched / total) * 100) : 0;
+    return { matched, total, missing: total - matched, pct };
+  }, [matches]);
+
   if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading Reconciler…</div>;
 
   return (
     <div className="page on">
       <div className="page-hdr">
         <div>
-          <h2>🏦 Bank Reconciliation</h2>
-          <p>Match bank statements with portal fee records to ensure 100% data integrity</p>
+          <h2>🏦 Smart Bank Reconciliation</h2>
+          <p>Sync bank statements with portal records using AI-powered matching</p>
+        </div>
+        <div className="page-hdr-acts">
+           <button className="btn btn-ghost btn-sm" onClick={() => {setCsvData([]); setMatches([]);}}>Clear All</button>
         </div>
       </div>
 
-      <div className="panel">
-        <div className="panel-hdr">
-          <h3>📂 Upload Bank Statement (CSV)</h3>
+      <div className="sg sg2" style={{ marginBottom: 20 }}>
+        <div className="panel" style={{ background: 'linear-gradient(135deg, var(--primary), var(--accent))', border: 'none', color: '#fff' }}>
+          <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', padding: 30 }}>
+             <div style={{ fontSize: 12, textTransform: 'uppercase', opacity: 0.8, letterSpacing: 1, fontWeight: 700 }}>Integration Health</div>
+             <div style={{ fontSize: 48, fontWeight: 900, margin: '10px 0' }}>{stats.pct}%</div>
+             <div style={{ fontSize: 14, opacity: 0.9 }}>{stats.matched} out of {stats.total} entries successfully matched.</div>
+             <div style={{ marginTop: 20, height: 6, background: 'rgba(255,255,255,0.2)', borderRadius: 10, overflow: 'hidden' }}>
+                <div style={{ width: `${stats.pct}%`, height: '100%', background: '#fff', borderRadius: 10 }} />
+             </div>
+          </div>
         </div>
-        <div className="panel-body">
-          <div style={{ border: '2px dashed #E2E8F0', padding: 40, textAlign: 'center', borderRadius: 12 }}>
-            <input type="file" accept=".csv" onChange={handleFileUpload} style={{ marginBottom: 15 }} />
-            <p style={{ fontSize: 12, color: 'var(--muted)' }}>Format: Date, Reference, Payer, Amount</p>
+
+        <div className="panel" 
+             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+             onDragLeave={() => setIsDragging(false)}
+             onDrop={(e) => { e.preventDefault(); setIsDragging(false); processFile(e.dataTransfer.files[0]); }}
+             style={{ border: isDragging ? '2px dashed var(--primary)' : '2px dashed #E2E8F0', background: isDragging ? 'var(--primary-low)' : '#fff', transition: '0.2s' }}>
+          <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center' }}>
+            <div style={{ fontSize: 40, marginBottom: 15 }}>📄</div>
+            <h3 style={{ margin: '0 0 5px 0' }}>Drop Bank Statement</h3>
+            <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 20 }}>Support CSV files from KCB, Equity, M-Pesa Business, etc.</p>
+            <input type="file" id="file-up" hidden accept=".csv" onChange={handleFileUpload} />
+            <label htmlFor="file-up" className="btn btn-primary" style={{ cursor: 'pointer' }}>Browse Computer</label>
           </div>
         </div>
       </div>
 
-      <div className="panel" style={{ marginTop: 20 }}>
-        <div className="panel-hdr">
-          <h3>📊 Reconciliation Summary</h3>
-        </div>
-        <div className="panel-body">
-          <div className="sg sg3" style={{ marginBottom: 20 }}>
-            <div className="panel" style={{ textAlign: 'center', background: '#F8FAFC' }}>
-              <div style={{ fontSize: 11, color: '#64748B' }}>TOTAL BANK ENTRIES</div>
-              <div style={{ fontSize: 24, fontWeight: 900 }}>{csvData.length}</div>
-            </div>
-            <div className="panel" style={{ textAlign: 'center', background: '#F0FDF4' }}>
-              <div style={{ fontSize: 11, color: '#166534' }}>MATCHED</div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: '#166534' }}>{matches.filter(m => m.status === 'matched').length}</div>
-            </div>
-            <div className="panel" style={{ textAlign: 'center', background: '#FEF2F2' }}>
-              <div style={{ fontSize: 11, color: '#991B1B' }}>MISSING IN PORTAL</div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: '#991B1B' }}>{matches.filter(m => m.status === 'missing').length}</div>
+      {matches.length > 0 && (
+        <div className="panel fade-in">
+          <div className="panel-hdr">
+            <h3>📊 Reconciliation Results</h3>
+            <div style={{ display: 'flex', gap: 10 }}>
+               <span className="badge bg-green">{stats.matched} MATCHED</span>
+               <span className="badge bg-red">{stats.missing} MISSING</span>
             </div>
           </div>
-
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
-                <th style={{ textAlign: 'left', padding: 12 }}>BANK ENTRY</th>
-                <th style={{ textAlign: 'left', padding: 12 }}>PORTAL RECORD</th>
-                <th style={{ textAlign: 'right', padding: 12 }}>STATUS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {matches.map((m, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                  <td style={{ padding: 12 }}>
-                    <div style={{ fontWeight: 700 }}>{m.bank.ref}</div>
-                    <div style={{ fontSize: 11, color: 'var(--muted)' }}>{m.bank.date} • KSH {m.bank.amount.toLocaleString()}</div>
-                  </td>
-                  <td style={{ padding: 12 }}>
-                    {m.portal ? (
-                      <>
-                        <div style={{ fontWeight: 700 }}>{m.portal.name || 'Payer'}</div>
-                        <div style={{ fontSize: 11, color: 'var(--muted)' }}>{m.portal.date} • KSH {m.portal.amount.toLocaleString()}</div>
-                      </>
-                    ) : '—'}
-                  </td>
-                  <td style={{ textAlign: 'right', padding: 12 }}>
-                    <span className={`badge ${m.status === 'matched' ? 'bg-green' : 'bg-red'}`}>
-                      {m.status.toUpperCase()}
-                    </span>
-                  </td>
+          <div className="tbl-wrap">
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
+                  <th style={{ textAlign: 'left', padding: '15px 12px' }}>BANK STATEMENT ENTRY</th>
+                  <th style={{ textAlign: 'left', padding: '15px 12px' }}>PORTAL RECORD MATCH</th>
+                  <th style={{ textAlign: 'center', padding: '15px 12px' }}>STATUS</th>
+                  <th style={{ textAlign: 'right', padding: '15px 12px' }}>ACTION</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {matches.map((m, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid #F1F5F9', transition: '0.2s' }} className="hover-row">
+                    <td style={{ padding: 15 }}>
+                      <div style={{ fontWeight: 800, color: 'var(--accent)' }}>{m.bank.ref}</div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{m.bank.date} • <span style={{ color: 'var(--navy)', fontWeight: 600 }}>KSH {m.bank.amount.toLocaleString()}</span></div>
+                      <div style={{ fontSize: 10, color: 'var(--muted)' }}>{m.bank.name}</div>
+                    </td>
+                    <td style={{ padding: 15 }}>
+                      {m.portal ? (
+                        <>
+                          <div style={{ fontWeight: 800, color: '#059669' }}>{m.portal.name || 'Payer Match Found'}</div>
+                          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{m.portal.date} • KSH {m.portal.amount.toLocaleString()}</div>
+                          <div style={{ fontSize: 10, color: '#059669' }}>ID: {m.portal.ref}</div>
+                        </>
+                      ) : (
+                        <div style={{ color: '#94A3B8', fontStyle: 'italic', fontSize: 13 }}>No matching record found in portal</div>
+                      )}
+                    </td>
+                    <td style={{ textAlign: 'center', padding: 15 }}>
+                      <span className={`badge ${m.status === 'matched' ? 'bg-green' : 'bg-red'}`} style={{ padding: '6px 12px', borderRadius: 20 }}>
+                        {m.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right', padding: 15 }}>
+                      {m.status === 'missing' ? (
+                        <button className="btn btn-sm btn-primary">Create Record</button>
+                      ) : (
+                        <button className="btn btn-sm btn-ghost">View Details</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
+
+      <style jsx>{`
+        .hover-row:hover { background: var(--primary-low); }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   );
 }

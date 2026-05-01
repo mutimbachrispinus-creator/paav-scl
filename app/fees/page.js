@@ -48,8 +48,8 @@ export default function FeesPage() {
         ])
       ]);
 
-      if (!u) { router.push('/'); return; }
-      if (u.role !== 'admin') {
+      if (!u) { router.push('/login'); return; }
+      if (!['admin','staff','parent'].includes(u.role)) {
         router.push('/dashboard'); return;
       }
       setUser(u);

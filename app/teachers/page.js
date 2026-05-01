@@ -34,7 +34,7 @@ export default function TeachersPage() {
   const load = useCallback(async () => {
     const authRes = await fetch('/api/auth');
     const auth    = await authRes.json();
-    if (!auth.ok) { router.push('/'); return; }
+    if (!auth.ok) { router.push('/login'); return; }
     if (auth.user?.role !== 'admin') { router.push('/dashboard'); return; }
     setUser(auth.user);
 

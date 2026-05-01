@@ -63,7 +63,7 @@ export default function GradesPage() {
         ])
       ]);
 
-      if (!u) { router.push('/'); return; }
+      if (!u) { router.push('/login'); return; }
       if (!['admin', 'teacher', 'senior_teacher', 'jss_teacher'].includes(u.role)) {
         router.push('/dashboard'); return;
       }

@@ -35,8 +35,8 @@ export default function LearnersPage() {
         getCachedDBMulti(['paav6_learners', 'paav6_feecfg'])
       ]);
 
-      if (!u) { router.push('/'); return; }
-      if (!['admin','teacher','jss_teacher','senior_teacher'].includes(u.role)) {
+      if (!u) { router.push('/login'); return; }
+      if (!['admin','teacher','staff','jss_teacher','senior_teacher'].includes(u.role)) {
         router.push('/dashboard'); return;
       }
       setUser(u);

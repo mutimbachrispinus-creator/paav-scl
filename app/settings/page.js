@@ -51,17 +51,19 @@ export default function SettingsHubPage() {
 
   if (loading || !user) return <div className="page on"><p>Loading settings...</p></div>;
 
-  const SETTINGS_LINKS = [
+  const ALL_SETTINGS_LINKS = [
     { title: '📊 Grading Scale', desc: 'Configure EE/ME/AE/BE score thresholds', href: '/settings/grading', icon: '📈' },
     { title: '📚 Subjects', desc: 'Add or remove subjects per grade level', href: '/settings/subjects', icon: '📖' },
     { title: '🏫 Streams & Classes', desc: 'Manage class streams and identifiers', href: '/settings/streams', icon: '🏢' },
     { title: '📅 Timetable', desc: 'Configure lesson times and breaks', href: '/settings/timetable', icon: '⏰' },
-    { title: '📱 SMS Configuration', desc: 'Manage Africa\'s Talking API credentials', href: '/settings/sms', icon: '📱' },
+    { title: '📱 SMS Configuration', desc: 'Manage Africa\'s Talking API credentials', href: '/settings/sms', icon: '📱', superOnly: true },
     { title: '🎨 Portal Branding', desc: 'Hero images and announcements', href: '/settings/portal', icon: '✨' },
     { title: '🏫 School Profile', desc: 'Customize logo, name, contacts and emails', href: '/settings/profile', icon: '🏢' },
     { title: '👤 My Profile', desc: 'Update your personal info and security', href: '/dashboard?tab=profile', icon: '🔑' },
     { title: '🗄️ Database Storage', desc: usage ? `Usage: ${usage.percent.toFixed(2)}% (${(usage.totalBytes / 1024 / 1024).toFixed(1)} MB / 9 GB)` : 'Loading database stats...', href: '#', icon: '💾' },
   ];
+
+  const SETTINGS_LINKS = ALL_SETTINGS_LINKS.filter(l => !l.superOnly || user.role === 'super-admin');
 
   return (
     <div className="page on" id="pg-settings-hub">

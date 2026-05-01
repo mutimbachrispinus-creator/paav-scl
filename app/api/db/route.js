@@ -98,6 +98,12 @@ async function handleRequest(req, auth) {
     /* ── Read one key ── */
     case 'get': {
       const { kvGetWithMeta } = await import('@/lib/db');
+      
+      // Security: Only super-admin can read AT credentials
+      if (req.key === 'paav_at_creds' && auth.role !== 'super-admin') {
+        return { type: 'get', key: req.key, value: null, error: 'Forbidden' };
+      }
+
       let { value, updatedAt } = await kvGetWithMeta(req.key, tenantId);
       
       // Security: Filter staff requests if not admin
@@ -111,8 +117,11 @@ async function handleRequest(req, auth) {
     case 'set': {
       if (req.key === undefined || req.value === undefined) return { type: 'set', error: 'key/value required' };
 
-      const systemKeys = ['paav6_staff', 'paav6_feecfg', 'paav8_grad', 'paav8_subj'];
-      if (systemKeys.includes(req.key) && auth.role !== 'admin') return { type: 'set', error: 'Forbidden' };
+      const systemKeys = ['paav6_staff', 'paav6_feecfg', 'paav8_grad', 'paav8_subj', 'paav_at_creds'];
+      const superOnlyKeys = ['paav_at_creds'];
+
+      if (superOnlyKeys.includes(req.key) && auth.role !== 'super-admin') return { type: 'set', error: 'Forbidden' };
+      if (systemKeys.includes(req.key) && !['admin', 'super-admin'].includes(auth.role)) return { type: 'set', error: 'Forbidden' };
 
       await kvSet(req.key, req.value, tenantId);
       return { type: 'set', key: req.key, ok: true };
@@ -209,6 +218,12 @@ async function handleRequest(req, auth) {
       const data = {}; const meta = {};
       await Promise.all(keys.map(async (k) => {
         let { value, updatedAt } = await kvGetWithMeta(k, tenantId);
+        
+        // Security: Only super-admin can read AT credentials
+        if (k === 'paav_at_creds' && auth.role !== 'super-admin') {
+          value = null;
+        }
+
         if (k === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
           if (Array.isArray(value)) value = value.filter(r => r.userId === auth.id);
         }
