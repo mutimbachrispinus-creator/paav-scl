@@ -260,12 +260,14 @@ async function handleWhoami() {
 }
 
 /* ─── forgot password ───────────────────────────────────────────────────── */
-async function handleForgot({ username, secQ, secA }) {
+async function handleForgot({ username, secQ, secA }, request) {
   if (!username) return err('Username is required');
+  const tenantId = request.headers.get('x-tenant-id') || 'paav-gitombo';
   const { query } = await import('@/lib/db');
-  const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ?', [username.toLowerCase()]);
+  
+  const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase(), tenantId]);
   const user = rows[0];
-  if (!user) return err('User not found');
+  if (!user) return err('User not found in this school');
 
   if (secQ && secA) {
     // Verify security Q&A
@@ -278,21 +280,23 @@ async function handleForgot({ username, secQ, secA }) {
 }
 
 /* ─── reset password ────────────────────────────────────────────────────── */
-async function handleResetPw({ username, newPassword, secA }) {
+async function handleResetPw({ username, newPassword, secA }, request) {
   if (!username || !newPassword) return err('username and newPassword are required');
   if (newPassword.length < 8)    return err('Password must be at least 8 characters');
 
-  const staff = await getStaffList();
-  const idx   = staff.findIndex(s => s.username?.toLowerCase() === username.toLowerCase());
-  if (idx === -1) return err('User not found');
+  const tenantId = request.headers.get('x-tenant-id') || 'paav-gitombo';
+  const { query, execute } = await import('@/lib/db');
+  
+  const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase(), tenantId]);
+  if (rows.length === 0) return err('User not found');
 
-  const user = staff[idx];
+  const user = rows[0];
   if (secA && user.secA?.toLowerCase() !== secA.toLowerCase()) {
     return err('Security answer is incorrect');
   }
 
-  staff[idx].password = await hashPassword(newPassword);
-  await kvSet('paav6_staff', staff);
+  const hashed = await hashPassword(newPassword);
+  await execute('UPDATE staff SET password = ? WHERE id = ? AND tenant_id = ?', [hashed, user.id, tenantId]);
   return NextResponse.json({ ok: true });
 }
 
