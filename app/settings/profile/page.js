@@ -49,7 +49,7 @@ export default function SchoolProfilePage() {
   async function save() {
     setBusy(true);
     try {
-      const res = await fetch('/api/db', {
+      const res = await fetchWithRetry('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -59,7 +59,10 @@ export default function SchoolProfilePage() {
           ]
         })
       });
-      if (!res.ok) throw new Error('Server error ' + res.status);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Server error ' + res.status);
+      }
 
       // Write fresh values into cache so all pages see them immediately
       writeSchoolProfileCache(profile);
