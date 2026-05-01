@@ -266,6 +266,7 @@ function SuperAdminDashboard() {
       </div>
 
       <div className="sg sg2" style={{ marginBottom: 24 }}>
+        {/* Global Payment Methods */}
         <div className="panel">
           <div className="panel-hdr" style={{ background: '#059669' }}>
             <h3 style={{ color: '#fff' }}>💳 Global Payment Methods</h3>
@@ -285,14 +286,40 @@ function SuperAdminDashboard() {
           </div>
         </div>
 
+        {/* Pricing Configuration */}
         <div className="panel">
-          <div className="panel-hdr" style={{ background: '#1E40AF' }}>
-            <h3 style={{ color: '#fff' }}>📞 Master Support</h3>
+          <div className="panel-hdr" style={{ background: '#2563EB' }}>
+            <h3 style={{ color: '#fff' }}>💰 Platform Pricing (KES)</h3>
           </div>
           <div className="panel-body">
-             <div style={{ fontSize: 18, fontWeight: 800, color: '#1E40AF' }}>+254 792 656 579</div>
-             <div style={{ fontSize: 12, color: '#64748B' }}>Direct line for institutional support.</div>
+             <div className="field-row">
+               <div className="field">
+                 <label>Termly Rate</label>
+                 <input type="number" className="input" value={globalConfig.pricing?.termly || ''} onChange={e => saveConfig({...globalConfig, pricing: {...globalConfig.pricing, termly: parseInt(e.target.value)}})} />
+               </div>
+               <div className="field">
+                 <label>Yearly Rate</label>
+                 <input type="number" className="input" value={globalConfig.pricing?.yearly || ''} onChange={e => saveConfig({...globalConfig, pricing: {...globalConfig.pricing, yearly: parseInt(e.target.value)}})} />
+               </div>
+             </div>
+             <p style={{ fontSize: 11, color: '#64748B', marginTop: 10 }}>Note: These rates are shown to schools during signup and in their billing settings.</p>
           </div>
+        </div>
+      </div>
+
+      <div className="panel" style={{ marginBottom: 24 }}>
+        <div className="panel-hdr" style={{ background: '#1E40AF' }}>
+          <h3 style={{ color: '#fff' }}>📞 Master Support Escalation</h3>
+        </div>
+        <div className="panel-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+           <div>
+             <div style={{ fontSize: 18, fontWeight: 800, color: '#1E40AF' }}>+254 792 656 579</div>
+             <div style={{ fontSize: 12, color: '#64748B' }}>Direct line for Super Admin institutional support.</div>
+           </div>
+           <div style={{ textAlign: 'right' }}>
+             <div style={{ fontWeight: 700 }}>portal@eduvantage.app</div>
+             <div style={{ fontSize: 11, color: '#64748B' }}>Official Platform Support Email</div>
+           </div>
         </div>
       </div>
 

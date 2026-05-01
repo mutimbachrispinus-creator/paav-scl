@@ -9,7 +9,7 @@ import { query } from '@/lib/db';
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenant') || 'paav-gitombo';
+    const tenantId = searchParams.get('tenant') || 'platform-master';
 
     const keys = ['paav_school_profile', 'paav_announcement', 'paav_theme'];
     const placeholders = keys.map(() => '?').join(',');
@@ -24,11 +24,22 @@ export async function GET(request) {
       try { config[r.key] = JSON.parse(r.value); } catch { config[r.key] = r.value; }
     });
 
+    const isMaster = tenantId === 'platform-master';
+
     return NextResponse.json({
       tenantId,
-      profile: config.paav_school_profile || { name: 'PAAV Gitombo', email: '', phone: '', logo: '' },
-      announcement: config.paav_announcement?.text || 'Welcome to our school portal.',
-      theme: config.paav_theme || { primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B' }
+      profile: config.paav_school_profile || { 
+        name: isMaster ? 'EduVantage Master Console' : 'EduVantage School', 
+        email: 'portal@eduvantage.app', 
+        phone: '+254 792 656 579', 
+        logo: '/eduvantage-logo.png' 
+      },
+      announcement: config.paav_announcement?.text || 'Welcome to the EduVantage School Network.',
+      theme: config.paav_theme || { 
+        primary: isMaster ? '#1E40AF' : '#2563EB', 
+        secondary: '#D4AF37', 
+        accent: '#0F172A' 
+      }
     });
 
   } catch (err) {

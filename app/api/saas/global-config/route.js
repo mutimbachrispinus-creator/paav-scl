@@ -8,7 +8,8 @@ const MASTER_TENANT = 'platform-master';
 export async function GET() {
   try {
     const config = await kvGet(CONFIG_KEY, MASTER_TENANT) || {
-      paymentMethods: ['M-Pesa Paybill', 'Bank Deposit', 'Cash']
+      paymentMethods: ['M-Pesa Paybill', 'Bank Deposit', 'Cash'],
+      pricing: { termly: 4000, yearly: 10000 }
     };
     return NextResponse.json(config);
   } catch (err) {
