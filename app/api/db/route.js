@@ -258,6 +258,13 @@ async function handleRequest(req, auth) {
       return { type: req.type, data };
     }
 
+    case 'bulkAddLearners': {
+      if (auth.role !== 'admin') return { type: req.type, error: 'Unauthorized' };
+      const { kvBulkAddLearners } = await import('@/lib/db');
+      await kvBulkAddLearners(req.learners, tenantId);
+      return { type: req.type, ok: true };
+    }
+
     default:
       return { error: `Unknown request type: ${req.type}` };
   }

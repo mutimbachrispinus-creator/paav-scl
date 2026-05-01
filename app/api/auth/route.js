@@ -53,6 +53,7 @@ export async function POST(request) {
       case 'whoami':   return handleWhoami(request);
       case 'forgot':   return handleForgot(body);
       case 'resetpw':  return handleResetPw(body);
+      case 'change_password': return handleChangePassword(body, request);
       default:         return err(`Unknown action: ${action}`);
     }
   } catch (e) {
@@ -270,11 +271,11 @@ async function handleWhoami() {
   
   if (user) {
     const [ann, msgs, hero, feecfg, learners] = await Promise.all([
-      kvGet('paav_announcement'),
-      kvGet('paav6_msgs'),
-      kvGet('paav7_hero_img'),
-      kvGet('paav6_feecfg'),
-      kvGet('paav6_learners')
+      kvGet('paav_announcement', null, session.tenantId),
+      kvGet('paav6_msgs', [], session.tenantId),
+      kvGet('paav7_hero_img', null, session.tenantId),
+      kvGet('paav6_feecfg', {}, session.tenantId),
+      kvGet('paav6_learners', [], session.tenantId)
     ]);
 
     return NextResponse.json({
@@ -298,6 +299,25 @@ async function handleWhoami() {
   }
 
   return NextResponse.json({ ok: true, user: session });
+}
+
+/* ─── change password ───────────────────────────────────────────────────── */
+async function handleChangePassword({ current, next }, request) {
+  const session = await getSession();
+  if (!session) return err('Unauthorised', 401);
+
+  const { query, execute } = await import('@/lib/db');
+  const rows = await query('SELECT password FROM staff WHERE id = ? AND tenant_id = ?', [session.id, session.tenantId]);
+  const user = rows[0];
+  if (!user) return err('User not found');
+
+  const match = await verifyPassword(current, user.password);
+  if (!match) return err('Incorrect current password');
+
+  const hashed = await hashPassword(next);
+  await execute('UPDATE staff SET password = ? WHERE id = ? AND tenant_id = ?', [hashed, session.id, session.tenantId]);
+  
+  return ok({ message: 'Password updated' });
 }
 
 /* ─── forgot password ───────────────────────────────────────────────────── */

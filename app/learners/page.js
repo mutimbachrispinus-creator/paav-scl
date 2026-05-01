@@ -23,6 +23,7 @@ export default function LearnersPage() {
   const [user,     setUser]     = useState(null);
   const [learners, setLearners] = useState([]);
   const [feeCfg,   setFeeCfg]   = useState({});
+  const [streams,  setStreams]  = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [query,    setQuery]    = useState('');
   const [gradeF,   setGradeF]   = usePersistedState('paav_learners_grade', '');
@@ -32,7 +33,7 @@ export default function LearnersPage() {
     try {
       const [u, db] = await Promise.all([
         getCachedUser(),
-        getCachedDBMulti(['paav6_learners', 'paav6_feecfg'])
+        getCachedDBMulti(['paav6_learners', 'paav6_feecfg', 'paav7_streams'])
       ]);
 
       if (!u) { router.push('/login'); return; }
@@ -43,6 +44,7 @@ export default function LearnersPage() {
 
       setLearners(db.paav6_learners || []);
       setFeeCfg(  db.paav6_feecfg   || {});
+      setStreams( db.paav7_streams  || []);
     } catch (e) {
       console.error('Learners load error:', e);
     } finally {
@@ -224,17 +226,17 @@ export default function LearnersPage() {
       </div>
 
       {/* ── Modals ── */}
-      {modal === 'add'     && <AddLearnerModal     isAdmin={user.role === 'admin'} onClose={() => { setModal(null); load(); }} />}
+      {modal === 'add'     && <AddLearnerModal     isAdmin={user.role === 'admin'} streams={streams} onClose={() => { setModal(null); load(); }} />}
       {modal === 'promote' && <PromoteLearnersModal onClose={() => { setModal(null); load(); }} learners={learners} />}
-      {modal?.type === 'edit' && <EditLearnerModal isAdmin={user.role === 'admin'} onClose={() => { setModal(null); load(); }} learner={modal.learner} />}
+      {modal?.type === 'edit' && <EditLearnerModal isAdmin={user.role === 'admin'} streams={streams} onClose={() => { setModal(null); load(); }} learner={modal.learner} />}
     </>
   );
 }
 
 /* ─── Add Learner Modal ─────────────────────────────────────────────────── */
-function AddLearnerModal({ onClose, isAdmin }) {
+function AddLearnerModal({ onClose, isAdmin, streams }) {
   const [form, setForm] = useState({
-    name: '', grade: '', dob: '', adm: '', sex: 'F', age: '',
+    name: '', grade: 'GRADE 1', dob: '', adm: '', sex: 'F', age: '',
     stream: '', parent: '', phone: '', parentEmail: '', addr: '', arrears: 0,
   });
   const [err,  setErr]  = useState('');
@@ -298,6 +300,15 @@ function AddLearnerModal({ onClose, isAdmin }) {
           </select></div>
         <div className="field"><label>Age</label>
           <input type="number" value={form.age} onChange={e => F('age', e.target.value)} min="3" max="20" /></div>
+        <div className="field">
+          <label>Stream</label>
+          <select value={form.stream} onChange={e => F('stream', e.target.value)}>
+            <option value="">Select Stream</option>
+            {streams.filter(s => s.grade === form.grade).map(s => (
+              <option key={s.name} value={s.name}>{s.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
       <div className="field-row">
         <div className="field"><label>Parent / Guardian</label>
@@ -502,8 +513,15 @@ function EditLearnerModal({ onClose, learner, isAdmin }) {
           <input type="number" value={form.age} onChange={e => F('age', e.target.value)} min="3" max="25" /></div>
       </div>
       <div className="field-row">
-        <div className="field"><label>Stream</label>
-          <input value={form.stream || ''} onChange={e => F('stream', e.target.value)} placeholder="e.g. West" /></div>
+        <div className="field">
+          <label>Stream</label>
+          <select value={form.stream} onChange={e => F('stream', e.target.value)}>
+            <option value="">Select Stream</option>
+            {streams.filter(s => s.grade === form.grade).map(s => (
+              <option key={s.name} value={s.name}>{s.name}</option>
+            ))}
+          </select>
+        </div>
         <div className="field"><label>Class Teacher</label>
           <input value={form.teacher || ''} onChange={e => F('teacher', e.target.value)} /></div>
       </div>
