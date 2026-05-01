@@ -145,23 +145,26 @@ async function handleLogout() {
 }
 
 /* ─── register ──────────────────────────────────────────────────────────── */
-async function handleRegister({ role, name, phone, password, childAdm, teachingLevels, secQ, secA }, request) {
-  if (!role || !name || !phone || !password) {
-    return err('role, name, phone and password are required');
+async function handleRegister({ role, name, phone, password, childAdm, tenantId: selectedTenant }, request) {
+  if (role !== 'parent') {
+    return err('Only parents can create accounts. Staff accounts are managed by school administrators.');
+  }
+  if (!name || !phone || !password || !childAdm) {
+    return err('Name, phone, password and learner admission number are required');
   }
   if (password.length < 6) return err('Password must be at least 6 characters');
 
-  const tenantId = request.headers.get('x-tenant-id') || 'paav-gitombo';
+  const tenantId = selectedTenant || request.headers.get('x-tenant-id') || 'paav-gitombo';
   const { query, execute } = await import('@/lib/db');
 
-  // Generate unique username: firstname.lastname.rand
-  const base = name.toLowerCase().replace(/[^a-z]/g, '').slice(0, 15);
+  // Generate unique username: parent.firstname.rand
+  const base = name.toLowerCase().split(' ')[0].replace(/[^a-z]/g, '').slice(0, 10);
   const rand = Math.floor(100 + Math.random() * 899);
-  const username = `${base}.${rand}`;
+  const username = `pr.${base}.${rand}`;
 
   // Check if username taken in this school
   const existing = await query('SELECT id FROM staff WHERE username = ? AND tenant_id = ?', [username, tenantId]);
-  if (existing.length) return err(`Username ${username} is taken in this school. Try again.`);
+  if (existing.length) return err(`Registration failed. Please try again.`);
 
   // Parents must link to valid learner(s)
   let childAdmString = '';

@@ -36,6 +36,20 @@ function LoginContent() {
     secondary: '#D4AF37' 
   });
 
+  const [schools, setSchools] = useState([]);
+  const [selectedSchool, setSelectedSchool] = useState('');
+
+  useEffect(() => {
+    async function loadSchools() {
+      try {
+        const res = await fetch('/api/saas/schools');
+        const data = await res.json();
+        if (data.ok) setSchools(data.schools);
+      } catch (e) {}
+    }
+    loadSchools();
+  }, []);
+
   useEffect(() => {
     async function loadConfig() {
       try {
@@ -79,7 +93,7 @@ function LoginContent() {
 
   const [form, setForm] = useState({
     username: '', password: '', 
-    name: '', phone: '', role: 'teacher', childAdm: '', adminCode: '',
+    name: '', phone: '', role: 'parent', childAdm: '', adminCode: '',
     teachingLevels: []
   });
 
@@ -90,28 +104,14 @@ function LoginContent() {
     setBusy(true); setErr(''); setOkMsg('');
 
     try {
-      if (tab === 'register' && form.role === 'admin' && form.adminCode !== 'EDU2026') {
-        throw new Error('Invalid administrator registration code');
-      }
-
-      if (tab === 'register') {
-        const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-        setExpectedOtp(generatedOtp);
-        setTab('otp');
-        setOkMsg(`OTP sent to ${form.phone}. (For testing, your code is: ${generatedOtp})`);
-        setBusy(false);
-        return;
-      }
-      
       const actionPayload = tab === 'otp' ? 'register' : tab;
-
       const res = await fetchWithRetry('/api/auth', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-tenant-id': tenantId 
+          'x-tenant-id': tab === 'register' ? selectedSchool : tenantId 
         },
-        body: JSON.stringify({ action: actionPayload, ...form }),
+        body: JSON.stringify({ action: actionPayload, tenantId: selectedSchool, ...form }),
         timeout: 15000
       });
 
@@ -188,15 +188,12 @@ function LoginContent() {
           <div style={{ textAlign: 'center', marginBottom: 14 }}>
             <img src={profile.logo || "/eduvantage-logo.png"} alt="Logo" style={{ width: 70, height: 70, objectFit: 'contain', borderRadius: '50%', boxShadow: `0 4px 16px ${theme?.primary || '#4F46E5'}33` }} />
           </div>
-          <div className="auth-card-title">{tab === 'login' ? 'Welcome Back' : tab === 'register' ? 'Join the EduVantage Network' : 'Security Check'}</div>
-          <div className="auth-card-sub">{tab === 'login' ? 'Sign in to access your dashboard' : tab === 'register' ? 'Create your institutional account' : 'Verify your identity'}</div>
+          <div className="auth-card-title">{tab === 'login' ? 'Welcome Back' : tab === 'register' ? 'Parent Registration' : 'Security Check'}</div>
+          <div className="auth-card-sub">{tab === 'login' ? 'Sign in to access your dashboard' : tab === 'register' ? 'Join your child’s school portal' : 'Verify your identity'}</div>
           
           <div className="auth-sw-row">
             <button className={`auth-sw ${tab === 'login' ? 'on' : ''}`} onClick={() => setTab('login')} style={tab === 'login' ? { background: 'var(--primary)', boxShadow: `0 2px 8px ${theme?.primary}4D` } : {}}>Sign In</button>
-            {/* Registration is now Restricted to School Admins Only to prevent username conflicts */}
-            {tenantId === 'platform-master' && (
-              <button className={`auth-sw ${tab === 'register' ? 'on' : ''}`} onClick={() => setTab('register')} style={tab === 'register' ? { background: 'var(--primary)', boxShadow: `0 2px 8px ${theme?.primary}4D` } : {}}>Register</button>
-            )}
+            <button className={`auth-sw ${tab === 'register' ? 'on' : ''}`} onClick={() => setTab('register')} style={tab === 'register' ? { background: 'var(--primary)', boxShadow: `0 2px 8px ${theme?.primary}4D` } : {}}>Parent Register</button>
           </div>
 
           <form onSubmit={handleAction}>
@@ -205,6 +202,30 @@ function LoginContent() {
                 <label>Username</label>
                 <input required value={form.username} onChange={e => F('username', e.target.value.toLowerCase())} placeholder="your.username" />
               </div>
+            )}
+
+            {tab === 'register' && (
+              <>
+                <div className="field">
+                  <label>Select School</label>
+                  <select required value={selectedSchool} onChange={e => setSelectedSchool(e.target.value)} style={{ width: '100%', padding: '14px 18px', borderRadius: 12, border: '2px solid #E2E8F0', fontSize: 15, background: '#F8FAFC' }}>
+                    <option value="">-- Choose School --</option>
+                    {schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Full Name</label>
+                  <input required value={form.name} onChange={e => F('name', e.target.value)} placeholder="Parent Name" />
+                </div>
+                <div className="field">
+                  <label>Learner Admission No.</label>
+                  <input required value={form.childAdm} onChange={e => F('childAdm', e.target.value)} placeholder="e.g. 1234" />
+                </div>
+                <div className="field">
+                  <label>Phone Number</label>
+                  <input required value={form.phone} onChange={e => F('phone', e.target.value)} placeholder="07XXXXXXXX" />
+                </div>
+              </>
             )}
             
             <div className="field" style={{ position: 'relative' }}>

@@ -1,62 +1,41 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getClient } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
+/**
+ * GET /api/saas/schools
+ * Publicly returns a list of active schools for registration.
+ */
 export async function GET() {
-  const session = await getSession();
-  if (!session || session.role !== 'super-admin') {
-    return new NextResponse('Unauthorized', { status: 401 });
-  }
-
   try {
-    const schools = await query(`
-      SELECT 
-        s.tenant_id, 
-        s.plan, 
-        s.status, 
-        s.updated_at,
-        (SELECT value FROM kv WHERE key = 'paav_school_profile' AND tenant_id = s.tenant_id) as profile_raw,
-        (SELECT COUNT(*) FROM learners WHERE tenant_id = s.tenant_id) as student_count,
-        (SELECT phone FROM staff WHERE tenant_id = s.tenant_id AND role = 'admin' LIMIT 1) as admin_phone,
-        (SELECT name FROM staff WHERE tenant_id = s.tenant_id AND role = 'admin' LIMIT 1) as admin_name
-      FROM subscriptions s
-      UNION
-      SELECT 
-        'paav-gitombo' as tenant_id,
-        'premium' as plan,
-        'active' as status,
-        0 as updated_at,
-        (SELECT value FROM kv WHERE key = 'paav_school_profile' AND tenant_id = 'paav-gitombo') as profile_raw,
-        (SELECT COUNT(*) FROM learners WHERE tenant_id = 'paav-gitombo') as student_count,
-        (SELECT phone FROM staff WHERE tenant_id = 'paav-gitombo' AND role = 'admin' LIMIT 1) as admin_phone,
-        (SELECT name FROM staff WHERE tenant_id = 'paav-gitombo' AND role = 'admin' LIMIT 1) as admin_name
-      WHERE NOT EXISTS (SELECT 1 FROM subscriptions WHERE tenant_id = 'paav-gitombo')
-    `);
+    const db = getClient();
+    
+    // Fetch active schools
+    const res = await db.execute("SELECT tenant_id FROM subscriptions WHERE status = 'active' AND tenant_id != 'platform-master'");
+    const rows = res.rows;
 
-    const formatted = schools.map(s => {
-      let profile = {};
-      try { profile = JSON.parse(s.profile_raw || '{}'); } catch {}
-      return {
-        tenantId: s.tenant_id,
-        name: profile.name || s.tenant_id,
-        plan: s.plan,
-        status: s.status,
-        updatedAt: s.updated_at,
-        studentCount: s.student_count,
-        adminContact: s.admin_phone ? `${s.admin_name} (${s.admin_phone})` : 'N/A'
-      };
-    });
+    const schools = await Promise.all(rows.map(async (r) => {
+      const profileRes = await db.execute({
+        sql: "SELECT value FROM kv WHERE key = 'paav_school_profile' AND tenant_id = ?",
+        args: [r.tenant_id]
+      });
+      
+      let name = r.tenant_id;
+      try {
+        if (profileRes.rows.length) {
+          const profile = JSON.parse(profileRes.rows[0].value);
+          name = profile.name || r.tenant_id;
+        }
+      } catch (e) {}
 
-    return NextResponse.json({ 
-      schools: formatted,
-      stats: {
-        totalSchools: formatted.length,
-        totalStudents: formatted.reduce((sum, s) => sum + s.studentCount, 0),
-        activeSchools: formatted.filter(s => s.status === 'active' || s.plan === 'premium').length
-      }
-    });
+      return { id: r.tenant_id, name: name };
+    }));
+
+    return NextResponse.json({ ok: true, schools });
 
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('[api/saas/schools] Error:', err);
+    return NextResponse.json({ ok: false, error: 'Failed to load school list' }, { status: 500 });
   }
 }
