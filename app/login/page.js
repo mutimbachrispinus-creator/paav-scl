@@ -173,7 +173,10 @@ function LoginContent() {
           
           <div className="auth-sw-row">
             <button className={`auth-sw ${tab === 'login' ? 'on' : ''}`} onClick={() => setTab('login')} style={tab === 'login' ? { background: 'var(--primary)', boxShadow: `0 2px 8px ${theme?.primary}4D` } : {}}>Sign In</button>
-            <button className={`auth-sw ${tab === 'register' ? 'on' : ''}`} onClick={() => setTab('register')} style={tab === 'register' ? { background: 'var(--primary)', boxShadow: `0 2px 8px ${theme?.primary}4D` } : {}}>Register</button>
+            {/* Registration is now Restricted to School Admins Only to prevent username conflicts */}
+            {tenantId === 'platform-master' && (
+              <button className={`auth-sw ${tab === 'register' ? 'on' : ''}`} onClick={() => setTab('register')} style={tab === 'register' ? { background: 'var(--primary)', boxShadow: `0 2px 8px ${theme?.primary}4D` } : {}}>Register</button>
+            )}
           </div>
 
           <form onSubmit={handleAction}>

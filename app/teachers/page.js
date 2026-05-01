@@ -237,10 +237,19 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
           <div className="field-row">
             <div className="field"><label>Full Name</label>
               <input value={form.name} onChange={e => F('name', e.target.value.toUpperCase())} /></div>
-            <div className="field"><label>Username</label>
+            <div className="field">
+              <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                Username 
+                {!isEdit && <span style={{ color: 'var(--primary)', cursor: 'pointer' }} onClick={() => {
+                  const rand = Math.floor(1000 + Math.random() * 9000);
+                  F('username', `EDU-${rand}`);
+                }}>✨ Auto</span>}
+              </label>
               <input value={form.username} onChange={e => F('username', e.target.value)}
-                disabled={isEdit} /></div>
+                disabled={isEdit} />
+            </div>
           </div>
+          
           <div className="field-row">
             <div className="field"><label>Role</label>
               <select value={form.role} onChange={e => F('role', e.target.value)}>
@@ -261,16 +270,19 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
 
           {/* Password section */}
           <div className="field" style={{ position: 'relative' }}>
-            <label style={{ display:'flex', alignItems:'center', gap:6 }}>
-              {isEdit
-                ? <><span>🔑 Reset Password</span><span style={{fontSize:10,color:'#6B7280',fontWeight:400}}>(leave blank to keep current)</span></>
-                : 'Password *'}
+            <label style={{ display:'flex', alignItems:'center', justifyContent: 'space-between' }}>
+              <span>{isEdit ? '🔑 Reset Password' : 'Password *'}</span>
+              {!isEdit && <span style={{ color: 'var(--primary)', cursor: 'pointer', fontSize: 11 }} onClick={() => {
+                const rand = Math.floor(100000 + Math.random() * 900000);
+                F('password', rand.toString());
+                setShowPw(true);
+              }}>🎲 Rand</span>}
             </label>
             <input
               value={form.password}
               onChange={e => F('password', e.target.value)}
               type={showPw ? 'text' : 'password'}
-              placeholder={isEdit ? 'Enter new password for this user…' : 'Min 6 characters'}
+              placeholder={isEdit ? 'Enter new password…' : 'Min 6 chars'}
               style={{ paddingRight: 40 }}
             />
             <button type="button" onClick={() => setShowPw(!showPw)}
