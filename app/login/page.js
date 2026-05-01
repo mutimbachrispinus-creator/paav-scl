@@ -36,7 +36,7 @@ function LoginContent() {
   useEffect(() => {
     async function loadConfig() {
       try {
-        const res = await fetch(`/api/saas/config?tenant=${tenantId}`);
+        const res = await fetch(`/api/saas/config?tenant=${tenantId}&v=${Date.now()}`);
         const data = await res.json();
         if (data.profile) {
           setProfile({

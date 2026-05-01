@@ -26,20 +26,24 @@ export async function GET(request) {
 
     const isMaster = tenantId === 'platform-master';
 
+    const defaultProfile = { 
+      name: isMaster ? 'EduVantage Master Console' : 'EduVantage School', 
+      email: 'portal@eduvantage.app', 
+      phone: '+254 792 656 579', 
+      logo: '/eduvantage-logo.png' 
+    };
+
+    const defaultTheme = { 
+      primary: isMaster ? '#1E40AF' : '#2563EB', 
+      secondary: '#D4AF37', 
+      accent: '#0F172A' 
+    };
+
     return NextResponse.json({
       tenantId,
-      profile: config.paav_school_profile || { 
-        name: isMaster ? 'EduVantage Master Console' : 'EduVantage School', 
-        email: 'portal@eduvantage.app', 
-        phone: '+254 792 656 579', 
-        logo: '/eduvantage-logo.png' 
-      },
-      announcement: config.paav_announcement?.text || 'Welcome to the EduVantage School Network.',
-      theme: config.paav_theme || { 
-        primary: isMaster ? '#1E40AF' : '#2563EB', 
-        secondary: '#D4AF37', 
-        accent: '#0F172A' 
-      }
+      profile: isMaster ? defaultProfile : (config.paav_school_profile || defaultProfile),
+      announcement: isMaster ? 'Welcome to the EduVantage Master Console.' : (config.paav_announcement?.text || 'Welcome to the EduVantage School Network.'),
+      theme: isMaster ? defaultTheme : (config.paav_theme || defaultTheme)
     });
 
   } catch (err) {
