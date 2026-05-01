@@ -41,6 +41,11 @@ export async function GET() {
       {
         sql: "INSERT INTO kv (key, tenant_id, value, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET value=excluded.value",
         args: ['paav_theme', 'paav-gitombo', JSON.stringify({ primary: '#8B1A1A', secondary: '#F4A460', accent: '#1E293B' }), now]
+      },
+      // 5. Upgrade PAAV Gitombo to Premium Full Year
+      {
+        sql: "INSERT INTO subscriptions (tenant_id, plan, status, expires_at, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(tenant_id) DO UPDATE SET plan=excluded.plan, expires_at=excluded.expires_at",
+        args: ['paav-gitombo', 'Premium', 'active', '2027-05-01', now]
       }
     ]);
 
