@@ -1,5 +1,4 @@
 'use client';
-'use client';
 /**
  * app/merit-list/page.js — Merit List (Top Learners, CBC-based)
  *
@@ -14,6 +13,8 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { buildMeritList, ALL_GRADES, maxPts, DEFAULT_SUBJECTS, gInfo, JSS, SENIOR } from '@/lib/cbe';
+import { usePersistedState } from '@/components/TabState';
+import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
 const ASSESS_LABELS = { op1:'Opener Exam', mt1:'Mid-Term Exam', et1:'End-Term Exam' };
 
