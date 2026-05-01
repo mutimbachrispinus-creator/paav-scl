@@ -23,7 +23,7 @@ export default function TemplatesPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState('merit');
-  const [profile, setProfile] = useState({ name: 'EDUVANTAGE PORTAL' });
+  const [profile, setProfile] = useState({ name: 'EDUVANTAGE SCHOOL MANAGEMENT SYSTEM' });
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
   const [marks, setMarks] = useState({});
@@ -232,7 +232,7 @@ function PrintHeader({ title, grade, profile = {} }) {
       {/* School logo */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={profile.logo || "/ev-brand-v3.png"} alt="School Logo" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'contain', margin: '0 auto 8px', border: '2px solid #D97706', background: '#fff', padding: 4 }} />
-      <h1 style={{ fontFamily: 'Sora', fontSize: 17, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>{profile.name?.toUpperCase() || 'EDUVANTAGE PORTAL'}</h1>
+      <h1 style={{ fontFamily: 'Sora', fontSize: 17, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>{profile.name?.toUpperCase() || 'EDUVANTAGE SCHOOL MANAGEMENT SYSTEM'}</h1>
       <p style={{ fontSize: 10, margin: '2px 0', color: '#555' }}>{profile.address || 'Nairobi, Kenya'} | {profile.phone || '0758 922 915'} | {profile.email || 'portal@eduvantage.com'}</p>
       <p style={{ fontSize: 10, fontStyle: 'italic', color: '#D97706', fontWeight: 700, margin: '2px 0' }}>{profile.motto || 'Education Portal'}</p>
       <div style={{ background: '#8B1A1A', color: '#fff', display: 'inline-block', padding: '3px 16px', borderRadius: 4, marginTop: 6, fontWeight: 700, fontSize: 12 }}>
@@ -528,7 +528,7 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, p
           </div>
 
           <div style={{ marginTop: 40, textAlign: 'center', fontSize: 11, color: '#666' }}>
-            <p>This is an official document of {profile.name || 'EDUVANTAGE PORTAL'}. Any alterations make it invalid.</p>
+            <p>This is an official document of {profile.name || 'EDUVANTAGE SCHOOL MANAGEMENT SYSTEM'}. Any alterations make it invalid.</p>
             <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-around' }}>
               <div>Stamp: [ ________________ ]</div>
               <div>Date: {new Date().toLocaleDateString()}</div>
@@ -827,7 +827,7 @@ function IDCardTemplate({ learners, grade, profile }) {
           {/* Header */}
           <div style={{ background: '#8B1A1A', color: '#fff', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <img src={profile.logo || "/ev-brand-v3.png"} alt="L" style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', padding: 2 }} />
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5 }}>{profile.name?.toUpperCase() || 'EDUVANTAGE PORTAL'}</div>
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 0.5 }}>{profile.name?.toUpperCase() || 'EDUVANTAGE SCHOOL MANAGEMENT SYSTEM'}</div>
           </div>
           
           <div style={{ flex: 1, display: 'flex', padding: 10, gap: 12 }}>

@@ -79,7 +79,7 @@ function LoginContent() {
   useEffect(() => {
     async function loadConfig() {
       try {
-        const res = await fetch(`/api/saas/config?tenant=${tenantId}`);
+        const res = await fetch(`/api/saas/config?tenant=${tenantId}&_t=${Date.now()}`);
         const data = await res.json();
         // Login page always maintains EduVantage Platform identity
         setProfile({

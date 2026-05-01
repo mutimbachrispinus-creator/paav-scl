@@ -227,8 +227,8 @@ export default function PortalShell({ children }) {
         setUser(u);
         const activeTenant = impersonateId || u.tenantId;
 
-        // Fetch profile and theme for the active tenant
-        const configRes = await fetch(`/api/saas/config?tenant=${activeTenant}`);
+        // Fetch profile and theme for the active tenant with cache-busting
+        const configRes = await fetch(`/api/saas/config?tenant=${activeTenant}&_t=${Date.now()}`);
         const config = await configRes.json();
         
         if (config.profile) {
