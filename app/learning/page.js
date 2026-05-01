@@ -32,6 +32,9 @@ export default function EducationHubPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [docs, setDocs] = useState([]);
+  const [selGrade, setSelGrade] = useState('ALL');
+  const [selCat, setSelCat] = useState('all');
   const [showUpload, setShowUpload] = useState(false);
   const [newDoc, setNewDoc] = useState({ title: '', grade: 'GRADE 1', subject: '', category: 'notes', url: '' });
 
