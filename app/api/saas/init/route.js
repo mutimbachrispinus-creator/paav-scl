@@ -19,9 +19,12 @@ export async function GET() {
       },
       // 2. Create Super Admin
       {
+        sql: "DELETE FROM staff WHERE id = ? AND tenant_id = ?",
+        args: ['sa-1', 'platform-master']
+      },
+      {
         sql: `INSERT INTO staff (id, tenant_id, name, username, role, password, status, createdAt) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?) 
-              ON CONFLICT(id, tenant_id) DO UPDATE SET username=excluded.username, password=excluded.password`,
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         args: ['sa-1', 'platform-master', 'MUTIMBA JUNIOR', 'mutimba.junior', 'super-admin', hashedPw, 'active', new Date().toISOString()]
       },
       // 3. Set Master Branding
