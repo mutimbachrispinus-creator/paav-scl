@@ -23,7 +23,7 @@ function LoginContent() {
   const [err, setErr] = useState('');
   const [okMsg, setOkMsg] = useState('');
   
-  const [stats, setStats] = useState({ learners: 0, classes: 0 });
+  const [stats, setStats] = useState({ schools: 0, learners: 0, classes: 0 });
   const [announcement, setAnnouncement] = useState('Welcome to the EduVantage School Network.');
   const [profile, setProfile] = useState({ 
     name: 'EduVantage School Management Platform', 

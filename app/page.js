@@ -10,10 +10,21 @@ const SLATE   = '#64748B';
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
+  const [stats, setStats] = useState({ schools: 0, learners: 0 });
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handleScroll);
+    
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/saas/config?tenant=platform-master');
+        const data = await res.json();
+        if (data.stats) setStats(data.stats);
+      } catch (e) {}
+    }
+    loadStats();
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -93,12 +104,12 @@ export default function LandingPage() {
       <section className="stats-strip">
         <div className="container stats-box">
           <div className="stat-item">
-            <strong>1,200+</strong>
+            <strong>{stats.schools ? `${stats.schools.toLocaleString()}+` : '1,200+'}</strong>
             <span>Active Schools</span>
           </div>
           <div className="stat-sep"></div>
           <div className="stat-item">
-            <strong>500k+</strong>
+            <strong>{stats.learners ? `${(stats.learners / 1000).toFixed(0)}k+` : '500k+'}</strong>
             <span>Learners Registered</span>
           </div>
           <div className="stat-sep"></div>
