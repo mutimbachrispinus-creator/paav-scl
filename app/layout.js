@@ -22,7 +22,7 @@ const sora = Sora({
 });
 
 export const metadata = {
-  title:       'EduVantage School Management Platform',
+  title:       'EduVantage School Management System',
   description: 'The future of school management — Multi-tenant SaaS with CBC & M-Pesa.',
   icons: { 
     icon: '/eduvantage-logo.png',
@@ -50,9 +50,16 @@ export default function RootLayout({ children }) {
                   for (let reg of regs) { reg.unregister(); }
                 });
               }
-              // Clear only the system/auth caches if needed, but preserve school branding
+              // Aggressive Legacy Branding Purge
               try {
-                // localStorage.removeItem('paav_cache_user'); // Optional: force re-login
+                const profileRaw = localStorage.getItem('paav_cache_db_paav_school_profile');
+                if (profileRaw && (profileRaw.includes('PAAV-Gitombo') || profileRaw.includes('community school'))) {
+                  localStorage.removeItem('paav_cache_db_paav_school_profile');
+                  localStorage.removeItem('paav_cache_db_paav_theme');
+                  localStorage.removeItem('paav_cache_db_paav_announcement');
+                  console.log('🧹 Purged legacy institutional branding cache');
+                  window.location.reload();
+                }
               } catch(e) {}
               console.log('🚀 EduVantage Cache Killer Active');
             `,

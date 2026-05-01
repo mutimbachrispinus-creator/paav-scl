@@ -232,9 +232,10 @@ export default function PortalShell({ children }) {
         const config = await configRes.json();
         
         if (config.profile) {
-          // Sanitize: never allow legacy logo to leak
+          // Sanitize: never allow legacy name or logo to leak
+          const safeName = (config.profile.name?.includes('PAAV') || config.profile.name?.includes('Gitombo')) ? 'EduVantage School Management System' : config.profile.name;
           const safeLogo = (config.profile.logo === '/logo.png' || !config.profile.logo) ? '/eduvantage-logo.png' : config.profile.logo;
-          setProfile({ ...config.profile, logo: safeLogo });
+          setProfile({ ...config.profile, name: safeName, logo: safeLogo });
         }
         if (config.theme) setTheme(config.theme);
 
