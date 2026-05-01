@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   DEFAULT_SUBJECTS, gInfo, maxPts, promotionStatus,
@@ -12,7 +12,7 @@ const ASSESSMENTS = [
   { key: 'et1', label: 'End-Term' },
 ];
 
-export default function BulkReportCardPage() {
+function BulkReportCardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -436,5 +436,13 @@ export default function BulkReportCardPage() {
         }
       `}</style>
     </>
+  );
+}
+
+export default function BulkReportCardPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, color: 'var(--muted)' }}>Loading report cards...</div>}>
+      <BulkReportCardContent />
+    </Suspense>
   );
 }
