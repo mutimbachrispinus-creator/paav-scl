@@ -54,6 +54,8 @@ export async function GET() {
         name: name,
         plan: s.plan,
         status: s.status,
+        amount: s.amount || 0,
+        cycle: s.cycle || 'annual',
         expiresAt: s.expires_at,
         students: Number(learnerCount.rows[0]?.count || 0),
         revenue: Number(revenueRes.rows[0]?.total || 0),

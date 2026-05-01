@@ -161,37 +161,61 @@ async function handleLogout() {
 }
 
 /* ─── register ──────────────────────────────────────────────────────────── */
-async function handleRegister({ role, name, phone, password, username: chosenUsername, links }, request) {
-  if (role !== 'parent') {
-    return err('Only parents can create accounts. Staff accounts are managed by school administrators.');
+async function handleRegister({ role, name, username, phone, password, links, grade }, request) {
+  const session = await getSession();
+  
+  // 1. Authorization: Only parents can self-register; admins can register staff
+  if (!session && role !== 'parent') {
+    return err('Unauthorised. Only parents can create accounts without logging in.');
   }
-  if (!name || !phone || !password || !chosenUsername || !links?.length) {
-    return err('All fields including at least one school link are required');
+  if (session && session.role !== 'admin' && role !== 'parent') {
+    return err('Forbidden. Only administrators can register staff accounts.');
   }
+
+  if (!name || !password || !username) return err('Name, username and password are required');
   if (password.length < 6) return err('Password must be at least 6 characters');
 
   const { query, execute } = await import('@/lib/db');
   const { hashPassword } = await import('@/lib/auth');
 
-  // Check if username taken GLOBALLY
-  const existing = await query('SELECT id FROM staff WHERE LOWER(username) = ?', [chosenUsername.toLowerCase()]);
-  if (existing.length) return err(`Username "${chosenUsername}" is already taken.`);
+  // 2. Enforce Admin Limit for Staff
+  if (role === 'admin' && session) {
+    const adminCountRes = await query('SELECT COUNT(*) as count FROM staff WHERE role = "admin" AND tenant_id = ?', [session.tenantId]);
+    if (adminCountRes[0].count >= 4) {
+      return err('Limit reached: Maximum of 4 administrators allowed per institution.');
+    }
+  }
+
+  // 3. Check if username taken GLOBALLY
+  const existing = await query('SELECT id FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
+  if (existing.length) return err(`Username "${username}" is already taken.`);
 
   const hashedPassword = await hashPassword(password);
-  const userId = `p${Date.now()}${Math.floor(Math.random() * 100)}`;
+  const userId = (role === 'parent' ? 'p' : 's') + Date.now() + Math.floor(Math.random() * 100);
+  const tenantId = session?.tenantId || (links && links[0]?.schoolId);
 
-  // Register across all linked schools
-  for (const link of links) {
-    if (!link.schoolId || !link.adm) continue;
-    
+  if (!tenantId) return err('Institutional context (tenantId) is missing.');
+
+  if (role === 'parent') {
+    // Parents can be linked to multiple schools
+    for (const link of (links || [])) {
+      if (!link.schoolId || !link.adm) continue;
+      await execute(
+        `INSERT INTO staff (id, tenant_id, name, username, role, phone, password, status, childAdm, createdAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [userId, link.schoolId, name.toUpperCase(), username.toLowerCase(), 'parent', phone, hashedPassword, 'active', link.adm, new Date().toISOString()]
+      );
+    }
+  } else {
+    // Staff are registered in the current admin's tenant
     await execute(
-      `INSERT INTO staff (id, tenant_id, name, username, role, phone, password, status, childAdm, createdAt)
+      `INSERT INTO staff (id, tenant_id, name, username, role, phone, password, status, grade, createdAt)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, link.schoolId, name, chosenUsername.toLowerCase(), 'parent', phone, hashedPassword, 'active', link.adm, new Date().toISOString()]
+      [userId, tenantId, name.toUpperCase(), username.toLowerCase(), role, phone, hashedPassword, 'active', grade || null, new Date().toISOString()]
     );
   }
 
-  return NextResponse.json({ ok: true, username: chosenUsername.toLowerCase() });
+  return NextResponse.json({ ok: true, username: username.toLowerCase() });
 }
 
 /* ─── Google Sign-In ────────────────────────────────────────────────────── */
@@ -331,7 +355,7 @@ async function handleEditUser({ id, name, role, grade, phone, status, password, 
   }
 
   const { query, kvUpdateStaffProfile } = await import('@/lib/db');
-  const rows = await query('SELECT * FROM staff WHERE id = ?', [id]);
+  const rows = await query('SELECT * FROM staff WHERE id = ? AND tenant_id = ?', [id, session.tenantId]);
   const existing = rows[0];
   if (!existing) return err('User not found');
 
@@ -344,17 +368,25 @@ async function handleEditUser({ id, name, role, grade, phone, status, password, 
     hashedPassword = await hashPassword(password);
   }
 
-  // Update directly in the relational table (which handleEditUser was NOT doing correctly before)
+  // Update directly in the relational table
   // And touch the KV timestamp to invalidate client cache
-  await kvUpdateStaffProfile(id, finalName, finalPhone, finalAvatar, hashedPassword);
+  await kvUpdateStaffProfile(id, finalName, finalPhone, finalAvatar, hashedPassword, session.tenantId);
 
   // If Admin is updating other fields (role, status, grade)
   if (session.role === 'admin' && (role || status || grade !== undefined)) {
     const finalRole = role || existing.role;
     const finalStatus = status || existing.status;
     const finalGrade = grade !== undefined ? grade : existing.grade;
+
+    if (finalRole === 'admin' && existing.role !== 'admin') {
+      const adminCountRes = await query('SELECT COUNT(*) as count FROM staff WHERE role = "admin" AND tenant_id = ?', [session.tenantId]);
+      if (adminCountRes[0].count >= 4) {
+        return err('Limit reached: Maximum of 4 administrators allowed per institution.');
+      }
+    }
+
     const { execute } = await import('@/lib/db');
-    await execute('UPDATE staff SET role = ?, status = ?, grade = ? WHERE id = ?', [finalRole, finalStatus, finalGrade, id]);
+    await execute('UPDATE staff SET role = ?, status = ?, grade = ? WHERE id = ? AND tenant_id = ?', [finalRole, finalStatus, finalGrade, id, session.tenantId]);
   }
 
   return NextResponse.json({ ok: true });

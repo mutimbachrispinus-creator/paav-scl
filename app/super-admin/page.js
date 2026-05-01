@@ -11,6 +11,40 @@ export default function SuperAdminPage() {
   const [user, setUser] = useState(null);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showConfig, setShowConfig] = useState(false);
+  const [editSchool, setEditSchool] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const saveConfig = async () => {
+    if (!editSchool) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/saas/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_billing', tenantId: editSchool.id, ...editSchool })
+      });
+      if (res.ok) {
+        setShowConfig(false);
+        load();
+      }
+    } catch (e) { console.error(e); }
+    finally { setSaving(false); }
+  };
+
+  const handleDelete = async (tid, name) => {
+    if (!confirm(`⚠️ CRITICAL ACTION: Are you sure you want to PERMANENTLY DELETE ${name} (${tid})? All data including learners, staff, and marks will be WIPED. This cannot be undone.`)) return;
+    if (!confirm(`Type the school ID "${tid}" to confirm deletion:`)) return; // Simple safety check
+    
+    try {
+      const res = await fetch('/api/saas/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_school', tenantId: tid })
+      });
+      if (res.ok) load();
+    } catch (e) { console.error(e); }
+  };
   
   const load = useCallback(async () => {
     const u = await getCachedUser();
@@ -159,12 +193,15 @@ export default function SuperAdminPage() {
                   </td>
                   <td style={{ fontWeight: 900, color: EMERALD }}>KES {s.revenue.toLocaleString()}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: 6 }}>
                       <button className="btn btn-sm btn-primary" onClick={() => {
                         localStorage.setItem('paav_impersonate_id', s.id);
                         window.location.href = '/dashboard';
                       }}>Login as Admin</button>
-                      <button className="btn btn-sm btn-ghost">Config</button>
+                      <button className="btn btn-sm btn-ghost" onClick={() => {
+                        setEditSchool(s);
+                        setShowConfig(true);
+                      }}>Config</button>
+                      <button className="btn btn-sm btn-danger" onClick={() => handleDelete(s.id, s.name)}>Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -173,6 +210,54 @@ export default function SuperAdminPage() {
           </table>
         </div>
       </div>
+
+      {showConfig && editSchool && (
+        <div className="modal-overlay open">
+          <div className="modal" style={{ maxWidth: 400 }}>
+            <div className="modal-hdr">
+              <h3>⚙️ Billing Config: {editSchool.name}</h3>
+              <button className="modal-close" onClick={() => setShowConfig(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+               <div className="field">
+                 <label>Service Plan</label>
+                 <select value={editSchool.plan} onChange={e => setEditSchool({...editSchool, plan: e.target.value})}>
+                   <option value="trial">Trial</option>
+                   <option value="Basic">Basic</option>
+                   <option value="Premium">Premium</option>
+                 </select>
+               </div>
+               <div className="field-row">
+                 <div className="field">
+                   <label>Amount (KES)</label>
+                   <input type="number" value={editSchool.amount} onChange={e => setEditSchool({...editSchool, amount: e.target.value})} />
+                 </div>
+                 <div className="field">
+                   <label>Billing Cycle</label>
+                   <select value={editSchool.cycle} onChange={e => setEditSchool({...editSchool, cycle: e.target.value})}>
+                     <option value="termly">Termly</option>
+                     <option value="annual">Annual</option>
+                   </select>
+                 </div>
+               </div>
+               <div className="field">
+                 <label>Status</label>
+                 <select value={editSchool.status} onChange={e => setEditSchool({...editSchool, status: e.target.value})}>
+                   <option value="active">Active</option>
+                   <option value="expired">Expired</option>
+                   <option value="suspended">Suspended</option>
+                 </select>
+               </div>
+            </div>
+            <div className="modal-ftr">
+               <button className="btn btn-ghost" onClick={() => setShowConfig(false)}>Cancel</button>
+               <button className="btn btn-primary" onClick={saveConfig} disabled={saving}>
+                 {saving ? 'Saving...' : 'Save Configuration'}
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .activity-item { padding: 12px; background: #F8FAFC; border-radius: 8px; font-size: 13px; border-left: 3px solid ${M}; }

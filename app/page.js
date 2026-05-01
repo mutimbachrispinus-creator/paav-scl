@@ -1,13 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ChatBot from '@/components/ChatBot';
 
 const PRIMARY = '#4F46E5'; // Indigo
 const ACCENT  = '#10B981'; // Emerald
 const DARK    = '#0F172A';
 const SLATE   = '#64748B';
 
-export default function DribbbleLanding() {
+export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -238,6 +239,8 @@ export default function DribbbleLanding() {
           </div>
         </div>
       </footer>
+
+      <ChatBot />
 
       <style jsx>{`
         .landing-wrap { background: #fff; color: ${DARK}; font-family: var(--font-inter, sans-serif); overflow-x: hidden; max-width: 100vw; }
