@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCachedUser, getCachedDB, invalidateDB, fetchWithRetry } from '@/lib/client-cache';
+import { getCachedUser, getCachedDB, invalidateDB, fetchWithRetry, mutateDB } from '@/lib/client-cache';
 import { writeSchoolProfileCache } from '@/lib/school-profile';
 import { useProfile } from '@/app/PortalShell';
 
@@ -49,32 +49,11 @@ export default function SchoolProfilePage() {
   async function save() {
     setBusy(true);
     try {
-      const res = await fetchWithRetry('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          requests: [
-            { type: 'set', key: 'paav_school_profile', value: profile },
-            { type: 'set', key: 'paav_theme', value: theme }
-          ]
-        })
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Server error ' + res.status);
-      }
-
-      // Write fresh values into cache so all pages see them immediately
-      writeSchoolProfileCache(profile);
-      invalidateDB(['paav_school_profile', 'paav_theme']);
-      
-      const PREFIX = 'paav_cache_';
-      const stamp = Date.now();
-      localStorage.setItem(PREFIX + 'db_paav_theme', JSON.stringify({ v: theme, t: stamp, s: stamp }));
+      // Use the robust mutateDB engine for atomic updates and instant cache hydration
+      await mutateDB('paav_school_profile', profile);
+      await mutateDB('paav_theme', theme);
 
       playSuccessSound();
-      // Broadcast to all other open tabs/components
-      window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_theme', 'paav_school_profile'] } }));
       alert('✅ School configuration updated successfully!');
     } catch (e) {
       alert('❌ Failed to save: ' + e.message);
