@@ -43,7 +43,7 @@ export default function GradesPage() {
   const [saving,   setSaving]   = useState(false);
   const [alert,    setAlert]    = useState({ msg: '', type: '' });
 
-  const [grade,  setGrade]  = usePersistedState('paav_grades_grade',  'GRADE 7');
+  const [grade,  setGrade]  = usePersistedState('paav_grades_grade',  'GRADE 1');
   const [term,   setTerm]   = usePersistedState('paav_grades_term',   'T1');
   const [assess, setAssess] = usePersistedState('paav_grades_assess', 'mt1');
   

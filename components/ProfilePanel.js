@@ -194,6 +194,25 @@ export default function ProfilePanel({ user, onClose }) {
             <button className="btn btn-primary" onClick={saveProfile} disabled={saving} style={{width:'100%',marginTop:8}}>
               {saving ? 'Saving…' : '💾 Save All Details'}
             </button>
+
+            {user.role === 'admin' && (
+              <div style={{ marginTop: 20, padding: 15, background: '#F8FAFC', borderRadius: 12, border: '1.5px solid var(--border)' }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: 10 }}>🛠️ Administrative Control</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <button className="btn btn-ghost btn-sm" onClick={() => { window.location.href = '/settings/profile'; onClose(); }} style={{ justifyContent: 'flex-start', textAlign: 'left', fontWeight: 600 }}>🏫 School Branding & Profile</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => { window.location.href = '/teachers'; onClose(); }} style={{ justifyContent: 'flex-start', textAlign: 'left', fontWeight: 600 }}>👥 Staff & User Management</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => { window.location.href = '/settings'; onClose(); }} style={{ justifyContent: 'flex-start', textAlign: 'left', fontWeight: 600 }}>⚙️ Portal Settings</button>
+                </div>
+              </div>
+            )}
+
+            <button className="btn btn-danger" onClick={() => {
+              if (confirm('Are you sure you want to log out?')) {
+                fetch('/api/auth', { method: 'POST', body: JSON.stringify({ action: 'logout' }) }).then(() => {
+                  window.location.href = '/';
+                });
+              }
+            }} style={{ width: '100%', marginTop: 20, fontWeight: 800 }}>🔓 Secure Logout</button>
           </div>
         </div>
       </div>

@@ -13,6 +13,8 @@ export default function ExpensesPage() {
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState({ head: '', amount: '', date: new Date().toISOString().split('T')[0], description: '' });
 
+  const [showAdd, setShowAdd] = useState(false);
+
   const load = useCallback(async () => {
     const u = await getCachedUser();
     if (!u || u.role !== 'admin') { router.push('/'); return; }
@@ -31,7 +33,7 @@ export default function ExpensesPage() {
   useEffect(() => { load(); }, [load]);
 
   async function handleAdd(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!form.head || !form.amount) return;
     setAdding(true);
     
@@ -55,6 +57,7 @@ export default function ExpensesPage() {
     
     setForm({ head: budgets[0]?.head || '', amount: '', date: new Date().toISOString().split('T')[0], description: '' });
     setAdding(false);
+    setShowAdd(false);
   }
 
   const total = useMemo(() => expenses.reduce((s, e) => s + e.amount, 0), [expenses]);
@@ -69,9 +72,48 @@ export default function ExpensesPage() {
           <p>Record and monitor institutional spending against departmental budgets</p>
         </div>
         <div className="page-hdr-acts">
+           <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ New Expense</button>
            <button className="btn btn-ghost btn-sm" onClick={() => window.print()}>🖨 Print Expense Report</button>
         </div>
       </div>
+
+      {showAdd && (
+        <div className="modal-overlay open">
+          <div className="modal" style={{ maxWidth: 450 }}>
+            <div className="modal-hdr">
+              <h3>➕ Record New Expense</h3>
+              <button className="modal-close" onClick={() => setShowAdd(false)}>✕</button>
+            </div>
+            <form className="modal-body" onSubmit={handleAdd}>
+               <div className="field">
+                 <label>Vote Head / Category</label>
+                 <select value={form.head} onChange={e => setForm({ ...form, head: e.target.value })}>
+                   {budgets.map(b => <option key={b.id} value={b.head}>{b.head} (Bal: KSH {(b.amount - expenses.filter(ex => ex.head === b.head).reduce((s, ex) => s + ex.amount, 0)).toLocaleString()})</option>)}
+                   {budgets.length === 0 && <option value="General">General</option>}
+                 </select>
+               </div>
+               <div className="field">
+                 <label>Amount (KSH)</label>
+                 <input type="number" required value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0.00" />
+               </div>
+               <div className="field">
+                 <label>Transaction Date</label>
+                 <input type="date" required value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+               </div>
+               <div className="field">
+                 <label>Description / Vendor</label>
+                 <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="e.g. Purchase of Lab Chemicals from KEMSA" rows={3} />
+               </div>
+            </form>
+            <div className="modal-ftr">
+               <button className="btn btn-ghost" onClick={() => setShowAdd(false)}>Cancel</button>
+               <button className="btn btn-primary" onClick={handleAdd} disabled={adding}>
+                 {adding ? '⏳ Recording...' : '💾 Save Expense Entry'}
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="sg sg3 no-print" style={{ marginBottom: 20 }}>
         <div className="panel" style={{ background: '#FEF2F2', border: '1.5px solid #FCA5A5' }}>

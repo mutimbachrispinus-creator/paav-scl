@@ -32,9 +32,8 @@ export default function EducationHubPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [docs, setDocs] = useState([]);
-  const [selGrade, setSelGrade] = useState('ALL');
-  const [selCat, setSelCat] = useState('all');
+  const [showUpload, setShowUpload] = useState(false);
+  const [newDoc, setNewDoc] = useState({ title: '', grade: 'GRADE 1', subject: '', category: 'notes', url: '' });
 
   const load = useCallback(async () => {
     const u = await getCachedUser();
@@ -48,6 +47,21 @@ export default function EducationHubPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  async function saveDoc() {
+    if (!newDoc.title || !newDoc.url) return;
+    const doc = { ...newDoc, id: Date.now(), author: user.name, date: new Date().toISOString() };
+    const updated = [doc, ...docs];
+    
+    await fetch('/api/db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav7_learning_docs', value: updated }] })
+    });
+    setDocs(updated);
+    setShowUpload(false);
+    setNewDoc({ title: '', grade: 'GRADE 1', subject: '', category: 'notes', url: '' });
+  }
+
   if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading Education Hub…</div>;
 
   return (
@@ -58,12 +72,13 @@ export default function EducationHubPage() {
           <p>Global CBC materials, KICD resources, and institutional learning library</p>
         </div>
         <div className="page-hdr-acts">
-           {user.role === 'admin' || user.role === 'teacher' ? (
-              <button className="btn btn-primary btn-sm">+ Upload Material</button>
-           ) : null}
+           {(user.role === 'admin' || user.role === 'teacher') && (
+              <button className="btn btn-primary btn-sm" onClick={() => setShowUpload(true)}>+ Upload Material</button>
+           )}
         </div>
       </div>
 
+      {/* ... existing content ... */}
       <div className="sg sg4" style={{ marginBottom: 25 }}>
         {CATEGORIES.map(c => (
           <div key={c.id} className={`panel cat-card ${selCat === c.id ? 'active' : ''}`} onClick={() => setSelCat(c.id)}>
@@ -90,12 +105,12 @@ export default function EducationHubPage() {
                 <div key={i} className="doc-row">
                   <div style={{ display: 'flex', gap: 15, alignItems: 'center' }}>
                     <div style={{ fontSize: 24 }}>📄</div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 800, color: 'var(--navy)' }}>{d.title}</div>
                       <div style={{ fontSize: 11, color: 'var(--muted)' }}>{d.grade} • {d.subject} • Shared by {d.author}</div>
                     </div>
                   </div>
-                  <button className="btn btn-ghost" style={{ fontSize: 20 }}>📥</button>
+                  <a href={d.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{ fontSize: 20, textDecoration: 'none' }}>📥</a>
                 </div>
               ))}
               {docs.length === 0 && (
@@ -110,6 +125,7 @@ export default function EducationHubPage() {
         </div>
 
         <div className="sidebar" style={{ width: 350, display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* ... existing sidebar ... */}
           <div className="panel">
             <div className="panel-hdr" style={{ background: 'linear-gradient(135deg, #0369A1, #075985)', color: '#fff' }}>
               <h3 style={{ color: '#fff' }}>🇰🇪 Official Portals</h3>
@@ -158,6 +174,49 @@ export default function EducationHubPage() {
           </div>
         </div>
       </div>
+
+      {showUpload && (
+        <div className="modal-overlay open">
+          <div className="modal" style={{ maxWidth: 450 }}>
+            <div className="modal-hdr">
+              <h3>➕ Upload Resource</h3>
+              <button className="modal-close" onClick={() => setShowUpload(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="field">
+                <label>Resource Title</label>
+                <input value={newDoc.title} onChange={e => setNewDoc({...newDoc, title: e.target.value})} placeholder="e.g. GRADE 4 MATH CAT 1" />
+              </div>
+              <div className="field-row">
+                <div className="field">
+                  <label>Grade</label>
+                  <select value={newDoc.grade} onChange={e => setNewDoc({...newDoc, grade: e.target.value})}>
+                    {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Category</label>
+                  <select value={newDoc.category} onChange={e => setNewDoc({...newDoc, category: e.target.value})}>
+                    {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="field">
+                <label>Subject</label>
+                <input value={newDoc.subject} onChange={e => setNewDoc({...newDoc, subject: e.target.value})} placeholder="e.g. Mathematics" />
+              </div>
+              <div className="field">
+                <label>File / Link URL</label>
+                <input value={newDoc.url} onChange={e => setNewDoc({...newDoc, url: e.target.value})} placeholder="https://..." />
+              </div>
+            </div>
+            <div className="modal-ftr">
+               <button className="btn btn-ghost" onClick={() => setShowUpload(false)}>Cancel</button>
+               <button className="btn btn-primary" onClick={saveDoc}>Upload & Share</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .sg-responsive { display: flex; gap: 20px; }

@@ -34,7 +34,7 @@ export default function MeritListPage() {
   const [gradCfg,  setGradCfg]  = useState(null);
   const [loading,  setLoading]  = useState(true);
 
-  const [grade,  setGrade]  = useState('GRADE 7');
+  const [grade,  setGrade]  = usePersistedState('paav_grades_grade',  'GRADE 1');
   const [term,   setTerm]   = useState('T1');
   const [assess, setAssess] = useState('mt1');
   const [school,   setSchool]   = useState({ name: 'SCHOOL PORTAL' });
