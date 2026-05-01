@@ -1,7 +1,7 @@
 {
   "name": "paav-school-portal",
   "version": "2.0.0",
-  "description": "PAAV-Gitombo Community School Portal — Next.js 14 + Turso",
+  "description": "EduVantage School Management Platform — Next.js 14 + Turso",
   "private": true,
   "scripts": {
     "dev": "next dev",

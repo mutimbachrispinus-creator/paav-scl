@@ -63,17 +63,17 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
       <Link href="/dashboard" className="tb-brand" style={{ cursor: 'pointer', textDecoration: 'none' }}>
         <div className="tb-crest">
           <img 
-            src={(user.tenantId === 'platform-master' && !impersonateId) ? '/eduvantage-logo.png' : (profile.logo || '/logo.png')} 
+            src={(user.role === 'super-admin' && !impersonateId) ? '/eduvantage-logo.png' : (profile.logo || '/logo.png')} 
             alt="Logo" 
             style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: '50%' }} 
           />
         </div>
         <div>
           <div className="tb-sname">
-            {(user.tenantId === 'platform-master' && !impersonateId) ? 'EDUVANTAGE SCHOOL MANAGEMENT PLATFORM' : (profile.name?.toUpperCase() || 'SCHOOL PORTAL')} — {new Date().getFullYear()}
+            {(user.role === 'super-admin' && !impersonateId) ? 'EDUVANTAGE SCHOOL MANAGEMENT PLATFORM' : (profile.name?.toUpperCase() || 'SCHOOL PORTAL')} — {new Date().getFullYear()}
           </div>
           <div className="tb-stag">
-            {(user.tenantId === 'platform-master' && !impersonateId) ? 'The Future of Education Management' : (profile.motto || 'Education Portal')}
+            {(user.role === 'super-admin' && !impersonateId) ? 'The Future of Education Management' : (profile.motto || 'Education Portal')}
           </div>
         </div>
       </Link>

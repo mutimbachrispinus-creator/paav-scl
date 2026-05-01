@@ -142,7 +142,11 @@ export default function PortalShell({ children }) {
     } catch {}
     return { primary: '#1E293B', secondary: '#D4AF37', accent: '#334155' };
   });
-  const [profile,      setProfile]      = useState({ name: 'EduVantage School Management Platform', motto: 'The Future of Education Management', logo: '/eduvantage-logo.png' });
+  const [profile,      setProfile]      = useState({ 
+    name: 'EduVantage School Management Platform', 
+    motto: 'The Future of Education Management', 
+    logo: '/eduvantage-logo.png' 
+  });
 
   const idleTimer    = useRef(null);
   const warnTimer    = useRef(null);
@@ -153,6 +157,18 @@ export default function PortalShell({ children }) {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem('paav_impersonate_id');
   });
+
+  // Sync document title with active branding to prevent stale metadata
+  useEffect(() => {
+    if (profile?.name) {
+      const siteName = 'EduVantage School Management Platform';
+      if (profile.name.includes('EduVantage')) {
+        document.title = profile.name;
+      } else {
+        document.title = `${profile.name} — ${siteName}`;
+      }
+    }
+  }, [profile]);
 
   // Apply theme to document
   useEffect(() => {
