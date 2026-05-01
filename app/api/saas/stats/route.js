@@ -16,8 +16,8 @@ export async function GET() {
 
     const db = getClient();
     
-    // 1. Fetch all schools from subscriptions
-    const schoolsRes = await db.execute('SELECT * FROM subscriptions ORDER BY updated_at DESC');
+    // 1. Fetch all schools from subscriptions (excluding the platform owner)
+    const schoolsRes = await db.execute("SELECT * FROM subscriptions WHERE tenant_id != 'platform-master' ORDER BY updated_at DESC");
     const schools = schoolsRes.rows;
 
     const schoolStats = await Promise.all(schools.map(async (s) => {
@@ -53,9 +53,9 @@ export async function GET() {
         plan: s.plan,
         status: s.status,
         expiresAt: s.expires_at,
-        students: Number(learnerCount.rows[0].count),
-        revenue: Number(revenueRes.rows[0].total || 0),
-        lastSync: new Date(s.updated_at * 1000).toLocaleString()
+        students: Number(learnerCount.rows[0]?.count || 0),
+        revenue: Number(revenueRes.rows[0]?.total || 0),
+        lastSync: s.updated_at ? new Date(s.updated_at * 1000).toLocaleString() : 'Never'
       };
     }));
 

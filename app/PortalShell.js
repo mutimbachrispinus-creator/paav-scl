@@ -150,15 +150,19 @@ export default function PortalShell({ children }) {
 
   // Apply theme to document
   useEffect(() => {
-    if (theme) {
-      document.documentElement.style.setProperty('--primary', theme.primary);
-      document.documentElement.style.setProperty('--secondary', theme.secondary);
-      document.documentElement.style.setProperty('--accent', theme.accent);
-      // Generate some derivatives
-      document.documentElement.style.setProperty('--primary-low', theme.primary + '22');
-      document.documentElement.style.setProperty('--primary-mid', theme.primary + '66');
+    let activeTheme = theme;
+    if (user?.tenantId === 'platform-master') {
+      activeTheme = { primary: '#2563EB', secondary: '#D4AF37', accent: '#0F172A' };
     }
-  }, [theme]);
+    if (activeTheme) {
+      document.documentElement.style.setProperty('--primary', activeTheme.primary);
+      document.documentElement.style.setProperty('--secondary', activeTheme.secondary);
+      document.documentElement.style.setProperty('--accent', activeTheme.accent);
+      // Generate some derivatives
+      document.documentElement.style.setProperty('--primary-low', activeTheme.primary + '22');
+      document.documentElement.style.setProperty('--primary-mid', activeTheme.primary + '66');
+    }
+  }, [theme, user]);
 
   const showNav = !NO_NAV_PATHS.includes(pathname) && !pathname.startsWith('/api');
 

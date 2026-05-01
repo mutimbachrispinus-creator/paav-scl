@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { getCachedUser } from '@/lib/client-cache';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
-const M = '#8B1A1A', GOLD = '#D4AF37', NAVY = '#1E293B';
+const M = '#2563EB', GOLD = '#D4AF37', NAVY = '#0F172A', EMERALD = '#10B981';
 
 export default function SuperAdminPage() {
   const router = useRouter();
@@ -52,8 +52,8 @@ export default function SuperAdminPage() {
     <div className="page on" style={{ background: '#F8FAFC', minHeight: '100vh' }}>
       <div className="page-hdr" style={{ background: NAVY, color: '#fff', padding: '30px 40px', borderRadius: '0 0 30px 30px', marginBottom: 30 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 28 }}>👑 SaaS Super-Admin Command</h1>
-          <p style={{ color: '#94A3B8', margin: '5px 0 0 0' }}>Global oversight of the PAAV Platform Network</p>
+          <h1 style={{ margin: 0, fontSize: 28 }}>👑 EduVantage Super-Admin Command</h1>
+          <p style={{ color: '#94A3B8', margin: '5px 0 0 0' }}>Global oversight of the EduVantage Platform Network</p>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 12, color: '#94A3B8', textTransform: 'uppercase' }}>Total Monthly Revenue</div>
@@ -95,7 +95,7 @@ export default function SuperAdminPage() {
           <div className="panel-body">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
               <div className="activity-item"><strong>New Signup:</strong> Bright Future Academy joined.</div>
-              <div className="activity-item"><strong>Payment:</strong> PAAV Gitombo renewed Premium.</div>
+              <div className="activity-item"><strong>Payment:</strong> EduVantage Gitombo renewed Premium.</div>
               <div className="activity-item"><strong>Alert:</strong> St. Marys nearing data limit.</div>
             </div>
             <button className="btn btn-primary" style={{ width: '100%', marginTop: 25 }}>Broadcast Message to All Schools</button>
