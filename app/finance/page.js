@@ -138,9 +138,6 @@ export default function FinanceDashboardPage() {
           </div>
         </div>
       </div>
-v>
-        </div>
-      </div>
 
       <div className="panel" style={{ marginTop: 20 }}>
         <div className="panel-hdr"><h3>📜 Recent Ledger Transactions</h3></div>
