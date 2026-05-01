@@ -85,7 +85,15 @@ const withPWA = require('@ducanh2912/next-pwa').default({
     },
     {
       urlPattern: /\/api\/.*$/i,
-      handler: 'NetworkOnly',
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'api-cache',
+        expiration: {
+          maxEntries: 16,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+        },
+        networkTimeoutSeconds: 5,
+      },
     },
     {
       urlPattern: /.*/i,

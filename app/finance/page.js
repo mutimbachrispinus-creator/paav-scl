@@ -101,7 +101,7 @@ export default function FinanceDashboardPage() {
       <div className="sg-responsive">
         <div className="panel">
           <div className="panel-hdr"><h3>📊 Cash Flow (Monthly)</h3></div>
-          <div className="panel-body" style={{ height: 400 }}>
+          <div className="panel-body" style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -110,6 +110,28 @@ export default function FinanceDashboardPage() {
                 <Tooltip />
                 <Bar dataKey="income" fill="#16A34A" radius={[4, 4, 0, 0]} name="Income" />
                 <Bar dataKey="expense" fill="#DC2626" radius={[4, 4, 0, 0]} name="Expense" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-hdr"><h3>🔮 Revenue Forecast</h3></div>
+          <div className="panel-body" style={{ height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={[
+                ...stats.chartData.slice(-3),
+                { month: 'Next Month (Est.)', income: Math.round(stats.totalIncome / (stats.chartData.length || 1) * 1.1), isForecast: true }
+              ]}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} />
+                <Tooltip />
+                <Bar dataKey="income" radius={[4, 4, 0, 0]}>
+                   {stats.chartData.slice(-3).concat([{ month: 'Next Month (Est.)' }]).map((entry, index) => (
+                     <Cell key={`cell-${index}`} fill={index === 3 ? '#9333EA' : '#0369A1'} fillOpacity={index === 3 ? 0.6 : 1} />
+                   ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -159,7 +181,7 @@ export default function FinanceDashboardPage() {
       <style jsx>{`
         .sg-responsive {
           display: grid;
-          grid-template-columns: 2fr 1fr;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
           gap: 20px;
         }
         .quick-access-btn {

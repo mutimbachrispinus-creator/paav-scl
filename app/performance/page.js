@@ -138,6 +138,7 @@ export default function PerformancePage() {
     {id:'improved',label:'📈 Most Improved'},
     {id:'school',label:'🏫 School-Wide'},
     {id:'levels',label:'📊 Level Dist.'},
+    {id:'trends',label:'📈 Long-Term Trends'},
   ];
 
   return (
@@ -358,6 +359,56 @@ export default function PerformancePage() {
                 );
               })}
               {Object.keys(levelDist).length===0&&<div style={{gridColumn:'1/-1',textAlign:'center',padding:40,color:'var(--muted)'}}>No marks data available</div>}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* TRENDS TAB */}
+      {tab==='trends' && (
+        <div className="panel" style={{border:`1.5px solid ${MB}`}}>
+          <div className="panel-hdr" style={{background:`linear-gradient(135deg,${M},${M2})`,color:'#fff'}}>
+            <h3 style={{color:'#fff'}}>📈 {grade} Performance Trends (Termly Comparison)</h3>
+          </div>
+          <div className="panel-body">
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(250px, 1fr))',gap:20}}>
+              {['T1','T2','T3'].map(t => {
+                const termAvg = (assessKey) => {
+                  let tot=0, cnt=0;
+                  learners.filter(l => l.grade === grade).forEach(l => {
+                    subjects.forEach(s => {
+                      const sc = getMark(marks, t, grade, s, assessKey, l.adm);
+                      if (sc !== null) { tot += sc; cnt++; }
+                    });
+                  });
+                  return cnt ? Math.round(tot/cnt) : 0;
+                };
+
+                const op = termAvg('op1');
+                const mt = termAvg('mt1');
+                const et = termAvg('et1');
+
+                return (
+                  <div key={t} className="panel" style={{padding:15, background:'#f8fafc', borderRadius:12}}>
+                    <h4 style={{textAlign:'center', marginBottom:15, color:M}}>Term {t.replace('T','')}</h4>
+                    <div style={{display:'flex', alignItems:'flex-end', gap:10, height:120, padding:'0 10px'}}>
+                      {[
+                        {label:'Opener', val:op, color:'#3B82F6'},
+                        {label:'Mid', val:mt, color:'#10B981'},
+                        {label:'End', val:et, color:'#F59E0B'}
+                      ].map(bar => (
+                        <div key={bar.label} style={{flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:5}}>
+                          <div style={{fontSize:12, fontWeight:800, color:bar.color}}>{bar.val}%</div>
+                          <div style={{width:'100%', height:`${Math.max(bar.val, 2)}%`, background:bar.color, borderRadius:'4px 4px 0 0'}} />
+                          <div style={{fontSize:10, color:'#64748b', textAlign:'center'}}>{bar.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="note-box" style={{marginTop:20, background:ML, color:M, border:`1px solid ${MB}`}}>
+              <strong>Zeraki-Style Insight:</strong> {grade} performance is tracked across all terms. Use this trend to identify patterns in academic growth and seasonal performance dips.
             </div>
           </div>
         </div>

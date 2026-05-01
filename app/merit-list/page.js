@@ -233,6 +233,7 @@ export default function MeritListPage() {
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>Total Pts</th>
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>/ {max}</th>
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>%</th>
+                    <th style={{ textAlign: 'center', color:'#0369A1', padding: '6px 4px' }}>VAP</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -282,6 +283,18 @@ export default function MeritListPage() {
                       <td style={{ textAlign: 'center', fontWeight: 700,
                         color: l.totalPts/max >= 0.5 ? 'var(--green)' : 'var(--red)', padding: '4px' }}>
                         {Math.round((l.totalPts/max)*100)}%
+                      </td>
+                      <td style={{ textAlign: 'center', padding: '4px' }}>
+                        {l.vap !== 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <span style={{ fontSize: 16, color: l.vap > 0 ? 'var(--green)' : 'var(--red)' }}>
+                              {l.vap > 0 ? '↗️' : '↘️'}
+                            </span>
+                            <span style={{ fontSize: 10, fontWeight: 900, color: l.vap > 0 ? 'var(--green)' : 'var(--red)' }}>
+                              {l.vap > 0 ? `+${l.vap}` : l.vap}
+                            </span>
+                          </div>
+                        ) : <span style={{ color: 'var(--muted)', fontSize: 10 }}>—</span>}
                       </td>
                       <td></td>
                     </tr>
