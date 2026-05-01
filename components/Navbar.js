@@ -89,36 +89,6 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
         <nav className="tb-nav" id="tb-nav-inner">
           {nav.map(n => {
             const b = getBadge(n.key);
-            const hasChildren = n.children && n.children.length > 0;
-
-            if (hasChildren) {
-              return (
-                <div key={n.key} className="nav-item-wrap">
-                  <Link
-                    href={n.key === 'classes' ? '/classes' : `/${n.key}`}
-                    className={`tb-nbtn${isActive(n.key) ? ' on' : ''}`}
-                    style={{ position: 'relative', textDecoration: 'none' }}
-                  >
-                    {n.icon} {n.label} ▾
-                  </Link>
-                  <div className="nav-dropdown">
-                    {n.children.map(child => (
-                      <Link
-                        key={child.href}
-                        href={child.href}
-                        className={`dropdown-item ${pathname === child.href ? 'active' : ''}`}
-                        onClick={() => setShowMobileNav(false)}
-                        onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
-                      >
-                        {child.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              );
-            }
-
-
             return (
               <Link
                 key={n.key}
@@ -128,7 +98,6 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
                 onClick={() => setShowMobileNav(false)}
                 onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
               >
-
                 {n.icon} {n.label}
                 {b > 0 && <span className="nav-badge">{b > 9 ? '9+' : b}</span>}
               </Link>
@@ -143,39 +112,18 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
         <div className="mobile-drawer no-print">
           {nav.map(n => {
             const b = getBadge(n.key);
-            const hasChildren = n.children && n.children.length > 0;
-
             return (
-              <div key={n.key}>
-                <Link 
-                  href={hasChildren ? '#' : `/${n.key}`} 
-                  className={`drawer-item ${isActive(n.key)?'on':''}`} 
-                  onClick={() => !hasChildren && setShowMobileNav(false)} 
-                  onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
-                  style={{ position: 'relative', display: 'flex', justifyContent: 'space-between' }}
-                >
-                  <span>{n.icon} {n.label}</span>
-                  {hasChildren && <span>▾</span>}
-                  {b > 0 && <span className="nav-badge" style={{ right: 20 }}>{b > 9 ? '9+' : b}</span>}
-                </Link>
-                {hasChildren && (
-                  <div style={{ background: 'rgba(255,255,255,0.03)', paddingLeft: 20 }}>
-                    {n.children.map(child => (
-                      <Link 
-                        key={child.href} 
-                        href={child.href} 
-                        className="drawer-item" 
-                        style={{ fontSize: 13, padding: '10px 20px' }}
-                        onClick={() => setShowMobileNav(false)}
-                        onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
-                      >
-
-                        {child.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <Link 
+                key={n.key}
+                href={`/${n.key}`} 
+                className={`drawer-item ${isActive(n.key)?'on':''}`} 
+                onClick={() => setShowMobileNav(false)} 
+                onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
+                style={{ position: 'relative', display: 'flex', justifyContent: 'space-between' }}
+              >
+                <span>{n.icon} {n.label}</span>
+                {b > 0 && <span className="nav-badge" style={{ right: 20 }}>{b > 9 ? '9+' : b}</span>}
+              </Link>
             );
           })}
           <button className="btn btn-danger" style={{ margin: 20 }} onClick={logout}>🚪 Logout</button>
