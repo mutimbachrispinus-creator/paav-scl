@@ -20,6 +20,17 @@ export async function GET() {
         (SELECT phone FROM staff WHERE tenant_id = s.tenant_id AND role = 'admin' LIMIT 1) as admin_phone,
         (SELECT name FROM staff WHERE tenant_id = s.tenant_id AND role = 'admin' LIMIT 1) as admin_name
       FROM subscriptions s
+      UNION
+      SELECT 
+        'paav-gitombo' as tenant_id,
+        'premium' as plan,
+        'active' as status,
+        0 as updated_at,
+        (SELECT value FROM kv WHERE key = 'paav_school_profile' AND tenant_id = 'paav-gitombo') as profile_raw,
+        (SELECT COUNT(*) FROM staff WHERE tenant_id = 'paav-gitombo' AND role = 'parent') as student_count,
+        (SELECT phone FROM staff WHERE tenant_id = 'paav-gitombo' AND role = 'admin' LIMIT 1) as admin_phone,
+        (SELECT name FROM staff WHERE tenant_id = 'paav-gitombo' AND role = 'admin' LIMIT 1) as admin_name
+      WHERE NOT EXISTS (SELECT 1 FROM subscriptions WHERE tenant_id = 'paav-gitombo')
     `);
 
     const formatted = schools.map(s => {

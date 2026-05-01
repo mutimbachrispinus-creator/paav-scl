@@ -37,7 +37,8 @@ export function middleware(request) {
     if (!ignore.includes(subdomain)) {
       if (url.pathname === '/') {
         url.pathname = '/login';
-        url.searchParams.set('tenant', subdomain);
+        const finalTenant = subdomain === 'gitombo' ? 'paav-gitombo' : subdomain;
+        url.searchParams.set('tenant', finalTenant);
         return NextResponse.rewrite(url);
       }
     }
