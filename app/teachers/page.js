@@ -191,7 +191,7 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
   // Auto-generate username and password for new users
   useEffect(() => {
     if (!isEdit && form.name.length > 3 && !form.username) {
-      const prefix = (profile.name || 'EDU').replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase();
+      const prefix = ((profile?.name) || 'EDU').replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase();
       const rand   = Math.floor(100 + Math.random() * 899);
       const first  = form.name.split(' ')[0] || 'USER';
       setForm(f => ({ 
@@ -251,7 +251,7 @@ function UserModal({ user, currentUser, allStaff, onClose }) {
               <label style={{ display: 'flex', justifyContent: 'space-between' }}>
                 Username 
                 {!isEdit && <span style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 800 }} onClick={() => {
-                  const prefix = (profile.name || 'EDU').replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase();
+                  const prefix = ((profile?.name) || 'EDU').replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase();
                   const rand   = Math.floor(100 + Math.random() * 899);
                   const first  = form.name.split(' ')[0] || 'USER';
                   F('username', `${prefix}-${first}-${rand}`);

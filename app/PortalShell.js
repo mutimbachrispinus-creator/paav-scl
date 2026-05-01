@@ -389,7 +389,7 @@ export default function PortalShell({ children }) {
 
   return (
 
-    <ProfileContext.Provider value={{ openProfile: () => setShowProfile(true), setUser, playSuccessSound, impersonateId, setImpersonateId }}>
+    <ProfileContext.Provider value={{ profile, openProfile: () => setShowProfile(true), setUser, playSuccessSound, impersonateId, setImpersonateId }}>
       <input ref={heroFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadHero} />
 
       {showNav && user && (

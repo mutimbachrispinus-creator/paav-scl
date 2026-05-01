@@ -2,11 +2,13 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+import { useProfile } from '@/app/PortalShell';
 
 const M = 'var(--primary)', M2 = 'var(--accent)', ML = 'var(--primary-low)', MB = '#F8FAFC';
 
 export default function UnifiedPayrollPage() {
   const router = useRouter();
+  const { profile } = useProfile();
   const [user, setUser] = useState(null);
   const [staff, setStaff] = useState([]);
   const [payroll, setPayroll] = useState([]);
@@ -104,6 +106,29 @@ export default function UnifiedPayrollPage() {
       body: JSON.stringify({ requests: [{ type: 'set', key: 'paav7_salary', value: updated }] })
     });
     setPayroll(updated);
+  }
+
+  async function updateSalary(username, newSal) {
+    setBusy(true);
+    try {
+      const dbRes = await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_staff' }] }),
+      });
+      const db = await dbRes.json();
+      const list = db.results[0]?.value || [];
+      const idx = list.findIndex(s => s.username === username);
+      if (idx >= 0) {
+        list[idx].salary = Number(newSal);
+        await fetch('/api/db', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_staff', value: list }] }),
+        });
+        setStaff(list.filter(s => s.role !== 'parent'));
+        alert('✅ Salary updated for ' + list[idx].name);
+      }
+    } catch(e) { alert(e.message); }
+    finally { setBusy(false); }
   }
 
   if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading Unified Payroll…</div>;
@@ -261,8 +286,8 @@ export default function UnifiedPayrollPage() {
                     <tr key={s.username} style={{ borderBottom: '1px solid #F1F5F9' }}>
                       <td style={{ padding: 12 }}><strong>{s.name}</strong></td>
                       <td style={{ padding: 12, fontSize: 11, color: 'var(--muted)' }}>{s.role.toUpperCase()}</td>
-                      <td style={{ padding: 12 }}><input type="number" defaultValue={s.salary} className="field" style={{ width: 150, margin: 0, padding: '8px 12px' }} /></td>
-                      <td style={{ padding: 12, textAlign: 'right' }}><button className="btn btn-sm btn-ghost">Update</button></td>
+                      <td style={{ padding: 12 }}><input type="number" id={`sal-${s.username}`} defaultValue={s.salary} className="field" style={{ width: 150, margin: 0, padding: '8px 12px' }} /></td>
+                      <td style={{ padding: 12, textAlign: 'right' }}><button className="btn btn-sm btn-ghost" onClick={() => updateSalary(s.username, document.getElementById(`sal-${s.username}`).value)}>Update</button></td>
                     </tr>
                   ))}
                 </tbody>
@@ -279,7 +304,7 @@ export default function UnifiedPayrollPage() {
             <div className="modal-body" style={{ textAlign: 'center', padding: '0 40px 40px' }}>
               <div id="print-area" style={{ border: '1.5px solid #E2E8F0', padding: 40, borderRadius: 15, maxWidth: 600, margin: '0 auto', textAlign: 'left', background: '#fff', boxShadow: '0 10px 40px rgba(0,0,0,0.05)' }}>
                  <div style={{ textAlign: 'center', borderBottom: '3px solid var(--primary)', paddingBottom: 20, marginBottom: 25 }}>
-                    <div style={{ fontWeight: 900, fontSize: 24, color: 'var(--primary)', letterSpacing: -1 }}>EDUVANTAGE PORTAL SCHOOL</div>
+                    <div style={{ fontWeight: 900, fontSize: 24, color: 'var(--primary)', letterSpacing: -1 }}>{(profile.name || 'EDUVANTAGE PORTAL').toUpperCase()}</div>
                     <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 5, letterSpacing: 2, fontWeight: 700 }}>CERTIFIED MONTHLY PAYSLIP</div>
                  </div>
                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 30 }}>
