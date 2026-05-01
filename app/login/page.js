@@ -168,7 +168,7 @@ function LoginContent() {
           <div style={{ textAlign: 'center', marginBottom: 14 }}>
             <img src={profile.logo || "/eduvantage-logo.png"} alt="Logo" style={{ width: 70, height: 70, objectFit: 'contain', borderRadius: '50%', boxShadow: `0 4px 16px ${theme?.primary || '#4F46E5'}33` }} />
           </div>
-          <div className="auth-card-title">{tab === 'login' ? 'Welcome Back' : tab === 'register' ? 'Get Started' : 'Security Check'}</div>
+          <div className="auth-card-title">{tab === 'login' ? 'Welcome Back' : tab === 'register' ? 'Join the EduVantage Network' : 'Security Check'}</div>
           <div className="auth-card-sub">{tab === 'login' ? 'Sign in to access your dashboard' : tab === 'register' ? 'Create your institutional account' : 'Verify your identity'}</div>
           
           <div className="auth-sw-row">
