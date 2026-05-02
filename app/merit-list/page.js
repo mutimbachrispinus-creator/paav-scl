@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { buildMeritList, ALL_GRADES, maxPts, DEFAULT_SUBJECTS, gInfo, JSS, SENIOR } from '@/lib/cbe';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+import { useSchoolProfile } from '@/lib/school-profile';
 import PrintHeader from '@/components/PrintHeader';
 
 const ASSESS_LABELS = { op1:'Opener Exam', mt1:'Mid-Term Exam', et1:'End-Term Exam' };
