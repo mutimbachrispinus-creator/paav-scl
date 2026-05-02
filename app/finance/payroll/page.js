@@ -366,7 +366,7 @@ export default function UnifiedPayrollPage() {
             <div className="modal-body" style={{ textAlign: 'center', padding: '0 40px 40px' }}>
               <div id="print-area" style={{ border: '1.5px solid #E2E8F0', padding: 40, borderRadius: 15, maxWidth: 600, margin: '0 auto', textAlign: 'left', background: '#fff', boxShadow: '0 10px 40px rgba(0,0,0,0.05)' }}>
                  <div style={{ textAlign: 'center', borderBottom: '3px solid var(--primary)', paddingBottom: 20, marginBottom: 25 }}>
-                    <div style={{ fontWeight: 900, fontSize: 24, color: 'var(--primary)', letterSpacing: -1 }}>{(profile.name || 'EDUVANTAGE PORTAL').toUpperCase()}</div>
+                    <div style={{ fontWeight: 900, fontSize: 24, color: 'var(--primary)', letterSpacing: -1 }}>{(profile.name || 'SCHOOL PORTAL').toUpperCase()}</div>
                     <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 5, letterSpacing: 2, fontWeight: 700 }}>CERTIFIED MONTHLY PAYSLIP</div>
                  </div>
                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 30 }}>

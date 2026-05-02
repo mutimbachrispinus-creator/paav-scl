@@ -26,7 +26,7 @@ export default function ReportCardPage() {
   const [marks,   setMarks]   = useState({});
   const [feeCfg,  setFeeCfg]  = useState({});
   const [gradCfg, setGradCfg] = useState(null);
-  const school = useSchoolProfile({ name: 'EDUVANTAGE PORTAL', motto: '"More Than Academics!"', tel: '0758 922 915', location: 'Embu County, Kenya' });
+  const school = useSchoolProfile();
   const [term,    setTerm]    = useState('T1');
   const [loading, setLoading] = useState(true);
 
@@ -123,7 +123,7 @@ export default function ReportCardPage() {
           className="btn btn-ghost btn-sm" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.3)' }}>
           ← Profile
         </button>
-        
+
         <EmailButton adm={admNo} term={term} email={learner.parentEmail} />
         <SMSButton adm={admNo} term={term} phone={learner.phone} />
 
@@ -146,14 +146,16 @@ export default function ReportCardPage() {
             transform: 'translate(-50%,-50%) rotate(-25deg)',
             fontSize: 140, fontWeight: 900, color: 'rgba(139,26,26,0.035)',
             pointerEvents: 'none', zIndex: 0, userSelect: 'none',
-            fontFamily: 'Sora,sans-serif', letterSpacing: 8 }}>{school.name.split(' ')[0]}</div>
+            fontFamily: 'Sora,sans-serif', letterSpacing: 8 }}>{school.name?.split(' ')[0]}</div>
 
           {/* ── HEADER ── */}
           <div className="rc-hdr" style={{ position: 'relative', zIndex: 1 }}>
-            <div className="rc-hdr-logo">🏫</div>
+            <div className="rc-hdr-logo">
+              {school.logo ? <img src={school.logo} alt="Logo" style={{ width: 64, height: 64, objectFit: 'contain' }} /> : '🏫'}
+            </div>
             <div className="rc-hdr-center">
               <div className="rc-school">{school.name}</div>
-              <div className="rc-hdr-sub">{school.location} &nbsp;·&nbsp; Tel: {school.tel}</div>
+              <div className="rc-hdr-sub">{school.address} &nbsp;·&nbsp; Tel: {school.phone}</div>
               <div>
                 <span className="rc-badge">
                   ACADEMIC PROGRESS REPORT &nbsp;·&nbsp; TERM {term.replace('T','')} &nbsp;·&nbsp; {new Date().getFullYear()}

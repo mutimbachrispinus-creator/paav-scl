@@ -15,7 +15,7 @@ export default function PrintHeader() {
           </div>
         )}
         <div className="ph-details">
-          <h1 className="ph-name">{profile.name || 'SCHOOL NAME'}</h1>
+          <h1 className="ph-name">{profile.name || 'SCHOOL PORTAL'}</h1>
           {profile.motto && <div className="ph-motto">"{profile.motto}"</div>}
           <div className="ph-contacts">
             {profile.address && <span>📍 {profile.address}</span>}

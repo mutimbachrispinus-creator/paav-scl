@@ -55,9 +55,9 @@ export async function GET(request) {
     const response = NextResponse.json({
       tenantId,
       profile: profileData || { 
-        name: 'EduVantage School Management System', 
-        email: 'portal@eduvantage.app', 
-        phone: '+254 792 656 579', 
+        name: 'SCHOOL PORTAL', 
+        email: 'info@school.com', 
+        phone: '0700 000 000', 
         logo: '/ev-brand-v3.png' 
       },
       stats,

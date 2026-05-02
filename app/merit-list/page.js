@@ -39,7 +39,7 @@ export default function MeritListPage() {
   const [grade,  setGrade]  = usePersistedState('paav_grades_grade',  'GRADE 1');
   const [term,   setTerm]   = useState('T1');
   const [assess, setAssess] = useState('mt1');
-  const [school,   setSchool]   = useState({ name: 'SCHOOL PORTAL' });
+  const school = useSchoolProfile();
 
   const load = useCallback(async () => {
     try {
@@ -59,15 +59,6 @@ export default function MeritListPage() {
       setLearners(db.paav6_learners || []);
       setMarks(db.paav6_marks || {});
       setGradCfg(db.paav8_grad || null);
-
-      if (db.paav_school_profile) {
-        try {
-          const prof = typeof db.paav_school_profile === 'string' 
-            ? JSON.parse(db.paav_school_profile) 
-            : db.paav_school_profile;
-          if (prof.name) setSchool({ name: prof.name });
-        } catch (e) {}
-      }
     } catch (e) {
       console.error('Merit list load error:', e);
     } finally {

@@ -8,7 +8,7 @@ export default function ReportsPage() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const school = useSchoolProfile({ name: 'EDUVANTAGE PORTAL', motto: '"More Than Academics!"', tel: '0758 922 915', location: 'Embu County, Kenya' });
+  const school = useSchoolProfile();
   const [form, setForm] = useState({ dept: '', title: '', text: '' });
   const [msg, setMsg] = useState({ type: '', text: '' });
 

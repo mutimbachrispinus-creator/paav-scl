@@ -143,8 +143,8 @@ export default function PortalShell({ children }) {
     return { primary: '#1E293B', secondary: '#D4AF37', accent: '#334155' };
   });
   const [profile,      setProfile]      = useState({ 
-    name: 'EduVantage School Management System', 
-    motto: 'The Future of Education Management', 
+    name: 'SCHOOL PORTAL', 
+    motto: 'Quality Education for All', 
     logo: '/ev-brand-v3.png' 
   });
 
@@ -168,17 +168,7 @@ export default function PortalShell({ children }) {
       return;
     }
 
-    // Force Platform Name if legacy institutional name is detected
-    if (!profile?.name || profile.name.includes('PAAV') || profile.name.includes('Gitombo') || profile.name.toLowerCase().includes('community school')) {
-      document.title = siteName;
-      return;
-    }
-
-    if (profile.name.includes('EduVantage')) {
-      document.title = profile.name;
-    } else {
-      document.title = `${profile.name} — ${siteName}`;
-    }
+    document.title = profile.name ? `${profile.name} — ${siteName}` : siteName;
   }, [profile, pathname]);
 
   // Apply theme to document
@@ -232,10 +222,7 @@ export default function PortalShell({ children }) {
         const config = await configRes.json();
         
         if (config.profile) {
-          // Sanitize: only block the specific legacy placeholder full name
-          const safeName = (config.profile.name === 'PAAV-Gitombo Community School' || !config.profile.name) ? 'EduVantage School Management System' : config.profile.name;
-          const safeLogo = (config.profile.logo === '/ev-brand-v3.png' || !config.profile.logo) ? '/ev-brand-v3.png' : config.profile.logo;
-          setProfile({ ...config.profile, name: safeName, logo: safeLogo });
+          setProfile(config.profile);
         }
         if (config.theme) setTheme(config.theme);
 
@@ -369,21 +356,6 @@ export default function PortalShell({ children }) {
   }, []);
 
 
-  async function saveAnnouncement() {
-    try {
-      await fetchWithRetry('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [
-          { type: 'set', key: 'paav_announcement', value: { text: annDraft, active: !!annDraft, ts: Date.now() } }
-        ]}),
-        timeout: 8000
-      });
-      setAnnouncement(annDraft);
-      setEditAnn(false);
-    } catch(e) { alert('Failed to save announcement'); }
-  }
-
   async function uploadHero(e) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -400,6 +372,21 @@ export default function PortalShell({ children }) {
       } catch {}
     };
     reader.readAsDataURL(file);
+  }
+
+  async function saveAnnouncement() {
+    try {
+      await fetchWithRetry('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [
+          { type: 'set', key: 'paav_announcement', value: { text: annDraft, active: !!annDraft, ts: Date.now() } }
+        ]}),
+        timeout: 8000
+      });
+      setAnnouncement(annDraft);
+      setEditAnn(false);
+    } catch(e) { alert('Failed to save announcement'); }
   }
 
   function playSuccessSound() {

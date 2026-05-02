@@ -25,7 +25,7 @@ function BulkReportCardContent() {
   const [marks,   setMarks]   = useState({});
   const [feeCfg,  setFeeCfg]  = useState({});
   const [gradCfg, setGradCfg] = useState(null);
-  const school = useSchoolProfile({ name: 'EDUVANTAGE PORTAL', motto: '"More Than Academics!"', tel: '0758 922 915', location: 'Embu County, Kenya' });
+  const school = useSchoolProfile();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
