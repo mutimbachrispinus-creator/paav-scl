@@ -38,6 +38,10 @@ export async function POST(request) {
       await kvSet('paav_global_config', payload, MASTER_TENANT);
       // Also update the school profile for the master tenant for branding
       await kvSet('paav_school_profile', { name: payload.platformName, motto: payload.platformMotto }, MASTER_TENANT);
+      // Sync SMS gateway credentials to the key all SMS routes read from
+      if (payload.smsGateway) {
+        await kvSet('paav_at_creds', payload.smsGateway, MASTER_TENANT);
+      }
       return NextResponse.json({ ok: true });
     }
 

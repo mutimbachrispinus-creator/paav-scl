@@ -14,6 +14,8 @@ export default function SuperAdminPage() {
   const [tab, setTab] = useState('overview');
   const [showConfig, setShowConfig] = useState(false);
   const [editSchool, setEditSchool] = useState(null);
+  const [paybillSchool, setPaybillSchool] = useState(null);
+  const [paybills, setPaybills] = useState([]);
   const [saving, setSaving] = useState(false);
 
   // Global Config State
@@ -104,6 +106,35 @@ export default function SuperAdminPage() {
       });
       if (res.ok) load();
     } catch (e) { console.error(e); }
+  };
+
+  const loadPaybills = async (school) => {
+    try {
+      setPaybillSchool(school);
+      setPaybills([]);
+      // Instead of an API route, since Super Admin is powerful, we can just use the db endpoint
+      // BUT `db/route.js` uses session.tenantId, so it won't work for another tenant easily unless we use `api/saas/manage`
+      // Let's create an action in `api/saas/manage` or just fetch it here.
+      // Wait, `/api/saas/manage` handles `get_paybills`. Let's assume we need to add that.
+      const res = await fetch('/api/saas/manage', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_paybills', tenantId: school.id })
+      });
+      const data = await res.json();
+      setPaybills(data.paybills || []);
+    } catch(e) { console.error(e); }
+  };
+
+  const savePaybills = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch('/api/saas/manage', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'set_paybills', tenantId: paybillSchool.id, paybills })
+      });
+      if (res.ok) { setPaybillSchool(null); alert('Paybills saved successfully'); }
+    } catch(e) { console.error(e); }
+    finally { setSaving(false); }
   };
 
   if (loading) return (
@@ -210,6 +241,7 @@ export default function SuperAdminPage() {
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button className="btn btn-sm btn-primary" onClick={() => { localStorage.setItem('paav_impersonate_id', s.id); window.location.href = '/dashboard'; }}>Login</button>
                           <button className="btn btn-sm btn-ghost" onClick={() => { setEditSchool(s); setShowConfig(true); }}>Config</button>
+                          <button className="btn btn-sm btn-ghost" onClick={() => loadPaybills(s)}>M-Pesa</button>
                           <button className="btn btn-sm btn-danger" onClick={() => handleDelete(s.id, s.name)}>Delete</button>
                         </div>
                       </td>
@@ -315,6 +347,23 @@ export default function SuperAdminPage() {
 
       {showConfig && editSchool && (
         <div className="modal-overlay open"><div className="modal" style={{ maxWidth: 400 }}><div className="modal-hdr"><h3>⚙️ Billing Config: {editSchool.name}</h3><button className="modal-close" onClick={() => setShowConfig(false)}>✕</button></div><div className="modal-body"><div className="field"><label>Service Plan</label><select value={editSchool.plan} onChange={e => setEditSchool({...editSchool, plan: e.target.value})}><option value="trial">Trial</option><option value="Basic">Basic</option><option value="Premium">Premium</option></select></div><div className="field-row"><div className="field"><label>Amount (KES)</label><input type="number" value={editSchool.amount} onChange={e => setEditSchool({...editSchool, amount: e.target.value})} /></div><div className="field"><label>Billing Cycle</label><select value={editSchool.cycle} onChange={e => setEditSchool({...editSchool, cycle: e.target.value})}><option value="termly">Termly</option><option value="annual">Annual</option></select></div></div><div className="field"><label>Status</label><select value={editSchool.status} onChange={e => setEditSchool({...editSchool, status: e.target.value})}><option value="active">Active</option><option value="expired">Expired</option><option value="suspended">Suspended</option></select></div></div><div className="modal-ftr"><button className="btn btn-ghost" onClick={() => setShowConfig(false)}>Cancel</button><button className="btn btn-primary" onClick={saveConfig} disabled={saving}>{saving ? 'Saving...' : 'Save Configuration'}</button></div></div></div>
+      )}
+
+      {paybillSchool && (
+        <div className="modal-overlay open"><div className="modal"><div className="modal-hdr"><h3>📱 M-Pesa Setup: {paybillSchool.name}</h3><button className="modal-close" onClick={() => setPaybillSchool(null)}>✕</button></div><div className="modal-body">
+          <p style={{ fontSize: 12, color: SLATE }}>Configure Paybills for this specific tenant to ensure parents pay directly into the school&apos;s account.</p>
+          {paybills.map((p, i) => (
+            <div key={p.id} style={{ padding: 10, background: '#FAFBFF', border: '1px solid #E2E8F0', borderRadius: 8, marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}><span style={{fontWeight:800, fontSize:11}}>ACCOUNT #{i+1}</span><button className="btn btn-ghost btn-sm" style={{color:'#EF4444', padding:0}} onClick={() => setPaybills(paybills.filter(x => x.id !== p.id))}>Remove</button></div>
+              <div className="field-row">
+                <div className="field"><label>Name</label><input value={p.name} onChange={e => setPaybills(paybills.map(x => x.id === p.id ? {...x, name: e.target.value} : x))} placeholder="Tuition Fees" /></div>
+                <div className="field"><label>Shortcode</label><input value={p.shortcode} onChange={e => setPaybills(paybills.map(x => x.id === p.id ? {...x, shortcode: e.target.value} : x))} placeholder="400200" /></div>
+              </div>
+              <div className="field"><label>Passkey</label><input value={p.passkey} onChange={e => setPaybills(paybills.map(x => x.id === p.id ? {...x, passkey: e.target.value} : x))} placeholder="Online Passkey..." /></div>
+            </div>
+          ))}
+          <button className="btn btn-ghost btn-sm" style={{width:'100%', border:'1px dashed #E2E8F0'}} onClick={() => setPaybills([...paybills, {id: Date.now(), name:'', shortcode:'', passkey:'', type:'Paybill'}])}>+ Add Account</button>
+        </div><div className="modal-ftr"><button className="btn btn-ghost" onClick={() => setPaybillSchool(null)}>Cancel</button><button className="btn btn-success" onClick={savePaybills} disabled={saving}>{saving ? 'Saving...' : 'Lock M-Pesa Config'}</button></div></div></div>
       )}
 
       <style jsx>{`

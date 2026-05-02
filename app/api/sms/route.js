@@ -38,8 +38,9 @@ export async function POST(request) {
 
   const { type } = body;
 
-  /* ── Load AT credentials from DB (admin can update via Settings) ── */
-  const savedCreds = (await kvGet('paav_at_creds')) || {};
+  /* ── Load AT credentials from DB (Super Admin Control) ── */
+  // We ALWAYS fetch from platform-master so the SaaS owner controls SMS and billing
+  const savedCreds = (await kvGet('paav_at_creds', {}, 'platform-master')) || {};
   const creds = {
     username: savedCreds.username || process.env.AT_USERNAME || 'sandbox',
     apiKey:   savedCreds.apiKey   || process.env.AT_API_KEY  || '',

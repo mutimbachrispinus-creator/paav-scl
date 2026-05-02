@@ -91,11 +91,10 @@ export default function PayPage() {
       body:    JSON.stringify({
         phone:      phone.trim(),
         amount:     Number(amount),
-        accountRef: learner.adm,
+        accountRef: `${learner.adm}:${term}`,
         term:       term,
         description: `${learner.name} Fees`,
-        shortcode:  acc.shortcode,
-        passkey:    acc.passkey
+        paybillId:  acc.id   // Server fetches shortcode+passkey securely
       }),
     });
     const data = await res.json();

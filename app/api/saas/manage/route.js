@@ -15,7 +15,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized. Super-Admin access required.' }, { status: 403 });
     }
 
-    const { action, tenantId, amount, cycle, plan, status, expiresAt } = await request.json();
+    const body = await request.json();
+    const { action, tenantId, amount, cycle, plan, status, expiresAt, paybills } = body;
 
     if (!tenantId) return NextResponse.json({ error: 'tenantId is required' }, { status: 400 });
     if (tenantId === 'platform-master') return NextResponse.json({ error: 'Cannot manage platform-master' }, { status: 400 });
@@ -52,6 +53,22 @@ export async function POST(request) {
         cycle || 'annual', 
         expiresAt || null
       ]);
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === 'get_paybills') {
+      const client = getClient();
+      const res = await client.execute({ sql: `SELECT value FROM kv WHERE tenant_id = ? AND key = 'paav_paybill_accounts'`, args: [tenantId] });
+      const val = res.rows[0]?.value;
+      const paybills = val ? JSON.parse(val) : [];
+      return NextResponse.json({ ok: true, paybills });
+    }
+
+    if (action === 'set_paybills') {
+      await execute(`
+        INSERT INTO kv (tenant_id, key, value, updated_at) VALUES (?, 'paav_paybill_accounts', ?, strftime('%s','now'))
+        ON CONFLICT(tenant_id, key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+      `, [tenantId, JSON.stringify(paybills || [])]);
       return NextResponse.json({ ok: true });
     }
 

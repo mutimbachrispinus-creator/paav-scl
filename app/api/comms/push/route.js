@@ -17,12 +17,19 @@ export async function POST(request) {
     return NextResponse.json({ ok: false, error: 'No targets specified' });
   }
 
-  const [learners, marks, feecfg, paybill] = await Promise.all([
+  const [learners, marks, feecfg, paybill, savedCreds] = await Promise.all([
     kvGet('paav6_learners'),
     kvGet('paav6_marks'),
     kvGet('paav6_feecfg'),
-    kvGet('paav_paybill_accounts')
+    kvGet('paav_paybill_accounts'),
+    kvGet('paav_at_creds', {}, 'platform-master') // Centralized SMS control
   ]);
+
+  const creds = {
+    username: savedCreds?.username || process.env.AT_USERNAME || 'sandbox',
+    apiKey:   savedCreds?.apiKey   || process.env.AT_API_KEY  || '',
+    senderId: savedCreds?.senderId || process.env.AT_SENDER_ID || '',
+  };
 
   const results = [];
 
@@ -50,7 +57,7 @@ export async function POST(request) {
             balance,
             paybill: pb,
             admNo: learner.adm
-          });
+          }, creds);
           results.push({ adm: learner.adm, channel: 'sms', ...res });
           // Log to DB
           await logComms({ to: parentPhone, message: `Fee Balance: KSH ${balance}`, type: 'fee_reminder', status: res.success ? 'sent' : 'failed', sentBy: session.username });
@@ -98,7 +105,7 @@ export async function POST(request) {
       if (channel === 'sms' || channel === 'both') {
         if (parentPhone) {
           const message = getResultNotificationMessage(learner.name, term.replace('T', ''), totalPts, maxPts);
-          const res = await sendSMS({ to: parentPhone, message });
+          const res = await sendSMS({ to: parentPhone, message, ...creds });
           results.push({ adm: learner.adm, channel: 'sms', ...res });
           await logComms({ to: parentPhone, message, type: 'report_card', status: res.success ? 'sent' : 'failed', sentBy: session.username });
         }
