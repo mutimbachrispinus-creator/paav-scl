@@ -62,6 +62,7 @@ function LoginContent() {
   const [schools, setSchools] = useState([]);
   const [links, setLinks] = useState([{ schoolId: '', adm: '' }]);
   const [usernameStatus, setUsernameStatus] = useState({ checking: false, taken: false });
+  const [choices, setChoices] = useState(null);
   const [form, setForm] = useState({
     username: '', password: '', 
     name: '', phone: '', role: 'parent', 
@@ -165,12 +166,12 @@ function LoginContent() {
       if (!res.ok) {
         if (data.choices) {
           // Handle multiple accounts found
-          setErr('Multiple schools found for this account. Please select one:');
-          setOkMsg('');
-          // In a real app we'd show buttons for each school, 
-          // for now we'll suggest using the school link
+        if (res.status === 403 && data.choices) {
+          setChoices(data.choices);
+          setErr('Multiple accounts found. Please select your school:');
+        } else {
+          setErr(data.error || `Error: Please check your credentials.`);
         }
-        setErr(data.error || `Error: Please check your credentials.`);
         setBusy(false);
         return;
       }
@@ -197,6 +198,13 @@ function LoginContent() {
       setBusy(false);
     }
   }
+
+  const handleSelectChoice = (tid) => {
+    setTenantId(tid);
+    setChoices(null);
+    setErr('');
+    handleAction(null, tid);
+  };
 
   return (
     <div id="auth" style={heroImg ? { background: `linear-gradient(135deg, rgba(5,15,28,0.85) 0%, rgba(13,31,60,0.85) 40%, rgba(21,45,79,0.9) 100%), url(${heroImg})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
@@ -246,6 +254,27 @@ function LoginContent() {
             <button className={`auth-sw ${tab === 'login' ? 'on' : ''}`} onClick={() => setTab('login')} style={tab === 'login' ? { background: 'var(--primary)', boxShadow: `0 2px 8px ${theme?.primary}4D` } : {}}>Sign In</button>
             <button className={`auth-sw ${tab === 'register' ? 'on' : ''}`} onClick={() => setTab('register')} style={tab === 'register' ? { background: 'var(--primary)', boxShadow: `0 2px 8px ${theme?.primary}4D` } : {}}>Parent Register</button>
           </div>
+
+          {choices && (
+            <div className="choices-panel" style={{ marginBottom: 20, animation: 'fadeIn 0.3s' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#64748B', marginBottom: 10 }}>PLEASE SELECT YOUR SCHOOL:</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {choices.map(c => (
+                  <button key={c.id} className="choice-btn" onClick={() => handleSelectChoice(c.id)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div className="choice-icon">🏫</div>
+                      <div style={{ textAlign: 'left' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</div>
+                        <div style={{ fontSize: 10, opacity: 0.6 }}>Login to this institution</div>
+                      </div>
+                    </div>
+                    <span>➔</span>
+                  </button>
+                ))}
+              </div>
+              <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => setChoices(null)}>Cancel</button>
+            </div>
+          )}
 
           <form onSubmit={handleAction}>
             {tab === 'login' && (
@@ -365,6 +394,10 @@ function LoginContent() {
         @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .alert-err { background: #FEF2F2; color: #DC2626; border: 1px solid #FEE2E2; }
         .alert-ok { background: #F0FDF4; color: #16A34A; border: 1px solid #DCFCE7; }
+        
+        .choice-btn { width: 100%; padding: 12px 16px; border-radius: 12px; border: 2px solid #E2E8F0; background: #fff; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: space-between; color: #1E293B; }
+        .choice-btn:hover { border-color: var(--primary); background: #F8FAFC; transform: translateX(5px); }
+        .choice-icon { width: 36px; height: 36px; border-radius: 10px; background: #F1F5F9; display: flex; align-items: center; justify-content: center; font-size: 18px; }
 
         @media(max-width: 900px) {
           .auth-left { display: none; }

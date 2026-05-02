@@ -75,31 +75,42 @@ async function handleLogin({ username, password }, request) {
   let tenantId = request.headers.get('x-tenant-id');
   let user = null;
 
+  // Global login attempt: search across all tenants
   if (!tenantId || tenantId === 'platform-master') {
-    // Global login attempt: search across all tenants
-    const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
+    const rows = await query('SELECT id, tenant_id, name, username, role, password, status FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
     
-    if (rows.length > 1) {
-      // SMART LOGOUT: Try to identify the user by password among the duplicates
-      const matches = [];
-      for (const row of rows) {
-        if (await verifyPassword(password, row.password)) {
-          matches.push(row);
-        }
-      }
+    if (rows.length === 0) return err('Invalid username or password.');
 
-      if (matches.length === 1) {
-        user = matches[0];
-        user.passwordChecked = true;
-        tenantId = user.tenant_id;
-      } else if (matches.length > 1) {
-        return err('Multiple accounts found with this username and password. Please use your school-specific login link.');
-      } else {
-        return err('Incorrect password or account not found.');
+    // 1. Filter by password first
+    const matches = [];
+    for (const row of rows) {
+      if (await verifyPassword(password, row.password)) {
+        matches.push(row);
       }
+    }
+
+    if (matches.length === 0) return err('Invalid username or password.');
+
+    // 2. If it's a Super Admin, allow global login
+    const superAdmin = matches.find(m => m.role === 'super-admin' && m.tenant_id === 'platform-master');
+    if (superAdmin) {
+      user = superAdmin;
+    } else if (matches.length > 1) {
+      // 3. Multiple schools found: Force them to choose
+      const schoolDetails = await Promise.all(matches.map(async (m) => {
+        const profile = await query('SELECT value FROM kv WHERE key = ? AND tenant_id = ?', ['paav_school_profile', m.tenant_id]);
+        let name = m.tenant_id;
+        try { if(profile[0]) name = JSON.parse(profile[0].value).name; } catch(e){}
+        return { id: m.tenant_id, name };
+      }));
+      return NextResponse.json({ 
+        error: 'Multiple institutional accounts found.',
+        choices: schoolDetails
+      }, { status: 403 });
     } else {
-      user = rows[0];
-      if (user) tenantId = user.tenant_id;
+      // 4. Single school found
+      user = matches[0];
+      tenantId = user.tenant_id;
     }
   } else {
     // School-specific login
