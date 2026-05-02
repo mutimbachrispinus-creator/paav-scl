@@ -90,6 +90,20 @@ export async function POST(req) {
 
       console.log(`[M-Pesa Callback] ✅ Payment recorded: adm=${adm}, amount=${result.amount}, ref=${result.mpesaCode}, tenant=${tenantId}`);
 
+      // Fire notification to admin
+      try {
+        await fetch(`${req.nextUrl.origin}/api/notifications`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create',
+            tenantId,
+            to: 'admin',
+            title: `M-Pesa Payment Received`,
+            message: `Adm: ${adm} • KES ${result.amount.toLocaleString()} • Ref: ${result.mpesaCode}`,
+            icon: '💰', type: 'payment', link: '/fees'
+          })
+        });
+      } catch(e) { console.error('[Notification] Failed:', e); }
       // Clean up the pending record
       if (pendingKey) {
         try {

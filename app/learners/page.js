@@ -238,6 +238,7 @@ function AddLearnerModal({ onClose, isAdmin, streams }) {
   const [form, setForm] = useState({
     name: '', grade: 'GRADE 1', dob: '', adm: '', sex: 'F', age: '',
     stream: '', parent: '', phone: '', parentEmail: '', addr: '', arrears: 0,
+    bloodGroup: '', allergies: '', medicalCondition: '', emergencyContact: '',
   });
   const [err,  setErr]  = useState('');
   const [busy, setBusy] = useState(false);
@@ -263,6 +264,8 @@ function AddLearnerModal({ onClose, isAdmin, streams }) {
       teacher: '', parent: form.parent, phone: form.phone,
       parentEmail: form.parentEmail, addr: form.addr,
       t1: 0, t2: 0, t3: 0, arrears: Number(form.arrears) || 0,
+      bloodGroup: form.bloodGroup, allergies: form.allergies,
+      medicalCondition: form.medicalCondition, emergencyContact: form.emergencyContact,
     });
 
     await fetch('/api/db', {
@@ -320,6 +323,29 @@ function AddLearnerModal({ onClose, isAdmin, streams }) {
         <input value={form.parentEmail} onChange={e => F('parentEmail', e.target.value)} type="email" placeholder="parent@example.com" /></div>
       <div className="field"><label>Address</label>
         <input value={form.addr} onChange={e => F('addr', e.target.value)} /></div>
+
+      <div style={{ padding: '10px 0', borderTop: '1.5px solid var(--border)', marginTop: 10 }}>
+        <h4 style={{ fontSize: 12, color: 'var(--navy)', marginBottom: 8 }}>🏥 Medical Records (Confidential)</h4>
+        <div className="field-row">
+          <div className="field"><label>Blood Group</label>
+            <select value={form.bloodGroup} onChange={e => F('bloodGroup', e.target.value)}>
+              <option value="">Select</option>
+              {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => <option key={bg}>{bg}</option>)}
+            </select>
+          </div>
+          <div className="field"><label>Emergency Contact No.</label>
+            <input value={form.emergencyContact} onChange={e => F('emergencyContact', e.target.value)} placeholder="e.g. 0711 222 333" />
+          </div>
+        </div>
+        <div className="field"><label>Allergies</label>
+          <input value={form.allergies} onChange={e => F('allergies', e.target.value)} placeholder="e.g. Peanuts, Penicillin" />
+        </div>
+        <div className="field"><label>Medical Conditions / Notes</label>
+          <textarea value={form.medicalCondition} onChange={e => F('medicalCondition', e.target.value)} 
+            placeholder="e.g. Asthmatic, Diabetic, or none"
+            style={{ width: '100%', padding: '8px 12px', border: '2px solid var(--border)', borderRadius: 8, fontSize: 13, minHeight: 60 }} />
+        </div>
+      </div>
       {isAdmin && (
         <div className="field"><label>Accumulated Fee (Previous Balance)</label>
           <input type="number" value={form.arrears} onChange={e => F('arrears', e.target.value)} placeholder="0.00" /></div>
@@ -535,6 +561,29 @@ function EditLearnerModal({ onClose, learner, isAdmin }) {
         <input value={form.parentEmail || ''} onChange={e => F('parentEmail', e.target.value)} type="email" /></div>
       <div className="field"><label>Address</label>
         <input value={form.addr || ''} onChange={e => F('addr', e.target.value)} /></div>
+
+      <div style={{ padding: '10px 0', borderTop: '1.5px solid var(--border)', marginTop: 10 }}>
+        <h4 style={{ fontSize: 12, color: 'var(--navy)', marginBottom: 8 }}>🏥 Medical Records (Confidential)</h4>
+        <div className="field-row">
+          <div className="field"><label>Blood Group</label>
+            <select value={form.bloodGroup || ''} onChange={e => F('bloodGroup', e.target.value)}>
+              <option value="">Select</option>
+              {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => <option key={bg}>{bg}</option>)}
+            </select>
+          </div>
+          <div className="field"><label>Emergency Contact No.</label>
+            <input value={form.emergencyContact || ''} onChange={e => F('emergencyContact', e.target.value)} placeholder="e.g. 0711 222 333" />
+          </div>
+        </div>
+        <div className="field"><label>Allergies</label>
+          <input value={form.allergies || ''} onChange={e => F('allergies', e.target.value)} placeholder="e.g. Peanuts, Penicillin" />
+        </div>
+        <div className="field"><label>Medical Conditions / Notes</label>
+          <textarea value={form.medicalCondition || ''} onChange={e => F('medicalCondition', e.target.value)} 
+            placeholder="e.g. Asthmatic, Diabetic, or none"
+            style={{ width: '100%', padding: '8px 12px', border: '2px solid var(--border)', borderRadius: 8, fontSize: 13, minHeight: 60 }} />
+        </div>
+      </div>
       {isAdmin && (
         <div className="field"><label>Accumulated Fee (Previous Balance)</label>
           <input type="number" value={form.arrears || 0} onChange={e => F('arrears', e.target.value)} /></div>

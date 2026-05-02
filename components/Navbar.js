@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { ALL_NAV } from '@/lib/navigation';
 import { prefetchKeys, clearAllCache } from '@/lib/client-cache';
 import { useProfile } from '@/app/PortalShell';
+import NotificationBell from '@/components/NotificationBell';
 
 
 export default function Navbar({ user, profile, unreadCount = 0, pendingDuties = 0, pendingReqs = 0, onProfileClick }) {
@@ -145,6 +146,9 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
 
       {/* ── Actions ── */}
       <div className="tb-actions">
+        {/* Notification Bell */}
+        <NotificationBell userId={user?.id || user?.username} />
+
         {/* Message badge */}
         <Link href="/dashboard" className="tb-msg" title="Messages" style={{ textDecoration: 'none' }}>
           💬

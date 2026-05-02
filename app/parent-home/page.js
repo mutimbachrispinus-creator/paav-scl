@@ -27,6 +27,7 @@ export default function ParentHome() {
   const [payInfo, setPayInfo] = useState({});
   const [paylog, setPaylog] = useState([]);
   const [events, setEvents] = useState([]);
+  const [fullTT, setFullTT] = useState({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('child');
   const [term, setTerm] = useState('T1');
@@ -51,6 +52,7 @@ export default function ParentHome() {
           { type: 'get', key: 'paav_documents' },
           { type: 'get', key: 'paav6_paylog' },
           { type: 'get', key: 'paav_school_profile' },
+          { type: 'get', key: 'paav_timetable' },
         ]})
       });
       const db = await dbRes.json();
@@ -58,9 +60,10 @@ export default function ParentHome() {
       const msgs = db.results[1]?.value || [];
       const fees = db.results[2]?.value || {};
       const mks = db.results[3]?.value || {};
+      const payHistory = db.results[7]?.value || [];
       const profile = db.results[8]?.value || {};
+      const fullTTData = db.results[9]?.value || {};
 
-      // Support multiple children
       const admList = Array.isArray(auth.user.childAdm)
         ? auth.user.childAdm
         : auth.user.childAdm ? String(auth.user.childAdm).split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -77,8 +80,10 @@ export default function ParentHome() {
         documents: db.results[6]?.value || [],
         profile: profile
       });
+      setPaylog(payHistory);
       setEvents(db.results[5]?.value || []);
-      setPaylog(db.results[7]?.value || []);
+      setFullTT(fullTTData);
+      setLoading(false);
     } catch(e) { console.error(e); } finally { setLoading(false); }
   }, [router, selAdm]);
 
@@ -126,8 +131,7 @@ export default function ParentHome() {
           accountRef: child.adm,
           term: termLabel.replace('Term ', 'T'),
           description: `${child.name} Fees`,
-          shortcode: account.shortcode,
-          passkey: account.passkey
+          paybillId: account.id
         })
       });
       const data = await res.json();
@@ -219,12 +223,14 @@ export default function ParentHome() {
   const unr = messages.filter(m=>m.to==='ALL'||m.to==='ALL_PARENTS'||m.to===user.username).filter(m=>!(m.read||[]).includes(user.username)).length;
 
   const TABS = [
-    { id:'child',   label:'👦 My Child',        icon:'👦' },
-    { id:'perf',    label:'📊 Performance',      icon:'📊' },
-    { id:'fees',    label:'💰 Pay Fees',         icon:'💰' },
+    { id:'child',   label:'👦 Profile',        icon:'👦' },
+    { id:'perf',    label:'📊 Academic',      icon:'📊' },
+    { id:'fees',    label:'💰 Finance',         icon:'💰' },
+    { id:'payments', label:'🧾 Receipts',       icon:'🧾' },
+    { id:'timetable',label:'🗓 Timetable',      icon:'🗓' },
     { id:'calendar',label:'📅 Calendar',         icon:'📅' },
     { id:'msgs',    label:`💬 Messages${unr>0?` (${unr})`:''}`, icon:'💬' },
-    { id:'docs',    label:'📂 Documents', icon:'📂' },
+    { id:'docs',    label:'📂 Files', icon:'📂' },
   ];
 
   const upcomingEvents = events
@@ -330,6 +336,43 @@ export default function ParentHome() {
                   <span style={{fontWeight:700}}>{v}</span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Medical Records Card */}
+          <div className="panel" style={{gridColumn:'1/-1', border: '1.5px solid #FECACA', background: '#FFFBFB'}}>
+            <div className="panel-hdr" style={{background: 'linear-gradient(135deg, #DC2626, #991B1B)', color: '#fff'}}>
+              <h3 style={{color: '#fff'}}>🏥 Medical Records & Emergency</h3>
+            </div>
+            <div className="panel-body">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                <div style={{ background: '#fff', padding: 12, borderRadius: 10, border: '1px solid #FECACA' }}>
+                  <div style={{ fontSize: 10, color: '#991B1B', fontWeight: 800, textTransform: 'uppercase' }}>🩸 Blood Group</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: '#111827' }}>{child?.bloodGroup || '—'}</div>
+                </div>
+                <div style={{ background: '#fff', padding: 12, borderRadius: 10, border: '1px solid #FECACA' }}>
+                  <div style={{ fontSize: 10, color: '#991B1B', fontWeight: 800, textTransform: 'uppercase' }}>🚨 Emergency Contact</div>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: '#111827', marginTop: 4 }}>{child?.emergencyContact || '—'}</div>
+                </div>
+              </div>
+              
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>🥜 Allergies</div>
+                <div style={{ padding: '8px 12px', background: child?.allergies ? '#FEF2F2' : '#F9FAFB', borderRadius: 8, fontSize: 13, border: '1px solid #E5E7EB', color: child?.allergies ? '#991B1B' : '#6B7280', fontWeight: child?.allergies ? 700 : 400 }}>
+                  {child?.allergies || 'No known allergies reported'}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>📝 Medical Conditions / Notes</div>
+                <div style={{ padding: '8px 12px', background: '#F9FAFB', borderRadius: 8, fontSize: 13, border: '1px solid #E5E7EB', color: '#374151', minHeight: 40 }}>
+                  {child?.medicalCondition || 'No medical conditions reported'}
+                </div>
+              </div>
+
+              <div style={{ marginTop: 15, fontSize: 11, color: '#9CA3AF', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span>🔒 This information is confidential and only accessible by authorized staff.</span>
+              </div>
             </div>
           </div>
         </div>
@@ -616,6 +659,103 @@ export default function ParentHome() {
         </div>
       </div>
     )}
+
+      {/* TIMETABLE TAB */}
+      {tab==='timetable' && (
+        <div className="panel" style={{border:`1.5px solid ${MB}`}}>
+          <div className="panel-hdr" style={{background:`linear-gradient(135deg,${M},${M2})`,color:'#fff'}}>
+            <h3 style={{color:'#fff'}}>🗓 {child?.grade} Timetable</h3>
+          </div>
+          <div className="panel-body">
+            {(() => {
+              const gradeTT = fullTT[child?.grade] || {};
+              const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+              if (Object.keys(gradeTT).length === 0) return <div style={{textAlign:'center',padding:40,color:'var(--muted)'}}>Timetable not yet published for {child?.grade}.</div>;
+              return (
+                <div style={{overflowX:'auto'}}>
+                  <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+                    <thead>
+                      <tr>
+                        <th style={{background:'#F1F5F9',padding:10,border:'1px solid #E2E8F0',width:60}}>Per.</th>
+                        {DAYS.map(d=><th key={d} style={{background:'#F1F5F9',padding:10,border:'1px solid #E2E8F0'}}>{d}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from({length: 8}, (_,pi)=>(
+                        <tr key={pi}>
+                          <td style={{textAlign:'center',fontWeight:700,border:'1px solid #E2E8F0',padding:8}}>{pi+1}</td>
+                          {DAYS.map(day=>{
+                            const slot = (gradeTT[day]||{})[pi+1];
+                            return (
+                              <td key={day} style={{border:'1px solid #E2E8F0',padding:4,verticalAlign:'top'}}>
+                                {slot?.subject ? (
+                                  <div style={{padding:6,background:'#F8FAFC',borderRadius:6}}>
+                                    <div style={{fontWeight:800,color:M}}>{slot.subject}</div>
+                                    <div style={{fontSize:10,color:'var(--muted)'}}>{slot.teacher}</div>
+                                  </div>
+                                ) : <div style={{textAlign:'center',color:'#CBD5E1'}}>—</div>}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* PAYMENTS HISTORY TAB */}
+      {tab==='payments' && (
+        <div className="panel" style={{border:`1.5px solid ${MB}`}}>
+          <div className="panel-hdr" style={{background:`linear-gradient(135deg,#047857,#065F46)`,color:'#fff'}}>
+            <h3 style={{color:'#fff'}}>🧾 Official Payment Receipts</h3>
+          </div>
+          <div className="panel-body" style={{padding:0}}>
+            {(() => {
+              const myPays = paylog.filter(p => p.adm === child.adm).sort((a,b) => new Date(b.time) - new Date(a.time));
+              if (myPays.length === 0) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>No receipts found for this learner.</div>;
+              return (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
+                      <tr>
+                        <th style={{ padding: '14px 20px', textAlign: 'left' }}>Date & Ref</th>
+                        <th style={{ padding: '14px 20px', textAlign: 'left' }}>For</th>
+                        <th style={{ padding: '14px 20px', textAlign: 'right' }}>Amount</th>
+                        <th style={{ padding: '14px 20px', textAlign: 'center' }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {myPays.map((p, i) => (
+                        <tr key={i} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '14px 20px' }}>
+                            <div style={{ fontWeight: 700 }}>{new Date(p.time || p.date).toLocaleDateString()}</div>
+                            <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'monospace' }}>{p.ref || 'N/A'}</div>
+                          </td>
+                          <td style={{ padding: '14px 20px' }}>
+                            <div style={{ fontWeight: 600 }}>{p.term || 'Fees'}</div>
+                            <div style={{ fontSize: 11, color: 'var(--muted)' }}>{p.method || 'M-Pesa'}</div>
+                          </td>
+                          <td style={{ padding: '14px 20px', textAlign: 'right', fontWeight: 900, color: '#059669', fontSize: 15 }}>
+                            {fmtK(p.amount)}
+                          </td>
+                          <td style={{ padding: '14px 20px', textAlign: 'center' }}>
+                            <button className="btn btn-ghost btn-sm" onClick={() => printReceipt(p)}>🖨️ View</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* CALENDAR TAB */}
       {tab==='calendar' && (
