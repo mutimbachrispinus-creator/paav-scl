@@ -22,12 +22,16 @@ export default function SchoolProfilePage() {
     return readSchoolProfile() || { name: '', motto: '', phone: '', email: '', address: '', website: '', logo: '', bankAccounts: [] };
   });
   const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') return { primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B' };
+    const fallback = { primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B' };
+    if (typeof window === 'undefined') return fallback;
     try {
       const raw = localStorage.getItem('paav_cache_db_paav_theme');
-      if (raw) return JSON.parse(raw).v;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.v) return parsed.v;
+      }
     } catch {}
-    return { primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B' };
+    return fallback;
   });
   
   const [loading, setLoading] = useState(true);

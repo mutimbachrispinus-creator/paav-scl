@@ -139,7 +139,10 @@ export default function PortalShell({ children }) {
     if (typeof window === 'undefined') return { primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B' };
     try {
       const raw = localStorage.getItem('paav_cache_db_paav_theme');
-      if (raw) return JSON.parse(raw).v;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.v) return parsed.v;
+      }
     } catch {}
     return { primary: '#1E293B', secondary: '#D4AF37', accent: '#334155' };
   });
