@@ -163,8 +163,7 @@ function LoginContent() {
         if (tab === 'login') {
           clearAllCache();
           // 1. Store the user object first (Critical for auth guards)
-          const { store } = await import('@/lib/client-cache');
-          await store('user', data.user);
+          await hydrateCache({ user: data.user });
           
           // 2. Hydrate other initial data
           if (data.initialData) await hydrateCache(data.initialData);
