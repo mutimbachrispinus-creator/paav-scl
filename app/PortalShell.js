@@ -292,8 +292,25 @@ export default function PortalShell({ children }) {
   useEffect(() => {
     const handler = (e) => {
       const changed = e.detail?.changed || [];
-      // Refresh shell state if relevant keys changed
-      if (changed.some(k => ['paav_announcement','paav6_msgs','paav_hero_img','paav7_duties','paav_staff_reqs', 'paav_theme', 'paav_school_profile'].includes(k))) {
+      
+      // Update local state immediately if cache changed
+      if (changed.includes('paav_school_profile')) {
+        const fresh = readSchoolProfile();
+        if (fresh) setProfile(fresh);
+      }
+      if (changed.includes('paav_theme')) {
+        try {
+          const raw = localStorage.getItem('paav_cache_db_paav_theme');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.v) setTheme(parsed.v);
+          }
+        } catch {}
+      }
+
+      // Refresh other shell state if relevant keys changed
+      const networkKeys = ['paav_announcement','paav6_msgs','paav_hero_img','paav7_duties','paav_staff_reqs'];
+      if (changed.some(k => networkKeys.includes(k))) {
         loadSession();
       }
     };
