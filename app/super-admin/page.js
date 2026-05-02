@@ -27,7 +27,8 @@ export default function SuperAdminPage() {
 
   const load = useCallback(async () => {
     const u = await getCachedUser();
-    if (!u || (u.tenantId !== 'platform-master' && u.role !== 'super-admin')) { 
+    const tid = u?.tenantId || u?.tenant_id;
+    if (!u || (tid !== 'platform-master' && u.role !== 'super-admin')) { 
       router.push('/login'); return; 
     }
     setUser(u);

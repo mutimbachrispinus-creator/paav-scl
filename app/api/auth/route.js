@@ -101,6 +101,9 @@ async function handleLogin({ username, password }, request) {
       user = rows[0];
       if (user) tenantId = user.tenant_id;
     }
+
+    // Force platform-master for super-admins regardless of where they log in from
+    if (user?.role === 'super-admin') tenantId = 'platform-master';
   } else {
     // School-specific login
     const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase().trim(), tenantId]);

@@ -162,7 +162,7 @@ function LoginContent() {
       if (data.ok) {
         if (tab === 'login') {
           clearAllCache();
-          if (data.initialData) hydrateCache(data.initialData);
+          if (data.initialData) await hydrateCache(data.initialData);
           router.push(data.redirect || '/dashboard');
         } else {
           setOkMsg(`✅ Registered! Your username is: ${data.username}. Please login.`);
