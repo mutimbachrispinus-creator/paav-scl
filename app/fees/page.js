@@ -171,11 +171,16 @@ export default function FeesPage() {
             </p>
           </div>
           <div className="page-hdr-acts">
+            {user?.role === 'admin' && (
               <>
                 <button className="btn btn-ghost btn-sm" onClick={() => setModal('config')}>
                   ⚙ Fee Config
                 </button>
+                <button className="btn btn-ghost btn-sm" onClick={() => setModal('paybills')}>
+                  📱 M-Pesa Accounts
+                </button>
               </>
+            )}
             <button className="btn btn-ghost btn-sm no-print" onClick={() => window.print()}>
               🖨️ Print
             </button>
@@ -438,13 +443,93 @@ export default function FeesPage() {
         />
       )}
 
+      {/* ── Paybill Config Modal ── */}
+      {modal === 'paybills' && (
+        <PaybillConfigModal
+          accounts={paybillAccounts}
+          onClose={() => { setModal(null); load(); }}
+        />
+      )}
 
     </>
   );
 }
 
+/* ─── Paybill Config Modal ──────────────────────────────────────────────── */
+function PaybillConfigModal({ accounts, onClose }) {
+  const [list, setList] = useState(
+    accounts.length ? accounts : [{ id: Date.now(), name: '', shortcode: '', passkey: '', type: 'Paybill' }]
+  );
+  const [busy, setBusy] = useState(false);
 
-/* ─── Pay Modal ─────────────────────────────────────────────────────────── */
+  async function save() {
+    setBusy(true);
+    await fetch('/api/db', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_paybill_accounts', value: list }] }),
+    });
+    setBusy(false);
+    onClose();
+  }
+
+  const add = () => setList([...list, { id: Date.now(), name: '', shortcode: '', passkey: '', type: 'Paybill' }]);
+  const del = (id) => setList(list.filter(x => x.id !== id));
+  const upd = (id, k, v) => setList(list.map(x => x.id === id ? { ...x, [k]: v } : x));
+
+  return (
+    <ModalOverlay title="📱 M-Pesa Payment Accounts" onClose={onClose}>
+      <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 15 }}>
+        Configure the M-Pesa Paybill or Till numbers parents will use to pay fees.
+        The Passkey is your Lipa na M-Pesa Online passkey (from Safaricom Daraja).
+      </p>
+      <div style={{ maxHeight: 420, overflowY: 'auto', paddingRight: 4 }}>
+        {list.map((a, i) => (
+          <div key={a.id} style={{ padding: 14, border: '1.5px solid var(--border)', borderRadius: 12, marginBottom: 12, background: '#FAFBFF' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <span style={{ fontWeight: 800, color: 'var(--navy)', fontSize: 11 }}>ACCOUNT #{i + 1}</span>
+              {list.length > 1 && (
+                <button className="btn btn-ghost btn-sm" style={{ color: 'var(--red)', padding: '2px 8px' }} onClick={() => del(a.id)}>✕ Remove</button>
+              )}
+            </div>
+            <div className="field">
+              <label>Account Label (e.g. Tuition Fees, Activities)</label>
+              <input value={a.name} onChange={e => upd(a.id, 'name', e.target.value)} placeholder="Tuition Fees" />
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Shortcode / Paybill / Till</label>
+                <input value={a.shortcode} onChange={e => upd(a.id, 'shortcode', e.target.value)} placeholder="e.g. 400200" />
+              </div>
+              <div className="field">
+                <label>Type</label>
+                <select value={a.type} onChange={e => upd(a.id, 'type', e.target.value)}>
+                  <option>Paybill</option>
+                  <option>Till</option>
+                </select>
+              </div>
+            </div>
+            <div className="field">
+              <label>Online Passkey (Lipa na M-Pesa Online — from Safaricom)</label>
+              <input type="password" value={a.passkey} onChange={e => upd(a.id, 'passkey', e.target.value)} placeholder="bfb279f9aa9bdbcf158e97dd71a467cd..." />
+              <span style={{ fontSize: 11, color: 'var(--muted)' }}>Stored securely. Never exposed to parents or browser.</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button className="btn btn-ghost btn-sm" onClick={add} style={{ width: '100%', border: '1px dashed var(--border)', marginTop: 5 }}>
+        + Add Another Account
+      </button>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
+        <button className="btn btn-ghost btn-sm" onClick={onClose}>Cancel</button>
+        <button className="btn btn-primary btn-sm" onClick={save} disabled={busy} style={{ width: 'auto' }}>
+          {busy ? '⏳ Saving…' : '💾 Save Accounts'}
+        </button>
+      </div>
+    </ModalOverlay>
+  );
+}
+
+
 function PayModal({ learner, feeCfg, onClose, recordedBy }) {
   const getAnnualFee = g => feeCfg[g]?.annual || 5000;
   const [term,   setTerm]   = useState('T1');
