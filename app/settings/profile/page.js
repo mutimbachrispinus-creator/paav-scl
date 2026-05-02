@@ -89,14 +89,59 @@ export default function SchoolProfilePage() {
   };
   const removeBank = (i) => setProfile({ ...profile, bankAccounts: profile.bankAccounts.filter((_, idx) => idx !== i) });
 
-  const handleLogoUpload = (e) => {
+  const compressImage = (file, maxWidth, maxHeight, quality = 0.8) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height *= maxWidth / width));
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width *= maxHeight / height));
+              height = maxHeight;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+      };
+    });
+  };
+
+  const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      setProfile({ ...profile, logo: ev.target.result });
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressedBase64 = await compressImage(file, 400, 400, 0.9);
+      setProfile({ ...profile, logo: compressedBase64 });
+    } catch (err) {
+      alert("Failed to process logo image.");
+    }
+  };
+
+  const handleHeroUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressedBase64 = await compressImage(file, 1200, 800, 0.7);
+      setHeroImg(compressedBase64);
+    } catch (err) {
+      alert("Failed to process hero image.");
+    }
   };
 
   if (loading || !user) return <div className="page on"><p>Loading...</p></div>;
@@ -150,8 +195,12 @@ export default function SchoolProfilePage() {
 
                 <div className="field">
                   <label>Hero Background Image (Login Page)</label>
-                  <input value={heroImg} onChange={e => setHeroImg(e.target.value)} placeholder="https://example.com/school-photo.jpg" />
-                  <p style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>Paste a direct URL to a high-quality photo of your school. Appears on the login screen.</p>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <input type="file" accept="image/png, image/jpeg" onChange={handleHeroUpload} style={{ flex: 1, padding: '8px', border: '1px solid var(--border)', borderRadius: 8 }} />
+                    <div style={{ padding: '8px', color: 'var(--muted)', fontWeight: 600 }}>OR</div>
+                    <input value={heroImg} onChange={e => setHeroImg(e.target.value)} placeholder="https://example.com/school-photo.jpg" style={{ flex: 2 }} />
+                  </div>
+                  <p style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>Upload a high-quality photo or paste a URL. Appears on the login screen.</p>
                 </div>
 
                 <div className="field">
