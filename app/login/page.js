@@ -28,13 +28,18 @@ function LoginContent() {
           if (currentTid && currentTid !== t && t !== 'platform-master') {
             console.warn('[Auth] Tenant mismatch detected. Clearing stale session.');
             clearAllCache();
-            // Optional: force a page reload to ensure all states are reset
-            // window.location.reload(); 
           }
         } catch {}
       }
     }
-    else setTenantId('platform-master');
+    else {
+      setTenantId('platform-master');
+      // Proactively clear master branding artifacts if they exist
+      try {
+        localStorage.removeItem('paav_cache_platform-master_db_paav_school_profile');
+        localStorage.removeItem('paav_cache_platform-master_db_paav_theme');
+      } catch {}
+    }
   }, [searchParams]);
 
   const [tab, setTab] = useState('login'); 
@@ -101,10 +106,11 @@ function LoginContent() {
   }, [form.username, tab]);
 
   useEffect(() => {
-    // For platform-master, we use hardcoded defaults to prevent ANY flickering
+    // Perform a quick cache sanity check on mount
     if (tenantId === 'platform-master') {
-      setConfigLoaded(true);
-      return;
+       // Optional: reset to EduVantage colors
+       document.documentElement.style.setProperty('--primary', '#4F46E5');
+       document.documentElement.style.setProperty('--secondary', '#F4A460');
     }
 
     async function loadConfig() {
