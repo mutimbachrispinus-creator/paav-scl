@@ -17,10 +17,8 @@ function LoginContent() {
 
   useEffect(() => {
     let t = searchParams.get('tenant');
-    if (!t && typeof window !== 'undefined') {
-      try { t = localStorage.getItem('paav_last_tenant'); } catch {}
-    }
     if (t) setTenantId(t);
+    else setTenantId('platform-master');
   }, [searchParams]);
 
   const [tab, setTab] = useState('login'); 
