@@ -136,20 +136,13 @@ export default function PortalShell({ children }) {
   });
   const [showProfile,  setShowProfile]  = useState(false);
   const [theme,        setTheme]        = useState(() => {
-    if (typeof window === 'undefined') return { primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B' };
-    try {
-      const raw = localStorage.getItem('paav_cache_db_paav_theme');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.v) return parsed.v;
-      }
-    } catch {}
-    return { primary: '#1E293B', secondary: '#D4AF37', accent: '#334155' };
+    return { primary: '#1E40AF', secondary: '#D4AF37', accent: '#0F172A' };
   });
   const [profile, setProfile] = useState(() => {
-    if (typeof window === 'undefined') return { name: 'SCHOOL PORTAL', motto: 'Quality Education for All', logo: '/ev-brand-v3.png' };
+    const fallback = { name: 'EduVantage School Management System', tagline: 'Global Education SaaS Network', logo: '/ev-brand-v3.png' };
+    if (typeof window === 'undefined') return fallback;
     const cached = readSchoolProfile();
-    return cached || { name: 'SCHOOL PORTAL', motto: 'Quality Education for All', logo: '/ev-brand-v3.png' };
+    return cached || fallback;
   });
 
   const idleTimer    = useRef(null);

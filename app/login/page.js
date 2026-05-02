@@ -32,15 +32,16 @@ function LoginContent() {
   const [stats, setStats] = useState({ schools: 0, learners: 0, classes: 0 });
   const [announcement, setAnnouncement] = useState('Welcome to the EduVantage School Network.');
   const [profile, setProfile] = useState({ 
-    name: 'EduVantage School Management Platform', 
+    name: 'EduVantage School Management System', 
     tagline: 'Global Education SaaS Network',
     logo: '/ev-brand-v3.png'
   });
   const [heroImg, setHeroImg] = useState('');
   const [theme, setTheme] = useState({ 
-    primary: tenantId === 'platform-master' ? '#1E40AF' : '#2563EB', 
+    primary: '#1E40AF', 
     secondary: '#D4AF37' 
   });
+  const [configLoaded, setConfigLoaded] = useState(false);
 
   const [schools, setSchools] = useState([]);
   const [links, setLinks] = useState([{ schoolId: '', adm: '' }]);
@@ -83,6 +84,12 @@ function LoginContent() {
   }, [form.username, tab]);
 
   useEffect(() => {
+    // For platform-master, we use hardcoded defaults to prevent ANY flickering
+    if (tenantId === 'platform-master') {
+      setConfigLoaded(true);
+      return;
+    }
+
     async function loadConfig() {
       try {
         const res = await fetch(`/api/saas/config?tenant=${tenantId}&_t=${Date.now()}`);
@@ -98,13 +105,15 @@ function LoginContent() {
 
         if (data.stats) {
           setStats(data.stats);
-        } else if (tenantId !== 'platform-master') {
+        } else {
           const sRes = await fetch(`/api/stats?tenant=${tenantId}`);
           const s = await sRes.json();
           setStats(s);
         }
+        setConfigLoaded(true);
       } catch (e) {
         console.error('Config load error:', e);
+        setConfigLoaded(true);
       }
     }
     loadConfig();
