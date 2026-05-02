@@ -210,30 +210,38 @@ export default function PortalShell({ children }) {
         return;
       }
 
-      if (u) {
-        setUser(u);
-        const activeTenant = impersonateId || u.tenant_id || u.tenantId;
-        if (typeof window !== 'undefined' && activeTenant && activeTenant !== 'platform-master') {
-          try { localStorage.setItem('paav_last_tenant', activeTenant); } catch {}
-        }
+      // 2. Fetch Branding (Even if not logged in, if tenant is in URL)
+      const params = new URLSearchParams(window.location.search);
+      const tenantParam = params.get('tenant');
+      const activeTenant = impersonateId || u?.tenant_id || u?.tenantId || tenantParam || 'platform-master';
 
-        // Fetch profile and theme for the active tenant with cache-busting
-        const configRes = await fetch(`/api/saas/config?tenant=${activeTenant}&_t=${Date.now()}`);
+      if (activeTenant && activeTenant !== 'platform-master') {
+        try { localStorage.setItem('paav_last_tenant', activeTenant); } catch {}
+      }
+
+      // Fetch profile and theme for the active tenant with cache-busting
+      const configRes = await fetch(`/api/saas/config?tenant=${activeTenant}&_t=${Date.now()}`);
+      if (configRes.ok) {
         const config = await configRes.json();
         
         if (config.profile) {
           setProfile(config.profile);
           const stamp = Date.now();
-          localStorage.setItem('paav_cache_db_paav_school_profile', JSON.stringify({ v: config.profile, t: stamp, s: stamp }));
+          const cacheKey = `paav_cache_${activeTenant}_db_paav_school_profile`;
+          localStorage.setItem(cacheKey, JSON.stringify({ v: config.profile, t: stamp, s: stamp }));
           window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_school_profile'] } }));
         }
         if (config.theme) {
           setTheme(config.theme);
           const stamp = Date.now();
-          localStorage.setItem('paav_cache_db_paav_theme', JSON.stringify({ v: config.theme, t: stamp, s: stamp }));
+          const cacheKey = `paav_cache_${activeTenant}_db_paav_theme`;
+          localStorage.setItem(cacheKey, JSON.stringify({ v: config.theme, t: stamp, s: stamp }));
           window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_theme'] } }));
         }
+      }
 
+      if (u) {
+        setUser(u);
         const ann = db?.paav_announcement;
         if (ann?.text && ann?.active) setAnnouncement(ann.text);
         if (db?.paav_hero_img) setHeroUrl(db.paav_hero_img);
