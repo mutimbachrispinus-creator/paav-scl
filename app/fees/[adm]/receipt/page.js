@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { useSchoolProfile } from '@/lib/school-profile';
+import { useProfile } from '@/app/PortalShell';
 
 export default function LearnerReceiptPage() {
   const router = useRouter();
@@ -12,7 +13,9 @@ export default function LearnerReceiptPage() {
   const [learner, setLearner] = useState(null);
   const [paylog, setPaylog] = useState([]);
   const [feecfg, setFeecfg] = useState({});
-  const school = useSchoolProfile();
+  const { profile: ctxProfile } = useProfile() || {};
+  const localProfile = useSchoolProfile();
+  const school = ctxProfile && Object.keys(ctxProfile).length > 0 ? ctxProfile : localProfile;
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

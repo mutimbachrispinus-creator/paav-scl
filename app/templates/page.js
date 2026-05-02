@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { ALL_GRADES, gInfo, DEFAULT_SUBJECTS, maxPts, calcLearnerReportData, getMark, isJSSGrade } from '@/lib/cbe';
 import { useSchoolProfile } from '@/lib/school-profile';
+import { useProfile } from '@/app/PortalShell';
 
 const LOGO = "";
 
@@ -24,7 +25,9 @@ export default function TemplatesPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState('merit');
-  const profile = useSchoolProfile();
+  const { profile: ctxProfile } = useProfile() || {};
+  const localProfile = useSchoolProfile();
+  const profile = ctxProfile && Object.keys(ctxProfile).length > 0 ? ctxProfile : localProfile;
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
   const [marks, setMarks] = useState({});

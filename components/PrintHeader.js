@@ -1,8 +1,11 @@
 'use client';
 import { useSchoolProfile } from '@/lib/school-profile';
+import { useProfile } from '@/app/PortalShell';
 
 export default function PrintHeader() {
-  const profile = useSchoolProfile();
+  const { profile: ctxProfile } = useProfile() || {};
+  const localProfile = useSchoolProfile();
+  const profile = ctxProfile && Object.keys(ctxProfile).length > 0 ? ctxProfile : localProfile;
 
   if (!profile?.name) return null;
 

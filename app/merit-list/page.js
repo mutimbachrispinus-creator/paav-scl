@@ -16,6 +16,7 @@ import { buildMeritList, ALL_GRADES, maxPts, DEFAULT_SUBJECTS, gInfo, JSS, SENIO
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { useSchoolProfile } from '@/lib/school-profile';
+import { useProfile } from '@/app/PortalShell';
 import PrintHeader from '@/components/PrintHeader';
 
 const ASSESS_LABELS = { op1:'Opener Exam', mt1:'Mid-Term Exam', et1:'End-Term Exam' };
@@ -40,7 +41,9 @@ export default function MeritListPage() {
   const [grade,  setGrade]  = usePersistedState('paav_grades_grade',  'GRADE 1');
   const [term,   setTerm]   = useState('T1');
   const [assess, setAssess] = useState('mt1');
-  const school = useSchoolProfile();
+  const { profile: ctxProfile } = useProfile() || {};
+  const localProfile = useSchoolProfile();
+  const school = ctxProfile && Object.keys(ctxProfile).length > 0 ? ctxProfile : localProfile;
 
   const load = useCallback(async () => {
     try {
