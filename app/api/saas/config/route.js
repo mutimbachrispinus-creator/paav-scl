@@ -52,14 +52,18 @@ export async function GET(request) {
       };
     }
 
+    const defaultProfile = { 
+      name: 'SCHOOL PORTAL', 
+      email: 'info@school.com', 
+      phone: '0700 000 000', 
+      logo: '/ev-brand-v3.png' 
+    };
+    
+    const profile = { ...defaultProfile, ...(profileData || {}) };
+
     const response = NextResponse.json({
       tenantId,
-      profile: profileData || { 
-        name: 'SCHOOL PORTAL', 
-        email: 'info@school.com', 
-        phone: '0700 000 000', 
-        logo: '/ev-brand-v3.png' 
-      },
+      profile,
       stats,
       announcement: isMaster ? 'Welcome to the EduVantage Global Network.' : (config.paav_announcement?.text || 'Welcome to the EduVantage School Network.'),
       theme: isMaster ? { 
