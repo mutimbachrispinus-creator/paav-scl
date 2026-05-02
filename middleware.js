@@ -6,9 +6,7 @@ import { NextResponse } from 'next/server';
 export function middleware(request) {
   const url = request.nextUrl.clone();
   const host = request.headers.get('host') || '';
-  console.log(`[Middleware] Host: ${host}, Path: ${url.pathname}`);
-  
-  // 1. Skip ALL API routes and internal Next.js assets
+  // 1. Skip ALL API routes and internal Next.js assets early
   if (
     url.pathname.startsWith('/api') ||
     url.pathname.startsWith('/_next') ||

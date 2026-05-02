@@ -45,18 +45,21 @@ export async function POST(request) {
       return NextResponse.json({ error: 'requests must be an array' }, { status: 400 });
     }
 
-    const results = await Promise.all(requests.map(async (req, index) => {
+    const results = [];
+    for (let i = 0; i < requests.length; i++) {
+      const req = requests[i];
       try {
-        return await handleRequest(req, auth, impTenant);
+        const res = await handleRequest(req, auth, impTenant);
+        results.push(res);
       } catch (reqErr) {
-        console.error(`[api/db] Request #${index} (${req.type}) failed:`, reqErr.message);
-        return { 
+        console.error(`[api/db] Request #${i} (${req.type}) failed:`, reqErr.message);
+        results.push({ 
           type: req.type, 
           error: reqErr.message || 'Internal error in sub-request',
           ok: false 
-        };
+        });
       }
-    }));
+    }
     return NextResponse.json({ results });
 
   } catch (err) {
@@ -218,7 +221,7 @@ async function handleRequest(req, auth, impTenant = null) {
       const keys = Array.isArray(req.keys) ? req.keys : [];
       const { kvGetWithMeta } = await import('@/lib/db');
       const data = {}; const meta = {};
-      await Promise.all(keys.map(async (k) => {
+      for (const k of keys) {
         let { value, updatedAt } = await kvGetWithMeta(k, tenantId);
         
         // Security: Only super-admin can read AT credentials
@@ -234,7 +237,7 @@ async function handleRequest(req, auth, impTenant = null) {
           if (k === 'paav6_learners' && Array.isArray(value)) value = value.map(l => ({ ...l, t1: 0, t2: 0, t3: 0, arrears: 0 }));
         }
         data[k] = value; meta[k] = updatedAt;
-      }));
+      }
       return { type: 'getAll', data, meta };
     }
     

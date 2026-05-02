@@ -44,25 +44,12 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="manifest" href="/manifest.json" />
-        {/* 🚨 CACHE KILLER SCRIPT 🚨 */}
+        {/* 🚀 EduVantage Stability Script 🚀 */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(regs => {
-                  for (let reg of regs) { reg.unregister(); }
-                });
-              }
-              // Force clear any icon caches
-              if ('caches' in window) {
-                caches.keys().then(names => {
-                  for (let name of names) {
-                    if (name.includes('image') || name.includes('static')) caches.delete(name);
-                  }
-                });
-              }
-              // Legacy Branding Purge removed to allow persistent custom school names.
-              console.log('🚀 EduVantage Cache Killer Active');
+              // Ensure service worker is stable and not being aggressively cleared
+              console.log('🚀 EduVantage Portal Core Active');
             `,
           }}
         />
