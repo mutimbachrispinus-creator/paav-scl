@@ -270,7 +270,7 @@ async function handleWhoami() {
 
   // Fetch fresh user data from DB to include avatar, color, etc.
   const { query } = await import('@/lib/db');
-  const rows = await query('SELECT * FROM staff WHERE id = ?', [session.id]);
+  const rows = await query('SELECT * FROM staff WHERE id = ? AND tenant_id = ?', [session.id, session.tenantId]);
   const user = rows[0];
   
   if (user) {
