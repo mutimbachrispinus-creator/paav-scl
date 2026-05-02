@@ -2,17 +2,33 @@
 /**
  * app/fees/pay/page.js — Parent self-service M-Pesa payment
  *
- * Accessible to parents and the public (no auth required to view,
- * but STK Push requires valid admission number + phone).
+ * Like Zeraki, fees are broken down termly. Parents see exactly what each
+ * term costs, what they've paid, and the outstanding balance per term.
  *
- * Flow:
- *  1. Parent enters admission number → learner balance is shown
- *  2. Parent enters phone + amount → STK Push is triggered
- *  3. Parent completes payment on phone → payment is logged
+ * The STK push works for ANY admission number format:
+ *   - Numeric:       101, 1023, 20250001
+ *   - Long numeric:  2025001234
+ *   - Alphanumeric:  2025/001, STD-4A-023, FORM4B/001
+ * 
+ * We track payments via Safaricom's CheckoutRequestID (not AccountReference),
+ * so the 12-char limit on AccountReference is irrelevant for identification.
  */
 
 import { useState, useEffect } from 'react';
 import { fmtK } from '@/lib/cbe';
+
+const TERMS = [
+  { key: 'T1', label: 'Term 1', col: 't1' },
+  { key: 'T2', label: 'Term 2', col: 't2' },
+  { key: 'T3', label: 'Term 3', col: 't3' },
+];
+
+function getTermFee(feeCfg, grade, termKey) {
+  const cfg = feeCfg[grade] || {};
+  // Support both {t1, t2, t3} and {term1, term2, term3} and fallback to annual/3
+  const map = { T1: cfg.t1 || cfg.term1, T2: cfg.t2 || cfg.term2, T3: cfg.t3 || cfg.term3 };
+  return Number(map[termKey] || (cfg.annual ? Math.round(cfg.annual / 3) : 0));
+}
 
 export default function PayPage() {
   const [adm,     setAdm]     = useState('');
@@ -30,224 +46,318 @@ export default function PayPage() {
   const [payMsg,  setPayMsg]  = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Fetch profile on load
   useEffect(() => {
-    async function loadProf() {
-      const res = await fetch('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav_school_profile' }] })
-      });
-      const db = await res.json();
-      const p = db.results[0]?.value;
+    fetch('/api/db', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ type: 'get', key: 'paav_school_profile' }] })
+    }).then(r => r.json()).then(db => {
+      const p = db.results?.[0]?.value;
       if (p) setProfile(typeof p === 'string' ? JSON.parse(p) : p);
-    }
-    loadProf();
+    }).catch(() => {});
   }, []);
 
   async function lookup(e) {
     e?.preventDefault();
     setErr(''); setLearner(null);
-    if (!adm.trim()) { setErr('Enter an admission number'); return; }
+    const q = adm.trim();
+    if (!q) { setErr('Enter an admission number'); return; }
     setLooking(true);
 
-    const res = await fetch('/api/db', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ requests: [
-        { type: 'get', key: 'paav6_learners' },
-        { type: 'get', key: 'paav6_feecfg'  },
-        { type: 'get', key: 'paav_paybill_accounts' },
-      ]}),
-    });
-    const db = await res.json();
-    setLooking(false);
+    try {
+      const res = await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [
+          { type: 'get', key: 'paav6_learners' },
+          { type: 'get', key: 'paav6_feecfg'  },
+          { type: 'get', key: 'paav_paybill_accounts' },
+        ]}),
+      });
+      const db  = await res.json();
+      const all  = db.results[0]?.value || [];
+      const cfg  = db.results[1]?.value || {};
+      const pbas = db.results[2]?.value || [];
 
-    const all  = db.results[0]?.value || [];
-    const cfg  = db.results[1]?.value || {};
-    const pbas = db.results[2]?.value || [];
-    const found = all.find(l => l.adm === adm.trim());
+      // Case-insensitive, whitespace-trimmed match — works for any adm format
+      const found = all.find(l =>
+        String(l.adm).trim().toLowerCase() === q.toLowerCase()
+      );
 
-    if (!found) { setErr(`Learner with adm no. "${adm}" not found.`); return; }
-    setLearner(found);
-    setFeeCfg(cfg);
-    setPaybillAccounts(pbas);
+      if (!found) { setErr(`Learner "${q}" not found. Check the admission number and try again.`); return; }
 
-    // Pre-fill amount with outstanding balance
-    const fee = (cfg[found.grade]?.annual || 5000) + (found.arrears || 0);
-    const paid = (found.t1||0)+(found.t2||0)+(found.t3||0);
-    setAmount(Math.max(0, fee - paid).toString());
+      setLearner(found);
+      setFeeCfg(cfg);
+      setPaybillAccounts(pbas);
+
+      // Auto-select the first term with an outstanding balance
+      for (const t of TERMS) {
+        const due  = getTermFee(cfg, found.grade, t.key);
+        const paid = found[t.col] || 0;
+        if (due > 0 && paid < due) { setTerm(t.key); setAmount(String(due - paid)); break; }
+      }
+    } catch (e) {
+      setErr('Network error. Please try again.');
+    } finally {
+      setLooking(false);
+    }
   }
 
-  async function stkPush(acc) {
+  async function doStkPush(acc) {
     if (!phone.trim()) { setErr('Enter your M-Pesa phone number'); return; }
     if (!amount || Number(amount) <= 0) { setErr('Enter a valid amount'); return; }
-    setPaying(true);
-    setErr('');
+    setPaying(true); setErr('');
 
-    const res = await fetch('/api/mpesa/stk', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        phone:      phone.trim(),
-        amount:     Number(amount),
-        accountRef: `${learner.adm}:${term}`,
-        term:       term,
-        description: `${learner.name} Fees`,
-        paybillId:  acc.id   // Server fetches shortcode+passkey securely
-      }),
-    });
-    const data = await res.json();
-    setPaying(false);
-
-    if (!data.success) {
-      setErr(data.error || 'M-Pesa STK Push failed. Try again.');
-      return;
+    try {
+      const res = await fetch('/api/mpesa/stk', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone:       phone.trim(),
+          amount:      Number(amount),
+          accountRef:  learner.adm,   // Full adm — server truncates to 12 for Safaricom display only
+          term,
+          description: `${(learner.name || '').slice(0, 8)} Fees`,
+          paybillId:   acc.id,        // Server resolves shortcode+passkey securely
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) { setErr(data.error || 'M-Pesa STK Push failed. Please try again.'); return; }
+      setPayMsg(data.message || 'Check your phone for the M-Pesa PIN prompt.');
+      setSuccess(true);
+    } catch (e) {
+      setErr('Network error initiating payment.');
+    } finally {
+      setPaying(false);
     }
-
-    setPayMsg(data.message || 'Check your phone for the M-Pesa payment prompt.');
-    setSuccess(true);
   }
 
-  const annualFee  = feeCfg[learner?.grade]?.annual || 5000;
-  const totalPaid  = learner ? (learner.t1||0)+(learner.t2||0)+(learner.t3||0) : 0;
-  const balance    = annualFee + (learner?.arrears || 0) - totalPaid;
+  /* ── Computed per-term balances ── */
+  const termData = learner ? TERMS.map(t => {
+    const expected = getTermFee(feeCfg, learner.grade, t.key);
+    const paid     = learner[t.col] || 0;
+    const balance  = Math.max(0, expected - paid);
+    const cleared  = expected > 0 && balance <= 0;
+    return { ...t, expected, paid, balance, cleared };
+  }) : [];
+
+  const annualExpected = termData.reduce((s, t) => s + t.expected, 0);
+  const annualPaid     = termData.reduce((s, t) => s + t.paid, 0);
+  const annualBalance  = termData.reduce((s, t) => s + t.balance, 0) + (learner?.arrears || 0);
+
+  const selectedTermData = termData.find(t => t.key === term);
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg,#050F1C,#0D1F3C)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 480,
-        padding: '32px 28px', boxShadow: '0 24px 60px rgba(0,0,0,.3)' }}>
+      <div style={{ background: '#fff', borderRadius: 24, width: '100%', maxWidth: 520,
+        boxShadow: '0 24px 80px rgba(0,0,0,.4)', overflow: 'hidden' }}>
 
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ fontSize: 36, marginBottom: 6 }}>🏫</div>
-          <div style={{ fontFamily: 'Sora,sans-serif', fontSize: 16, fontWeight: 800,
-            color: '#8B1A1A' }}>{profile.name?.toUpperCase() || 'SCHOOL PORTAL'}</div>
-          <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-            Secure Fee Payment Portal
+        {/* Header */}
+        <div style={{ background: 'linear-gradient(135deg,#4F46E5,#7C3AED)', padding: '28px 28px 22px', textAlign: 'center' }}>
+          <div style={{ fontSize: 38, marginBottom: 6 }}>🏫</div>
+          <div style={{ color: '#fff', fontWeight: 900, fontSize: 17, fontFamily: 'Sora,sans-serif', letterSpacing: 1 }}>
+            {profile.name?.toUpperCase() || 'SCHOOL PORTAL'}
           </div>
+          <div style={{ color: '#C4B5FD', fontSize: 12, marginTop: 3 }}>Secure Fee Payment Portal · Powered by EduVantage</div>
         </div>
 
-        {err && (
-          <div className="alert alert-err show" style={{ display: 'flex', marginBottom: 14 }}>
-            {err}
-          </div>
-        )}
+        <div style={{ padding: '28px 28px 32px' }}>
+          {err && <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B',
+            padding: '10px 14px', borderRadius: 10, fontSize: 13, marginBottom: 16 }}>{err}</div>}
 
-        {/* Step 1: Lookup */}
-        {!learner && (
-          <form onSubmit={lookup}>
-            <div className="field">
-              <label>Learner&apos;s Admission Number</label>
-              <input value={adm} onChange={e => setAdm(e.target.value)}
-                placeholder="e.g. 101" autoFocus />
-            </div>
-            <button type="submit" disabled={looking}
-              className="btn btn-primary"
-              style={{ background: 'linear-gradient(135deg,#8B1A1A,#6B1212)',
-                opacity: looking ? 0.7 : 1 }}>
-              {looking ? '🔍 Looking up…' : '🔍 Find Learner'}
-            </button>
-          </form>
-        )}
-
-        {/* Step 2: Pay */}
-        {learner && !success && (
-          <>
-            {/* Learner summary */}
-            <div style={{ background: '#F8FAFF', borderRadius: 12, padding: '14px 16px',
-              marginBottom: 20, border: '2px solid var(--border)' }}>
-              <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 14,
-                color: 'var(--navy)', marginBottom: 2 }}>{learner.name}</div>
-              <div style={{ fontSize: 12, color: 'var(--muted)' }}>
-                {learner.grade} &nbsp;·&nbsp; Adm: {learner.adm}
+          {/* ── Step 1: Lookup ── */}
+          {!learner && (
+            <form onSubmit={lookup}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
+                  Learner&apos;s Admission Number
+                </label>
+                <input value={adm} onChange={e => setAdm(e.target.value)}
+                  placeholder="e.g. 101 or 2025/001 or STD-4A-23"
+                  autoFocus autoCapitalize="none"
+                  style={{ width: '100%', padding: '12px 14px', border: '2px solid #E5E7EB', borderRadius: 10,
+                    fontSize: 15, outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace', letterSpacing: 1 }} />
+                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Supports all formats — numeric, alphanumeric, or with slashes</div>
               </div>
-              <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between',
-                fontSize: 12.5 }}>
-                <span style={{ color: 'var(--muted)' }}>Balance</span>
-                <strong style={{ color: balance <= 0 ? 'var(--green)':'var(--red)', fontSize: 15 }}>
-                  {balance <= 0 ? '✅ Cleared' : fmtK(balance)}
-                </strong>
-              </div>
-            </div>
+              <button type="submit" disabled={looking}
+                style={{ width: '100%', padding: '13px', background: 'linear-gradient(135deg,#4F46E5,#7C3AED)',
+                  color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800,
+                  cursor: looking ? 'not-allowed' : 'pointer', opacity: looking ? 0.7 : 1 }}>
+                {looking ? '🔍 Searching…' : '🔍 Find Learner'}
+              </button>
+            </form>
+          )}
 
-            {balance <= 0 ? (
-              <div className="alert alert-ok show" style={{ display: 'flex' }}>
-                ✅ This learner&apos;s fees are fully paid!
+          {/* ── Step 2: Termly Breakdown + Pay ── */}
+          {learner && !success && (
+            <>
+              {/* Learner card */}
+              <div style={{ background: '#F5F3FF', border: '2px solid #DDD6FE', borderRadius: 14,
+                padding: '14px 16px', marginBottom: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontWeight: 900, fontSize: 15, color: '#1E1B4B' }}>{learner.name}</div>
+                    <div style={{ fontSize: 12, color: '#6D28D9', marginTop: 2 }}>
+                      {learner.grade} &nbsp;·&nbsp; Adm: <strong style={{ fontFamily: 'monospace' }}>{learner.adm}</strong>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 11, color: '#9CA3AF' }}>Annual Balance</div>
+                    <div style={{ fontWeight: 900, fontSize: 18, color: annualBalance <= 0 ? '#16A34A' : '#DC2626' }}>
+                      {annualBalance <= 0 ? '✅ Cleared' : fmtK(annualBalance)}
+                    </div>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <form onSubmit={e => e.preventDefault()}>
-                <div className="field">
-                  <label>Term</label>
-                  <select value={term} onChange={e => setTerm(e.target.value)}>
-                    {['T1','T2','T3'].map(t => (
-                      <option key={t} value={t}>Term {t.replace('T','')}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="field">
-                  <label>Amount (KSH)</label>
-                  <input type="number" value={amount}
-                    onChange={e => setAmount(e.target.value)} min="1" />
-                </div>
-                <div className="field">
-                  <label>M-Pesa Phone Number</label>
-                  <input type="tel" value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    placeholder="e.g. 0712345678" />
-                </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 15 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase' }}>Select Payment Account</div>
-                  {paybillAccounts.map(acc => (
-                    <button key={acc.id} type="button" disabled={paying}
-                      onClick={() => stkPush(acc)}
-                      className="btn btn-success"
-                      style={{ width: '100%', justifyContent: 'space-between', opacity: paying ? 0.7 : 1, padding: '12px 18px' }}>
-                      <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: 13, fontWeight: 800 }}>{acc.name}</div>
-                        <div style={{ fontSize: 11, opacity: 0.8 }}>Paybill: {acc.shortcode}</div>
-                      </div>
-                      <span>{paying ? '⏳ ...' : '💚 Pay'}</span>
-                    </button>
+              {/* Termly fee breakdown (like Zeraki) */}
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#6B7280', textTransform: 'uppercase',
+                  letterSpacing: 1, marginBottom: 10 }}>Fee Breakdown by Term</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                  {termData.map(t => (
+                    <div key={t.key}
+                      onClick={() => { if (!t.cleared && t.expected > 0) { setTerm(t.key); setAmount(String(t.balance)); } }}
+                      style={{
+                        padding: '10px 8px', borderRadius: 12, textAlign: 'center', cursor: t.cleared || t.expected === 0 ? 'default' : 'pointer',
+                        border: `2px solid ${term === t.key ? '#4F46E5' : t.cleared ? '#DCFCE7' : '#E5E7EB'}`,
+                        background: term === t.key ? '#EEF2FF' : t.cleared ? '#F0FDF4' : '#FAFAFA',
+                        transition: '0.15s'
+                      }}>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: '#6B7280', marginBottom: 4 }}>{t.label}</div>
+                      {t.expected === 0 ? (
+                        <div style={{ fontSize: 11, color: '#9CA3AF' }}>Not set</div>
+                      ) : t.cleared ? (
+                        <div style={{ fontSize: 14, fontWeight: 900, color: '#16A34A' }}>✅ Paid</div>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: 13, fontWeight: 900, color: '#DC2626' }}>{fmtK(t.balance)}</div>
+                          <div style={{ fontSize: 10, color: '#9CA3AF' }}>owed</div>
+                        </>
+                      )}
+                    </div>
                   ))}
-                  {paybillAccounts.length === 0 && (
-                    <div style={{ fontSize: 12, color: 'var(--muted)', textAlign: 'center', padding: 10, border: '1px dashed var(--border)', borderRadius: 8 }}>
-                      No payment accounts configured
+                </div>
+                {/* Annual summary row */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10,
+                  padding: '8px 12px', background: '#F9FAFB', borderRadius: 10, fontSize: 12 }}>
+                  <span style={{ color: '#6B7280' }}>Expected: <strong>{fmtK(annualExpected)}</strong></span>
+                  <span style={{ color: '#16A34A' }}>Paid: <strong>{fmtK(annualPaid)}</strong></span>
+                  <span style={{ color: '#DC2626' }}>Due: <strong>{fmtK(annualBalance)}</strong></span>
+                </div>
+                {(learner.arrears || 0) > 0 && (
+                  <div style={{ fontSize: 11, color: '#B45309', background: '#FFFBEB', border: '1px solid #FDE68A',
+                    borderRadius: 8, padding: '6px 10px', marginTop: 6 }}>
+                    ⚠ Includes KES {fmtK(learner.arrears)} carried over from previous year
+                  </div>
+                )}
+              </div>
+
+              {annualBalance <= 0 ? (
+                <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 12,
+                  padding: '16px', textAlign: 'center', color: '#065F46', fontWeight: 700 }}>
+                  ✅ All fees fully paid! No payment needed.
+                </div>
+              ) : (
+                <>
+                  {/* Payment form */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 5 }}>Paying For</label>
+                      <select value={term} onChange={e => { setTerm(e.target.value); const td = termData.find(t=>t.key===e.target.value); if(td) setAmount(String(td.balance)); }}
+                        style={{ width: '100%', padding: '10px 12px', border: '2px solid #E5E7EB', borderRadius: 10, fontSize: 13, outline: 'none' }}>
+                        {TERMS.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 5 }}>Amount (KES)</label>
+                      <input type="number" value={amount} onChange={e => setAmount(e.target.value)}
+                        min="1" max={selectedTermData?.balance || undefined}
+                        style={{ width: '100%', padding: '10px 12px', border: '2px solid #E5E7EB', borderRadius: 10, fontSize: 13,
+                          outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                  </div>
+
+                  {selectedTermData && selectedTermData.expected > 0 && (
+                    <div style={{ fontSize: 11, color: '#4B5563', background: '#F3F4F6', borderRadius: 8,
+                      padding: '6px 12px', marginBottom: 14, display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{selectedTermData.label} Expected: <strong>{fmtK(selectedTermData.expected)}</strong></span>
+                      <span>Paid: <strong style={{color:'#16A34A'}}>{fmtK(selectedTermData.paid)}</strong></span>
+                      <span>Due: <strong style={{color:'#DC2626'}}>{fmtK(selectedTermData.balance)}</strong></span>
                     </div>
                   )}
-                </div>
-              </form>
-            )}
 
-            <button className="btn btn-ghost btn-sm" style={{ marginTop: 10, width: '100%',
-              justifyContent: 'center' }}
-              onClick={() => { setLearner(null); setAdm(''); setErr(''); }}>
-              ← Search another learner
-            </button>
-          </>
-        )}
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 5 }}>
+                      M-Pesa Phone Number
+                    </label>
+                    <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+                      placeholder="e.g. 0712 345 678"
+                      style={{ width: '100%', padding: '12px 14px', border: '2px solid #E5E7EB', borderRadius: 10,
+                        fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
 
-        {/* Step 3: Success */}
-        {success && (
-          <div style={{ textAlign: 'center', padding: '10px 0' }}>
-            <div style={{ fontSize: 52, marginBottom: 12 }}>📱</div>
-            <div style={{ fontFamily: 'Sora,sans-serif', fontSize: 18, fontWeight: 800,
-              color: 'var(--green)', marginBottom: 8 }}>Payment Initiated!</div>
-            <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.7 }}>
-              {payMsg}
+                  {paybillAccounts.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '14px', color: '#9CA3AF', fontSize: 12,
+                      border: '1px dashed #E5E7EB', borderRadius: 10 }}>
+                      Payment not yet configured for this school. Please contact the school office.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 1 }}>
+                        Select Payment Account
+                      </div>
+                      {paybillAccounts.map(acc => (
+                        <button key={acc.id} type="button" disabled={paying}
+                          onClick={() => doStkPush(acc)}
+                          style={{
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                            padding: '14px 18px', borderRadius: 12, border: '2px solid #4F46E5',
+                            background: paying ? '#F9FAFB' : 'linear-gradient(135deg,#4F46E5,#6D28D9)',
+                            color: paying ? '#9CA3AF' : '#fff', cursor: paying ? 'not-allowed' : 'pointer',
+                            fontWeight: 700, transition: '0.2s'
+                          }}>
+                          <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontSize: 14 }}>{acc.name}</div>
+                            <div style={{ fontSize: 11, opacity: 0.8 }}>Paybill: {acc.shortcode} · Acc: {learner.adm}</div>
+                          </div>
+                          <div style={{ fontSize: 24 }}>{paying ? '⏳' : '💚'}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              <button onClick={() => { setLearner(null); setAdm(''); setErr(''); }}
+                style={{ width: '100%', marginTop: 16, padding: '10px', background: 'transparent',
+                  border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 13, color: '#6B7280', cursor: 'pointer' }}>
+                ← Search a different learner
+              </button>
+            </>
+          )}
+
+          {/* ── Step 3: Success ── */}
+          {success && (
+            <div style={{ textAlign: 'center', padding: '10px 0' }}>
+              <div style={{ fontSize: 56, marginBottom: 12 }}>📱</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: '#4F46E5', marginBottom: 8 }}>Payment Initiated!</div>
+              <div style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.8 }}>{payMsg}</div>
+              <div style={{ marginTop: 16, padding: 14, background: '#ECFDF5', borderRadius: 12,
+                fontSize: 13, color: '#065F46', fontWeight: 600 }}>
+                ✅ Enter your M-Pesa PIN when prompted on your phone.
+                <br />The payment will be reflected automatically.
+              </div>
+              <div style={{ marginTop: 10, padding: '8px 14px', background: '#EEF2FF', borderRadius: 10,
+                fontSize: 12, color: '#4338CA' }}>
+                Paying: <strong>{term.replace('T','Term ')}</strong> · Amount: <strong>{fmtK(Number(amount))}</strong> · Adm: <strong>{learner?.adm}</strong>
+              </div>
+              <button onClick={() => { setSuccess(false); setLearner(null); setAdm(''); }}
+                style={{ marginTop: 16, padding: '10px 20px', background: 'transparent',
+                  border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 13, color: '#6B7280', cursor: 'pointer' }}>
+                Make another payment
+              </button>
             </div>
-            <div style={{ marginTop: 16, padding: 12, background: '#ECFDF5', borderRadius: 10,
-              fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>
-              ✅ Enter your M-Pesa PIN when prompted on your phone.
-            </div>
-            <button className="btn btn-ghost btn-sm" style={{ marginTop: 14 }}
-              onClick={() => { setSuccess(false); setLearner(null); setAdm(''); }}>
-              Make another payment
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
