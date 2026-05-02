@@ -4,10 +4,12 @@
  */
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { getCachedUser, getCachedDB, mutateDB } from '@/lib/client-cache';
 
 export default function PortalSettingsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState({
     announcement: '',
@@ -15,21 +17,15 @@ export default function PortalSettingsPage() {
   });
 
   const load = useCallback(async () => {
-    const authRes = await fetch('/api/auth');
-    const auth = await authRes.json();
-    if (!auth.ok || auth.user?.role !== 'admin') { router.push('/dashboard'); return; }
+    const u = await getCachedUser();
+    if (!u || u.role !== 'admin') { router.push('/dashboard'); return; }
 
-    const dbRes = await fetch('/api/db', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [
-        { type: 'get', key: 'paav7_announcement' },
-        { type: 'get', key: 'paav7_hero_img' }
-      ] }),
-    });
-    const db = await dbRes.json();
+    const ann = await getCachedDB('paav_announcement');
+    const hero = await getCachedDB('paav_hero_img');
+    
     setForm({
-      announcement: db.results[0]?.value || '',
-      heroImg: db.results[1]?.value || '',
+      announcement: typeof ann === 'object' ? (ann?.text || '') : (ann || ''),
+      heroImg: hero || '',
     });
     setLoading(false);
   }, [router]);
@@ -37,24 +33,30 @@ export default function PortalSettingsPage() {
   useEffect(() => { load(); }, [load]);
 
   async function save() {
-    await fetch('/api/db', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [
-        { type: 'set', key: 'paav7_announcement', value: form.announcement },
-        { type: 'set', key: 'paav7_hero_img', value: form.heroImg }
-      ] }),
-    });
-    setSaved(true); setTimeout(() => setSaved(false), 3000);
+    setBusy(true);
+    try {
+      const annObj = { text: form.announcement, active: !!form.announcement, ts: Date.now() };
+      await mutateDB('paav_announcement', annObj);
+      await mutateDB('paav_hero_img', form.heroImg);
+      setSaved(true); 
+      setTimeout(() => setSaved(false), 3000);
+    } catch (e) {
+      alert('Failed to save settings: ' + e.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
-  if (loading) return <div style={{ padding: 40 }}>Loading...</div>;
+  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading portal settings...</div>;
 
   return (
     <div className="page on">
       <div className="page-hdr">
         <div><h2>🎨 Portal Branding</h2><p>Configure Hero image and Login page announcements</p></div>
         <div className="page-hdr-acts">
-          <button className="btn btn-primary" onClick={save}>💾 Save Portal Settings</button>
+          <button className="btn btn-primary" onClick={save} disabled={busy}>
+            {busy ? 'Saving...' : '💾 Save Portal Settings'}
+          </button>
         </div>
       </div>
 

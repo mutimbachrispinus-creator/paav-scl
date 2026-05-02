@@ -132,7 +132,7 @@ async function handleLogin({ username, password }, request) {
   const [ann, msgs, hero, feecfg, learners, profile, theme] = await Promise.all([
     kvGet('paav_announcement', null, tenantId),
     kvGet('paav6_msgs', [], tenantId),
-    kvGet('paav7_hero_img', null, tenantId),
+    kvGet('paav_hero_img', null, tenantId),
     kvGet('paav6_feecfg', {}, tenantId),
     kvGet('paav6_learners', [], tenantId),
     kvGet('paav_school_profile', null, tenantId),

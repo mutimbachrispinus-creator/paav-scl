@@ -223,15 +223,23 @@ export default function PortalShell({ children }) {
         const config = await configRes.json();
         
         if (config.profile) {
-          setProfile(config.profile);
-          // Hydrate cache so lib/school-profile useSchoolProfile() can see it instantly
-          const stamp = Date.now();
-          localStorage.setItem('paav_cache_db_paav_school_profile', JSON.stringify({ v: config.profile, t: stamp, s: stamp }));
+          const raw = localStorage.getItem('paav_cache_db_paav_school_profile');
+          const local = raw ? JSON.parse(raw) : null;
+          // Only overwrite if local is missing or older than 60 seconds (grace period for sync)
+          if (!local || (Date.now() - local.t) > 60000) {
+            setProfile(config.profile);
+            const stamp = Date.now();
+            localStorage.setItem('paav_cache_db_paav_school_profile', JSON.stringify({ v: config.profile, t: stamp, s: stamp }));
+          }
         }
         if (config.theme) {
-          setTheme(config.theme);
-          const stamp = Date.now();
-          localStorage.setItem('paav_cache_db_paav_theme', JSON.stringify({ v: config.theme, t: stamp, s: stamp }));
+          const raw = localStorage.getItem('paav_cache_db_paav_theme');
+          const local = raw ? JSON.parse(raw) : null;
+          if (!local || (Date.now() - local.t) > 60000) {
+            setTheme(config.theme);
+            const stamp = Date.now();
+            localStorage.setItem('paav_cache_db_paav_theme', JSON.stringify({ v: config.theme, t: stamp, s: stamp }));
+          }
         }
 
         const ann = db?.paav_announcement;
