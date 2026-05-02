@@ -17,12 +17,16 @@ export default function ChatBot() {
   }, [messages, isTyping]);
 
   const responses = {
-    'features': 'EduVantage offers a complete suite including Academic Analytics, Automated Payroll, M-Pesa Fee Collection, and a dynamic Parent Portal! 🚀',
-    'price': 'We offer a 30-day free trial! Afterward, plans are KES 150 per student per term for Basic, and KES 300 for Premium. 💰',
-    'trial': 'You can start your 30-day free trial instantly. No credit card required! Just click "Get Started" on the homepage. ✨',
-    'contact': 'Our team is ready to help! 📞 Call us at +254 700 111 222 or email hello@eduvantage.app',
-    'demo': 'I can definitely show you around! Would you like to see the Admin Dashboard or the Parent Portal first? 📺',
-    'default': 'That is a great question! I am still learning, but I can tell you about our Features, Pricing, or help you start a Free Trial. 🌟'
+    'features': 'EduVantage offers a unified ecosystem that outperforms alternatives! Modules include CBC Analytics, Auto-Fee Reconciliation via M-Pesa, Bulk SMS, Smart Timetable generation, and an intuitive Parent Portal. 🚀',
+    'analytics': 'Our Analytics engine is fully CBC & 8-4-4 compliant. It instantly generates report cards, automated merit lists, and provides subject-level trend analysis! 📊',
+    'finance': 'Say goodbye to manual ledgers! EduVantage Finance features instant M-Pesa auto-reconciliation, digital parent e-receipts, and bulk staff payroll sync. 💰',
+    'timetable': 'Our AI Timetable engine automatically resolves scheduling conflicts and optimizes teacher workload to instantly generate digital class and exam routines. 📅',
+    'communication': 'Bridge the gap between school and home with targeted bulk SMS campaigns, automated absence alerts, and direct parent-teacher messaging! 📲',
+    'price': 'Simple, transparent pricing! Basic Plan is KES 150/student per term. Premium (with M-Pesa & bulk payroll) is KES 300/student. Start with a 30-day Free Trial! 💎',
+    'trial': 'You can start your 30-day free trial instantly. No credit card required! Just click "Get Started" on the homepage to set up your school in 60 seconds. ✨',
+    'contact': 'Our support team is ready to help! 📞 Call us at +254 700 111 222 or email hello@eduvantage.app',
+    'demo': 'I can definitely show you around! Start your free trial to instantly access the Admin Dashboard, or reach out to our team for a guided tour! 📺',
+    'default': 'That is a great question! I am still learning, but I can tell you about our Features, Pricing, Analytics, M-Pesa integration, or help you start a Free Trial. 🌟'
   };
 
   const handleSend = (text) => {
@@ -38,21 +42,26 @@ export default function ChatBot() {
       let botResponse = responses.default;
       const q = userMsg.toLowerCase();
       
-      if (q.includes('feature') || q.includes('what can you do')) botResponse = responses.features;
+      if (q.includes('feature') || q.includes('what can you do') || q.includes('zeraki')) botResponse = responses.features;
+      else if (q.includes('analytic') || q.includes('report') || q.includes('mark') || q.includes('cbc') || q.includes('grade')) botResponse = responses.analytics;
+      else if (q.includes('finance') || q.includes('fee') || q.includes('m-pesa') || q.includes('mpesa') || q.includes('pay') || q.includes('receipt')) botResponse = responses.finance;
+      else if (q.includes('timetable') || q.includes('schedule') || q.includes('conflict')) botResponse = responses.timetable;
+      else if (q.includes('sms') || q.includes('message') || q.includes('parent') || q.includes('communicate')) botResponse = responses.communication;
       else if (q.includes('price') || q.includes('cost') || q.includes('how much')) botResponse = responses.price;
-      else if (q.includes('trial') || q.includes('free')) botResponse = responses.trial;
+      else if (q.includes('trial') || q.includes('free') || q.includes('register')) botResponse = responses.trial;
       else if (q.includes('contact') || q.includes('help') || q.includes('support')) botResponse = responses.contact;
       else if (q.includes('demo') || q.includes('show me')) botResponse = responses.demo;
 
       setMessages(prev => [...prev, { role: 'bot', text: botResponse }]);
-    }, 1200);
+    }, 1000);
   };
 
   const quickReplies = [
-    { label: '🚀 Features', val: 'features' },
-    { label: '💰 Pricing', val: 'price' },
-    { label: '✨ Free Trial', val: 'trial' },
-    { label: '📺 Book Demo', val: 'demo' }
+    { label: '📊 Analytics & CBC', val: 'analytics' },
+    { label: '💰 M-Pesa & Fees', val: 'finance' },
+    { label: '📅 Smart Timetable', val: 'timetable' },
+    { label: '📲 Parent SMS', val: 'communication' },
+    { label: '✨ Pricing & Trial', val: 'price' }
   ];
 
   return (
