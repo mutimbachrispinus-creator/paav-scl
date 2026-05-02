@@ -74,13 +74,11 @@ export default function LearnerReceiptPage() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, borderBottom: '2px solid var(--maroon)', paddingBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
-            {school.logo && (
-              <img src={school.logo} alt="Logo" style={{ width: 50, height: 50, objectFit: 'contain' }} />
-            )}
+            <img src={school.logo || "/ev-brand-v3.png"} alt="Logo" style={{ width: 55, height: 55, objectFit: 'contain', background: '#fff', borderRadius: '50%', padding: 2, border: '1px solid #eee' }} />
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 900, fontSize: 18, color: 'var(--maroon)', letterSpacing: -0.5 }}>{school.name}</div>
-              <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>{school.motto}</div>
-              <div style={{ fontSize: 9, color: '#666' }}>Tel: {school.phone}</div>
+              <div style={{ fontWeight: 900, fontSize: 18, color: 'var(--maroon)', letterSpacing: -0.5 }}>{school.name || 'SCHOOL PORTAL'}</div>
+              <div style={{ fontSize: 10, color: '#444', fontWeight: 600 }}>{school.motto || 'Quality Education for All'}</div>
+              <div style={{ fontSize: 9, color: '#666' }}>Tel: {school.phone || '—'}</div>
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>

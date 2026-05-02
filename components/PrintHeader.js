@@ -9,11 +9,9 @@ export default function PrintHeader() {
   return (
     <div className="print-header no-print-hide">
       <div className="ph-content">
-        {profile.logo && (
-          <div className="ph-logo-container">
-            <img src={profile.logo} alt="School Logo" className="ph-logo" />
-          </div>
-        )}
+        <div className="ph-logo-container">
+          <img src={profile.logo || "/ev-brand-v3.png"} alt="School Logo" className="ph-logo" />
+        </div>
         <div className="ph-details">
           <h1 className="ph-name">{profile.name || 'SCHOOL PORTAL'}</h1>
           {profile.motto && <div className="ph-motto">"{profile.motto}"</div>}

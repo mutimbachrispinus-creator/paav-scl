@@ -16,6 +16,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { ALL_GRADES, gInfo, DEFAULT_SUBJECTS, maxPts, calcLearnerReportData, getMark, isJSSGrade } from '@/lib/cbe';
+import { useSchoolProfile } from '@/lib/school-profile';
 
 const LOGO = "";
 
@@ -23,7 +24,7 @@ export default function TemplatesPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState('merit');
-  const [profile, setProfile] = useState({});
+  const profile = useSchoolProfile();
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
   const [marks, setMarks] = useState({});
@@ -60,10 +61,7 @@ export default function TemplatesPage() {
         setFees([...feeList, ...paylogList]);
         setAtt(db.paav_student_attendance || {});
         
-        if (db.paav_school_profile) {
-          const prof = typeof db.paav_school_profile === 'string' ? JSON.parse(db.paav_school_profile) : db.paav_school_profile;
-          setProfile(prof);
-        }
+        // Profile is now handled by the useSchoolProfile hook
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     }

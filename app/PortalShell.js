@@ -233,6 +233,7 @@ export default function PortalShell({ children }) {
             setProfile(config.profile);
             const stamp = Date.now();
             localStorage.setItem('paav_cache_db_paav_school_profile', JSON.stringify({ v: config.profile, t: stamp, s: stamp }));
+            window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_school_profile'] } }));
           }
         }
         if (config.theme) {
@@ -242,6 +243,7 @@ export default function PortalShell({ children }) {
             setTheme(config.theme);
             const stamp = Date.now();
             localStorage.setItem('paav_cache_db_paav_theme', JSON.stringify({ v: config.theme, t: stamp, s: stamp }));
+            window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_theme'] } }));
           }
         }
 
