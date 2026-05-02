@@ -215,6 +215,9 @@ export default function PortalShell({ children }) {
       if (u) {
         setUser(u);
         const activeTenant = impersonateId || u.tenantId;
+        if (typeof window !== 'undefined' && activeTenant && activeTenant !== 'platform-master') {
+          try { localStorage.setItem('paav_last_tenant', activeTenant); } catch {}
+        }
 
         // Fetch profile and theme for the active tenant with cache-busting
         const configRes = await fetch(`/api/saas/config?tenant=${activeTenant}&_t=${Date.now()}`);

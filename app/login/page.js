@@ -12,8 +12,16 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // Default to empty or neutral if no tenant provided
-  const tenantId = searchParams.get('tenant') || 'platform-master';
+  // Default to empty or neutral if no tenant provided, but remember last logged in school
+  const [tenantId, setTenantId] = useState('platform-master');
+
+  useEffect(() => {
+    let t = searchParams.get('tenant');
+    if (!t && typeof window !== 'undefined') {
+      try { t = localStorage.getItem('paav_last_tenant'); } catch {}
+    }
+    if (t) setTenantId(t);
+  }, [searchParams]);
 
   const [tab, setTab] = useState('login'); 
   const [busy, setBusy] = useState(false);
