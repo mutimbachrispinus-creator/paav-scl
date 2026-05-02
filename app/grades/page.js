@@ -38,12 +38,14 @@ export default function GradesPage() {
   const [marks,    setMarks]    = useState({});
   const [locked,   setLocked]   = useState({});
   const [subjCfg,  setSubjCfg]  = useState({});
+  const [streams,  setStreams]  = useState([]);
   const [gradCfg,  setGradCfg]  = useState(null);
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
   const [alert,    setAlert]    = useState({ msg: '', type: '' });
 
   const [grade,  setGrade]  = usePersistedState('paav_grades_grade',  'GRADE 1');
+  const [stream, setStream] = usePersistedState('paav_grades_stream', '');
   const [term,   setTerm]   = usePersistedState('paav_grades_term',   'T1');
   const [assess, setAssess] = usePersistedState('paav_grades_assess', 'mt1');
   
@@ -58,6 +60,7 @@ export default function GradesPage() {
           'paav6_learners',
           'paav6_marks',
           'paav_marks_locked',
+          'paav7_streams',
           'paav8_grad',
           'paav8_subj'
         ])
@@ -73,6 +76,7 @@ export default function GradesPage() {
       setLearners(db.paav6_learners || []);
       setMarks(   db.paav6_marks    || {});
       setLocked(  db.paav_marks_locked || {});
+      setStreams( db.paav7_streams  || []);
       setGradCfg( db.paav8_grad     || null);
       setSubjCfg( db.paav8_subj     || {});
     } catch (e) {
@@ -96,8 +100,9 @@ export default function GradesPage() {
   }, [load]);
 
   /* ── Derived ── */
-  const classLearners = learners.filter(l => l.grade === grade)
+  const classLearners = learners.filter(l => l.grade === grade && (!stream || (l.stream || 'Default') === stream))
     .sort((a, b) => a.name.localeCompare(b.name));
+  const gradeStreams = streams.filter(s => s.grade === grade);
   const subjects      = (subjCfg[grade] && subjCfg[grade].length > 0) ? subjCfg[grade] : (DEFAULT_SUBJECTS[grade] || []);
   const lockKey       = `${term}:${grade}:${assess}`;
   const isLocked      = !!locked[lockKey];
@@ -343,10 +348,19 @@ export default function GradesPage() {
         <div className="panel-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           <div className="field" style={{ marginBottom: 0, minWidth: 160 }}>
             <label>Grade</label>
-            <select value={grade} onChange={e => setGrade(e.target.value)}>
+            <select value={grade} onChange={e => { setGrade(e.target.value); setStream(''); }}>
               {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
             </select>
           </div>
+          {gradeStreams.length > 0 && (
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Stream</label>
+              <select value={stream} onChange={e => setStream(e.target.value)}>
+                <option value="">All Streams</option>
+                {gradeStreams.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+              </select>
+            </div>
+          )}
           <div className="field" style={{ marginBottom: 0 }}>
             <label>Term</label>
             <select value={term} onChange={e => setTerm(e.target.value)}>

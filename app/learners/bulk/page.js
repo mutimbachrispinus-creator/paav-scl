@@ -24,7 +24,9 @@ export default function BulkLearnersPage() {
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
+  const [streams, setStreams] = useState([]);
   const [bulkGrade, setBulkGrade] = useState('GRADE 7');
+  const [bulkStream, setBulkStream] = useState('');
   const [pickerSearch, setPickerSearch] = useState('');
   const [showPicker, setShowPicker] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -41,10 +43,11 @@ export default function BulkLearnersPage() {
       const dbRes = await fetch('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_learners' }] })
+        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_learners' }, { type: 'get', key: 'paav7_streams' }] })
       });
       const dbData = await dbRes.json();
       setLearners(dbData.results[0]?.value || []);
+      setStreams(dbData.results[1]?.value || []);
 
       setLoading(false);
     }
@@ -68,12 +71,12 @@ export default function BulkLearnersPage() {
   }
 
   function applyGradeToAll() {
-    setRows(rows.map(r => ({ ...r, grade: bulkGrade })));
+    setRows(rows.map(r => ({ ...r, grade: bulkGrade, stream: bulkStream || r.stream })));
   }
 
   function fillGradeRows() {
     if (rows.some(r => r.adm && r.name) && !confirm('This will clear current rows. Continue?')) return;
-    const fresh = Array(30).fill(null).map(() => ({ ...EMPTY_ROW, grade: bulkGrade }));
+    const fresh = Array(30).fill(null).map(() => ({ ...EMPTY_ROW, grade: bulkGrade, stream: bulkStream }));
     setRows(fresh);
   }
 
@@ -153,18 +156,29 @@ export default function BulkLearnersPage() {
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)', marginBottom: 2 }}>📚 Entry by Grade</div>
           <div className="field" style={{ marginBottom: 0, minWidth: 180 }}>
             <label>Select Grade</label>
-            <select value={bulkGrade} onChange={e => setBulkGrade(e.target.value)}>
+            <select value={bulkGrade} onChange={e => { setBulkGrade(e.target.value); setBulkStream(''); }}>
               {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
             </select>
           </div>
+          {streams.filter(s => s.grade === bulkGrade).length > 0 && (
+            <div className="field" style={{ marginBottom: 0, minWidth: 140 }}>
+              <label>Select Stream</label>
+              <select value={bulkStream} onChange={e => setBulkStream(e.target.value)}>
+                <option value="">(No Stream)</option>
+                {streams.filter(s => s.grade === bulkGrade).map(s => (
+                  <option key={s.name} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <button className="btn btn-gold btn-sm" onClick={fillGradeRows} title="Clear table and set 30 fresh rows for this grade">
             🆕 New Class Entry
           </button>
           <button className="btn btn-primary btn-sm" onClick={loadExistingGrade} title="Load all existing learners in this grade for editing">
             ✏️ Load Class for Editing
           </button>
-          <button className="btn btn-ghost btn-sm" onClick={applyGradeToAll} title="Apply this grade to all existing rows">
-            🪄 Apply Grade to All
+          <button className="btn btn-ghost btn-sm" onClick={applyGradeToAll} title="Apply this grade and stream to all existing rows">
+            🪄 Apply Grade/Stream to All
           </button>
 
           <div style={{ borderLeft: '1px solid var(--border)', height: 30, margin: '0 8px' }}></div>
@@ -243,7 +257,14 @@ export default function BulkLearnersPage() {
                     </select>
                   </td>
                   <td>
-                    <input type="text" className="sc-inp" style={{ width: '100%' }} value={r.stream} onChange={e => updateRow(i, 'stream', e.target.value.toUpperCase())} placeholder="A" />
+                    {streams.filter(s => s.grade === r.grade).length > 0 ? (
+                      <select className="sc-inp" style={{ width: '100%' }} value={r.stream} onChange={e => updateRow(i, 'stream', e.target.value)}>
+                        <option value="">-</option>
+                        {streams.filter(s => s.grade === r.grade).map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                      </select>
+                    ) : (
+                      <input type="text" className="sc-inp" style={{ width: '100%' }} value={r.stream} onChange={e => updateRow(i, 'stream', e.target.value.toUpperCase())} placeholder="A" />
+                    )}
                   </td>
                   <td>
                     <input type="text" className="sc-inp" style={{ width: '100%', textAlign: 'left' }} value={r.parent} onChange={e => updateRow(i, 'parent', e.target.value.toUpperCase())} placeholder="PARENT NAME" />
