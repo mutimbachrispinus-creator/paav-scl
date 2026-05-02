@@ -17,7 +17,23 @@ function LoginContent() {
 
   useEffect(() => {
     let t = searchParams.get('tenant');
-    if (t) setTenantId(t);
+    if (t) {
+      setTenantId(t);
+      // Strict Lockdown: If we have a cached user from a different tenant, clear everything
+      const raw = localStorage.getItem('paav_cache_user');
+      if (raw) {
+        try {
+          const { v: u } = JSON.parse(raw);
+          const currentTid = u?.tenant_id || u?.tenantId;
+          if (currentTid && currentTid !== t && t !== 'platform-master') {
+            console.warn('[Auth] Tenant mismatch detected. Clearing stale session.');
+            clearAllCache();
+            // Optional: force a page reload to ensure all states are reset
+            // window.location.reload(); 
+          }
+        } catch {}
+      }
+    }
     else setTenantId('platform-master');
   }, [searchParams]);
 
