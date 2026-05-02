@@ -223,8 +223,15 @@ export default function PortalShell({ children }) {
         
         if (config.profile) {
           setProfile(config.profile);
+          // Hydrate cache so lib/school-profile useSchoolProfile() can see it instantly
+          const stamp = Date.now();
+          localStorage.setItem('paav_cache_db_paav_school_profile', JSON.stringify({ v: config.profile, t: stamp, s: stamp }));
         }
-        if (config.theme) setTheme(config.theme);
+        if (config.theme) {
+          setTheme(config.theme);
+          const stamp = Date.now();
+          localStorage.setItem('paav_cache_db_paav_theme', JSON.stringify({ v: config.theme, t: stamp, s: stamp }));
+        }
 
         const ann = db?.paav_announcement;
         if (ann?.text && ann?.active) setAnnouncement(ann.text);
