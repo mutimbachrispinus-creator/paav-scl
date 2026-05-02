@@ -162,7 +162,13 @@ function LoginContent() {
       if (data.ok) {
         if (tab === 'login') {
           clearAllCache();
+          // 1. Store the user object first (Critical for auth guards)
+          const { store } = await import('@/lib/client-cache');
+          await store('user', data.user);
+          
+          // 2. Hydrate other initial data
           if (data.initialData) await hydrateCache(data.initialData);
+          
           router.push(data.redirect || '/dashboard');
         } else {
           setOkMsg(`✅ Registered! Your username is: ${data.username}. Please login.`);
