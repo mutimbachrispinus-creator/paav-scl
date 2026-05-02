@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDB, invalidateDB, fetchWithRetry, mutateDB } from '@/lib/client-cache';
-import { writeSchoolProfileCache } from '@/lib/school-profile';
+import { writeSchoolProfileCache, readSchoolProfile } from '@/lib/school-profile';
 import { useProfile } from '@/app/PortalShell';
 
 const PRESET_COLORS = [
@@ -17,12 +17,17 @@ export default function SchoolProfilePage() {
   const router = useRouter();
   const { playSuccessSound } = useProfile();
   const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState({
-    name: '', motto: '', phone: '', email: '', address: '', website: '', logo: '',
-    bankAccounts: [] // { bank: '', branch: '', accName: '', accNo: '' }
+  const [profile, setProfile] = useState(() => {
+    if (typeof window === 'undefined') return { name: '', motto: '', phone: '', email: '', address: '', website: '', logo: '', bankAccounts: [] };
+    return readSchoolProfile() || { name: '', motto: '', phone: '', email: '', address: '', website: '', logo: '', bankAccounts: [] };
   });
-  const [theme, setTheme] = useState({
-    primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B'
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') return { primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B' };
+    try {
+      const raw = localStorage.getItem('paav_cache_db_paav_theme');
+      if (raw) return JSON.parse(raw).v;
+    } catch {}
+    return { primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B' };
   });
   
   const [loading, setLoading] = useState(true);

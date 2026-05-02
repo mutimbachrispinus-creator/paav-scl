@@ -7,6 +7,7 @@ import ProfilePanel from '@/components/ProfilePanel';
 import { ALL_NAV } from '@/lib/navigation';
 import { getCachedUser, getCachedDBMulti, prefetchKeys, clearAllCache, fetchWithRetry, hydrateCache } from '@/lib/client-cache';
 import { initSyncEngine, stopSyncEngine } from '@/lib/sync-engine';
+import { readSchoolProfile } from '@/lib/school-profile';
 
 /**
  * app/PortalShell.js — Client-side portal shell
@@ -142,10 +143,10 @@ export default function PortalShell({ children }) {
     } catch {}
     return { primary: '#1E293B', secondary: '#D4AF37', accent: '#334155' };
   });
-  const [profile,      setProfile]      = useState({ 
-    name: 'SCHOOL PORTAL', 
-    motto: 'Quality Education for All', 
-    logo: '/ev-brand-v3.png' 
+  const [profile, setProfile] = useState(() => {
+    if (typeof window === 'undefined') return { name: 'SCHOOL PORTAL', motto: 'Quality Education for All', logo: '/ev-brand-v3.png' };
+    const cached = readSchoolProfile();
+    return cached || { name: 'SCHOOL PORTAL', motto: 'Quality Education for All', logo: '/ev-brand-v3.png' };
   });
 
   const idleTimer    = useRef(null);
@@ -279,7 +280,7 @@ export default function PortalShell({ children }) {
     const handler = (e) => {
       const changed = e.detail?.changed || [];
       // Refresh shell state if relevant keys changed
-      if (changed.some(k => ['paav_announcement','paav6_msgs','paav_hero_img','paav7_duties','paav_staff_reqs', 'paav_theme'].includes(k))) {
+      if (changed.some(k => ['paav_announcement','paav6_msgs','paav_hero_img','paav7_duties','paav_staff_reqs', 'paav_theme', 'paav_school_profile'].includes(k))) {
         loadSession();
       }
     };
