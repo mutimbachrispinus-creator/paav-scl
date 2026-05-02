@@ -141,7 +141,12 @@ export default function PortalShell({ children }) {
   const [profile, setProfile] = useState(() => {
     const fallback = { name: 'EduVantage School Management System', tagline: 'Global Education SaaS Network', logo: '/ev-brand-v3.png' };
     if (typeof window === 'undefined') return fallback;
-    const cached = readSchoolProfile();
+    
+    // Check URL for tenant parameter first (Critical for Login page)
+    const params = new URLSearchParams(window.location.search);
+    const tenantParam = params.get('tenant');
+    
+    const cached = readSchoolProfile(tenantParam);
     return cached || fallback;
   });
 
@@ -277,7 +282,9 @@ export default function PortalShell({ children }) {
       
       // Update local state immediately if cache changed
       if (changed.includes('paav_school_profile')) {
-        const fresh = readSchoolProfile();
+        const params = new URLSearchParams(window.location.search);
+        const tenantParam = params.get('tenant');
+        const fresh = readSchoolProfile(tenantParam);
         if (fresh) setProfile(fresh);
       }
       if (changed.includes('paav_theme')) {

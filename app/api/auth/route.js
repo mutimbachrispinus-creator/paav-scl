@@ -76,12 +76,28 @@ async function handleLogin({ username, password }, request) {
   let user = null;
 
   // Global login attempt: search across all tenants
-  if (!tenantId || tenantId === 'platform-master') {
+  if (tenantId && tenantId !== 'platform-master') {
+    // School-specific login: STRICT MODE
+    const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase().trim(), tenantId]);
+    user = rows[0];
+
+    // Check if this is a super-admin trying to log into a school
+    if (!user) {
+      const superAdminRows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ? AND role = ?', [username.toLowerCase().trim(), 'platform-master', 'super-admin']);
+      if (superAdminRows.length > 0) {
+        user = superAdminRows[0];
+        // Super admin context remains platform-master
+        tenantId = 'platform-master';
+      }
+    }
+    
+    if (!user) return err(`Account not found in this institution. Please check your school link.`);
+  } else {
+    // Global login attempt: search across all tenants
     const rows = await query('SELECT id, tenant_id, name, username, role, password, status FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
     
     if (rows.length === 0) return err('Invalid username or password.');
 
-    // 1. Filter by password first
     const matches = [];
     for (const row of rows) {
       if (await verifyPassword(password, row.password)) {
@@ -91,12 +107,11 @@ async function handleLogin({ username, password }, request) {
 
     if (matches.length === 0) return err('Invalid username or password.');
 
-    // 2. If it's a Super Admin, allow global login
     const superAdmin = matches.find(m => m.role === 'super-admin' && m.tenant_id === 'platform-master');
     if (superAdmin) {
       user = superAdmin;
+      tenantId = 'platform-master';
     } else if (matches.length > 1) {
-      // 3. Multiple schools found: Force them to choose
       const schoolDetails = await Promise.all(matches.map(async (m) => {
         const profile = await query('SELECT value FROM kv WHERE key = ? AND tenant_id = ?', ['paav_school_profile', m.tenant_id]);
         let name = m.tenant_id;
@@ -108,30 +123,14 @@ async function handleLogin({ username, password }, request) {
         choices: schoolDetails
       }, { status: 403 });
     } else {
-      // 4. Single school found
       user = matches[0];
       tenantId = user.tenant_id;
     }
-  } else {
-    // School-specific login
-    const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase().trim(), tenantId]);
-    user = rows[0];
-
-    // Fallback: Check if this user is a super-admin in platform-master
-    if (!user) {
-      const superAdminRows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ? AND role = ?', [username.toLowerCase().trim(), 'platform-master', 'super-admin']);
-      if (superAdminRows.length > 0) {
-        user = superAdminRows[0];
-        tenantId = 'platform-master';
-      }
-    }
   }
 
-  // Force platform-master for super-admins regardless of where they log in from
-  if (user?.role === 'super-admin') tenantId = 'platform-master';
-
-  if (!user) return err('Account not found (Check your username or school link)');
+  // Final validation
   if (user.status === 'inactive') return err('Your account is deactivated. Contact admin.');
+  if (user.status === 'suspended') return err('Your account is suspended.');
 
   // Check Subscription Status for the tenant (unless it's platform-master)
   if (tenantId !== 'platform-master') {
