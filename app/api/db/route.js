@@ -220,8 +220,8 @@ async function handleRequest(req, auth, impTenant = null) {
     case 'getAll': {
       const keys = Array.isArray(req.keys) ? req.keys : [];
       const { kvGetWithMeta } = await import('@/lib/db');
-      const data = {}; const meta = {};
-      for (const k of keys) {
+      
+      const results = await Promise.all(keys.map(async (k) => {
         let { value, updatedAt } = await kvGetWithMeta(k, tenantId);
         
         // Security: Only super-admin can read AT credentials
@@ -232,12 +232,21 @@ async function handleRequest(req, auth, impTenant = null) {
         if (k === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
           if (Array.isArray(value)) value = value.filter(r => r.userId === auth.id);
         }
-        if (!['admin','parent'].includes(auth.role)) {
+        
+        if (!['admin','parent','super-admin'].includes(auth.role)) {
           if (['paav6_feecfg', 'paav6_paylog'].includes(k)) value = k === 'paav6_paylog' ? [] : {};
           if (k === 'paav6_learners' && Array.isArray(value)) value = value.map(l => ({ ...l, t1: 0, t2: 0, t3: 0, arrears: 0 }));
         }
-        data[k] = value; meta[k] = updatedAt;
-      }
+        
+        return { key: k, value, updatedAt };
+      }));
+
+      const data = {}; const meta = {};
+      results.forEach(r => {
+        data[r.key] = r.value;
+        meta[r.key] = r.updatedAt;
+      });
+      
       return { type: 'getAll', data, meta };
     }
     

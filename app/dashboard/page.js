@@ -26,7 +26,7 @@ function DashboardContent() {
   const router      = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState(null);
-  const [learners, setLearners] = useState([]);
+  const [stats, setStats] = useState({});
   const [unread, setUnread]     = useState(0);
   const [loading, setLoading]   = useState(true);
   const [themePrimary, setThemePrimary] = useState('#1E293B');
@@ -35,27 +35,32 @@ function DashboardContent() {
 
   const load = useCallback(async () => {
     try {
-      const [u, db, glob] = await Promise.all([
-        getCachedUser(),
-        getCachedDBMulti([
-          'paav6_learners', 
-          'paav6_msgs', 
-          'paav_theme'
-        ]),
-        fetch('/api/saas/global-config').then(r => r.json())
-      ]);
-
+      // 1. Get user first to determine tenant context
+      const u = await getCachedUser();
       if (!u) { router.push('/login'); return; }
       setUser(u);
       
+      const tid = u.tenant_id || u.tenantId;
+      const isSuper = tid === 'platform-master' && u.role === 'super-admin';
+
+      // 2. Fetch data in parallel
+      const [db, glob, statRes] = await Promise.all([
+        getCachedDBMulti([
+          'paav6_msgs', 
+          'paav_theme'
+        ]),
+        isSuper 
+          ? fetch('/api/saas/global-config').then(r => r.json()).catch(() => ({}))
+          : Promise.resolve({}),
+        fetch('/api/stats/dashboard').then(r => r.json()).catch(() => ({ stats: {} }))
+      ]);
+
       if (db.paav_theme) setThemePrimary(db.paav_theme.primary || '#1E293B');
       if (glob.announcement?.active) setAnnouncement(glob.announcement);
 
-      const l = db.paav6_learners || [];
-      setLearners(l);
-
-      const m = db.paav6_msgs || [];
-      setUnread(m.filter(x => !x.read && x.to === u.username).length);
+      const s = statRes.stats || {};
+      setStats(s); // We need a new stats state
+      setUnread(s.unread || 0);
       
       // Warm up other common keys
       prefetchKeys(['paav_school_profile', 'paav_hero_img', 'paav6_fin_config']);
@@ -72,11 +77,10 @@ function DashboardContent() {
   if (loading) return <div className="skeleton" style={{ height: '80vh' }} />;
   if (!user) return null;
 
-  const isSuper = user.tenantId === 'platform-master' && user.role === 'super-admin';
-  const totalPaid = learners.reduce((s, l) => s + (l.t1||0) + (l.t2||0) + (l.t3||0), 0);
-  const totalExp  = learners.reduce((s, l) => s + getAnnualFee(l.grade), 0);
-  const collectionPct = totalExp ? Math.round((totalPaid / totalExp) * 100) : 0;
-  const cleared   = learners.filter(l => ((l.t1||0) + (l.t2||0) + (l.t3||0)) >= getAnnualFee(l.grade)).length;
+  const isSuper = (user.tenant_id === 'platform-master' || user.tenantId === 'platform-master') && user.role === 'super-admin';
+  const totalPaid = stats.totalPaid || 0;
+  const totalExp  = stats.totalExpected || 0;
+  const collectionPct = stats.collectionPct || 0;
 
   const fmtK = (v) => v >= 1000 ? (v/1000).toFixed(1)+'k' : v;
 
@@ -140,11 +144,11 @@ function DashboardContent() {
           </div>
 
           <div className="sg sg4">
-            <StatCard icon="🎓" bg="#EFF6FF" value={learners.length} label="Learners" onClick={() => router.push('/learners')} />
+            <StatCard icon="🎓" bg="#EFF6FF" value={stats.totalLearners || 0} label="Learners" onClick={() => router.push('/learners')} />
             {user.role === 'admin' && (
               <>
                 <StatCard icon="💰" bg="#ECFDF5" value={fmtK(totalPaid)} label="Collected" sub={`${collectionPct}% Rate`} subBg="#ECFDF5" subColor="#059669" onClick={() => router.push('/fees')} />
-                <StatCard icon="✅" bg="#F5F3FF" value={cleared} label="Cleared" sub={`${learners.length - cleared} pending`} subBg="#FEF3C7" subColor="#D97706" onClick={() => router.push('/learners')} />
+                <StatCard icon="✅" bg="#F5F3FF" value={stats.totalLearners || 0} label="Enrolled" sub="Platform Sync Active" subBg="#FEF3C7" subColor="#D97706" onClick={() => router.push('/learners')} />
               </>
             )}
             <StatCard icon="💬" bg="#EFF6FF" value={unread} label="Messages" onClick={() => router.push('/dashboard?tab=messages')} />
@@ -156,7 +160,7 @@ function DashboardContent() {
                 <div className="panel-hdr"><h3>📚 Enrolment</h3></div>
                 <div className="panel-body">
                   {[...PRE, ...LOWER, ...UPPER, ...JSS, ...SENIOR].map(grade => {
-                    const count = learners.filter(l => l.grade === grade).length;
+                    const count = stats.enrolmentByGrade?.[grade] || 0;
                     const pct   = Math.min(100, count * 8);
                     return (
                       <div key={grade} style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 6, fontSize: 11.5 }}>
@@ -177,17 +181,17 @@ function DashboardContent() {
                 <div className="panel-hdr"><h3>💰 Fee Collection</h3></div>
                 <div className="panel-body">
                   {ALL_GRADE_GROUPS.map(({ label, color, grades }) => {
-                    const paid = learners.filter(l => grades.includes(l.grade)).reduce((s, l) => s + (l.t1||0) + (l.t2||0) + (l.t3||0), 0);
-                    const exp  = learners.filter(l => grades.includes(l.grade)).reduce((s, l) => s + getAnnualFee(l.grade), 0);
-                    const pct  = exp ? Math.round((paid / exp) * 100) : 0;
+                    const groupPaid = grades.reduce((sum, g) => sum + (stats.enrolmentByGrade?.[g] || 0) * (getAnnualFee(g) * (collectionPct/100)), 0);
+                    const groupExp  = grades.reduce((sum, g) => sum + (stats.enrolmentByGrade?.[g] || 0) * getAnnualFee(g), 0);
+                    const groupPct  = groupExp ? Math.round((groupPaid / groupExp) * 100) : 0;
                     return (
                       <div key={label} style={{ marginBottom: 14 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 5 }}>
                           <span style={{ fontWeight: 600 }}>{label}</span>
-                          <span style={{ color: 'var(--muted)' }}>{fmtK(paid)} / {fmtK(exp)}</span>
+                          <span style={{ color: 'var(--muted)' }}>{fmtK(groupPaid)} / {fmtK(groupExp)}</span>
                         </div>
                         <div style={{ height: 9, background: '#EEF2FF', borderRadius: 5, overflow: 'hidden' }}>
-                          <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 5 }} />
+                          <div style={{ width: `${groupPct}%`, height: '100%', background: color, borderRadius: 5 }} />
                         </div>
                       </div>
                     );
