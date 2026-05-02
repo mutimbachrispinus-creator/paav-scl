@@ -169,7 +169,7 @@ async function handleLogin({ username, password }, request) {
     initialData: {
       db_paav_announcement: ann,
       db_paav6_msgs: msgs,
-      db_paav7_hero_img: hero,
+      db_paav_hero_img: hero,
       db_paav6_feecfg: feecfg,
       db_paav6_learners: learners,
       db_paav_school_profile: profile,

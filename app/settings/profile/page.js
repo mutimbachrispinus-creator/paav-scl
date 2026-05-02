@@ -27,7 +27,13 @@ export default function SchoolProfilePage() {
     const fallback = { primary: '#8B1A1A', secondary: '#D4AF37', accent: '#1E293B' };
     if (typeof window === 'undefined') return fallback;
     try {
-      const raw = localStorage.getItem('paav_cache_db_paav_theme');
+      const rawUser = localStorage.getItem('paav_cache_user');
+      let tid = 'platform-master';
+      if (rawUser) {
+        const { v: u } = JSON.parse(rawUser);
+        tid = u?.tenant_id || u?.tenantId || 'platform-master';
+      }
+      const raw = localStorage.getItem(`paav_cache_${tid}_db_paav_theme`);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && parsed.v) return parsed.v;

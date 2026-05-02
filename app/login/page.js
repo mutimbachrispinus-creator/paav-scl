@@ -136,7 +136,7 @@ function LoginContent() {
     loadConfig();
   }, [tenantId]);
 
-  async function handleAction(e) {
+  const handleAction = async (e, forcedTid = null) => {
     if (e) e.preventDefault();
     if (usernameStatus.taken && tab === 'register') {
       setErr('This username is already taken. Please choose another.');
@@ -144,13 +144,15 @@ function LoginContent() {
     }
     setBusy(true); setErr(''); setOkMsg('');
 
+    const targetTenant = forcedTid || tenantId;
+
     try {
       const actionPayload = tab === 'otp' ? 'register' : tab;
       const res = await fetchWithRetry('/api/auth', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-tenant-id': tenantId 
+          'x-tenant-id': targetTenant
         },
         body: JSON.stringify({ 
           action: actionPayload, 
@@ -164,8 +166,6 @@ function LoginContent() {
       try { data = await res.json(); } catch { throw new Error(`Server error (${res.status})`); }
       
       if (!res.ok) {
-        if (data.choices) {
-          // Handle multiple accounts found
         if (res.status === 403 && data.choices) {
           setChoices(data.choices);
           setErr('Multiple accounts found. Please select your school:');
@@ -179,12 +179,8 @@ function LoginContent() {
       if (data.ok) {
         if (tab === 'login') {
           clearAllCache();
-          // 1. Store the user object first (Critical for auth guards)
           await hydrateCache({ user: data.user });
-          
-          // 2. Hydrate other initial data
           if (data.initialData) await hydrateCache(data.initialData);
-          
           router.push(data.redirect || '/dashboard');
         } else {
           setOkMsg(`✅ Registered! Your username is: ${data.username}. Please login.`);
@@ -197,7 +193,7 @@ function LoginContent() {
     } finally {
       setBusy(false);
     }
-  }
+  };
 
   const handleSelectChoice = (tid) => {
     setTenantId(tid);
