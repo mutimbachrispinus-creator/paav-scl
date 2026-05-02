@@ -66,7 +66,7 @@ export default function LandingPage() {
             Stop Managing.<br/>Start <span className="text-gradient">Optimising.</span>
           </h1>
           <p className="hero-subtitle">
-            Outperform legacy systems like Zeraki with EduVantage's unified AI platform. Instantly reconcile M-Pesa fees, generate CBC report cards, and bridge the gap with parents—all in one place.
+            Experience the future of school management with EduVantage's unified AI platform. Instantly reconcile M-Pesa fees, generate CBC report cards, and bridge the gap with parents—all in one place.
           </p>
           
           <div className="hero-actions">
@@ -220,7 +220,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── COMPARISON SECTION (Why Us vs Zeraki) ── */}
+      {/* ── COMPARISON SECTION (Why Us?) ── */}
       <section id="compare" className="compare-section">
         <div className="container">
           <div className="comparison-box">
