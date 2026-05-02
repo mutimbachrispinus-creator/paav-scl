@@ -59,6 +59,14 @@ const ALL_SHORTCUTS = [
   },
   {
     roles:  ['admin'],
+    icon:   '🎨',
+    label:  'School Branding',
+    color:  '#8B5CF6',
+    bg:     '#F5F3FF',
+    path:   '/settings/profile',
+  },
+  {
+    roles:  ['admin'],
     icon:   '📱',
     label:  'Send SMS',
     color:  '#7C3AED',
