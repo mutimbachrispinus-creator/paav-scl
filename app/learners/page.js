@@ -473,7 +473,7 @@ function PromoteLearnersModal({ onClose, learners }) {
 
 
 /* ─── Edit Learner Modal ───────────────────────────────────────────────── */
-function EditLearnerModal({ onClose, learner, isAdmin }) {
+function EditLearnerModal({ onClose, learner, isAdmin, streams }) {
   const [form, setForm] = useState({ ...learner });
   const [err,  setErr]  = useState('');
   const [busy, setBusy] = useState(false);
