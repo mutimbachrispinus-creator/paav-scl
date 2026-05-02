@@ -76,27 +76,28 @@ async function handleLogin({ username, password }, request) {
   let user = null;
 
   // Global login attempt: search across all tenants
+  // ZERAKI-STYLE STRICT ISOLATION:
+  // If we have a specific tenant context, we ONLY search that tenant.
+  // This prevents accounts from leaking across portals.
   if (tenantId && tenantId !== 'platform-master') {
-    // School-specific login: STRICT MODE
     const rows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase().trim(), tenantId]);
     user = rows[0];
 
-    // Check if this is a super-admin trying to log into a school
+    // Check for super-admin bypass (system-wide control)
     if (!user) {
       const superAdminRows = await query('SELECT * FROM staff WHERE LOWER(username) = ? AND tenant_id = ? AND role = ?', [username.toLowerCase().trim(), 'platform-master', 'super-admin']);
       if (superAdminRows.length > 0) {
         user = superAdminRows[0];
-        // Super admin context remains platform-master
         tenantId = 'platform-master';
       }
     }
     
-    if (!user) return err(`Account not found in this institution. Please check your school link.`);
+    if (!user) return err(`Account not found in this school portal. Please confirm you are at the correct institutional URL.`);
   } else {
-    // Global login attempt: search across all tenants
+    // Global Portal Login: Only for users who didn't specify a school
     const rows = await query('SELECT id, tenant_id, name, username, role, password, status FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
     
-    if (rows.length === 0) return err('Invalid username or password.');
+    if (rows.length === 0) return err('No account found with this username.');
 
     const matches = [];
     for (const row of rows) {
@@ -105,27 +106,21 @@ async function handleLogin({ username, password }, request) {
       }
     }
 
-    if (matches.length === 0) return err('Invalid username or password.');
+    if (matches.length === 0) return err('Invalid credentials.');
 
-    const superAdmin = matches.find(m => m.role === 'super-admin' && m.tenant_id === 'platform-master');
-    if (superAdmin) {
-      user = superAdmin;
-      tenantId = 'platform-master';
-    } else if (matches.length > 1) {
-      const schoolDetails = await Promise.all(matches.map(async (m) => {
+    // Ambiguity resolution:
+    if (matches.length > 1) {
+      const choices = await Promise.all(matches.map(async (m) => {
         const profile = await query('SELECT value FROM kv WHERE key = ? AND tenant_id = ?', ['paav_school_profile', m.tenant_id]);
         let name = m.tenant_id;
         try { if(profile[0]) name = JSON.parse(profile[0].value).name; } catch(e){}
         return { id: m.tenant_id, name };
       }));
-      return NextResponse.json({ 
-        error: 'Multiple institutional accounts found.',
-        choices: schoolDetails
-      }, { status: 403 });
-    } else {
-      user = matches[0];
-      tenantId = user.tenant_id;
+      return NextResponse.json({ error: 'Multiple accounts found.', choices }, { status: 403 });
     }
+
+    user = matches[0];
+    tenantId = user.tenant_id;
   }
 
   // Final validation

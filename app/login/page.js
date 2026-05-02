@@ -26,8 +26,11 @@ function LoginContent() {
           const { v: u } = JSON.parse(raw);
           const currentTid = u?.tenant_id || u?.tenantId;
           if (currentTid && currentTid !== t && t !== 'platform-master') {
-            console.warn('[Auth] Tenant mismatch detected. Clearing stale session.');
-            clearAllCache();
+            console.warn('[Auth] Tenant mismatch detected. Terminating stale session.');
+            fetch('/api/auth', { method: 'POST', body: JSON.stringify({ action: 'logout' }) }).finally(() => {
+              clearAllCache();
+              window.location.reload(); 
+            });
           }
         } catch {}
       }

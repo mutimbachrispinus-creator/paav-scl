@@ -210,35 +210,38 @@ export default function PortalShell({ children }) {
         return;
       }
 
-      // 2. Fetch Branding (Only if NOT on login page, or if impersonating)
-      const isLogin = window.location.pathname === '/login' || window.location.pathname === '/';
+      // 2. Fetch Branding (Strict URL-Driven Isolation)
       const params = new URLSearchParams(window.location.search);
       const tenantParam = params.get('tenant');
-      const activeTenant = impersonateId || u?.tenant_id || u?.tenantId || tenantParam || 'platform-master';
+      
+      // If we have a tenant param in the URL, it OVERRIDES the user's session tenant
+      // for branding purposes. This prevents branding of School A appearing on School B's login.
+      const brandingTenant = tenantParam || impersonateId || u?.tenant_id || u?.tenantId || 'platform-master';
+      const activeTenant   = impersonateId || u?.tenant_id || u?.tenantId || tenantParam || 'platform-master';
 
-      if (activeTenant && activeTenant !== 'platform-master') {
-        try { localStorage.setItem('paav_last_tenant', activeTenant); } catch {}
+      if (brandingTenant && brandingTenant !== 'platform-master') {
+        try { localStorage.setItem('paav_last_tenant', brandingTenant); } catch {}
       }
 
-      // If we are on the login page, we MUST use global branding
-      if (isLogin && !impersonateId) {
+      // If we are on the login page, we MUST use global branding UNLESS a tenant is specified
+      if (isLogin && !tenantParam && !impersonateId) {
         setProfile({ name: 'EduVantage School Management System', tagline: 'Global Education SaaS Network', logo: '/ev-brand-v3.png' });
         setTheme({ primary: '#1E40AF', secondary: '#D4AF37', accent: '#0F172A' });
       } else {
-        const configRes = await fetch(`/api/saas/config?tenant=${activeTenant}&_t=${Date.now()}`);
+        const configRes = await fetch(`/api/saas/config?tenant=${brandingTenant}&_t=${Date.now()}`);
         if (configRes.ok) {
           const config = await configRes.json();
           if (config.profile) {
             setProfile(config.profile);
             const stamp = Date.now();
-            const cacheKey = `paav_cache_${activeTenant}_db_paav_school_profile`;
+            const cacheKey = `paav_cache_${brandingTenant}_db_paav_school_profile`;
             localStorage.setItem(cacheKey, JSON.stringify({ v: config.profile, t: stamp, s: stamp }));
             window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_school_profile'] } }));
           }
           if (config.theme) {
             setTheme(config.theme);
             const stamp = Date.now();
-            const cacheKey = `paav_cache_${activeTenant}_db_paav_theme`;
+            const cacheKey = `paav_cache_${brandingTenant}_db_paav_theme`;
             localStorage.setItem(cacheKey, JSON.stringify({ v: config.theme, t: stamp, s: stamp }));
             window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_theme'] } }));
           }
