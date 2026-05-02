@@ -41,6 +41,9 @@ export async function POST(request) {
       accent: '#1E293B'
     });
 
+    const { hashPassword } = await import('@/lib/auth');
+    const hashedPassword = await hashPassword(adminPassword);
+
     // Atomic setup of the new tenant
     await batch([
       // 1. Create Subscription (Trial)
@@ -52,7 +55,7 @@ export async function POST(request) {
       {
         sql: `INSERT INTO staff (id, tenant_id, name, username, role, phone, password, status, createdAt) 
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        args: ['admin-1', tenantId, adminName, adminUsername.toLowerCase().trim(), 'admin', phone || '', adminPassword, 'active', new Date().toISOString()]
+        args: ['admin-1', tenantId, adminName, adminUsername.toLowerCase().trim(), 'admin', phone || '', hashedPassword, 'active', new Date().toISOString()]
       },
       // 3. Set School Profile
       {
