@@ -117,7 +117,6 @@ function LoginContent() {
       try {
         const res = await fetch(`/api/saas/config?tenant=${tenantId}&_t=${Date.now()}`);
         const data = await res.json();
-        if (data.profile) setProfile(data.profile);
         if (data.announcement) setAnnouncement(data.announcement);
         if (data.heroImg) setHeroImg(data.heroImg);
         if (data.theme) {

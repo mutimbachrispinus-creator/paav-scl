@@ -210,7 +210,8 @@ export default function PortalShell({ children }) {
         return;
       }
 
-      // 2. Fetch Branding (Even if not logged in, if tenant is in URL)
+      // 2. Fetch Branding (Only if NOT on login page, or if impersonating)
+      const isLogin = window.location.pathname === '/login' || window.location.pathname === '/';
       const params = new URLSearchParams(window.location.search);
       const tenantParam = params.get('tenant');
       const activeTenant = impersonateId || u?.tenant_id || u?.tenantId || tenantParam || 'platform-master';
@@ -219,24 +220,28 @@ export default function PortalShell({ children }) {
         try { localStorage.setItem('paav_last_tenant', activeTenant); } catch {}
       }
 
-      // Fetch profile and theme for the active tenant with cache-busting
-      const configRes = await fetch(`/api/saas/config?tenant=${activeTenant}&_t=${Date.now()}`);
-      if (configRes.ok) {
-        const config = await configRes.json();
-        
-        if (config.profile) {
-          setProfile(config.profile);
-          const stamp = Date.now();
-          const cacheKey = `paav_cache_${activeTenant}_db_paav_school_profile`;
-          localStorage.setItem(cacheKey, JSON.stringify({ v: config.profile, t: stamp, s: stamp }));
-          window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_school_profile'] } }));
-        }
-        if (config.theme) {
-          setTheme(config.theme);
-          const stamp = Date.now();
-          const cacheKey = `paav_cache_${activeTenant}_db_paav_theme`;
-          localStorage.setItem(cacheKey, JSON.stringify({ v: config.theme, t: stamp, s: stamp }));
-          window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_theme'] } }));
+      // If we are on the login page, we MUST use global branding
+      if (isLogin && !impersonateId) {
+        setProfile({ name: 'EduVantage School Management System', tagline: 'Global Education SaaS Network', logo: '/ev-brand-v3.png' });
+        setTheme({ primary: '#1E40AF', secondary: '#D4AF37', accent: '#0F172A' });
+      } else {
+        const configRes = await fetch(`/api/saas/config?tenant=${activeTenant}&_t=${Date.now()}`);
+        if (configRes.ok) {
+          const config = await configRes.json();
+          if (config.profile) {
+            setProfile(config.profile);
+            const stamp = Date.now();
+            const cacheKey = `paav_cache_${activeTenant}_db_paav_school_profile`;
+            localStorage.setItem(cacheKey, JSON.stringify({ v: config.profile, t: stamp, s: stamp }));
+            window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_school_profile'] } }));
+          }
+          if (config.theme) {
+            setTheme(config.theme);
+            const stamp = Date.now();
+            const cacheKey = `paav_cache_${activeTenant}_db_paav_theme`;
+            localStorage.setItem(cacheKey, JSON.stringify({ v: config.theme, t: stamp, s: stamp }));
+            window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_theme'] } }));
+          }
         }
       }
 
