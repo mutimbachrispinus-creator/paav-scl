@@ -12,7 +12,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const tenantId = searchParams.get('tenant') || 'platform-master';
 
-    const keys = ['paav_school_profile', 'paav_announcement', 'paav_theme'];
+    const keys = ['paav_school_profile', 'paav_announcement', 'paav_theme', 'paav_hero_img'];
     const placeholders = keys.map(() => '?').join(',');
     
     const rows = await query(
@@ -41,23 +41,14 @@ export async function GET(request) {
       }
     }
 
-    // Override profile if it's the master tenant to prevent flickering or incorrect DB data
     let profileData = config.paav_school_profile;
-    if (isMaster) {
-      profileData = {
-        name: 'EduVantage School Management System',
-        email: 'portal@eduvantage.app',
-        phone: '+254 792 656 579',
-        logo: '/ev-brand-v3.png',
-        tagline: 'Global Education SaaS Network'
-      };
-    }
 
     const defaultProfile = { 
-      name: 'SCHOOL PORTAL', 
-      email: 'info@school.com', 
-      phone: '0700 000 000', 
-      logo: '/ev-brand-v3.png' 
+      name: 'EduVantage School Management System', 
+      email: 'portal@eduvantage.app', 
+      phone: '+254 792 656 579', 
+      logo: '/ev-brand-v3.png',
+      tagline: 'Global Education SaaS Network'
     };
     
     const profile = { ...defaultProfile, ...(profileData || {}) };
@@ -66,16 +57,13 @@ export async function GET(request) {
       tenantId,
       profile,
       stats,
-      announcement: isMaster ? 'Welcome to the EduVantage Global Network.' : (config.paav_announcement?.text || 'Welcome to the EduVantage School Network.'),
-      theme: isMaster ? { 
+      announcement: config.paav_announcement?.text || 'Welcome to the School Network.',
+      heroImg: config.paav_hero_img || '',
+      theme: config.paav_theme || { 
         primary: '#1E40AF', 
         secondary: '#D4AF37', 
         accent: '#0F172A' 
-      } : (config.paav_theme || { 
-        primary: '#2563EB', 
-        secondary: '#D4AF37', 
-        accent: '#0F172A' 
-      })
+      }
     });
 
     response.headers.set('Cache-Control', 'no-store, max-age=0');

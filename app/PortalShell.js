@@ -178,11 +178,6 @@ export default function PortalShell({ children }) {
   // Apply theme to document
   useEffect(() => {
     let activeTheme = theme;
-    const isSuper = user?.tenantId === 'platform-master';
-    
-    if (isSuper && !impersonateId) {
-      activeTheme = { primary: '#4F46E5', secondary: '#10B981', accent: '#0F172A' };
-    }
     
     if (activeTheme) {
       document.documentElement.style.setProperty('--primary', activeTheme.primary);
