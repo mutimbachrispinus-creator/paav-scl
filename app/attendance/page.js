@@ -9,7 +9,7 @@
  * • Analytics: weekly / monthly / termly / annual absenteeism
  */
 
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ALL_GRADES } from '@/lib/cbe';
 import { getCurriculum } from '@/lib/curriculum';
@@ -66,7 +66,6 @@ export default function AttendancePage() {
   const [selDate,      setSelDate]      = useState(new Date().toISOString().split('T')[0]);
   const [alert,        setAlert]        = useState('');
   const [dirtyAtt,     setDirtyAtt]     = useState({}); // { key: status }
-  const dirtyAttRef = useRef({}); // Ref for merging during background sync
 
   const load = useCallback(async () => {
     try {
@@ -87,16 +86,8 @@ export default function AttendancePage() {
       const ctData      = db.paav_class_teachers || {};
       
       setLearners(allLearners);
+      setAtt(attData);
       setClassTeachers(ctData);
-
-      // MERGE LOCAL DIRTY CHANGES to prevent disappearing status while marking
-      setAtt(prev => {
-        const merged = { ...attData };
-        Object.entries(dirtyAttRef.current).forEach(([k, v]) => {
-          merged[k] = v;
-        });
-        return merged;
-      });
 
       // Determine which grade this teacher owns
       if (u.role !== 'admin') {
@@ -126,11 +117,7 @@ export default function AttendancePage() {
   function setStatus(adm, date, status) {
     const key = `${grade}|${date}|${adm}`;
     setAtt(prev => ({ ...prev, [key]: status }));
-    setDirtyAtt(prev => {
-      const next = { ...prev, [key]: status };
-      dirtyAttRef.current = next;
-      return next;
-    });
+    setDirtyAtt(prev => ({ ...prev, [key]: status }));
   }
   function getStatus(adm, date) {
     return att[`${grade}|${date}|${adm}`] || '';
@@ -156,7 +143,6 @@ export default function AttendancePage() {
       setDirtyAtt(prev => {
         const next = { ...prev };
         Object.keys(toSync).forEach(k => delete next[k]);
-        dirtyAttRef.current = next;
         return next;
       });
 

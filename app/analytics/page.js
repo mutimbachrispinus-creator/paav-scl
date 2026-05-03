@@ -8,6 +8,7 @@ import {
 import { fmtK, getDefaultSubjects, calcLearnerPoints } from '@/lib/cbe';
 import { getCurriculum } from '@/lib/curriculum';
 import { useProfile } from '@/app/PortalShell';
+import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
 const M = '#8B1A1A', M2 = '#6B1212', ML = '#FDF2F2', MB = '#F5E6E6';
 

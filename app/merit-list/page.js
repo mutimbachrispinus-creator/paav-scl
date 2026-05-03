@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { buildMeritList, fmtK, isJSSGrade } from '@/lib/cbe';
+import { buildMeritList, fmtK, JSS, SENIOR, gInfo } from '@/lib/cbe';
 import { getCurriculum } from '@/lib/curriculum';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
@@ -116,14 +116,14 @@ export default function MeritListPage() {
   const totalAvgMarks = ranked.length > 0 ? Math.round(totalMarksSum / ranked.length) : 0;
   
   const distribution = useMemo(() => {
-    const isJSS = isJSSGrade(grade, school?.curriculum || 'CBC');
+    const isJSS = JSS.includes(grade) || SENIOR.includes(grade);
     const counts = isJSS 
       ? { EE1:0, EE2:0, ME1:0, ME2:0, AE1:0, AE2:0, BE1:0, BE2:0 }
       : { EE: 0, ME: 0, AE: 0, BE: 0 };
 
     ranked.forEach(l => {
       const pct = max ? Math.round((l.totalPts/max)*100) : 0;
-      const inf = gInfo(pct, grade, gradCfg);
+      const inf = curr.gInfo ? curr.gInfo(pct, grade, gradCfg) : gInfo(pct, grade, gradCfg);
       if (inf && counts[inf.lv] !== undefined) {
         counts[inf.lv]++;
       }
@@ -198,7 +198,7 @@ export default function MeritListPage() {
             <div className="sg sg3" style={{ marginBottom: 18 }}>
               {ranked.slice(0, 3).map(l => {
                 const overallPct = max ? Math.round((l.totalPts/max)*100) : 0;
-                const overallInfo = max ? gInfo(overallPct, grade) : null;
+                const overallInfo = max ? (curr.gInfo ? curr.gInfo(overallPct, grade) : gInfo(overallPct, grade)) : null;
                 return (
                   <div key={l.adm} className={`stat-card merit-rank-${l.rank}`}>
                     <div style={{ textAlign: 'center', padding: '4px 0 8px' }}>

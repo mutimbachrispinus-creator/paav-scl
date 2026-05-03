@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import { getMark } from '@/lib/cbe';
 import { getCurriculum } from '@/lib/curriculum';
 import { usePersistedState } from '@/components/TabState';
-import { getCachedUser, getCachedDBMulti, getCacheKey } from '@/lib/client-cache';
+import { getCachedUser, getCachedDBMulti, updateLocalDBCache } from '@/lib/client-cache';
 import { addToOutbox } from '@/lib/idb';
 import { useProfile } from '@/app/PortalShell';
 
@@ -58,7 +58,8 @@ export default function GradesPage() {
   }, [ALL_GRADES, grade, setGrade]);
   
   const [dirtyMarks, setDirtyMarks] = useState([]); // Array of { gsa, adm, score }
-  const dirtyMarksRef = useRef([]); // Ref for merge during background load
+  const dirtyMarksRef = useRef([]);
+  useEffect(() => { dirtyMarksRef.current = dirtyMarks; }, [dirtyMarks]);
 
   /* ── Load data ── */
   const load = useCallback(async () => {
@@ -88,16 +89,6 @@ export default function GradesPage() {
       setStreams( db.paav7_streams  || []);
       setGradCfg( db.paav8_grad     || null);
       setSubjCfg( db.paav8_subj     || {});
-
-      // MERGE LOCAL DIRTY CHANGES to prevent disappearing marks while typing
-      setMarks(prev => {
-        const merged = { ...(db.paav6_marks || {}) };
-        dirtyMarksRef.current.forEach(m => {
-          if (!merged[m.gsa]) merged[m.gsa] = {};
-          merged[m.gsa][m.adm] = m.score;
-        });
-        return merged;
-      });
     } catch (e) {
       console.error('Grades load error:', e);
     } finally {
@@ -111,7 +102,9 @@ export default function GradesPage() {
     const handler = (e) => {
       const changed = e.detail?.changed || [];
       if (changed.includes('paav6_marks') || changed.includes('paav_marks_locked')) {
-        load();
+        if (dirtyMarksRef.current.length === 0) {
+          load();
+        }
       }
     };
     window.addEventListener('paav:sync', handler);
@@ -138,22 +131,15 @@ export default function GradesPage() {
         ...prev,
         [gsa]: { ...(prev[gsa] || {}), [admNo]: score },
       };
-      
-      if (typeof window !== 'undefined') {
-        const PREFIX = 'paav_cache_';
-        const cacheKey = getCacheKey('db_paav6_marks');
-        localStorage.setItem(PREFIX + cacheKey, JSON.stringify({ v: nextMarks, t: Date.now(), s: Date.now() }));
-      }
+      // 2. Persist to cache using updateLocalDBCache so that tenant prefix and server timestamps are respected
+      updateLocalDBCache('paav6_marks', nextMarks, Date.now());
       return nextMarks;
     });
 
     // 3. Track as dirty for sync
-    const newDirty = { gsa, adm: admNo, score };
     setDirtyMarks(prev => {
       const filtered = prev.filter(m => !(m.gsa === gsa && m.adm === admNo));
-      const next = [...filtered, newDirty];
-      dirtyMarksRef.current = next; // Update ref for load() merging
-      return next;
+      return [...filtered, { gsa, adm: admNo, score }];
     });
   }
 
@@ -212,11 +198,7 @@ export default function GradesPage() {
       if (data.error) throw new Error(data.error);
 
       // Clear dirty marks that were successfully synced
-      setDirtyMarks(prev => {
-        const next = prev.filter(m => !marksToSync.includes(m));
-        dirtyMarksRef.current = next;
-        return next;
-      });
+      setDirtyMarks(prev => prev.filter(m => !marksToSync.includes(m)));
 
       if (!isAuto) {
         playSuccessSound();
