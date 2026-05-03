@@ -84,7 +84,16 @@ export default function GradesPage() {
       if (u.grade && !grade) setGrade(u.grade);
 
       setLearners(db.paav6_learners || []);
-      setMarks(   db.paav6_marks    || {});
+      
+      const rawMarks = db.paav6_marks || {};
+      const mergedMarks = { ...rawMarks };
+      // Merge unsaved local changes to prevent flickering when cache refreshes
+      dirtyMarksRef.current.forEach(m => {
+        if (!mergedMarks[m.gsa]) mergedMarks[m.gsa] = {};
+        mergedMarks[m.gsa][m.adm] = m.score;
+      });
+      setMarks(mergedMarks);
+
       setLocked(  db.paav_marks_locked || {});
       setStreams( db.paav7_streams  || []);
       setGradCfg( db.paav8_grad     || null);
@@ -116,30 +125,32 @@ export default function GradesPage() {
     .sort((a, b) => a.name.localeCompare(b.name));
   const gradeStreams = streams.filter(s => s.grade === grade);
   const subjects      = (subjCfg[grade] && subjCfg[grade].length > 0) ? subjCfg[grade] : (DEFAULT_SUBJECTS[grade] || []);
-  const lockKey       = `${term}:${grade}:${assess}`;
-  const isLocked      = !!locked[lockKey];
+  const getLockKey = (subj) => `${term}:${grade}:${assess}:${subj}`;
+  const isSubjLocked = (subj) => !!locked[getLockKey(subj)] || !!locked[`${term}:${grade}:${assess}`];
+  const isLocked      = !!locked[`${term}:${grade}:${assess}`];
 
   /* ── Score change ── */
   function setScore(admNo, subj, value) {
-    if (isLocked && user?.role !== 'admin') return;
+    if (isSubjLocked(subj) && user?.role !== 'admin') return;
     const gsa = `${term}:${grade}|${subj}|${assess}`;
     const score = value === '' ? undefined : Number(value);
     
-    // 1 & 2. Update local UI state and persist to cache immediately using latest state
+    const nextMark = { gsa, adm: admNo, score };
+
+    // 1. Update Ref and State FIRST (used by load() to prevent flickering)
+    const nextDirty = [...dirtyMarksRef.current.filter(m => !(m.gsa === gsa && m.adm === admNo)), nextMark];
+    dirtyMarksRef.current = nextDirty;
+    setDirtyMarks(nextDirty);
+    
+    // 2. Update local UI state and persist to cache
     setMarks(prev => {
       const nextMarks = {
         ...prev,
         [gsa]: { ...(prev[gsa] || {}), [admNo]: score },
       };
-      // 2. Persist to cache using updateLocalDBCache so that tenant prefix and server timestamps are respected
+      // Persist to cache (triggers sync event)
       updateLocalDBCache('paav6_marks', nextMarks, Date.now());
       return nextMarks;
-    });
-
-    // 3. Track as dirty for sync
-    setDirtyMarks(prev => {
-      const filtered = prev.filter(m => !(m.gsa === gsa && m.adm === admNo));
-      return [...filtered, { gsa, adm: admNo, score }];
     });
   }
 
@@ -177,9 +188,23 @@ export default function GradesPage() {
     }
     
     // Auto-lock for non-admins (only on manual save or first entry)
-    if (!isAuto && user?.role !== 'admin' && !isLocked) {
-      nextLocked = { ...locked, [lockKey]: true };
-      reqs.push({ type: 'set', key: 'paav_marks_locked', value: nextLocked });
+    // Auto-lock only for the specific subjects being saved (non-admins)
+    if (!isAuto && user?.role !== 'admin') {
+      const subjsToLock = [...new Set(marksToSync.map(m => m.gsa.split('|')[1]))];
+      let changed = false;
+      nextLocked = { ...locked };
+      
+      subjsToLock.forEach(s => {
+        const key = getLockKey(s);
+        if (!nextLocked[key]) {
+          nextLocked[key] = true;
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        reqs.push({ type: 'set', key: 'paav_marks_locked', value: nextLocked });
+      }
     }
 
     if (reqs.length === 0) {
@@ -197,8 +222,8 @@ export default function GradesPage() {
 
       if (data.error) throw new Error(data.error);
 
-      // Clear dirty marks that were successfully synced
-      setDirtyMarks(prev => prev.filter(m => !marksToSync.includes(m)));
+      // Clear dirty marks that were successfully synced (deep check)
+      setDirtyMarks(prev => prev.filter(m => !marksToSync.some(ms => ms.gsa === m.gsa && ms.adm === m.adm)));
 
       if (!isAuto) {
         playSuccessSound();
@@ -227,7 +252,8 @@ export default function GradesPage() {
 
   /* ── Lock toggle (admin only) ── */
   async function toggleLock() {
-    const next = { ...locked, [lockKey]: !isLocked };
+    const key = `${term}:${grade}:${assess}`;
+    const next = { ...locked, [key]: !isLocked };
     setLocked(next);
     await fetch('/api/db', {
       method:  'POST',
@@ -473,21 +499,21 @@ export default function GradesPage() {
                                 min="0" max="100"
                                 value={sc ?? ''}
                                 onChange={e => setScore(l.adm, subj, e.target.value)}
-                                disabled={isLocked && user?.role !== 'admin'}
-                                title={isLocked && user?.role === 'admin' ? 'Admin override — you can edit' : ''}
+                                disabled={isSubjLocked(subj) && user?.role !== 'admin'}
+                                title={isSubjLocked(subj) && user?.role === 'admin' ? 'Admin override — you can edit' : ''}
                                 style={{
                                   width: 48, textAlign: 'center',
                                   border: `1.5px solid ${
-                                    isLocked && user?.role === 'admin' ? '#059669'  // green = admin override
+                                    isSubjLocked(subj) && user?.role === 'admin' ? '#059669'  // green = admin override
                                     : inf ? inf.c
                                     : 'var(--border)'
                                   }`,
                                   borderRadius: 6, padding: '3px 4px', fontSize: 11.5, outline: 'none',
-                                  background: isLocked && user?.role !== 'admin'
+                                  background: isSubjLocked(subj) && user?.role !== 'admin'
                                     ? '#F1F5F9'                          // grey = locked for teacher
-                                    : isLocked ? '#ECFDF5'              // light green = admin override
+                                    : isSubjLocked(subj) ? '#ECFDF5'              // light green = admin override
                                     : '#fff',
-                                  cursor: isLocked && user?.role !== 'admin' ? 'not-allowed' : 'text',
+                                  cursor: isSubjLocked(subj) && user?.role !== 'admin' ? 'not-allowed' : 'text',
                                 }}
                               />
                               {inf && (
