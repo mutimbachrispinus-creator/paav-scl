@@ -502,25 +502,32 @@ tr:hover td{background:#F8FAFF}
 .mobile-bottom-nav {
   display: none;
   position: fixed;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
-  height: 64px;
-  background: rgba(255, 255, 255, 0.85);
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  height: 58px;
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 20px;
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 18px;
   z-index: 9999;
-  padding-bottom: 0;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-  justify-content: space-around;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+  /* Scrollable: do NOT use justify-content:space-around */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   align-items: center;
-  overflow: hidden;
+  padding: 0 6px;
+  gap: 0;
 }
 .mobile-bottom-nav::-webkit-scrollbar { display: none; }
 
 .mobile-bottom-nav a {
-  flex: 1;
+  flex: 0 0 auto;          /* Do NOT stretch — items keep their own size */
+  min-width: 58px;         /* Compact but tappable */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -528,35 +535,41 @@ tr:hover td{background:#F8FAFF}
   text-decoration: none;
   color: #64748B;
   gap: 2px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
   position: relative;
+  scroll-snap-align: start;
+  padding: 0 6px;
+  border-radius: 12px;
 }
 
 .mobile-bottom-nav a .icon {
-  font-size: 20px;
+  font-size: 18px;
+  line-height: 1;
 }
 
 .mobile-bottom-nav a .label {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .mobile-bottom-nav a.active {
   color: #8B1A1A;
+  background: rgba(139, 26, 26, 0.08);
 }
 
 .mobile-bottom-nav a.active .icon {
-  transform: translateY(-4px) scale(1.1);
-  filter: drop-shadow(0 4px 8px rgba(139, 26, 26, 0.2));
+  transform: translateY(-2px) scale(1.1);
+  filter: drop-shadow(0 3px 6px rgba(139, 26, 26, 0.25));
 }
 
 .mobile-bottom-nav a.active::after {
   content: '';
   position: absolute;
-  bottom: 8px;
+  bottom: 6px;
   width: 4px;
   height: 4px;
   background: #8B1A1A;
@@ -568,31 +581,19 @@ tr:hover td{background:#F8FAFF}
     display: flex;
   }
   #main {
-    padding-bottom: 90px; /* Space for bottom nav */
+    padding-bottom: 84px;
   }
   .tb-nbtn { padding: 6px 10px; font-size: 11px; }
-  .tb-user {
-    padding: 4px;
-  }
-  .tb-uname {
-    display: none;
-  }
-  .tb-urole {
-    display: none;
-  }
+  .tb-user { padding: 4px; }
+  .tb-uname { display: none; }
+  .tb-urole { display: none; }
   .page-hdr {
     flex-direction: column;
     align-items: flex-start;
   }
-  .page-hdr-acts {
-    width: 100%;
-  }
-  .page-hdr-acts .btn {
-    flex: 1;
-  }
-  .sg2, .sg3, .sg4, .sg5 {
-    grid-template-columns: 1fr;
-  }
+  .page-hdr-acts { width: 100%; }
+  .page-hdr-acts .btn { flex: 1; }
+  .sg2, .sg3, .sg4, .sg5 { grid-template-columns: 1fr; }
 }
 
 /* ── PREMIUM TWEAKS ── */
@@ -686,13 +687,29 @@ tr:hover td{background:#F8FAFF}
     flex-wrap: wrap;
     padding: 10px 16px 0;
   }
+  /* Brand: allow full name to show — no truncation on mobile */
   .tb-brand { flex: 1; min-width: 0; }
-  .tb-brand div:last-child { overflow: hidden; }
-  .tb-sname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px !important; }
-  .tb-stag { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px !important; }
-  .tb-actions { order: 2; gap: 8px; }
+  .tb-brand div:last-child { overflow: visible; }
+  .tb-sname {
+    white-space: normal !important;   /* allow wrapping */
+    overflow: visible !important;
+    text-overflow: unset !important;
+    font-size: 13px !important;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+  .tb-stag {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    font-size: 10px !important;
+  }
+  /* Bigger logo on mobile */
+  .tb-crest { width: 44px !important; height: 44px !important; flex-shrink: 0; }
+  .tb-crest img { width: 44px !important; height: 44px !important; }
+  .tb-actions { order: 2; gap: 6px; }
   .tb-user { padding: 4px; border-radius: 50%; }
-  .tb-avatar { width: 32px; height: 32px; }
+  .tb-avatar { width: 30px; height: 30px; }
 }
 
 @keyframes slideInLeft {
