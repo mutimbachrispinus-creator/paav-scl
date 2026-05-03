@@ -266,6 +266,21 @@ export default function SchoolProfilePage() {
                   <label>Website URL</label>
                   <input value={profile.website} onChange={e => setProfile({...profile, website: e.target.value})} placeholder="https://www.school.com" />
                 </div>
+                <div className="field">
+                  <label>Education System / Curriculum</label>
+                  <select 
+                    value={profile.curriculum || 'CBC'} 
+                    onChange={e => setProfile({...profile, curriculum: e.target.value})}
+                    style={{ width: '100%', padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: 12, fontSize: 14, outline: 'none', background: '#fff' }}
+                  >
+                    <option value="CBC">Kenya CBC (Competency-Based)</option>
+                    <option value="BRITISH">British National Curriculum (IGCSE/A-Level)</option>
+                    <option value="IB">International Baccalaureate (PYP/MYP/DP)</option>
+                  </select>
+                  <p style={{ fontSize: 11, color: '#DC2626', marginTop: 8, fontWeight: 600 }}>
+                    ⚠️ Warning: Changing the curriculum will alter the grades and subjects available across the portal.
+                  </p>
+                </div>
               </div>
             )}
 

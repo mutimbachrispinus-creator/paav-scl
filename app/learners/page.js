@@ -13,7 +13,9 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ALL_GRADES, fmtK } from '@/lib/cbe';
+import { fmtK } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
+import { useProfile } from '@/app/PortalShell';
 import { usePersistedState } from '@/components/TabState';
 
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
@@ -21,6 +23,9 @@ import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 export default function LearnersPage() {
   const router = useRouter();
   const [user,     setUser]     = useState(null);
+  const { profile: school } = useProfile();
+  const curr = getCurriculum(school.curriculum);
+  const { ALL_GRADES } = curr;
   const [learners, setLearners] = useState([]);
   const [feeCfg,   setFeeCfg]   = useState({});
   const [streams,  setStreams]  = useState([]);
@@ -85,7 +90,7 @@ export default function LearnersPage() {
         <div className="page-hdr">
           <div>
             <h2>🎓 Learners</h2>
-            <p>All enrolled learners — KG to Grade 12</p>
+            <p>All enrolled learners — {curr.name}</p>
           </div>
           <div className="page-hdr-acts">
             <button className="btn btn-ghost btn-sm" onClick={() => router.push('/learners/bulk')}>
@@ -226,17 +231,18 @@ export default function LearnersPage() {
       </div>
 
       {/* ── Modals ── */}
-      {modal === 'add'     && <AddLearnerModal     isAdmin={user.role === 'admin'} streams={streams} onClose={() => { setModal(null); load(); }} />}
-      {modal === 'promote' && <PromoteLearnersModal onClose={() => { setModal(null); load(); }} learners={learners} />}
-      {modal?.type === 'edit' && <EditLearnerModal isAdmin={user.role === 'admin'} streams={streams} onClose={() => { setModal(null); load(); }} learner={modal.learner} />}
+      {modal === 'add'     && <AddLearnerModal     curr={curr} isAdmin={user.role === 'admin'} streams={streams} onClose={() => { setModal(null); load(); }} />}
+      {modal === 'promote' && <PromoteLearnersModal curr={curr} onClose={() => { setModal(null); load(); }} learners={learners} />}
+      {modal?.type === 'edit' && <EditLearnerModal curr={curr} isAdmin={user.role === 'admin'} streams={streams} onClose={() => { setModal(null); load(); }} learner={modal.learner} />}
     </>
   );
 }
 
 /* ─── Add Learner Modal ─────────────────────────────────────────────────── */
-function AddLearnerModal({ onClose, isAdmin, streams }) {
+function AddLearnerModal({ onClose, isAdmin, streams, curr }) {
+  const { ALL_GRADES } = curr;
   const [form, setForm] = useState({
-    name: '', grade: 'GRADE 1', dob: '', adm: '', sex: 'F', age: '',
+    name: '', grade: ALL_GRADES[0] || '', dob: '', adm: '', sex: 'F', age: '',
     stream: '', parent: '', phone: '', parentEmail: '', addr: '', arrears: 0,
     bloodGroup: '', allergies: '', medicalCondition: '', emergencyContact: '',
   });
@@ -363,7 +369,8 @@ function AddLearnerModal({ onClose, isAdmin, streams }) {
 
 
 /* ─── Promote Learners Modal ────────────────────────────────────────────── */
-function PromoteLearnersModal({ onClose, learners }) {
+function PromoteLearnersModal({ onClose, learners, curr }) {
+  const { ALL_GRADES } = curr;
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [mode, setMode] = useState('grade'); // 'grade' | 'individual'
@@ -473,7 +480,8 @@ function PromoteLearnersModal({ onClose, learners }) {
 
 
 /* ─── Edit Learner Modal ───────────────────────────────────────────────── */
-function EditLearnerModal({ onClose, learner, isAdmin, streams }) {
+function EditLearnerModal({ onClose, learner, isAdmin, streams, curr }) {
+  const { ALL_GRADES } = curr;
   const [form, setForm] = useState({ ...learner });
   const [err,  setErr]  = useState('');
   const [busy, setBusy] = useState(false);

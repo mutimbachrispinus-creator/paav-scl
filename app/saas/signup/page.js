@@ -15,7 +15,8 @@ export default function EduVantageSignup() {
     adminPassword: '',
     phone: '',
     email: '',
-    plan: 'trial' // Default to trial
+    plan: 'trial', // Default to trial
+    curriculum: 'CBC'
   });
 
   const onSubmit = async (e) => {
@@ -90,6 +91,19 @@ export default function EduVantageSignup() {
                   <div style={{ fontSize: 11, opacity: 0.7 }}>KES 10,000 / Year</div>
                 </div>
               </div>
+            </div>
+
+            <div className="form-group">
+              <label>Education System / Curriculum</label>
+              <select 
+                value={form.curriculum} 
+                onChange={e => setForm({...form, curriculum: e.target.value})}
+                style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #E2E8F0', borderRadius: 12, fontSize: 14, outline: 'none', background: '#fff' }}
+              >
+                <option value="CBC">Kenya CBC (Competency-Based)</option>
+                <option value="BRITISH">British National Curriculum (IGCSE/A-Level)</option>
+                <option value="IB">International Baccalaureate (PYP/MYP/DP)</option>
+              </select>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>

@@ -12,10 +12,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  ALL_GRADES, DEFAULT_SUBJECTS, gInfo, maxPts,
-  JSS_SCALE, PRIMARY_SCALE, isJSSGrade,
-} from '@/lib/cbe';
+import { getMark } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { addToOutbox } from '@/lib/idb';
@@ -31,7 +29,7 @@ const ASSESSMENTS = [
 
 export default function GradesPage() {
   const router = useRouter();
-  const { playSuccessSound } = useProfile();
+  const { playSuccessSound, profile: school } = useProfile();
   const [user,     setUser]     = useState(null);
 
   const [learners, setLearners] = useState([]);
@@ -44,10 +42,20 @@ export default function GradesPage() {
   const [saving,   setSaving]   = useState(false);
   const [alert,    setAlert]    = useState({ msg: '', type: '' });
 
-  const [grade,  setGrade]  = usePersistedState('paav_grades_grade',  'GRADE 1');
+  const [grade,  setGrade]  = usePersistedState('paav_grades_grade',  '');
   const [stream, setStream] = usePersistedState('paav_grades_stream', '');
   const [term,   setTerm]   = usePersistedState('paav_grades_term',   'T1');
   const [assess, setAssess] = usePersistedState('paav_grades_assess', 'mt1');
+
+  const curr = getCurriculum(school.curriculum);
+  const { ALL_GRADES, DEFAULT_SUBJECTS, gInfo, maxPts, JSS_SCALE, PRIMARY_SCALE } = curr;
+  const isJSSGrade = curr.isJSSGrade || curr.isSecondary || (() => false);
+
+  useEffect(() => {
+    if (!grade && ALL_GRADES.length > 0) {
+      setGrade(ALL_GRADES[0]);
+    }
+  }, [ALL_GRADES, grade, setGrade]);
   
   const [dirtyMarks, setDirtyMarks] = useState([]); // Array of { gsa, adm, score }
 
@@ -313,7 +321,7 @@ export default function GradesPage() {
           {saving && <span style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700, animation: 'pulse 1.5s infinite' }}>☁️ Syncing...</span>}
           {!saving && <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 700, opacity: 0.7 }}>✅ Synced</span>}
         </div>
-        <p>CBC competency-based grading — {grade}</p>
+        <p>{curr.name} — {grade}</p>
         <div className="page-hdr-acts">
           {user?.role === 'admin' && (
             <button
@@ -395,7 +403,7 @@ export default function GradesPage() {
 
         {/* Grade scale bar */}
         <div className="grading-scale-bar">
-          <span className="gs-label">CBC Scale:</span>
+          <span className="gs-label">{curr.name} Scale:</span>
           {scale.map(s => (
             <span key={s.lv} className="grade-item-pill"
               style={{ background: s.bg, color: s.c }}>

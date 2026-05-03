@@ -9,8 +9,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
+import { getCurriculum } from '@/lib/curriculum';
 import { useProfile } from '@/app/PortalShell';
-import { ALL_GRADES } from '@/lib/cbe';
 
 const ROLES       = ['teacher','jss_teacher','senior_teacher','staff','parent'];
 const ADMIN_ROLES = ['admin','teacher','jss_teacher','senior_teacher','staff','parent'];
@@ -22,7 +22,9 @@ const COLORS = {
 
 export default function TeachersPage() {
   const router = useRouter();
-  const { playSuccessSound } = useProfile();
+  const { playSuccessSound, profile: school } = useProfile();
+  const curr = getCurriculum(school.curriculum);
+  const { ALL_GRADES } = curr;
   const [user,  setUser]  = useState(null);
 
   const [staff, setStaff] = useState([]);
@@ -164,6 +166,7 @@ export default function TeachersPage() {
           currentUser={user}
           allStaff={staff}
           onClose={() => { setModal(null); setSel(null); load(); }}
+          curr={curr}
         />
       )}
     </>
@@ -171,8 +174,9 @@ export default function TeachersPage() {
 }
 
 /* ─── Add / Edit User Modal ─────────────────────────────────────────────── */
-function UserModal({ user, currentUser, allStaff, onClose }) {
+function UserModal({ user, currentUser, allStaff, onClose, curr }) {
   const { playSuccessSound, profile } = useProfile();
+  const { ALL_GRADES } = curr;
   const isEdit = !!user;
 
   const [form, setForm] = useState({

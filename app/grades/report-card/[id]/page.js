@@ -6,9 +6,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
-  DEFAULT_SUBJECTS, gInfo, maxPts, promotionStatus,
-  JSS_SCALE, PRIMARY_SCALE, isJSSGrade,
+  promotionStatus,
 } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 import { useSchoolProfile } from '@/lib/school-profile';
 
 const ASSESSMENTS = [
@@ -29,6 +29,10 @@ export default function ReportCardPage() {
   const school = useSchoolProfile();
   const [term,    setTerm]    = useState('T1');
   const [loading, setLoading] = useState(true);
+
+  const curr = getCurriculum(school.curriculum);
+  const { DEFAULT_SUBJECTS, gInfo, maxPts, JSS_SCALE, PRIMARY_SCALE } = curr;
+  const isJSSGrade = curr.isJSSGrade || curr.isSecondary || (() => false);
 
   useEffect(() => {
     async function load() {
@@ -158,7 +162,7 @@ export default function ReportCardPage() {
               <div className="rc-hdr-sub">{school.address} &nbsp;·&nbsp; Tel: {school.phone}</div>
               <div>
                 <span className="rc-badge">
-                  ACADEMIC PROGRESS REPORT &nbsp;·&nbsp; TERM {term.replace('T','')} &nbsp;·&nbsp; {new Date().getFullYear()}
+                  ACADEMIC PROGRESS REPORT &nbsp;·&nbsp; {curr.name} &nbsp;·&nbsp; TERM {term.replace('T','')} &nbsp;·&nbsp; {new Date().getFullYear()}
                 </span>
               </div>
               <div className="rc-motto">{school.motto}</div>
@@ -328,7 +332,7 @@ export default function ReportCardPage() {
           {/* ── CBC SCALE LEGEND ── */}
           <div style={{ position:'relative', zIndex:1 }}>
             <div style={{ fontSize: 8.5, fontWeight: 700, textTransform:'uppercase', color:'#94a3b8',
-              marginBottom: 5, letterSpacing: .6 }}>CBC Grading Scale:</div>
+              marginBottom: 5, letterSpacing: .6 }}>{curr.name} Grading Scale:</div>
             <div className="rc-scale-legend">
               {scale.map((s, i) => {
                 const nextMin = scale[i-1]?.min ?? 100;

@@ -7,7 +7,7 @@ import { execute, query, batch } from '@/lib/db';
  */
 export async function POST(request) {
   try {
-    const { schoolName, adminName, adminUsername, adminPassword, phone, email } = await request.json();
+    const { schoolName, adminName, adminUsername, adminPassword, phone, email, curriculum } = await request.json();
 
     if (!schoolName || !adminName || !adminUsername || !adminPassword) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
@@ -32,7 +32,8 @@ export async function POST(request) {
       phone: phone || '',
       email: email || '',
       logo: '',
-      motto: 'Quality Education'
+      motto: 'Quality Education',
+      curriculum: curriculum || 'CBC'
     });
 
     const defaultTheme = JSON.stringify({
