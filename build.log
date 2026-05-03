@@ -1,0 +1,209 @@
+
+> paav-school-portal@2.1.0 build
+> next build
+
+  ▲ Next.js 14.2.3
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for client (static)...
+ ○ (pwa) Service worker: /home/chrispinus/paav-school-portal/public/sw.js
+ ○ (pwa)   URL: /sw.js
+ ○ (pwa)   Scope: /
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./app/PortalShell.js
+285:6  Warning: React Hook useCallback has missing dependencies: 'impersonateId' and 'showNav'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+379:6  Warning: React Hook useEffect has a missing dependency: 'resetIdleTimers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/analytics/page.js
+92:6  Warning: React Hook useMemo has a missing dependency: 'ALL_GRADES'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/demo/page.js
+86:6  Warning: React Hook useEffect has missing dependencies: 'next' and 'prev'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/fees/[adm]/receipt/page.js
+80:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/grades/page.js
+95:6  Warning: React Hook useCallback has a missing dependency: 'setGrade'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+155:6  Warning: React Hook useEffect has missing dependencies: 'loading', 'save', and 'saving'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/grades/report-card/[id]/page.js
+158:30  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/grades/report-card/bulk/page.js
+151:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/learning/page.js
+36:6  Warning: React Hook useEffect has a missing dependency: 'newDoc.grade'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/login/page.js
+220:12  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+256:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/merit-list/page.js
+91:9  Warning: The 'subjects' logical expression could make the dependencies of useMemo Hook (at line 109) change on every render. To fix this, wrap the initialization of 'subjects' in its own useMemo() Hook.  react-hooks/exhaustive-deps
+
+./app/page.js
+39:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+79:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+292:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/parent-home/page.js
+263:30  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+270:16  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/profile/page.js
+265:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+356:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+386:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+386:21  Warning: img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.  jsx-a11y/alt-text
+
+./app/saas/signup/page.js
+51:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/settings/profile/page.js
+356:39  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+382:39  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/teachers/page.js
+111:37  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/templates/page.js
+837:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+846:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/Navbar.js
+74:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+166:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/PrintHeader.js
+16:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/ProfilePanel.js
+141:28  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/83) ...
+[DB] Ensuring schema...
+[DB] Schema verified
+   Generating static pages (20/83) 
+   Generating static pages (41/83) 
+   Generating static pages (62/83) 
+ ✓ Generating static pages (83/83)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    12.9 kB         113 kB
+├ ○ /_not-found                          880 B          90.3 kB
+├ ○ /allocations                         4.13 kB         130 kB
+├ ○ /analytics                           16.3 kB         255 kB
+├ ○ /analytics/activity                  1.41 kB        97.1 kB
+├ ƒ /api/auth                            0 B                0 B
+├ ƒ /api/auth/check-username             0 B                0 B
+├ ƒ /api/auth/recovery                   0 B                0 B
+├ ƒ /api/comms/push                      0 B                0 B
+├ ƒ /api/cron/backup                     0 B                0 B
+├ ƒ /api/cron/promote                    0 B                0 B
+├ ƒ /api/db                              0 B                0 B
+├ ƒ /api/debug                           0 B                0 B
+├ ƒ /api/email/receipt                   0 B                0 B
+├ ƒ /api/email/report-card               0 B                0 B
+├ ƒ /api/finance/expenses                0 B                0 B
+├ ƒ /api/finance/ledger                  0 B                0 B
+├ ○ /api/health                          0 B                0 B
+├ ƒ /api/mpesa/callback                  0 B                0 B
+├ ƒ /api/mpesa/stk                       0 B                0 B
+├ ƒ /api/notifications                   0 B                0 B
+├ ○ /api/ping                            0 B                0 B
+├ ƒ /api/saas/config                     0 B                0 B
+├ ƒ /api/saas/global-config              0 B                0 B
+├ ƒ /api/saas/init                       0 B                0 B
+├ ƒ /api/saas/manage                     0 B                0 B
+├ ƒ /api/saas/schools                    0 B                0 B
+├ ƒ /api/saas/schools/delete             0 B                0 B
+├ ƒ /api/saas/signup                     0 B                0 B
+├ ƒ /api/saas/stats                      0 B                0 B
+├ ƒ /api/saas/subscription               0 B                0 B
+├ ƒ /api/seed                            0 B                0 B
+├ ƒ /api/sms                             0 B                0 B
+├ ƒ /api/stats                           0 B                0 B
+├ ƒ /api/stats/dashboard                 0 B                0 B
+├ ƒ /api/upload                          0 B                0 B
+├ ƒ /api/upload/[id]                     0 B                0 B
+├ ƒ /api/whatsapp/reminder               0 B                0 B
+├ ƒ /api/whatsapp/report-card            0 B                0 B
+├ ○ /attendance                          5.74 kB         131 kB
+├ ○ /audit                               1.34 kB        93.6 kB
+├ ○ /classes                             3.23 kB         106 kB
+├ ƒ /classes/[grade]                     3.96 kB         130 kB
+├ ○ /comms/push                          4.16 kB         103 kB
+├ ○ /dashboard                           4.79 kB         130 kB
+├ ○ /database                            2.72 kB         104 kB
+├ ○ /demo                                2.5 kB          102 kB
+├ ○ /diary                               2.22 kB        97.9 kB
+├ ○ /documents                           3.86 kB        96.8 kB
+├ ○ /duties                              4.97 kB         127 kB
+├ ○ /fees                                7.82 kB         107 kB
+├ ƒ /fees/[adm]/receipt                  2.75 kB         125 kB
+├ ○ /fees/pay                            5.36 kB        98.3 kB
+├ ○ /finance                             2.77 kB         206 kB
+├ ○ /finance/budgets                     3.17 kB         203 kB
+├ ○ /finance/expenses                    3.13 kB        98.8 kB
+├ ○ /finance/invoices                    4.32 kB         103 kB
+├ ○ /finance/payroll                     4.9 kB          127 kB
+├ ○ /finance/petty-cash                  2.53 kB        94.8 kB
+├ ○ /finance/reconcile                   2.75 kB        98.4 kB
+├ ○ /finance/transactions                2.02 kB        94.3 kB
+├ ○ /grades                              5.68 kB         131 kB
+├ ƒ /grades/report-card/[id]             6.69 kB        99.6 kB
+├ ○ /grades/report-card/bulk             6.63 kB         103 kB
+├ ○ /learners                            6.72 kB         132 kB
+├ ƒ /learners/[id]                       4.11 kB          97 kB
+├ ○ /learners/bulk                       4.58 kB         130 kB
+├ ○ /learning                            3.67 kB         129 kB
+├ ○ /login                               6.27 kB         128 kB
+├ ○ /merit-list                          6.22 kB         132 kB
+├ ○ /messages                            4.25 kB        97.2 kB
+├ ○ /parent-home                         11.4 kB         104 kB
+├ ○ /parent-marks                        3.06 kB          96 kB
+├ ○ /performance                         7.12 kB         133 kB
+├ ○ /predictor                           4.93 kB        97.9 kB
+├ ○ /profile                             7.12 kB         100 kB
+├ ○ /proposal                            2.06 kB        94.9 kB
+├ ○ /reports                             4.37 kB        96.6 kB
+├ ○ /saas/signup                         2.44 kB        95.3 kB
+├ ○ /settings                            1.87 kB         104 kB
+├ ○ /settings/billing                    2.03 kB        97.7 kB
+├ ○ /settings/grading                    2.99 kB        95.9 kB
+├ ○ /settings/profile                    5.37 kB         127 kB
+├ ○ /settings/sms                        1.44 kB        90.9 kB
+├ ○ /settings/subjects                   2.69 kB         102 kB
+├ ○ /settings/timetable                  1.55 kB          91 kB
+├ ○ /sms                                 3.03 kB        92.5 kB
+├ ƒ /sms/api/send                        0 B                0 B
+├ ○ /streams                             3.13 kB        98.8 kB
+├ ○ /super-admin                         5.96 kB         206 kB
+├ ○ /teachers                            3.54 kB         129 kB
+├ ○ /teachers/subjects                   2.72 kB        95.6 kB
+├ ○ /templates                           9.75 kB         135 kB
+├ ○ /timetable                           8.19 kB         134 kB
+├ ○ /welfare                             2.96 kB        98.7 kB
+└ ○ /welfare/portfolio                   3.96 kB         103 kB
++ First Load JS shared by all            89.4 kB
+  ├ chunks/5190-95f46cdaa62d6c88.js      33.8 kB
+  ├ chunks/fd9d1056-bcefba1b8dfea9fd.js  53.6 kB
+  └ other shared chunks (total)          1.98 kB
+
+
+ƒ Middleware                             27.9 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

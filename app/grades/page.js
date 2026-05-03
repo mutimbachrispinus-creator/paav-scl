@@ -121,16 +121,17 @@ export default function GradesPage() {
     const gsa = `${term}:${grade}|${subj}|${assess}`;
     const score = value === '' ? undefined : Number(value);
     
-    // 1. Update local UI state
-    setMarks(prev => ({
-      ...prev,
-      [gsa]: { ...(prev[gsa] || {}), [admNo]: score },
-    }));
-
-    // 2. Persist to local cache (localStorage + IndexedDB via mirror)
-    const nextMarks = { ...marks, [gsa]: { ...(marks[gsa] || {}), [admNo]: score } };
-    const PREFIX = 'paav_cache_';
-    localStorage.setItem(PREFIX + 'db_paav6_marks', JSON.stringify({ v: nextMarks, t: Date.now(), s: 0 }));
+    // 1 & 2. Update local UI state and persist to cache immediately using latest state
+    setMarks(prev => {
+      const nextMarks = {
+        ...prev,
+        [gsa]: { ...(prev[gsa] || {}), [admNo]: score },
+      };
+      const PREFIX = 'paav_cache_';
+      // Use s: Date.now() to prevent background sync engine from thinking this is old data
+      localStorage.setItem(PREFIX + 'db_paav6_marks', JSON.stringify({ v: nextMarks, t: Date.now(), s: Date.now() }));
+      return nextMarks;
+    });
 
     // 3. Track as dirty for sync
     setDirtyMarks(prev => {
