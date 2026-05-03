@@ -1,4 +1,5 @@
 'use client';
+export const runtime = 'edge';
 /**
  * app/learners/[id]/page.js — Individual learner profile + academic results
  *

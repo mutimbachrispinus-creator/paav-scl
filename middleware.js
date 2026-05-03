@@ -16,12 +16,12 @@ export function middleware(request) {
   }
 
   // 2. Platform Main Domain Check
-  // We use a broader check to handle Vercel deployment variations
-  const isMainPlatform = 
-    host === 'eduvantage.app' || 
+  // Supports Cloudflare Pages preview domains (.pages.dev) and custom domain
+  const isMainPlatform =
+    host === 'eduvantage.app' ||
     host === 'portal.eduvantage.app' ||
-    host === 'localhost:3000' || 
-    host.endsWith('.vercel.app') && !host.includes('--'); // Basic check for production domain
+    host === 'localhost:3000' ||
+    host.endsWith('.pages.dev'); // Cloudflare Pages preview & production domains
 
   if (isMainPlatform) {
     return NextResponse.next();
@@ -31,8 +31,8 @@ export function middleware(request) {
   const parts = host.split('.');
   if (parts.length >= 3) {
     const subdomain = parts[0];
-    const ignore = ['www', 'app', 'portal', 'admin', 'paav-scl'];
-    
+    const ignore = ['www', 'app', 'portal', 'admin', 'paav-scl', 'eduvantage'];
+
     if (!ignore.includes(subdomain)) {
       if (url.pathname === '/') {
         url.pathname = '/login';

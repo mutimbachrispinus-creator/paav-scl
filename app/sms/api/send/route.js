@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 /**
  * app/sms/api/send/route.js — SMS send sub-route
  *

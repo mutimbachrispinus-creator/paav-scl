@@ -1,4 +1,5 @@
 'use client';
+export const runtime = 'edge';
 /**
  * app/grades/report-card/[id]/page.js — Premium A4 CBC Report Card
  */

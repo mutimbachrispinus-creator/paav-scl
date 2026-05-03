@@ -1,6 +1,8 @@
 node_modules/
 .next/
+.open-next/
 .env*
+.dev.vars
 .vscode/
 *.db
 public/sw.js
@@ -9,3 +11,5 @@ public/workbox-*.js
 public/workbox-*.js.map
 public/swe-worker-*.js
 scratch/
+.vercel
+.vercel/

@@ -1,0 +1,24 @@
+# EduVantage School Management System — Cloudflare Pages
+# Deploy via GitHub integration in Cloudflare Dashboard:
+#   Build command:    npm run build
+#   Build output dir: .vercel/output/static
+#   Root directory:   /  (or repo root)
+#
+# OR deploy manually:
+#   npm run build && wrangler pages deploy .vercel/output/static
+
+name = "eduvantage-portal"
+pages_build_output_dir = ".vercel/output/static"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# NOTE: Set ALL secrets in Cloudflare Dashboard:
+#   Pages → eduvantage-portal → Settings → Environment Variables
+#   (TURSO_URL, TURSO_TOKEN, JWT_SECRET, PASS_SALT, etc.)
+# For local wrangler dev, use .dev.vars file.
+
+[[headers]]
+  pattern = "/api/*"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate"
+    X-Content-Type-Options = "nosniff"

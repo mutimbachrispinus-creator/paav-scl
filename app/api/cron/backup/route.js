@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { kvGet, PAAV_KEYS } from '@/lib/db';
 import { uploadBackup } from '@/lib/storage';
