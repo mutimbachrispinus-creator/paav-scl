@@ -66,7 +66,7 @@ export default function LandingPage() {
             Stop Managing.<br/>Start <span className="text-gradient">Optimising.</span>
           </h1>
           <p className="hero-subtitle">
-            Experience the future of school management with EduVantage's unified AI platform. Instantly reconcile M-Pesa fees, generate CBC report cards, and bridge the gap with parents—all in one place.
+            Experience the future of school management with EduVantage&apos;s unified AI platform. Instantly reconcile M-Pesa fees, generate multi-curriculum report cards (CBC, British, IB), and bridge the gap with parents—all in one place.
           </p>
           
           <div className="hero-actions">
@@ -132,8 +132,8 @@ export default function LandingPage() {
             <div className="module-card">
               <div className="mod-icon" style={{ background: '#EEF2FF', color: PRIMARY }}>📊</div>
               <div className="mod-content">
-                <h3>CBC-Ready Academic Analytics</h3>
-                <p>Don't wait weeks for report cards. Our grading engine instantly processes marks, generates beautiful termly reports, and ranks students perfectly—fully compliant with the latest CBC and 8-4-4 structures.</p>
+                <h3>Multi-Curriculum Academic Analytics</h3>
+                <p>Don&apos;t wait weeks for report cards. Our grading engine instantly processes marks, generates beautiful termly reports, and ranks students perfectly—fully optimized for <strong>Kenya CBC</strong>, the <strong>British National Curriculum (IGCSE/A-Level)</strong>, and <strong>IB</strong> structures.</p>
                 <ul className="mod-features">
                   <li>Automated Dynamic Merit Lists</li>
                   <li>Subject-Level Trend Graphs for Parents</li>
@@ -239,7 +239,7 @@ export default function LandingPage() {
                  </thead>
                  <tbody>
                    <tr><td><strong>M-Pesa Fee Sync</strong></td><td>Manual Export/Import required</td><td className="hl">100% Automated & Real-Time</td></tr>
-                   <tr><td><strong>CBC Analytics</strong></td><td>Slow, batch-processed</td><td className="hl">Instant Report Card Generation</td></tr>
+                   <tr><td><strong>Global Analytics</strong></td><td>Slow, batch-processed</td><td className="hl">CBC, British & IB Report Cards</td></tr>
                    <tr><td><strong>Parent Experience</strong></td><td>Delayed SMS only</td><td className="hl">Live Portal + Auto-Receipts</td></tr>
                    <tr><td><strong>System Ecosystem</strong></td><td>Multiple disconnected logins</td><td className="hl">One unified multi-tenant app</td></tr>
                    <tr><td><strong>Speed & Offline</strong></td><td>Slow on poor connections</td><td className="hl">Lightning fast PWA Cache</td></tr>

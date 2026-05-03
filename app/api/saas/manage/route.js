@@ -34,7 +34,8 @@ export async function POST(request) {
     }
 
     if (action === 'update_billing') {
-      const sql = `
+      const { curriculum } = body;
+      const sqlSub = `
         INSERT INTO subscriptions (tenant_id, plan, status, amount, cycle, expires_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, strftime('%s','now'))
         ON CONFLICT(tenant_id) DO UPDATE SET
@@ -45,7 +46,7 @@ export async function POST(request) {
           expires_at = excluded.expires_at,
           updated_at = excluded.updated_at
       `;
-      await execute(sql, [
+      await execute(sqlSub, [
         tenantId, 
         plan || 'basic', 
         status || 'active', 
@@ -53,6 +54,20 @@ export async function POST(request) {
         cycle || 'annual', 
         expiresAt || null
       ]);
+
+      if (curriculum) {
+        // Also update the curriculum in the school profile KV
+        const client = getClient();
+        const res = await client.execute({ sql: `SELECT value FROM kv WHERE tenant_id = ? AND key = 'paav_school_profile'`, args: [tenantId] });
+        let profile = res.rows[0]?.value ? JSON.parse(res.rows[0].value) : {};
+        profile.curriculum = curriculum;
+        
+        await execute(`
+          INSERT INTO kv (tenant_id, key, value, updated_at) VALUES (?, 'paav_school_profile', ?, strftime('%s','now'))
+          ON CONFLICT(tenant_id, key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+        `, [tenantId, JSON.stringify(profile)]);
+      }
+
       return NextResponse.json({ ok: true });
     }
 

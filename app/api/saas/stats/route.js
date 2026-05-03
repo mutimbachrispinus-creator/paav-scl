@@ -36,10 +36,12 @@ export async function GET() {
       });
       
       let name = s.tenant_id;
+      let curriculum = 'CBC';
       try {
         if (profileRes.rows.length) {
           const profile = JSON.parse(profileRes.rows[0].value);
           name = profile.name || s.tenant_id;
+          curriculum = profile.curriculum || 'CBC';
         }
       } catch (e) {}
 
@@ -53,6 +55,7 @@ export async function GET() {
         id: s.tenant_id,
         name: name,
         plan: s.plan,
+        curriculum: curriculum,
         status: s.status,
         amount: s.amount || 0,
         cycle: s.cycle || 'annual',
