@@ -45,16 +45,17 @@ export async function POST(request) {
 
   try {
     switch (action) {
-      case 'login':    return handleLogin(body, request);
-      case 'logout':   return handleLogout(request);
-      case 'register': return handleRegister(body, request);
-      case 'edit_user': return handleEditUser(body, request);
-      case 'google':   return handleGoogle(body, request);
-      case 'whoami':   return handleWhoami(request);
-      case 'forgot':   return handleForgot(body);
-      case 'resetpw':  return handleResetPw(body);
+      case 'login':      return handleLogin(body, request);
+      case 'logout':     return handleLogout(request);
+      case 'register':   return handleRegister(body, request);
+      case 'add_child':  return handleAddChild(body, request);
+      case 'edit_user':  return handleEditUser(body, request);
+      case 'google':     return handleGoogle(body, request);
+      case 'whoami':     return handleWhoami(request);
+      case 'forgot':     return handleForgot(body);
+      case 'resetpw':    return handleResetPw(body);
       case 'change_password': return handleChangePassword(body, request);
-      default:         return err(`Unknown action: ${action}`);
+      default:           return err(`Unknown action: ${action}`);
     }
   } catch (e) {
     console.error('[api/auth] Server Error:', e);
@@ -238,6 +239,52 @@ async function handleRegister({ role, name, username, phone, password, links, gr
   }
 
   return NextResponse.json({ ok: true, username: username.toLowerCase() });
+}
+
+/* ─── add_child (logged-in parent links a child from any school) ─────────── */
+async function handleAddChild({ schoolId, adm }, request) {
+  const session = await getSession();
+  if (!session) return err('Unauthorised — please log in first', 401);
+  if (session.role !== 'parent') return err('Only parent accounts can link children', 403);
+  if (!schoolId || !adm) return err('School and admission number are required');
+
+  const { query, execute } = await import('@/lib/db');
+
+  // Verify the learner actually exists in that school
+  const learnerRows = await query(
+    "SELECT value FROM kv WHERE key = 'paav6_learners' AND tenant_id = ?",
+    [schoolId]
+  );
+  let learners = [];
+  try { learners = JSON.parse(learnerRows[0]?.value || '[]'); } catch {}
+  const learner = learners.find(l => l.adm === adm.trim());
+  if (!learner) return err(`Admission number "${adm}" not found in the selected school. Verify with the school office.`);
+
+  // Check if this parent↔child link already exists
+  const existing = await query(
+    'SELECT id FROM staff WHERE id = ? AND tenant_id = ?',
+    [session.id, schoolId]
+  );
+  if (existing.length > 0) {
+    // Update existing row's childAdm (could already have a different adm)
+    await execute(
+      'UPDATE staff SET childAdm = ? WHERE id = ? AND tenant_id = ?',
+      [adm.trim(), session.id, schoolId]
+    );
+  } else {
+    // Insert a new row for this parent in the new school's tenant
+    // Copy password hash from existing row
+    const myRows = await query('SELECT * FROM staff WHERE id = ? LIMIT 1', [session.id]);
+    const me = myRows[0];
+    if (!me) return err('Parent record not found', 404);
+    await execute(
+      `INSERT INTO staff (id, tenant_id, name, username, role, phone, password, status, childAdm, createdAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [session.id, schoolId, me.name, me.username, 'parent', me.phone, me.password, 'active', adm.trim(), new Date().toISOString()]
+    );
+  }
+
+  return NextResponse.json({ ok: true, learner: { name: learner.name, grade: learner.grade, adm: learner.adm } });
 }
 
 /* ─── Google Sign-In ────────────────────────────────────────────────────── */

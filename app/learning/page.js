@@ -2,24 +2,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
-import { ALL_GRADES } from '@/lib/cbe';
-
-const KICD_RESOURCES = [
-  { title: 'Kenya Education Cloud', url: 'https://kec.ac.ke/', desc: 'Official digital lessons and KICD e-books.', icon: '☁️', cat: 'Official' },
-  { title: 'CBC Curriculum Designs', url: 'https://kicd.ac.ke/cbc-curriculum-designs/', desc: 'Standard designs for all grades.', icon: '📜', cat: 'Official' },
-  { title: 'KNEC Portal', url: 'https://www.knec-portal.ac.ke/', desc: 'National exam registration and results.', icon: '🎓', cat: 'Official' },
-  { title: 'TPAD 2 Portal', url: 'https://tpad2.tsc.go.ke/', desc: 'Teacher Performance Appraisal and Development.', icon: '👨‍🏫', cat: 'Teacher' },
-];
-
-const VIDEO_LESSONS = [
-  { title: 'KICD YouTube', url: 'https://www.youtube.com/user/KICDKenya', desc: 'Official video lessons.', icon: '🎥' },
-  { title: 'EduTV Kenya', url: 'https://www.youtube.com/@EduTVKenya', desc: 'Broadcast lessons for schools.', icon: '📺' },
-];
-
-const TEACHER_TOOLS = [
-  { title: 'Soma.ke', url: 'https://soma.ke/', desc: 'Digital library for Kenyan schools.', icon: '📚' },
-  { title: 'KESSA', url: 'https://kessa.org/', desc: 'Kenya Secondary School Heads Association.', icon: '🏛️' },
-];
+import { getAllGrades } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
+import { useProfile } from '@/app/PortalShell';
 
 const CATEGORIES = [
   { id: 'all', label: 'All Files', icon: '📁' },
@@ -30,19 +15,31 @@ const CATEGORIES = [
 
 export default function EducationHubPage() {
   const router = useRouter();
+  const { profile: school } = useProfile() || {};
+  const curr = getCurriculum(school?.curriculum || 'CBC');
+  const ALL_GRADES = curr.ALL_GRADES || [];
+  const RESOURCES = curr.RESOURCES || [];
+  const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [docs, setDocs] = useState([]);
   const [selGrade, setSelGrade] = useState('ALL');
   const [selCat, setSelCat] = useState('all');
   const [showUpload, setShowUpload] = useState(false);
-  const [newDoc, setNewDoc] = useState({ title: '', grade: 'GRADE 1', subject: '', category: 'notes', url: '' });
+  const [newDoc, setNewDoc] = useState({ title: '', grade: '', subject: '', category: 'notes', url: '' });
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (ALL_GRADES.length > 0 && !newDoc.grade) {
+      setNewDoc(d => ({ ...d, grade: ALL_GRADES[0] }));
+    }
+  }, [ALL_GRADES]);
 
   const load = useCallback(async () => {
     const u = await getCachedUser();
     if (!u) { router.push('/'); return; }
     setUser(u);
-
     const db = await getCachedDBMulti(['paav7_learning_docs']);
     setDocs(db.paav7_learning_docs || []);
     setLoading(false);
@@ -50,13 +47,10 @@ export default function EducationHubPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const [uploading, setUploading] = useState(false);
-
   async function saveDoc() {
     if (!newDoc.title || !newDoc.url) return;
     const doc = { ...newDoc, id: Date.now(), author: user.name, date: new Date().toISOString() };
     const updated = [doc, ...docs];
-    
     await fetch('/api/db', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -64,23 +58,18 @@ export default function EducationHubPage() {
     });
     setDocs(updated);
     setShowUpload(false);
-    setNewDoc({ title: '', grade: 'GRADE 1', subject: '', category: 'notes', url: '' });
+    setNewDoc({ title: '', grade: ALL_GRADES[0] || '', subject: '', category: 'notes', url: '' });
   }
 
   async function handleFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
-    
     const formData = new FormData();
     formData.append('file', file);
     formData.append('name', file.name);
-
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (data.ok) {
         setNewDoc(prev => ({ ...prev, url: data.url, title: prev.title || file.name }));
@@ -96,30 +85,44 @@ export default function EducationHubPage() {
 
   if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading Education Hub…</div>;
 
+  // Partition resources by category
+  const officialRes = RESOURCES.filter(r => r.cat === 'Official');
+  const otherRes    = RESOURCES.filter(r => r.cat !== 'Official');
+
   return (
     <div className="page on">
       <div className="page-hdr">
         <div>
           <h2>🎓 Academic Resource Center</h2>
-          <p>Global CBC materials, KICD resources, and institutional learning library</p>
+          <p>{curr.name || school?.curriculum || 'CBC'} — Resources &amp; Institutional Learning Library</p>
         </div>
         <div className="page-hdr-acts">
-           {(user.role === 'admin' || user.role === 'teacher') && (
-              <button className="btn btn-primary btn-sm" onClick={() => setShowUpload(true)}>+ Upload Material</button>
-           )}
+          {(user.role === 'admin' || user.role === 'teacher') && (
+            <button className="btn btn-primary btn-sm" onClick={() => setShowUpload(true)}>+ Upload Material</button>
+          )}
         </div>
+      </div>
+
+      {/* Academic Calendar / Terms Banner */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 22, flexWrap: 'wrap' }}>
+        {TERMS.map(t => (
+          <div key={t.id} style={{ background: 'linear-gradient(135deg,#1E40AF,#1E3A8A)', color: '#fff', borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
+            📆 {t.name}
+          </div>
+        ))}
       </div>
 
       <div className="sg sg4" style={{ marginBottom: 25 }}>
         {CATEGORIES.map(c => (
           <div key={c.id} className={`panel cat-card ${selCat === c.id ? 'active' : ''}`} onClick={() => setSelCat(c.id)}>
-             <div className="cat-icon">{c.icon}</div>
-             <div className="cat-label">{c.label}</div>
+            <div className="cat-icon">{c.icon}</div>
+            <div className="cat-label">{c.label}</div>
           </div>
         ))}
       </div>
 
       <div className="sg-responsive">
+        {/* Resource Library */}
         <div className="panel" style={{ flex: 1 }}>
           <div className="panel-hdr">
             <h3>📂 Resource Library</h3>
@@ -148,60 +151,52 @@ export default function EducationHubPage() {
                 <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--muted)', background: '#F8FAFC', borderRadius: 15 }}>
                   <div style={{ fontSize: 48, marginBottom: 15 }}>📚</div>
                   <h3 style={{ margin: 0 }}>No materials found</h3>
-                  <p style={{ fontSize: 12, maxWidth: 300, margin: '10px auto 0' }}>{user.role === 'parent' ? 'Teachers haven\'t shared any notes for this grade yet.' : 'Start by uploading class notes or past papers for your students.'}</p>
+                  <p style={{ fontSize: 12, maxWidth: 300, margin: '10px auto 0' }}>
+                    {user.role === 'parent' ? "Teachers haven't shared any notes yet." : 'Upload class notes or past papers for your students.'}
+                  </p>
                 </div>
               )}
             </div>
           </div>
         </div>
 
+        {/* Sidebar */}
         <div className="sidebar" style={{ width: 350, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div className="panel">
-            <div className="panel-hdr" style={{ background: 'linear-gradient(135deg, #0369A1, #075985)', color: '#fff' }}>
-              <h3 style={{ color: '#fff' }}>🇰🇪 Official Portals</h3>
+          {officialRes.length > 0 && (
+            <div className="panel">
+              <div className="panel-hdr" style={{ background: 'linear-gradient(135deg, #0369A1, #075985)', color: '#fff' }}>
+                <h3 style={{ color: '#fff' }}>🌐 Official {curr.name || school?.curriculum || 'CBC'} Portals</h3>
+              </div>
+              <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {officialRes.map((r, i) => (
+                  <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className="kicd-link">
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <span style={{ fontSize: 18 }}>{r.icon}</span>
+                      <span style={{ fontWeight: 700, fontSize: 13 }}>{r.title}</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{r.desc}</div>
+                  </a>
+                ))}
+              </div>
             </div>
-            <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {KICD_RESOURCES.map((r, i) => (
-                <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className="kicd-link">
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <span style={{ fontSize: 18 }}>{r.icon}</span>
-                    <span style={{ fontWeight: 700, fontSize: 13 }}>{r.title}</span>
-                  </div>
-                  <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{r.desc}</div>
-                </a>
-              ))}
-            </div>
-          </div>
+          )}
 
-          <div className="panel">
-            <div className="panel-hdr"><h3>🎥 Video Classrooms</h3></div>
-            <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {VIDEO_LESSONS.map((r, i) => (
-                <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className="kicd-link">
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <span style={{ fontSize: 18 }}>{r.icon}</span>
-                    <span style={{ fontWeight: 700, fontSize: 13 }}>{r.title}</span>
-                  </div>
-                  <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{r.desc}</div>
-                </a>
-              ))}
+          {otherRes.length > 0 && (
+            <div className="panel">
+              <div className="panel-hdr"><h3>📚 Learning Resources</h3></div>
+              <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {otherRes.map((r, i) => (
+                  <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className="kicd-link">
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <span style={{ fontSize: 18 }}>{r.icon}</span>
+                      <span style={{ fontWeight: 700, fontSize: 13 }}>{r.title}</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{r.desc}</div>
+                  </a>
+                ))}
+              </div>
             </div>
-          </div>
-
-          <div className="panel">
-            <div className="panel-hdr"><h3>👨‍🏫 Teacher Resources</h3></div>
-            <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {TEACHER_TOOLS.map((r, i) => (
-                <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className="kicd-link">
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <span style={{ fontSize: 18 }}>{r.icon}</span>
-                    <span style={{ fontWeight: 700, fontSize: 13 }}>{r.title}</span>
-                  </div>
-                  <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{r.desc}</div>
-                </a>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -215,11 +210,11 @@ export default function EducationHubPage() {
             <div className="modal-body">
               <div className="field">
                 <label>Resource Title</label>
-                <input value={newDoc.title} onChange={e => setNewDoc({...newDoc, title: e.target.value})} placeholder="e.g. GRADE 4 MATH CAT 1" />
+                <input value={newDoc.title} onChange={e => setNewDoc({...newDoc, title: e.target.value})} placeholder="e.g. Mathematics Mid-Term Paper" />
               </div>
               <div className="field-row">
                 <div className="field">
-                  <label>Grade</label>
+                  <label>Grade / Level</label>
                   <select value={newDoc.grade} onChange={e => setNewDoc({...newDoc, grade: e.target.value})}>
                     {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
                   </select>
@@ -238,18 +233,18 @@ export default function EducationHubPage() {
               <div className="field">
                 <label>File Upload</label>
                 <div style={{ border: '2px dashed #E2E8F0', padding: 20, borderRadius: 12, textAlign: 'center', background: '#F8FAFC' }}>
-                   {uploading ? (
-                     <div style={{ fontSize: 12, fontWeight: 700 }}>⏳ Uploading...</div>
-                   ) : (
-                     <>
-                        <input type="file" id="file-up" style={{ display: 'none' }} onChange={handleFileChange} />
-                        <label htmlFor="file-up" style={{ cursor: 'pointer', display: 'block' }}>
-                           <div style={{ fontSize: 32, marginBottom: 5 }}>📁</div>
-                           <div style={{ fontSize: 12, fontWeight: 700 }}>{newDoc.url ? '✅ File Ready' : 'Click to Select File'}</div>
-                           <div style={{ fontSize: 10, color: 'var(--muted)' }}>{newDoc.url || 'PDF, Docs, Images (Max 10MB)'}</div>
-                        </label>
-                     </>
-                   )}
+                  {uploading ? (
+                    <div style={{ fontSize: 12, fontWeight: 700 }}>⏳ Uploading...</div>
+                  ) : (
+                    <>
+                      <input type="file" id="file-up" style={{ display: 'none' }} onChange={handleFileChange} />
+                      <label htmlFor="file-up" style={{ cursor: 'pointer', display: 'block' }}>
+                        <div style={{ fontSize: 32, marginBottom: 5 }}>📁</div>
+                        <div style={{ fontSize: 12, fontWeight: 700 }}>{newDoc.url ? '✅ File Ready' : 'Click to Select File'}</div>
+                        <div style={{ fontSize: 10, color: 'var(--muted)' }}>{newDoc.url || 'PDF, Docs, Images (Max 10MB)'}</div>
+                      </label>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="field">
@@ -258,8 +253,8 @@ export default function EducationHubPage() {
               </div>
             </div>
             <div className="modal-ftr">
-               <button className="btn btn-ghost" onClick={() => setShowUpload(false)}>Cancel</button>
-               <button className="btn btn-primary" onClick={saveDoc} disabled={uploading}>Upload & Share</button>
+              <button className="btn btn-ghost" onClick={() => setShowUpload(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={saveDoc} disabled={uploading}>Upload &amp; Share</button>
             </div>
           </div>
         </div>

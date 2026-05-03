@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { DEFAULT_SUBJECTS, gInfo, fmtK } from '@/lib/cbe';
+import { DEFAULT_SUBJECTS, gInfo, fmtK, getAllGrades, getDefaultSubjects } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 
 const M = '#8B1A1A', M2 = '#6B1212', ML = '#FDF2F2', MB = '#F5E6E6';
 
@@ -32,6 +33,19 @@ export default function ParentHome() {
   const [tab, setTab] = useState('child');
   const [term, setTerm] = useState('T1');
   const [assess, setAssess] = useState('et1');
+  const [schools, setSchools] = useState([]);
+  const [showAddChild, setShowAddChild] = useState(false);
+  const [addChildForm, setAddChildForm] = useState({ schoolId: '', adm: '' });
+  const [addChildBusy, setAddChildBusy] = useState(false);
+  const [addChildMsg, setAddChildMsg] = useState('');
+  const [addChildErr, setAddChildErr] = useState('');
+
+  useEffect(() => {
+    fetch('/api/saas/schools')
+      .then(r => r.json())
+      .then(d => { if (d.ok) setSchools(d.schools || []); })
+      .catch(() => {});
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -223,14 +237,15 @@ export default function ParentHome() {
   const unr = messages.filter(m=>m.to==='ALL'||m.to==='ALL_PARENTS'||m.to===user.username).filter(m=>!(m.read||[]).includes(user.username)).length;
 
   const TABS = [
-    { id:'child',   label:'👦 Profile',        icon:'👦' },
-    { id:'perf',    label:'📊 Academic',      icon:'📊' },
-    { id:'fees',    label:'💰 Finance',         icon:'💰' },
-    { id:'payments', label:'🧾 Receipts',       icon:'🧾' },
-    { id:'timetable',label:'🗓 Timetable',      icon:'🗓' },
-    { id:'calendar',label:'📅 Calendar',         icon:'📅' },
-    { id:'msgs',    label:`💬 Messages${unr>0?` (${unr})`:''}`, icon:'💬' },
-    { id:'docs',    label:'📂 Files', icon:'📂' },
+    { id:'child',    label:'👦 Profile',      icon:'👦' },
+    { id:'perf',     label:'📊 Academic',     icon:'📊' },
+    { id:'fees',     label:'💰 Finance',      icon:'💰' },
+    { id:'payments', label:'🧾 Receipts',     icon:'🧾' },
+    { id:'timetable',label:'🗓 Timetable',    icon:'🗓' },
+    { id:'calendar', label:'📅 Calendar',     icon:'📅' },
+    { id:'msgs',     label:`💬 Messages${unr>0?` (${unr})`:''}`, icon:'💬' },
+    { id:'docs',     label:'📂 Files',        icon:'📂' },
+    { id:'addchild', label:'➕ Add Child',    icon:'➕' },
   ];
 
   const upcomingEvents = events
@@ -846,6 +861,86 @@ export default function ParentHome() {
                   </div>
                 ))
               )}
+          </div>
+        </div>
+      )}
+
+      {/* ADD CHILD TAB */}
+      {tab==='addchild' && (
+        <div className="panel" style={{border:`1.5px solid ${MB}`, maxWidth: 520}}>
+          <div className="panel-hdr" style={{background:`linear-gradient(135deg,${M},${M2})`,color:'#fff'}}>
+            <h3 style={{color:'#fff'}}>➕ Link a Child to Your Account</h3>
+          </div>
+          <div className="panel-body">
+            <p style={{fontSize:13,color:'var(--muted)',marginBottom:20,lineHeight:1.6}}>
+              Select the school your child attends and enter their admission number.
+              Once verified, you can monitor multiple children across different schools from this account.
+            </p>
+            {addChildErr && <div style={{background:'#FEF2F2',border:'1px solid #FECACA',borderRadius:10,padding:'10px 14px',color:'#DC2626',fontSize:13,marginBottom:16}}>{addChildErr}</div>}
+            {addChildMsg && <div style={{background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:10,padding:'10px 14px',color:'#065F46',fontSize:13,marginBottom:16}}>{addChildMsg}</div>}
+
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              <div>
+                <label style={{fontSize:11,fontWeight:800,color:'var(--navy)',textTransform:'uppercase',letterSpacing:'.5px',display:'block',marginBottom:6}}>Select School</label>
+                <select
+                  value={addChildForm.schoolId}
+                  onChange={e => setAddChildForm(f => ({...f, schoolId: e.target.value}))}
+                  style={{width:'100%',padding:'12px 14px',border:'2px solid var(--border)',borderRadius:10,fontSize:13,outline:'none'}}
+                >
+                  <option value="">— Choose School —</option>
+                  {schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{fontSize:11,fontWeight:800,color:'var(--navy)',textTransform:'uppercase',letterSpacing:'.5px',display:'block',marginBottom:6}}>Admission Number</label>
+                <input
+                  value={addChildForm.adm}
+                  onChange={e => setAddChildForm(f => ({...f, adm: e.target.value.trim()}))}
+                  placeholder="e.g. 2026001"
+                  style={{width:'100%',padding:'12px 14px',border:'2px solid var(--border)',borderRadius:10,fontSize:13,outline:'none',boxSizing:'border-box'}}
+                />
+              </div>
+              <button
+                disabled={addChildBusy || !addChildForm.schoolId || !addChildForm.adm}
+                onClick={async () => {
+                  setAddChildBusy(true); setAddChildErr(''); setAddChildMsg('');
+                  try {
+                    const res = await fetch('/api/auth', {
+                      method: 'POST',
+                      headers: {'Content-Type':'application/json'},
+                      body: JSON.stringify({ action: 'add_child', ...addChildForm })
+                    });
+                    const data = await res.json();
+                    if (!data.ok) { setAddChildErr(data.error || 'Failed to link child.'); }
+                    else {
+                      setAddChildMsg(`✅ ${data.learner.name} (${data.learner.grade}) linked! Refreshing…`);
+                      setAddChildForm({ schoolId: '', adm: '' });
+                      setTimeout(() => { load(); setTab('child'); }, 1500);
+                    }
+                  } catch(e) { setAddChildErr('Connection error: ' + e.message); }
+                  finally { setAddChildBusy(false); }
+                }}
+                style={{padding:'14px',borderRadius:12,border:'none',background:`linear-gradient(135deg,${M},${M2})`,color:'#fff',fontWeight:800,fontSize:14,cursor:'pointer',opacity:addChildBusy?0.7:1}}
+              >
+                {addChildBusy ? '⏳ Verifying & Linking…' : '🔗 Link Child to My Account'}
+              </button>
+            </div>
+
+            {children.length > 0 && (
+              <div style={{marginTop:24,borderTop:'1.5px solid var(--border)',paddingTop:16}}>
+                <div style={{fontSize:12,fontWeight:800,color:'var(--muted)',textTransform:'uppercase',marginBottom:10}}>Currently Linked Children</div>
+                {children.map(c => (
+                  <div key={c.adm} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:10,background:'#F8FAFC',border:'1.5px solid var(--border)',marginBottom:8}}>
+                    <div style={{fontSize:22}}>🎒</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:700,fontSize:13}}>{c.name}</div>
+                      <div style={{fontSize:11,color:'var(--muted)'}}>{c.grade} · {c.adm}</div>
+                    </div>
+                    <div style={{padding:'3px 10px',borderRadius:20,background:`${M}15`,color:M,fontSize:11,fontWeight:800}}>Active</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

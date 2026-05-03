@@ -10,7 +10,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ALL_GRADES, DEFAULT_SUBJECTS } from '@/lib/cbe';
+import { getAllGrades, getDefaultSubjects } from '@/lib/cbe';
+import { useProfile } from '@/app/PortalShell';
 
 const MAROON = '#8B1A1A';
 const MAROON2 = '#6B1212';
@@ -19,6 +20,8 @@ const MAROON_BG = '#F5E6E6';
 
 export default function AllocationsPage() {
   const router = useRouter();
+  const { profile: school } = useProfile() || {};
+  const ALL_GRADES = getAllGrades(school?.curriculum || 'CBC');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [staff, setStaff] = useState([]);
@@ -232,7 +235,7 @@ export default function AllocationsPage() {
           {ALL_GRADES.map(grade => {
             const subjects = (subjCfg[grade] && subjCfg[grade].length > 0)
               ? subjCfg[grade]
-              : (DEFAULT_SUBJECTS[grade] || []);
+              : getDefaultSubjects(grade, school?.curriculum || 'CBC');
             return (
               <div key={grade} style={{ border: `1.5px solid ${MAROON_BG}`, borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(139,26,26,.06)' }}>
                 <div style={{
