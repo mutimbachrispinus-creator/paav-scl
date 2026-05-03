@@ -70,6 +70,7 @@ export default function PortalShell({ children }) {
 
   const [user, setUser] = useState(() => {
     if (typeof window !== 'undefined') {
+      if (window.__INITIAL_USER__) return window.__INITIAL_USER__;
       try {
         const raw = localStorage.getItem('paav_cache_user');
         if (raw) {
@@ -136,12 +137,15 @@ export default function PortalShell({ children }) {
   });
   const [showProfile,  setShowProfile]  = useState(false);
   const [theme,        setTheme]        = useState(() => {
+    if (typeof window !== 'undefined' && window.__INITIAL_BRANDING__?.theme) return window.__INITIAL_BRANDING__.theme;
     return { primary: '#1E40AF', secondary: '#D4AF37', accent: '#0F172A' };
   });
   const [profile, setProfile] = useState(() => {
     const fallback = { name: 'EduVantage School Management System', tagline: 'Global Education SaaS Network', logo: '/ev-brand-v3.png' };
     if (typeof window === 'undefined') return fallback;
     
+    if (window.__INITIAL_BRANDING__?.profile) return window.__INITIAL_BRANDING__.profile;
+
     // Check URL for tenant parameter first (Critical for Login page)
     const params = new URLSearchParams(window.location.search);
     const tenantParam = params.get('tenant');
@@ -191,6 +195,16 @@ export default function PortalShell({ children }) {
 
   const loadSession = useCallback(async () => {
     try {
+      // 🚀 If we already have server-injected data, skip the first fetch to save time
+      if (window.__INITIAL_USER__ && window.__INITIAL_BRANDING__) {
+        console.log('[PortalShell] Using injected session data');
+        const { profile, theme } = window.__INITIAL_BRANDING__;
+        if (profile) hydrateCache({ paav_school_profile: profile });
+        if (theme) hydrateCache({ paav_theme: theme });
+        // Clean up to prevent stale data on route changes within SPA
+        // window.__INITIAL_USER__ = null; 
+      }
+
       const [u, db] = await Promise.all([
         getCachedUser(),
         getCachedDBMulti([

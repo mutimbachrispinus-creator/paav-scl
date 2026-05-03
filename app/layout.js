@@ -1,12 +1,8 @@
-/**
- * app/layout.js — Root layout
- * Updated with a Cache Killer to resolve persistent 404/branding issues 
- * caused by stale service workers and localStorage.
- */
-
 import { Inter, Sora } from 'next/font/google';
 import '../styles/globals.css';
 import PortalShell from './PortalShell';
+import { getSession } from '@/lib/auth';
+import { kvGet } from '@/lib/db';
 
 const inter = Inter({
   subsets:  ['latin'],
@@ -37,19 +33,34 @@ export const viewport = {
   themeColor:   '#4F46E5',
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // 🚀 Speed Injection: Pre-fetch session and branding on the server
+  const session = await getSession();
+  let initialBranding = null;
+  
+  if (session?.tenantId && session.tenantId !== 'platform-master') {
+    try {
+      const [profile, theme] = await Promise.all([
+        kvGet('paav_school_profile', null, session.tenantId),
+        kvGet('paav_theme', null, session.tenantId)
+      ]);
+      initialBranding = { profile, theme };
+    } catch {}
+  }
+
   return (
     <html lang="en" className={`${inter.variable} ${sora.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="manifest" href="/manifest.json" />
-        {/* 🚀 EduVantage Stability Script 🚀 */}
+        {/* 🚀 Speed Injection Script 🚀 */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // Ensure service worker is stable and not being aggressively cleared
-              console.log('🚀 EduVantage Portal Core Active');
+              window.__INITIAL_USER__ = ${JSON.stringify(session || null)};
+              window.__INITIAL_BRANDING__ = ${JSON.stringify(initialBranding || null)};
+              console.log('🚀 EduVantage Speed Injection Active');
             `,
           }}
         />
