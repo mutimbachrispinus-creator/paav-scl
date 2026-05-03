@@ -5,14 +5,8 @@ import Link from 'next/link';
 import { getCachedUser, getCachedDBMulti, prefetchKeys } from '@/lib/client-cache';
 import { ALL_NAV } from '@/lib/navigation';
 import { PRE, LOWER, UPPER, JSS, SENIOR, getAnnualFee } from '@/lib/school-config';
-
-const ALL_GRADE_GROUPS = [
-  { label: 'Pre-School', color: '#8B5CF6', grades: PRE },
-  { label: 'Lower Primary', color: '#10B981', grades: LOWER },
-  { label: 'Upper Primary', color: '#3B82F6', grades: UPPER },
-  { label: 'Junior School', color: '#F59E0B', grades: JSS },
-  { label: 'Senior School', color: '#EF4444', grades: SENIOR },
-];
+import { useProfile } from '@/app/PortalShell';
+import { getCurriculum } from '@/lib/curriculum';
 
 export default function DashboardPage() {
   return (
@@ -30,6 +24,37 @@ function DashboardContent() {
   const [unread, setUnread]     = useState(0);
   const [loading, setLoading]   = useState(true);
   const [themePrimary, setThemePrimary] = useState('#1E293B');
+
+  const { profile: school } = useProfile() || {};
+  const curr = getCurriculum(school?.curriculum || 'CBC');
+  const ALL_GRADES = curr.ALL_GRADES || [];
+
+  let GRADE_GROUPS = [];
+  if (school?.curriculum === 'BRITISH') {
+    GRADE_GROUPS = [
+      { label: 'Early Years', color: '#8B5CF6', grades: curr.EYFS || [] },
+      { label: 'Key Stage 1', color: '#10B981', grades: curr.KS1 || [] },
+      { label: 'Key Stage 2', color: '#3B82F6', grades: curr.KS2 || [] },
+      { label: 'Key Stage 3', color: '#F59E0B', grades: curr.KS3 || [] },
+      { label: 'Key Stage 4 (IGCSE)', color: '#EF4444', grades: curr.KS4 || [] },
+      { label: 'Key Stage 5 (A-Level)', color: '#6366F1', grades: curr.KS5 || [] },
+    ].filter(g => g.grades && g.grades.length > 0);
+  } else if (school?.curriculum === 'IB') {
+    GRADE_GROUPS = [
+      { label: 'PYP', color: '#10B981', grades: curr.PYP || [] },
+      { label: 'MYP', color: '#3B82F6', grades: curr.MYP || [] },
+      { label: 'DP', color: '#F59E0B', grades: curr.DP || [] },
+    ].filter(g => g.grades && g.grades.length > 0);
+  } else {
+    // Default CBC
+    GRADE_GROUPS = [
+      { label: 'Pre-School', color: '#8B5CF6', grades: curr.PRE || PRE },
+      { label: 'Lower Primary', color: '#10B981', grades: curr.LOWER || LOWER },
+      { label: 'Upper Primary', color: '#3B82F6', grades: curr.UPPER || UPPER },
+      { label: 'Junior School', color: '#F59E0B', grades: curr.JSS || JSS },
+      { label: 'Senior School', color: '#EF4444', grades: curr.SENIOR || SENIOR },
+    ].filter(g => g.grades && g.grades.length > 0);
+  }
 
   const [announcement, setAnnouncement] = useState(null);
 
@@ -159,7 +184,7 @@ function DashboardContent() {
               <div className="panel">
                 <div className="panel-hdr"><h3>📚 Enrolment</h3></div>
                 <div className="panel-body">
-                  {[...PRE, ...LOWER, ...UPPER, ...JSS, ...SENIOR].map(grade => {
+                  {ALL_GRADES.map(grade => {
                     const count = stats.enrolmentByGrade?.[grade] || 0;
                     const pct   = Math.min(100, count * 8);
                     return (
@@ -180,7 +205,7 @@ function DashboardContent() {
               <div className="panel">
                 <div className="panel-hdr"><h3>💰 Fee Collection</h3></div>
                 <div className="panel-body">
-                  {ALL_GRADE_GROUPS.map(({ label, color, grades }) => {
+                  {GRADE_GROUPS.map(({ label, color, grades }) => {
                     const groupPaid = grades.reduce((sum, g) => sum + (stats.enrolmentByGrade?.[g] || 0) * (getAnnualFee(g) * (collectionPct/100)), 0);
                     const groupExp  = grades.reduce((sum, g) => sum + (stats.enrolmentByGrade?.[g] || 0) * getAnnualFee(g), 0);
                     const groupPct  = groupExp ? Math.round((groupPaid / groupExp) * 100) : 0;

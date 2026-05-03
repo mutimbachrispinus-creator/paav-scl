@@ -47,8 +47,8 @@ export default function GradesPage() {
   const [term,   setTerm]   = usePersistedState('paav_grades_term',   'T1');
   const [assess, setAssess] = usePersistedState('paav_grades_assess', 'mt1');
 
-  const curr = getCurriculum(school.curriculum);
-  const { ALL_GRADES, DEFAULT_SUBJECTS, gInfo, maxPts, JSS_SCALE, PRIMARY_SCALE } = curr;
+  const curr = getCurriculum(school?.curriculum || 'CBC');
+  const { ALL_GRADES, DEFAULT_SUBJECTS, gInfo, maxPts } = curr;
   const isJSSGrade = curr.isJSSGrade || curr.isSecondary || (() => false);
 
   useEffect(() => {
@@ -309,7 +309,7 @@ export default function GradesPage() {
   }
 
   /* ── Grade scale pills ── */
-  const scale = isJSSGrade(grade) ? JSS_SCALE : PRIMARY_SCALE;
+  const scale = curr.getScale ? curr.getScale(grade, gradCfg) : [];
 
   if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading marks…</div>;
 
