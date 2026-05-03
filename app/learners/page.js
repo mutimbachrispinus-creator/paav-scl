@@ -284,6 +284,19 @@ function AddLearnerModal({ onClose, isAdmin, streams, curr }) {
 
   const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  function calculateAge(dobString) {
+    if (!dobString) return '';
+    const birthDate = new Date(dobString);
+    if (isNaN(birthDate.getTime())) return '';
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age > 0 ? age : 0;
+  }
+
   return (
     <ModalOverlay title="➕ Add Learner" onClose={onClose}>
       {err && <div className="alert alert-err show">{err}</div>}
@@ -298,7 +311,10 @@ function AddLearnerModal({ onClose, isAdmin, streams, curr }) {
       </div>
       <div className="field-row">
         <div className="field"><label>Date of Birth</label>
-          <input type="date" value={form.dob} onChange={e => F('dob', e.target.value)} /></div>
+          <input type="date" value={form.dob} onChange={e => {
+            const dob = e.target.value;
+            setForm(f => ({ ...f, dob, age: calculateAge(dob) }));
+          }} /></div>
         <div className="field"><label>Adm No (auto if blank)</label>
           <input value={form.adm} onChange={e => F('adm', e.target.value)} placeholder="e.g. 2026001" /></div>
       </div>
@@ -486,6 +502,19 @@ function EditLearnerModal({ onClose, learner, isAdmin, streams, curr }) {
   const [err,  setErr]  = useState('');
   const [busy, setBusy] = useState(false);
 
+  function calculateAge(dobString) {
+    if (!dobString) return '';
+    const birthDate = new Date(dobString);
+    if (isNaN(birthDate.getTime())) return '';
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age > 0 ? age : 0;
+  }
+
   async function save() {
     if (!form.name || !form.grade || !form.adm) { setErr('Name, Grade and Adm No are required'); return; }
     setBusy(true);
@@ -534,7 +563,10 @@ function EditLearnerModal({ onClose, learner, isAdmin, streams, curr }) {
       </div>
       <div className="field-row">
         <div className="field"><label>Date of Birth</label>
-          <input type="date" value={form.dob || ''} onChange={e => F('dob', e.target.value)} /></div>
+          <input type="date" value={form.dob || ''} onChange={e => {
+            const dob = e.target.value;
+            setForm(f => ({ ...f, dob, age: calculateAge(dob) }));
+          }} /></div>
         <div className="field"><label>Adm No</label>
           <input value={form.adm} onChange={e => F('adm', e.target.value)} /></div>
       </div>

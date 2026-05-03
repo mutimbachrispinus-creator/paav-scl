@@ -60,6 +60,19 @@ export default function BulkLearnersPage() {
     check();
   }, [router]);
 
+  function calculateAge(dobString) {
+    if (!dobString) return '';
+    const birthDate = new Date(dobString);
+    if (isNaN(birthDate.getTime())) return '';
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age > 0 ? age : 0;
+  }
+
   function updateRow(idx, field, val) {
     const newRows = [...rows];
     let row = { ...newRows[idx], [field]: val };
@@ -70,6 +83,11 @@ export default function BulkLearnersPage() {
       if (existing) {
         row = { ...row, ...existing };
       }
+    }
+
+    // Auto-calculate age if DOB changes
+    if (field === 'dob') {
+      row.age = calculateAge(val);
     }
     
     newRows[idx] = row;
