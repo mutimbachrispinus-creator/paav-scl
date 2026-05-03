@@ -1,6 +1,6 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
-import { createClient } from '@libsql/client';
+import { createClient } from '@libsql/client/web';
 import { getSession } from '@/lib/auth';
 
 export async function GET() {

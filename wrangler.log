@@ -1,0 +1,157 @@
+
+ ⛅️ wrangler 3.114.17 (update available 4.87.0)
+-----------------------------------------------
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe version of Wrangler you are using is now out-of-date.[0m
+
+  Please update to the latest version to prevent critical errors.
+  Run `npm install --save-dev wrangler@4` to update to the latest version.
+  After installation, run Wrangler with `npx wrangler`.
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProcessing wrangler.toml configuration:[0m
+
+    - Unexpected fields found in top-level field: "headers"
+
+
+Attaching additional modules:
+┌─────────────────────────────────────────────────────────────────────┬──────┬─────────────┐
+│ Name                                                                │ Type │ Size        │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/cache/adaptor.js                             │ esm  │ 2.29 KiB    │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/cache/cache-api.js                           │ esm  │ 0.43 KiB    │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/cache/kv.js                                  │ esm  │ 0.35 KiB    │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/auth/check-username.func.js    │ esm  │ 50.64 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/auth/recovery.func.js          │ esm  │ 51.90 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/auth.func.js                   │ esm  │ 61.83 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/comms/push.func.js             │ esm  │ 76.45 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/cron/backup.func.js            │ esm  │ 257.77 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/cron/promote.func.js           │ esm  │ 51.35 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/db.func.js                     │ esm  │ 56.78 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/debug.func.js                  │ esm  │ 51.36 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/email/receipt.func.js          │ esm  │ 74.23 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/email/report-card.func.js      │ esm  │ 73.98 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/finance/expenses.func.js       │ esm  │ 52.10 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/finance/ledger.func.js         │ esm  │ 52.52 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/health.func.js                 │ esm  │ 50.51 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/mpesa/callback.func.js         │ esm  │ 53.17 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/mpesa/stk.func.js              │ esm  │ 52.42 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/notifications.func.js          │ esm  │ 52.80 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/ping.func.js                   │ esm  │ 49.73 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/config.func.js            │ esm  │ 51.47 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/global-config.func.js     │ esm  │ 52.32 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/init.func.js              │ esm  │ 53.26 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/manage.func.js            │ esm  │ 53.66 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/schools/delete.func.js    │ esm  │ 51.84 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/schools.func.js           │ esm  │ 50.80 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/signup.func.js            │ esm  │ 52.77 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/stats.func.js             │ esm  │ 52.51 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/subscription.func.js      │ esm  │ 50.72 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/seed.func.js                   │ esm  │ 52.73 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/sms.func.js                    │ esm  │ 51.20 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/stats/dashboard.func.js        │ esm  │ 52.45 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/stats.func.js                  │ esm  │ 50.89 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/upload/[id].func.js            │ esm  │ 51.68 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/upload.func.js                 │ esm  │ 51.65 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/whatsapp/reminder.func.js      │ esm  │ 51.10 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/whatsapp/report-card.func.js   │ esm  │ 51.80 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/classes/[grade].func.js            │ esm  │ 76.71 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/fees/[adm]/receipt.func.js         │ esm  │ 78.84 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/grades/report-card/[id].func.js    │ esm  │ 85.86 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/learners/[id].func.js              │ esm  │ 77.01 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/middleware.func.js                 │ esm  │ 112.92 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/sms/api/send.func.js               │ esm  │ 51.50 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/manifest/88a389dd6c068190adb2efc795e4063c.js │ esm  │ 0.52 KiB    │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/20961.js                             │ esm  │ 2.72 KiB    │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/25630.js                             │ esm  │ 0.20 KiB    │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/3545.js                              │ esm  │ 2.60 KiB    │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/46407.js                             │ esm  │ 27.74 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/5f887ca33fb9a62cd431f9671e720a9d.js  │ esm  │ 106.68 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/63eb1b0457e027b3ba5c2892139abd38.js  │ esm  │ 164.89 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/6e0d09bb8e5942a87a2567b1b7e5a4cf.js  │ esm  │ 11.63 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/9026.js                              │ esm  │ 2.56 KiB    │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/94893.js                             │ esm  │ 12.43 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/b7b479cbe7aeca03e425651fd63d9790.js  │ esm  │ 1.65 KiB    │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/ca0dcd45722b6d5d40a71cce63a01091.js  │ esm  │ 30.23 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/caa5c0cd6f0a2274f8c11e609e339e3b.js  │ esm  │ 63.23 KiB   │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/cd9030a3c1f78b0f169cf6b571a2ab04.js  │ esm  │ 571.01 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/ef057c77a4bb07a13616551b118a31df.js  │ esm  │ 238.64 KiB  │
+├─────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ Total (58 modules)                                                  │      │ 3775.01 KiB │
+└─────────────────────────────────────────────────────────────────────┴──────┴─────────────┘
+✨ Compiled Worker successfully
+✨ Parsed 1 valid header rule.
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProcessing wrangler.toml configuration:[0m
+
+    - Unexpected fields found in top-level field: "headers"
+
+
+Using vars defined in .dev.vars
+Your Worker and resources are simulated locally via Miniflare. For more information, see: https://developers.cloudflare.com/workers/testing/local-development.
+
+Your worker has access to the following bindings:
+- Vars:
+  - TURSO_URL: "(hidden)"
+  - TURSO_TOKEN: "(hidden)"
+  - JWT_SECRET: "(hidden)"
+  - PASS_SALT: "(hidden)"
+  - NEXT_PUBLIC_SITE_URL: "(hidden)"
+⎔ Starting local server...
+[wrangler:inf] Ready on http://localhost:8788
