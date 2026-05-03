@@ -1,8 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { DEFAULT_SUBJECTS, gInfo, fmtK, getAllGrades, getDefaultSubjects } from '@/lib/cbe';
-import { getCurriculum } from '@/lib/curriculum';
+import { DEFAULT_SUBJECTS, gInfo, fmtK } from '@/lib/cbe';
 
 const M = '#8B1A1A', M2 = '#6B1212', ML = '#FDF2F2', MB = '#F5E6E6';
 
