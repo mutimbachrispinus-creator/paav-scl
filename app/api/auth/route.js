@@ -248,43 +248,58 @@ async function handleAddChild({ schoolId, adm }, request) {
   if (session.role !== 'parent') return err('Only parent accounts can link children', 403);
   if (!schoolId || !adm) return err('School and admission number are required');
 
-  const { query, execute } = await import('@/lib/db');
+  try {
+    const { execute } = await import('@/lib/db');
 
-  // Verify the learner actually exists in that school
-  const learnerRows = await query(
-    "SELECT value FROM kv WHERE key = 'paav6_learners' AND tenant_id = ?",
-    [schoolId]
-  );
-  let learners = [];
-  try { learners = JSON.parse(learnerRows[0]?.value || '[]'); } catch {}
-  const learner = learners.find(l => l.adm === adm.trim());
-  if (!learner) return err(`Admission number "${adm}" not found in the selected school. Verify with the school office.`);
+    // Use kvGet (tenant-scoped) to verify the learner exists in the target school
+    const learnerList = await kvGet('paav6_learners', [], schoolId);
+    const learners = Array.isArray(learnerList) ? learnerList : [];
+    const learner = learners.find(l => l.adm === adm.trim());
+    if (!learner) {
+      return err(`Admission number "${adm}" was not found in the selected school. Please verify with the school office.`);
+    }
 
-  // Check if this parent↔child link already exists
-  const existing = await query(
-    'SELECT id FROM staff WHERE id = ? AND tenant_id = ?',
-    [session.id, schoolId]
-  );
-  if (existing.length > 0) {
-    // Update existing row's childAdm (could already have a different adm)
-    await execute(
-      'UPDATE staff SET childAdm = ? WHERE id = ? AND tenant_id = ?',
-      [adm.trim(), session.id, schoolId]
+    // Check if this parent↔school link already exists
+    const existing = await query(
+      'SELECT id FROM staff WHERE id = ? AND tenant_id = ?',
+      [session.id, schoolId]
     );
-  } else {
-    // Insert a new row for this parent in the new school's tenant
-    // Copy password hash from existing row
-    const myRows = await query('SELECT * FROM staff WHERE id = ? LIMIT 1', [session.id]);
-    const me = myRows[0];
-    if (!me) return err('Parent record not found', 404);
-    await execute(
-      `INSERT INTO staff (id, tenant_id, name, username, role, phone, password, status, childAdm, createdAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [session.id, schoolId, me.name, me.username, 'parent', me.phone, me.password, 'active', adm.trim(), new Date().toISOString()]
-    );
+
+    if (existing.length > 0) {
+      // Update the childAdm on the existing row
+      await execute(
+        'UPDATE staff SET childAdm = ? WHERE id = ? AND tenant_id = ?',
+        [adm.trim(), session.id, schoolId]
+      );
+    } else {
+      // Fetch this parent's own record to copy credentials
+      const myRows = await query('SELECT * FROM staff WHERE id = ? LIMIT 1', [session.id]);
+      const me = myRows[0];
+      if (!me) return err('Your parent record was not found. Please contact support.', 404);
+
+      await execute(
+        `INSERT OR IGNORE INTO staff
+         (id, tenant_id, name, username, role, phone, password, status, childAdm, createdAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          session.id, schoolId,
+          me.name, me.username, 'parent',
+          me.phone || '', me.password,
+          'active', adm.trim(),
+          new Date().toISOString()
+        ]
+      );
+    }
+
+    return NextResponse.json({
+      ok: true,
+      learner: { name: learner.name, grade: learner.grade, adm: learner.adm }
+    });
+
+  } catch (e) {
+    console.error('[add_child] Error:', e);
+    return err('Failed to link child: ' + (e.message || 'Unknown server error'), 500);
   }
-
-  return NextResponse.json({ ok: true, learner: { name: learner.name, grade: learner.grade, adm: learner.adm } });
 }
 
 /* ─── Google Sign-In ────────────────────────────────────────────────────── */
