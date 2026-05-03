@@ -12,21 +12,24 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { gInfo, DEFAULT_SUBJECTS, fmtK, maxPts } from '@/lib/cbe';
+import { fmtK } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 import { usePersistedState } from '@/components/TabState';
+import { useProfile } from '@/app/PortalShell';
 
 const ASSESSMENTS = [
   { key: 'op1', label: '📝 Opener' },
   { key: 'mt1', label: '📖 Mid-Term' },
   { key: 'et1', label: '📋 End-Term' },
 ];
-const TERMS = ['T1','T2','T3'];
+
 
 export default function LearnerProfilePage() {
   const router  = useRouter();
   const params  = useParams();
   const admNo   = params?.id;
 
+  const { profile } = useProfile();
   const [user,    setUser]    = useState(null);
   const [learner, setLearner] = useState(null);
   const [marks,   setMarks]   = useState({});
@@ -70,6 +73,10 @@ export default function LearnerProfilePage() {
 
   if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading profile…</div>;
   if (!learner) return null;
+
+  const curr = getCurriculum(profile?.curriculum || 'CBC');
+  const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
+  const { gInfo, maxPts, DEFAULT_SUBJECTS } = curr;
 
   const subjects   = DEFAULT_SUBJECTS[learner.grade] || [];
   const cfg        = feeCfg[learner.grade] || {};
@@ -159,13 +166,13 @@ export default function LearnerProfilePage() {
                 ['Accumulated Fee', fmtK(learner.arrears || 0)],
                 ['Annual Total', fmtK(annualFee)],
                 ...(t1Fee || t2Fee || t3Fee ? [
-                  [`T1 (Expected: ${fmtK(t1Fee)})`, `Paid: ${fmtK(learner.t1||0)}`],
-                  [`T2 (Expected: ${fmtK(t2Fee)})`, `Paid: ${fmtK(learner.t2||0)}`],
-                  [`T3 (Expected: ${fmtK(t3Fee)})`, `Paid: ${fmtK(learner.t3||0)}`],
+                  [`${TERMS[0]?.name || 'T1'} (Expected: ${fmtK(t1Fee)})`, `Paid: ${fmtK(learner.t1||0)}`],
+                  [`${TERMS[1]?.name || 'T2'} (Expected: ${fmtK(t2Fee)})`, `Paid: ${fmtK(learner.t2||0)}`],
+                  [`${TERMS[2]?.name || 'T3'} (Expected: ${fmtK(t3Fee)})`, `Paid: ${fmtK(learner.t3||0)}`],
                 ] : [
-                  ['T1 Paid',     fmtK(learner.t1||0)],
-                  ['T2 Paid',     fmtK(learner.t2||0)],
-                  ['T3 Paid',     fmtK(learner.t3||0)],
+                  [TERMS[0]?.name || 'T1 Paid',     fmtK(learner.t1||0)],
+                  [TERMS[1]?.name || 'T2 Paid',     fmtK(learner.t2||0)],
+                  [TERMS[2]?.name || 'T3 Paid',     fmtK(learner.t3||0)],
                 ]),
                 ['Total Paid',  fmtK(totalPaid)],
               ].map(([k, v]) => (
@@ -195,7 +202,7 @@ export default function LearnerProfilePage() {
             <select value={term} onChange={e => setTerm(e.target.value)}
               style={{ padding: '6px 10px', border: '2px solid var(--border)',
                 borderRadius: 8, fontSize: 12, outline: 'none' }}>
-              {TERMS.map(t => <option key={t} value={t}>Term {t.replace('T','')}</option>)}
+              {TERMS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
             <select value={assess} onChange={e => setAssess(e.target.value)}
               style={{ padding: '6px 10px', border: '2px solid var(--border)',

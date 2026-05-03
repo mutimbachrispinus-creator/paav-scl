@@ -16,7 +16,7 @@ const ASSESSMENTS = [
   { key: 'mt1', label: 'Mid-Term' },
   { key: 'et1', label: 'End-Term' },
 ];
-const TERMS = ['T1','T2','T3'];
+
 
 export default function ReportCardPage() {
   const router = useRouter();
@@ -30,8 +30,9 @@ export default function ReportCardPage() {
   const [term,    setTerm]    = useState('T1');
   const [loading, setLoading] = useState(true);
 
-  const curr = getCurriculum(school.curriculum);
-  const { DEFAULT_SUBJECTS, gInfo, maxPts, JSS_SCALE, PRIMARY_SCALE } = curr;
+  const curr = getCurriculum(school?.curriculum || 'CBC');
+  const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
+  const { DEFAULT_SUBJECTS, gInfo, maxPts } = curr;
   const isJSSGrade = curr.isJSSGrade || curr.isSecondary || (() => false);
 
   useEffect(() => {
@@ -121,7 +122,7 @@ export default function ReportCardPage() {
           style={{ padding: '7px 14px', borderRadius: 8, border: 'none',
             fontSize: 12, fontWeight: 700, background: 'rgba(255,255,255,.1)',
             color: '#fff', cursor: 'pointer', outline: 'none' }}>
-          {TERMS.map(t => <option key={t} value={t} style={{ color: '#1e293b' }}>Term {t.replace('T','')}</option>)}
+          {TERMS.map(t => <option key={t.id} value={t.id} style={{ color: '#1e293b' }}>{t.name}</option>)}
         </select>
         <button onClick={() => router.push(`/learners/${admNo}`)}
           className="btn btn-ghost btn-sm" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.3)' }}>
@@ -162,7 +163,7 @@ export default function ReportCardPage() {
               <div className="rc-hdr-sub">{school.address} &nbsp;·&nbsp; Tel: {school.phone}</div>
               <div>
                 <span className="rc-badge">
-                  ACADEMIC PROGRESS REPORT &nbsp;·&nbsp; {curr.name} &nbsp;·&nbsp; TERM {term.replace('T','')} &nbsp;·&nbsp; {new Date().getFullYear()}
+                  ACADEMIC PROGRESS REPORT &nbsp;·&nbsp; {curr.name} &nbsp;·&nbsp; {TERMS.find(t=>t.id===term)?.name?.toUpperCase() || `TERM ${term.replace('T','')}`} &nbsp;·&nbsp; {new Date().getFullYear()}
                 </span>
               </div>
               <div className="rc-motto">{school.motto}</div>
@@ -204,9 +205,9 @@ export default function ReportCardPage() {
               <div style={{ fontSize: 8, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 }}>📊 Termly Assessment Trend</div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20, height: 60, paddingLeft: 5 }}>
                 {[
-                  { label: 'Opener', total: openerTotal, color: '#8B1A1A' },
-                  { label: 'Mid-Term', total: midTotal, color: '#D97706' },
-                  { label: 'End-Term', total: endTotal, color: '#2563EB' },
+                  { label: ASSESSMENTS[0].label, total: openerTotal, color: '#8B1A1A' },
+                  { label: ASSESSMENTS[1].label, total: midTotal, color: '#D97706' },
+                  { label: ASSESSMENTS[2].label, total: endTotal, color: '#2563EB' },
                   { label: 'Average', total: avgTotal, color: '#059669' },
                 ].map(g => {
                   const maxVal = Math.max(openerTotal, midTotal, endTotal, avgTotal, 1);

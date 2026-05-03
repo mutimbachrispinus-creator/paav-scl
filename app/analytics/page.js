@@ -5,17 +5,20 @@ import {
   LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis 
 } from 'recharts';
-import { getAllGrades, getDefaultSubjects, calcLearnerPoints } from '@/lib/cbe';
+import { fmtK, getDefaultSubjects, calcLearnerPoints } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 import { useProfile } from '@/app/PortalShell';
 
 const M = '#8B1A1A', M2 = '#6B1212', ML = '#FDF2F2', MB = '#F5E6E6';
-const TERMS = ['T1', 'T2', 'T3'];
+
 const ASSESS = ['op1', 'mt1', 'et1'];
 
 export default function AnalyticsPage() {
   const router = useRouter();
   const { profile: school } = useProfile();
-  const ALL_GRADES = getAllGrades(school?.curriculum || 'CBC');
+  const curr = getCurriculum(school?.curriculum || 'CBC');
+  const ALL_GRADES = curr.ALL_GRADES;
+  const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -97,11 +100,11 @@ export default function AnalyticsPage() {
     const subjects = getDefaultSubjects(learner.grade, school?.curriculum || 'CBC');
     const data = [];
     TERMS.forEach(t => ASSESS.forEach(a => {
-      const stats = calcLearnerPoints(marks, learner.adm, learner.grade, t, a, subjects, null, school?.curriculum || 'CBC');
-      if (stats.enteredCount > 0) data.push({ name: `${t} ${a.toUpperCase().replace('1','')}`, score: Math.round((stats.totalPts / stats.maxTotal) * 100) });
+      const stats = calcLearnerPoints(marks, learner.adm, learner.grade, t.id, a, subjects, null, school?.curriculum || 'CBC');
+      if (stats.enteredCount > 0) data.push({ name: `${t.id} ${a.toUpperCase().replace('1','')}`, score: Math.round((stats.totalPts / stats.maxTotal) * 100) });
     }));
     return data;
-  }, [learner, marks, school?.curriculum]);
+  }, [learner, marks, school?.curriculum, TERMS]);
 
   const radarData = useMemo(() => {
     if (!learner) return [];

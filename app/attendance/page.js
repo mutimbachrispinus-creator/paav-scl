@@ -9,13 +9,14 @@
  * • Analytics: weekly / monthly / termly / annual absenteeism
  */
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ALL_GRADES } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { useProfile } from '@/app/PortalShell';
 
-const TERMS = ['T1','T2','T3'];
+
 
 const STATUS_COLORS = { P:'#059669', A:'#DC2626', L:'#D97706', E:'#7C3AED' };
 const STATUS_LABELS = { P:'Present', A:'Absent', L:'Late', E:'Excused' };
@@ -49,7 +50,9 @@ function monthOf(dateStr) { return dateStr.slice(0,7); }
 
 export default function AttendancePage() {
   const router = useRouter();
-  const { playSuccessSound } = useProfile();
+  const { playSuccessSound, profile } = useProfile();
+  const curr = getCurriculum(profile?.curriculum || 'CBC');
+  const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
   const [user,         setUser]         = useState(null);
 
   const [loading,      setLoading]      = useState(true);
@@ -63,6 +66,7 @@ export default function AttendancePage() {
   const [selDate,      setSelDate]      = useState(new Date().toISOString().split('T')[0]);
   const [alert,        setAlert]        = useState('');
   const [dirtyAtt,     setDirtyAtt]     = useState({}); // { key: status }
+  const dirtyAttRef = useRef({}); // Ref for merging during background sync
 
   const load = useCallback(async () => {
     try {
@@ -83,8 +87,16 @@ export default function AttendancePage() {
       const ctData      = db.paav_class_teachers || {};
       
       setLearners(allLearners);
-      setAtt(attData);
       setClassTeachers(ctData);
+
+      // MERGE LOCAL DIRTY CHANGES to prevent disappearing status while marking
+      setAtt(prev => {
+        const merged = { ...attData };
+        Object.entries(dirtyAttRef.current).forEach(([k, v]) => {
+          merged[k] = v;
+        });
+        return merged;
+      });
 
       // Determine which grade this teacher owns
       if (u.role !== 'admin') {
@@ -114,7 +126,11 @@ export default function AttendancePage() {
   function setStatus(adm, date, status) {
     const key = `${grade}|${date}|${adm}`;
     setAtt(prev => ({ ...prev, [key]: status }));
-    setDirtyAtt(prev => ({ ...prev, [key]: status }));
+    setDirtyAtt(prev => {
+      const next = { ...prev, [key]: status };
+      dirtyAttRef.current = next;
+      return next;
+    });
   }
   function getStatus(adm, date) {
     return att[`${grade}|${date}|${adm}`] || '';
@@ -140,6 +156,7 @@ export default function AttendancePage() {
       setDirtyAtt(prev => {
         const next = { ...prev };
         Object.keys(toSync).forEach(k => delete next[k]);
+        dirtyAttRef.current = next;
         return next;
       });
 
@@ -206,7 +223,7 @@ export default function AttendancePage() {
   // Derive periods for analytics
   const weekDays    = schoolDays.filter(d => weekOf(d) === weekOf(selDate));
   const monthDays   = schoolDays.filter(d => monthOf(d) === monthOf(selDate));
-  const annualDays  = ['T1','T2','T3'].flatMap(t => getSchoolDays(t));
+  const annualDays  = TERMS.flatMap(t => getSchoolDays(t.id));
 
   return (
     <div className="page on" id="pg-attendance">
@@ -222,7 +239,7 @@ export default function AttendancePage() {
             </select>
           )}
           <select value={term} onChange={e=>setTerm(e.target.value)} className="sc-inp">
-            {TERMS.map(t=><option key={t}>{t}</option>)}
+            {TERMS.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
           {activeView === 'mark' && (
             <>

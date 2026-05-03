@@ -1,5 +1,4 @@
 'use client';
-'use client';
 /**
  * app/fees/page.js — Fee management (all receipts)
  *
@@ -14,15 +13,20 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ALL_GRADES, fmtK } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 import { usePersistedState } from '@/components/TabState';
+import { useProfile } from '@/app/PortalShell';
 
-const TERMS   = ['T1','T2','T3'];
+
 const METHODS = ['Cash','M-Pesa','Bank','Cheque','Bursary'];
 
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
 export default function FeesPage() {
   const router = useRouter();
+  const { playSuccessSound, profile } = useProfile();
+  const curr = getCurriculum(profile?.curriculum || 'CBC');
+  const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
   const [user,     setUser]     = useState(null);
   const [learners, setLearners] = useState([]);
   const [feeCfg,   setFeeCfg]   = useState({});
@@ -337,7 +341,7 @@ export default function FeesPage() {
                 style={{ padding: '7px 11px', border: '2px solid var(--border)',
                   borderRadius: 8, fontSize: 12, outline: 'none' }}>
                 <option value="">Full Year</option>
-                {TERMS.map(t => <option key={t} value={t}>{t}</option>)}
+                {TERMS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
           </div>
@@ -432,6 +436,7 @@ export default function FeesPage() {
           feeCfg={feeCfg}
           onClose={() => { setModal(null); setSelLearner(null); load(); }}
           recordedBy={user?.name}
+          TERMS={TERMS}
         />
       )}
 
@@ -440,6 +445,7 @@ export default function FeesPage() {
         <FeeConfigModal
           feeCfg={feeCfg}
           onClose={() => { setModal(null); load(); }}
+          TERMS={TERMS}
         />
       )}
 
@@ -530,7 +536,7 @@ function PaybillConfigModal({ accounts, onClose }) {
 }
 
 
-function PayModal({ learner, feeCfg, onClose, recordedBy }) {
+function PayModal({ learner, feeCfg, onClose, recordedBy, TERMS }) {
   const getAnnualFee = g => feeCfg[g]?.annual || 5000;
   const [term,   setTerm]   = useState('T1');
   const [amount, setAmount] = useState('');
@@ -622,7 +628,7 @@ function PayModal({ learner, feeCfg, onClose, recordedBy }) {
         <div className="field">
           <label>Term</label>
           <select value={term} onChange={e => setTerm(e.target.value)}>
-            {TERMS.map(t=><option key={t} value={t}>Term {t.replace('T','')}</option>)}
+            {TERMS.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
         </div>
         <div className="field">
@@ -654,7 +660,7 @@ function PayModal({ learner, feeCfg, onClose, recordedBy }) {
 }
 
 /* ─── Fee Config Modal ───────────────────────────────────────────────────── */
-function FeeConfigModal({ feeCfg, onClose }) {
+function FeeConfigModal({ feeCfg, onClose, TERMS }) {
   const [cfg,  setCfg]  = useState({ ...feeCfg });
   const [busy, setBusy] = useState(false);
 
@@ -679,7 +685,7 @@ function FeeConfigModal({ feeCfg, onClose }) {
             <div style={{ fontWeight: 800, color: 'var(--navy)', fontSize: 11, marginBottom: 10 }}>{g}</div>
             <div className="field-row">
               <div className="field">
-                <label style={{ fontSize: 10 }}>Term 1</label>
+                <label style={{ fontSize: 10 }}>{TERMS[0]?.name || 'Term 1'}</label>
                 <input
                   type="number"
                   value={cfg[g]?.t1 || ''}
@@ -688,7 +694,7 @@ function FeeConfigModal({ feeCfg, onClose }) {
                 />
               </div>
               <div className="field">
-                <label style={{ fontSize: 10 }}>Term 2</label>
+                <label style={{ fontSize: 10 }}>{TERMS[1]?.name || 'Term 2'}</label>
                 <input
                   type="number"
                   value={cfg[g]?.t2 || ''}
@@ -697,7 +703,7 @@ function FeeConfigModal({ feeCfg, onClose }) {
                 />
               </div>
               <div className="field">
-                <label style={{ fontSize: 10 }}>Term 3</label>
+                <label style={{ fontSize: 10 }}>{TERMS[2]?.name || 'Term 3'}</label>
                 <input
                   type="number"
                   value={cfg[g]?.t3 || ''}

@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { buildMeritList, ALL_GRADES, maxPts, DEFAULT_SUBJECTS, gInfo, JSS, SENIOR } from '@/lib/cbe';
+import { buildMeritList, fmtK, isJSSGrade } from '@/lib/cbe';
 import { getCurriculum } from '@/lib/curriculum';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
@@ -23,7 +23,7 @@ import PrintHeader from '@/components/PrintHeader';
 
 const ASSESS_LABELS = { op1:'Opener Exam', mt1:'Mid-Term Exam', et1:'End-Term Exam' };
 
-const TERMS      = ['T1','T2','T3'];
+
 const ASSESSMENTS = [
   { key: 'op1', label: 'Opener'   },
   { key: 'mt1', label: 'Mid-Term' },
@@ -51,6 +51,7 @@ export default function MeritListPage() {
   const school = ctxProfile && Object.keys(ctxProfile).length > 0 ? ctxProfile : localProfile;
 
   const curr = getCurriculum(school?.curriculum || 'CBC');
+  const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
   const { ALL_GRADES } = curr;
 
   useEffect(() => {
@@ -115,7 +116,7 @@ export default function MeritListPage() {
   const totalAvgMarks = ranked.length > 0 ? Math.round(totalMarksSum / ranked.length) : 0;
   
   const distribution = useMemo(() => {
-    const isJSS = JSS.includes(grade) || SENIOR.includes(grade);
+    const isJSS = isJSSGrade(grade, school?.curriculum || 'CBC');
     const counts = isJSS 
       ? { EE1:0, EE2:0, ME1:0, ME2:0, AE1:0, AE2:0, BE1:0, BE2:0 }
       : { EE: 0, ME: 0, AE: 0, BE: 0 };
@@ -168,7 +169,7 @@ export default function MeritListPage() {
           <div className="field" style={{ marginBottom: 0 }}>
             <label>Term</label>
             <select value={term} onChange={e => setTerm(e.target.value)}>
-              {TERMS.map(t => <option key={t} value={t}>Term {t.replace('T','')}</option>)}
+              {TERMS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
           </div>
           <div className="field" style={{ marginBottom: 0 }}>

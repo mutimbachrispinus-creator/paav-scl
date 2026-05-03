@@ -16,12 +16,9 @@
 
 import { useState, useEffect } from 'react';
 import { fmtK } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 
-const TERMS = [
-  { key: 'T1', label: 'Term 1', col: 't1' },
-  { key: 'T2', label: 'Term 2', col: 't2' },
-  { key: 'T3', label: 'Term 3', col: 't3' },
-];
+
 
 function getTermFee(feeCfg, grade, termKey) {
   const cfg = feeCfg[grade] || {};
@@ -45,6 +42,13 @@ export default function PayPage() {
   const [paying,  setPaying]  = useState(false);
   const [payMsg,  setPayMsg]  = useState('');
   const [success, setSuccess] = useState(false);
+  
+  const curr = getCurriculum(profile?.curriculum || 'CBC');
+  const TERMS = curr.TERMS?.map(t => ({ key: t.id, label: t.name, col: t.id.toLowerCase() })) || [
+    { key: 'T1', label: 'Term 1', col: 't1' },
+    { key: 'T2', label: 'Term 2', col: 't2' },
+    { key: 'T3', label: 'Term 3', col: 't3' },
+  ];
 
   useEffect(() => {
     fetch('/api/db', {
@@ -348,7 +352,7 @@ export default function PayPage() {
               </div>
               <div style={{ marginTop: 10, padding: '8px 14px', background: '#EEF2FF', borderRadius: 10,
                 fontSize: 12, color: '#4338CA' }}>
-                Paying: <strong>{term.replace('T','Term ')}</strong> · Amount: <strong>{fmtK(Number(amount))}</strong> · Adm: <strong>{learner?.adm}</strong>
+                Paying: <strong>{TERMS.find(t=>t.key===term)?.label || term}</strong> · Amount: <strong>{fmtK(Number(amount))}</strong> · Adm: <strong>{learner?.adm}</strong>
               </div>
               <button onClick={() => { setSuccess(false); setLearner(null); setAdm(''); }}
                 style={{ marginTop: 16, padding: '10px 20px', background: 'transparent',

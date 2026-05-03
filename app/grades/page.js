@@ -10,16 +10,15 @@
  *   • Print / PDF class marks
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getMark } from '@/lib/cbe';
 import { getCurriculum } from '@/lib/curriculum';
 import { usePersistedState } from '@/components/TabState';
-import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+import { getCachedUser, getCachedDBMulti, getCacheKey } from '@/lib/client-cache';
 import { addToOutbox } from '@/lib/idb';
 import { useProfile } from '@/app/PortalShell';
 
-const TERMS      = ['T1','T2','T3'];
 
 const ASSESSMENTS = [
   { key: 'op1', label: '📝 Opener'   },
@@ -48,6 +47,7 @@ export default function GradesPage() {
   const [assess, setAssess] = usePersistedState('paav_grades_assess', 'mt1');
 
   const curr = getCurriculum(school?.curriculum || 'CBC');
+  const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
   const { ALL_GRADES, DEFAULT_SUBJECTS, gInfo, maxPts } = curr;
   const isJSSGrade = curr.isJSSGrade || curr.isSecondary || (() => false);
 
@@ -58,6 +58,7 @@ export default function GradesPage() {
   }, [ALL_GRADES, grade, setGrade]);
   
   const [dirtyMarks, setDirtyMarks] = useState([]); // Array of { gsa, adm, score }
+  const dirtyMarksRef = useRef([]); // Ref for merge during background load
 
   /* ── Load data ── */
   const load = useCallback(async () => {
@@ -87,6 +88,16 @@ export default function GradesPage() {
       setStreams( db.paav7_streams  || []);
       setGradCfg( db.paav8_grad     || null);
       setSubjCfg( db.paav8_subj     || {});
+
+      // MERGE LOCAL DIRTY CHANGES to prevent disappearing marks while typing
+      setMarks(prev => {
+        const merged = { ...(db.paav6_marks || {}) };
+        dirtyMarksRef.current.forEach(m => {
+          if (!merged[m.gsa]) merged[m.gsa] = {};
+          merged[m.gsa][m.adm] = m.score;
+        });
+        return merged;
+      });
     } catch (e) {
       console.error('Grades load error:', e);
     } finally {
@@ -127,16 +138,22 @@ export default function GradesPage() {
         ...prev,
         [gsa]: { ...(prev[gsa] || {}), [admNo]: score },
       };
-      const PREFIX = 'paav_cache_';
-      // Use s: Date.now() to prevent background sync engine from thinking this is old data
-      localStorage.setItem(PREFIX + 'db_paav6_marks', JSON.stringify({ v: nextMarks, t: Date.now(), s: Date.now() }));
+      
+      if (typeof window !== 'undefined') {
+        const PREFIX = 'paav_cache_';
+        const cacheKey = getCacheKey('db_paav6_marks');
+        localStorage.setItem(PREFIX + cacheKey, JSON.stringify({ v: nextMarks, t: Date.now(), s: Date.now() }));
+      }
       return nextMarks;
     });
 
     // 3. Track as dirty for sync
+    const newDirty = { gsa, adm: admNo, score };
     setDirtyMarks(prev => {
       const filtered = prev.filter(m => !(m.gsa === gsa && m.adm === admNo));
-      return [...filtered, { gsa, adm: admNo, score }];
+      const next = [...filtered, newDirty];
+      dirtyMarksRef.current = next; // Update ref for load() merging
+      return next;
     });
   }
 
@@ -195,7 +212,11 @@ export default function GradesPage() {
       if (data.error) throw new Error(data.error);
 
       // Clear dirty marks that were successfully synced
-      setDirtyMarks(prev => prev.filter(m => !marksToSync.includes(m)));
+      setDirtyMarks(prev => {
+        const next = prev.filter(m => !marksToSync.includes(m));
+        dirtyMarksRef.current = next;
+        return next;
+      });
 
       if (!isAuto) {
         playSuccessSound();
@@ -373,7 +394,7 @@ export default function GradesPage() {
           <div className="field" style={{ marginBottom: 0 }}>
             <label>Term</label>
             <select value={term} onChange={e => setTerm(e.target.value)}>
-              {TERMS.map(t => <option key={t} value={t}>Term {t.replace('T','')}</option>)}
+              {TERMS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
           </div>
           <div className="field" style={{ marginBottom: 0 }}>
