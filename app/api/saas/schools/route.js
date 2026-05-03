@@ -37,6 +37,6 @@ export async function GET() {
 
   } catch (err) {
     console.error('[api/saas/schools] Error:', err);
-    return NextResponse.json({ ok: false, error: 'Failed to load school list' }, { status: 500 });
+    return NextResponse.json({ ok: false, error: 'Failed to load school list', details: err.message }, { status: 500 });
   }
 }

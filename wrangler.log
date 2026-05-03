@@ -152,6 +152,49 @@ Your worker has access to the following bindings:
   - TURSO_TOKEN: "(hidden)"
   - JWT_SECRET: "(hidden)"
   - PASS_SALT: "(hidden)"
-  - NEXT_PUBLIC_SITE_URL: "(hidden)"
-⎔ Starting local server...
 [wrangler:inf] Ready on http://localhost:8788
+⎔ Starting local server...
+[DB] Ensuring schema...
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1m[DB] Schema initialization failed: a [LibsqlError]: SERVER_ERROR: Server returned HTTP status 400[0m
+
+      at m (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/caa5c0cd6f0a2274f8c11e609e339e3b.js:1:54642)
+      at null.<anonymous> (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/caa5c0cd6f0a2274f8c11e609e339e3b.js:1:58827)
+      at null.<anonymous> (async file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/46407.js:1:2281)
+      at async U (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/functions/api/auth.func.js:1:32472)
+      at async K.do (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/5f887ca33fb9a62cd431f9671e720a9d.js:7:7953)
+      at async K.handle (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/5f887ca33fb9a62cd431f9671e720a9d.js:7:9502)
+      at async Se.handler (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/5f887ca33fb9a62cd431f9671e720a9d.js:8:29189)
+      at async b (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/5f887ca33fb9a62cd431f9671e720a9d.js:8:25108)
+      at async Module.<anonymous> (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/functions/api/auth.func.js:5:17639)
+      at async R (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/index.js:40:89724) {
+    code: 'SERVER_ERROR',
+    rawCode: undefined,
+    [cause]: ne [HttpServerError]: Server returned HTTP status 400
+        at fr (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/caa5c0cd6f0a2274f8c11e609e339e3b.js:1:49194) {
+      status: 400
+    }
+  }
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1ma [LibsqlError]: SERVER_ERROR: Server returned HTTP status 400[0m
+
+      at m (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/caa5c0cd6f0a2274f8c11e609e339e3b.js:1:54642)
+      at null.<anonymous> (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/caa5c0cd6f0a2274f8c11e609e339e3b.js:1:58827)
+      at null.<anonymous> (async file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/46407.js:1:2281)
+      at async U (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/functions/api/auth.func.js:1:32472)
+      at async K.do (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/5f887ca33fb9a62cd431f9671e720a9d.js:7:7953)
+      at async K.handle (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/5f887ca33fb9a62cd431f9671e720a9d.js:7:9502)
+      at async Se.handler (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/5f887ca33fb9a62cd431f9671e720a9d.js:8:29189)
+      at async b (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/5f887ca33fb9a62cd431f9671e720a9d.js:8:25108)
+      at async Module.<anonymous> (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/functions/api/auth.func.js:5:17639)
+      at async R (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/index.js:40:89724) {
+    code: 'SERVER_ERROR',
+    rawCode: undefined,
+    [cause]: ne [HttpServerError]: Server returned HTTP status 400
+        at fr (file:///home/chrispinus/EduVantage%20school%20management%20system/.vercel/output/static/_worker.js/__next-on-pages-dist__/webpack/caa5c0cd6f0a2274f8c11e609e339e3b.js:1:49194) {
+      status: 400
+    }
+  }
+
+
+[wrangler:inf] POST /api/auth 500 Internal Server Error (1271ms)

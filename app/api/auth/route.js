@@ -60,7 +60,7 @@ export async function POST(request) {
     }
   } catch (e) {
     console.error('[api/auth] Server Error:', e);
-    return err(e.message || 'Internal Server Error', 500);
+    return err(`Internal Server Error: ${e.message}`, 500);
   }
 }
 
