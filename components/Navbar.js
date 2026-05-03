@@ -48,6 +48,13 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
   }
 
   async function logout() {
+    // 1. Clear ALL local cache immediately so UI resets
+    clearAllCache();
+    if (setUser) setUser(null);
+    // 2. Manually expire the auth cookie on the client (belt & braces)
+    document.cookie = 'paav_token=; Max-Age=0; path=/; SameSite=Lax';
+    document.cookie = 'paav_session=; Max-Age=0; path=/; SameSite=Lax';
+    // 3. Tell the server to clear its HttpOnly cookie (best-effort)
     try {
       await fetch('/api/auth', {
         method:  'POST',
@@ -55,9 +62,10 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
         body:    JSON.stringify({ action: 'logout' }),
       });
     } catch {}
-    if (setUser) setUser(null);
-    clearAllCache();
-    window.location.href = '/';
+    localStorage.clear();
+    sessionStorage.clear();
+    // 4. Hard redirect — clears all React state
+    window.location.replace('/');
   }
 
   if (!user) return null;
@@ -94,10 +102,6 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
         </div>
       </Link>
 
-      {/* ── Mobile Hamburger ── */}
-      <button className="tb-hamburger no-print" onClick={() => setShowMobileNav(!showMobileNav)}>
-        {showMobileNav ? '✕' : '☰'}
-      </button>
 
       {/* ── Nav tabs ── */}
       <div className="nav-container">
@@ -123,28 +127,6 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
         <button className="nav-scroll-btn no-print" onClick={() => document.getElementById('tb-nav-inner').scrollBy({left:200, behavior:'smooth'})}>›</button>
       </div>
 
-      {/* ── Mobile Drawer ── */}
-      {showMobileNav && (
-        <div className="mobile-drawer no-print">
-          {nav.map(n => {
-            const b = getBadge(n.key);
-            return (
-              <Link 
-                key={n.key}
-                href={`/${n.key}`} 
-                className={`drawer-item ${isActive(n.key)?'on':''}`} 
-                onClick={() => setShowMobileNav(false)} 
-                onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
-                style={{ position: 'relative', display: 'flex', justifyContent: 'space-between' }}
-              >
-                <span>{n.icon} {n.label}</span>
-                {b > 0 && <span className="nav-badge" style={{ right: 20 }}>{b > 9 ? '9+' : b}</span>}
-              </Link>
-            );
-          })}
-          <button className="btn btn-danger" style={{ margin: 20 }} onClick={logout}>🚪 Logout</button>
-        </div>
-      )}
 
 
       {/* ── Actions ── */}
@@ -161,9 +143,8 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
         </Link>
 
         {/* User pill */}
-        <div className="tb-user" onClick={onProfileClick} style={{ cursor: 'pointer' }}>
-          <div className="tb-avatar"
-            style={{ background: user.color || '#2563EB', overflow: 'hidden' }}>
+        <div className="tb-user" onClick={onProfileClick}>
+          <div className="tb-avatar" style={{ background: user.color || '#2563EB', overflow: 'hidden' }}>
             {user.avatar ? (
               <img src={user.avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
             ) : (
@@ -176,19 +157,21 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
           </div>
         </div>
 
-        {/* Sync Status */}
-        <div className="tb-sync" title="Sync Status" style={{ fontSize: 18, marginRight: 10 }}>
-          {navigator.onLine ? '🌐' : '📵'}
-        </div>
-
-        {/* Logout */}
+        {/* Stop impersonation */}
         {user.role === 'super-admin' && impersonateId && (
-          <button className="btn btn-warning btn-sm" style={{ marginRight: 10, fontWeight: 900, border: '2px solid #000' }} onClick={() => {
-            localStorage.removeItem('paav_impersonate_id');
-            window.location.href = '/super-admin';
-          }}>⏹ STOP VIEWING SCHOOL</button>
+          <>
+            <button className="btn btn-warning btn-sm btn-stop-impersonate" onClick={() => {
+              localStorage.removeItem('paav_impersonate_id');
+              window.location.href = '/super-admin';
+            }}>⏹ <span className="btn-text">STOP VIEWING SCHOOL</span></button>
+          </>
         )}
-        <button className="btn-logout" onClick={logout}>⏻ Out</button>
+
+        {/* Desktop logout pill */}
+        <button className="btn-logout" onClick={logout}>⏻ Logout</button>
+
+        {/* Mobile logout icon (shown only on ≤600px) */}
+        <button className="btn-logout-mobile" onClick={logout} title="Logout">⏻</button>
       </div>
     </div>
   );
