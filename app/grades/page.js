@@ -176,11 +176,6 @@ export default function GradesPage() {
 
   /* ── Save ── */
   async function save(isAuto = false) {
-    if (isLocked && user?.role !== 'admin') {
-      if (!isAuto) setAlert({ msg: 'Marks are locked. Only admin can edit.', type: 'err' });
-      return;
-    }
-    
     const marksToSync = [...dirtyMarks];
     if (marksToSync.length === 0 && isAuto) return;
 

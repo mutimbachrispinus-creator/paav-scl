@@ -107,7 +107,7 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
 
       {/* ── Nav tabs ── */}
       <div className="nav-container">
-        <button className="nav-scroll-btn no-print" onClick={() => document.getElementById('tb-nav-inner').scrollBy({left:-200, behavior:'smooth'})}>‹</button>
+        <button className="nav-scroll-btn no-print desktop-only" onClick={() => document.getElementById('tb-nav-inner').scrollBy({left:-200, behavior:'smooth'})}>‹</button>
         <nav className="tb-nav" id="tb-nav-inner">
           {nav.map(n => {
             const b = getBadge(n.key);
@@ -126,18 +126,20 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
             );
           })}
         </nav>
-        <button className="nav-scroll-btn no-print" onClick={() => document.getElementById('tb-nav-inner').scrollBy({left:200, behavior:'smooth'})}>›</button>
+        <button className="nav-scroll-btn no-print desktop-only" onClick={() => document.getElementById('tb-nav-inner').scrollBy({left:200, behavior:'smooth'})}>›</button>
       </div>
 
 
 
       {/* ── Actions ── */}
       <div className="tb-actions">
-        {/* Notification Bell */}
-        <NotificationBell userId={user?.id || user?.username} />
+        {/* Notification Bell (Hidden on mobile topbar) */}
+        <div className="desktop-only">
+          <NotificationBell userId={user?.id || user?.username} />
+        </div>
 
-        {/* Message badge */}
-        <Link href="/dashboard" className="tb-msg" title="Messages" style={{ textDecoration: 'none' }}>
+        {/* Message badge (Hidden on mobile topbar) */}
+        <Link href="/dashboard" className="tb-msg desktop-only" title="Messages" style={{ textDecoration: 'none' }}>
           💬
           {unreadCount > 0 && (
             <span className="msg-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>

@@ -8,6 +8,7 @@ import { ALL_NAV } from '@/lib/navigation';
 import { getCachedUser, getCachedDBMulti, prefetchKeys, clearAllCache, fetchWithRetry, hydrateCache } from '@/lib/client-cache';
 import { initSyncEngine, stopSyncEngine } from '@/lib/sync-engine';
 import { readSchoolProfile } from '@/lib/school-profile';
+import NotificationBell from '@/components/NotificationBell';
 
 /**
  * app/PortalShell.js — Client-side portal shell
@@ -367,17 +368,17 @@ export default function PortalShell({ children }) {
   }
 
   async function doLogout() {
-    clearTimeout(idleTimer.current);
-    clearTimeout(warnTimer.current);
-    clearInterval(countdownRef.current);
-    await fetchWithRetry('/api/auth', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ action: 'logout' }),
-      timeout: 5000
-    }).catch(() => {}); // Logout failure shouldn't block UI redirection
-    clearAllCache();
-    window.location.href = '/';
+    localStorage.clear();
+    sessionStorage.clear();
+    document.cookie = 'paav_session=; Max-Age=0; path=/; SameSite=Lax';
+    try {
+      await fetch('/api/auth', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ action: 'logout' }),
+      });
+    } catch {}
+    window.location.replace('/');
   }
 
   useEffect(() => {
@@ -559,6 +560,14 @@ export default function PortalShell({ children }) {
       {/* ── Mobile Bottom Nav ── */}
       {showNav && user && (
         <div className="mobile-bottom-nav no-print">
+          <div className="mbn-bell">
+            <NotificationBell userId={user.id || user.username} />
+          </div>
+          <Link href="/dashboard" className={pathname === '/dashboard' ? 'active' : ''}>
+            <span className="icon">💬</span>
+            <span className="label">Inbox</span>
+            {unreadCount > 0 && <span className="nav-badge">{unreadCount}</span>}
+          </Link>
           {ALL_NAV
             .filter(n => n.roles.some(r => r === user.role || (user.role === 'super-admin' && r === 'admin')))
             .map(n => {
