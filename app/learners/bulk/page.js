@@ -8,28 +8,34 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ALL_GRADES } from '@/lib/cbe';
+import { getAllGrades } from '@/lib/cbe';
 import { invalidateDB } from '@/lib/client-cache';
-
-const EMPTY_ROW = { 
-  adm: '', name: '', dob: '', grade: 'GRADE 7', sex: 'F', age: '', 
-  stream: '', parent: '', phone: '', parentEmail: '', addr: '',
-  t1: 0, t2: 0, t3: 0, teacher: '', arrears: 0
-};
-const GENDERS = ['M', 'F'];
+import { useProfile } from '@/app/PortalShell';
 
 export default function BulkLearnersPage() {
   const router = useRouter();
+  const { profile: school } = useProfile();
+  const ALL_GRADES = getAllGrades(school?.curriculum || 'CBC');
+
+  const EMPTY_ROW = { 
+    adm: '', name: '', dob: '', grade: ALL_GRADES[0] || 'GRADE 1', sex: 'F', age: '', 
+    stream: '', parent: '', phone: '', parentEmail: '', addr: '',
+    t1: 0, t2: 0, t3: 0, teacher: '', arrears: 0
+  };
+
   const [rows, setRows] = useState(() => Array(20).fill(null).map(() => ({ ...EMPTY_ROW })));
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
   const [streams, setStreams] = useState([]);
-  const [bulkGrade, setBulkGrade] = useState('GRADE 7');
-  const [bulkStream, setBulkStream] = useState('');
+  const [bulkGrade, setBulkGrade] = useState('');
   const [pickerSearch, setPickerSearch] = useState('');
   const [showPicker, setShowPicker] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!bulkGrade && ALL_GRADES.length > 0) setBulkGrade(ALL_GRADES[0]);
+  }, [ALL_GRADES, bulkGrade]);
 
   useEffect(() => {
     async function check() {

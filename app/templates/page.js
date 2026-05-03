@@ -15,7 +15,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
-import { ALL_GRADES, gInfo, DEFAULT_SUBJECTS, maxPts, calcLearnerReportData, getMark, isJSSGrade } from '@/lib/cbe';
+import { getAllGrades, gInfo, getDefaultSubjects, maxPts, calcLearnerReportData, getMark, isJSSGrade } from '@/lib/cbe';
 import { useSchoolProfile } from '@/lib/school-profile';
 import { useProfile } from '@/app/PortalShell';
 
@@ -28,6 +28,8 @@ export default function TemplatesPage() {
   const { profile: ctxProfile } = useProfile() || {};
   const localProfile = useSchoolProfile();
   const profile = ctxProfile && Object.keys(ctxProfile).length > 0 ? ctxProfile : localProfile;
+  const ALL_GRADES = getAllGrades(profile?.curriculum || 'CBC');
+
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
   const [marks, setMarks] = useState({});
@@ -36,11 +38,15 @@ export default function TemplatesPage() {
   const [att, setAtt] = useState({});
   const [feeCfg, setFeeCfg] = useState({});
   const [gradCfg, setGradCfg] = useState(null);
-  const [grade, setGrade] = useState('GRADE 7');
+  const [grade, setGrade] = useState('');
   const [term, setTerm] = useState('T1');
   const [assess, setAssess] = useState('et1');
   const [selLearner, setSelLearner] = useState('');
   const [regType, setRegType] = useState('monthly');
+
+  useEffect(() => {
+    if (!grade && ALL_GRADES.length > 0) setGrade(ALL_GRADES[0]);
+  }, [ALL_GRADES, grade]);
 
   useEffect(() => {
     async function load() {
@@ -82,8 +88,8 @@ export default function TemplatesPage() {
   [learners, grade]);
 
   const subjects = useMemo(() =>
-    (subjCfg[grade] && subjCfg[grade].length > 0) ? subjCfg[grade] : (DEFAULT_SUBJECTS[grade] || []),
-  [subjCfg, grade]);
+    (subjCfg[grade] && subjCfg[grade].length > 0) ? subjCfg[grade] : (getDefaultSubjects(grade, profile?.curriculum || 'CBC')),
+  [subjCfg, grade, profile?.curriculum]);
 
   function triggerPrint(landscape) {
     const style = document.createElement('style');
@@ -251,12 +257,13 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
     subjects.forEach(s => {
       const score = getMark(marks, term, grade, s, assess, l.adm);
       if (score !== null) {
-        total += gInfo(score, grade).pts;
+        total += gInfo(score, grade, gradCfg, profile?.curriculum || 'CBC').pts;
         totalMarks += score;
         count++;
       }
     });
-    return { ...l, total, totalMarks, count, avg: count > 0 ? (total / (subjects.length * (isJSSGrade(grade) ? 8 : 4)) * 100).toFixed(1) : 0 };
+    const maxPoss = maxPts(grade, subjects, profile?.curriculum || 'CBC');
+    return { ...l, total, totalMarks, count, avg: count > 0 ? (total / (maxPoss || 1) * 100).toFixed(1) : 0 };
   }).sort((a, b) => b.total - a.total);
 
   const colStats = subjects.map(s => {
@@ -270,7 +277,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
       }
     });
     const avgScore = count > 0 ? Math.round(sum / count) : null;
-    const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg) : null;
+    const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg, profile?.curriculum || 'CBC') : null;
     return { avgScore, avgInfo };
   });
 
@@ -319,7 +326,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
               <td style={{ border: '1px solid #ddd', padding: 3 }}>{l.name}</td>
               {subjects.map(s => {
                 const score = marks[`${term}:${grade}|${s}|${assess}`]?.[l.adm];
-                const info = score !== undefined ? gInfo(Number(score), grade, gradCfg) : null;
+                const info = score !== undefined ? gInfo(Number(score), grade, gradCfg, profile?.curriculum || 'CBC') : null;
                 return (
                   <td key={s} style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center' }}>
                     {score !== undefined ? (
@@ -414,7 +421,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
 function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, profile }) {
   // Pre-calculate ranks based on average points
   const rankedData = learners.map(l => {
-    const report = calcLearnerReportData(marks, l.adm, grade, term, subjects, gradCfg);
+    const report = calcLearnerReportData(marks, l.adm, grade, term, subjects, gradCfg, profile?.curriculum || 'CBC');
     return { ...l, report };
   }).sort((a, b) => b.report.totalAvgPts - a.report.totalAvgPts);
 
@@ -507,7 +514,7 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, p
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30, marginTop: 10 }}>
             <div style={{ border: '1.5px solid #333', padding: 15, borderRadius: 8 }}>
               <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #eee' }}>SUMMARY</h4>
-              <p><strong>Total Points:</strong> {l.report.totalAvgPts} / {maxPts(grade, subjects)}</p>
+              <p><strong>Total Points:</strong> {l.report.totalAvgPts} / {maxPts(grade, subjects, profile?.curriculum || 'CBC')}</p>
               <p><strong>Overall Level:</strong> <span style={{ background: '#8B1A1A', color: '#fff', padding: '2px 8px', borderRadius: 4 }}>{l.report.overallInfo.lv}</span></p>
               <p><strong>Class Rank:</strong> {l.rank} out of {learners.length}</p>
               <p><strong>Performance:</strong> {l.report.overallInfo.desc}</p>

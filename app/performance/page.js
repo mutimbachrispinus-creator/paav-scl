@@ -2,8 +2,9 @@
 'use client';
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ALL_GRADES, gInfo, DEFAULT_SUBJECTS, buildMeritList, getMark } from '@/lib/cbe';
+import { getAllGrades, gInfo, getDefaultSubjects, buildMeritList, getMark } from '@/lib/cbe';
 import PrintHeader from '@/components/PrintHeader';
+import { useProfile } from '@/app/PortalShell';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
 const M = '#8B1A1A', M2 = '#6B1212', ML = '#FDF2F2', MB = '#F5E6E6';
@@ -24,6 +25,9 @@ function LvBadge({ lv }) {
 
 export default function PerformancePage() {
   const router = useRouter();
+  const { profile: school } = useProfile();
+  const ALL_GRADES = getAllGrades(school?.curriculum || 'CBC');
+
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
   const [marks, setMarks] = useState({});
@@ -31,9 +35,13 @@ export default function PerformancePage() {
   const [subjCfg, setSubjCfg] = useState({});
   const [term, setTerm] = useState('T1');
   const [assess, setAssess] = useState('et1');
-  const [grade, setGrade] = useState('GRADE 7');
+  const [grade, setGrade] = useState('');
   const [stream, setStream] = useState('');
   const [tab, setTab] = useState('class');
+
+  useEffect(() => {
+    if (!grade && ALL_GRADES.length > 0) setGrade(ALL_GRADES[0]);
+  }, [ALL_GRADES, grade]);
 
   useEffect(() => {
     async function load() {
@@ -62,8 +70,8 @@ export default function PerformancePage() {
   }, [learners, grade]);
 
   const subjects = useMemo(() =>
-    (subjCfg[grade]?.length>0) ? subjCfg[grade] : (DEFAULT_SUBJECTS[grade]||[]),
-  [subjCfg,grade]);
+    (subjCfg[grade]?.length>0) ? subjCfg[grade] : (getDefaultSubjects(grade, school?.curriculum || 'CBC')),
+  [subjCfg, grade, school?.curriculum]);
 
   const gradeData = useMemo(() => {
     const gl = learners.filter(l => l.grade === grade && (!stream || (l.stream || 'Default') === stream));
@@ -125,15 +133,15 @@ export default function PerformancePage() {
 
   // School-wide comparison
   const schoolStats = useMemo(() => ALL_GRADES.map(g=>{
-    const gl=learners.filter(l=>l.grade===g);
-    const subs=(subjCfg[g]?.length>0)?subjCfg[g]:(DEFAULT_SUBJECTS[g]||[]);
+    const gl=learners.filter(l => l.grade === g);
+    const subs=(subjCfg[g]?.length>0)?subjCfg[g]:(getDefaultSubjects(g, school?.curriculum || 'CBC'));
     let tot=0,cnt=0;
     gl.forEach(l => subs.forEach(s => {
       const sc = getMark(marks, term, g, s, assess, l.adm);
       if (sc !== null) { tot += sc; cnt++; }
     }));
     return {grade:g,count:gl.length,avg:cnt?Math.round(tot/cnt):0,entries:cnt};
-  }),[learners,marks,subjCfg,term,assess]);
+  }),[learners,marks,subjCfg,term,assess,school?.curriculum,ALL_GRADES]);
 
   // Stream comparison within the selected grade
   const streamStats = useMemo(() => {

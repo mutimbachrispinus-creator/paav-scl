@@ -5,8 +5,8 @@ import {
   LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis 
 } from 'recharts';
-import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
-import { ALL_GRADES, DEFAULT_SUBJECTS, calcLearnerPoints } from '@/lib/cbe';
+import { getAllGrades, getDefaultSubjects, calcLearnerPoints } from '@/lib/cbe';
+import { useProfile } from '@/app/PortalShell';
 
 const M = '#8B1A1A', M2 = '#6B1212', ML = '#FDF2F2', MB = '#F5E6E6';
 const TERMS = ['T1', 'T2', 'T3'];
@@ -14,6 +14,9 @@ const ASSESS = ['op1', 'mt1', 'et1'];
 
 export default function AnalyticsPage() {
   const router = useRouter();
+  const { profile: school } = useProfile();
+  const ALL_GRADES = getAllGrades(school?.curriculum || 'CBC');
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
@@ -21,8 +24,12 @@ export default function AnalyticsPage() {
   const [marks, setMarks] = useState({});
   const [feeCfg, setFeeCfg] = useState({});
   const [tab, setTab] = useState('school'); 
-  const [selGrade, setSelGrade] = useState('GRADE 7');
+  const [selGrade, setSelGrade] = useState('');
   const [selAdm, setSelAdm] = useState('');
+
+  useEffect(() => {
+    if (!selGrade && ALL_GRADES.length > 0) setSelGrade(ALL_GRADES[0]);
+  }, [ALL_GRADES, selGrade]);
 
   const load = useCallback(async () => {
     try {
@@ -53,9 +60,9 @@ export default function AnalyticsPage() {
   const warnings = useMemo(() => {
     const list = [];
     learners.forEach(l => {
-      const subjects = DEFAULT_SUBJECTS[l.grade] || [];
-      const mt1 = calcLearnerPoints(marks, l.adm, l.grade, 'T1', 'mt1', subjects);
-      const et1 = calcLearnerPoints(marks, l.adm, l.grade, 'T1', 'et1', subjects);
+      const subjects = getDefaultSubjects(l.grade, school?.curriculum || 'CBC');
+      const mt1 = calcLearnerPoints(marks, l.adm, l.grade, 'T1', 'mt1', subjects, null, school?.curriculum || 'CBC');
+      const et1 = calcLearnerPoints(marks, l.adm, l.grade, 'T1', 'et1', subjects, null, school?.curriculum || 'CBC');
       if (mt1.enteredCount > 0 && et1.enteredCount > 0) {
         const mt1Avg = Math.round((mt1.totalPts / mt1.maxTotal) * 100);
         const et1Avg = Math.round((et1.totalPts / et1.maxTotal) * 100);
@@ -64,7 +71,7 @@ export default function AnalyticsPage() {
       }
     });
     return list.sort((a,b) => b.drop - a.drop);
-  }, [learners, marks]);
+  }, [learners, marks, school?.curriculum]);
 
   /* ── School Data Processing ── */
   const schoolStats = useMemo(() => {
@@ -87,18 +94,18 @@ export default function AnalyticsPage() {
   /* ── Student Data Processing ── */
   const trendData = useMemo(() => {
     if (!learner) return [];
-    const subjects = DEFAULT_SUBJECTS[learner.grade] || [];
+    const subjects = getDefaultSubjects(learner.grade, school?.curriculum || 'CBC');
     const data = [];
     TERMS.forEach(t => ASSESS.forEach(a => {
-      const stats = calcLearnerPoints(marks, learner.adm, learner.grade, t, a, subjects);
+      const stats = calcLearnerPoints(marks, learner.adm, learner.grade, t, a, subjects, null, school?.curriculum || 'CBC');
       if (stats.enteredCount > 0) data.push({ name: `${t} ${a.toUpperCase().replace('1','')}`, score: Math.round((stats.totalPts / stats.maxTotal) * 100) });
     }));
     return data;
-  }, [learner, marks]);
+  }, [learner, marks, school?.curriculum]);
 
   const radarData = useMemo(() => {
     if (!learner) return [];
-    const subjects = DEFAULT_SUBJECTS[learner.grade] || [];
+    const subjects = getDefaultSubjects(learner.grade, school?.curriculum || 'CBC');
     const clusters = {
       'Languages': ['English', 'Kiswahili', 'Language', 'Kusoma', 'Reading'],
       'Sciences': ['Mathematics', 'Science', 'Integrated Science', 'Biology', 'Chemistry', 'Physics', 'Environmental'],
@@ -109,13 +116,13 @@ export default function AnalyticsPage() {
       let total = 0, maxTotal = 0;
       subjects.forEach(s => {
         if (keywords.some(k => s.toLowerCase().includes(k.toLowerCase()))) {
-          const stats = calcLearnerPoints(marks, learner.adm, learner.grade, 'T1', 'et1', [s]);
+          const stats = calcLearnerPoints(marks, learner.adm, learner.grade, 'T1', 'et1', [s], null, school?.curriculum || 'CBC');
           if (stats.enteredCount > 0) { total += stats.totalPts; maxTotal += stats.maxTotal; }
         }
       });
       return { subject: name, A: maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0, fullMark: 100 };
     });
-  }, [learner, marks]);
+  }, [learner, marks, school?.curriculum]);
 
   if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Analyzing performance trends…</div>;
 
