@@ -7,10 +7,12 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { prefetchKeys, clearAllCache, fetchWithRetry, hydrateCache } from '@/lib/client-cache';
+import { useProfile } from '@/app/PortalShell';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setUser: setGlobalUser } = useProfile() || {};
   
   // Default to empty or neutral if no tenant provided, but remember last logged in school
   const [tenantId, setTenantId] = useState('platform-master');
@@ -189,6 +191,7 @@ function LoginContent() {
           clearAllCache();
           await hydrateCache({ user: data.user });
           if (data.initialData) await hydrateCache(data.initialData);
+          if (setGlobalUser) setGlobalUser(data.user);
           router.push(data.redirect || '/dashboard');
         } else {
           setOkMsg(`✅ Registered! Your username is: ${data.username}. Please login.`);

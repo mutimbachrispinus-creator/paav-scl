@@ -209,6 +209,7 @@ export default function ProfilePanel({ user, onClose }) {
             <button className="btn btn-danger" onClick={() => {
               if (confirm('Are you sure you want to log out?')) {
                 fetch('/api/auth', { method: 'POST', body: JSON.stringify({ action: 'logout' }) }).then(() => {
+                  if (setUser) setUser(null);
                   window.location.href = '/';
                 });
               }

@@ -53,6 +53,7 @@ export default function SettingsHubPage() {
 
   const ALL_SETTINGS_LINKS = [
     { title: '📊 Grading Scale', desc: 'Configure EE/ME/AE/BE score thresholds', href: '/settings/grading', icon: '📈' },
+    { title: '🎓 Education System', desc: 'Switch between CBC, British, and IB curriculums', href: '/settings/profile?tab=info', icon: '📜' },
     { title: '📚 Subjects', desc: 'Add or remove subjects per grade level', href: '/settings/subjects', icon: '📖' },
     { title: '🏫 Streams & Classes', desc: 'Manage class streams and identifiers', href: '/streams', icon: '🏢' },
     { title: '📅 Timetable', desc: 'Configure lesson times and breaks', href: '/settings/timetable', icon: '⏰' },

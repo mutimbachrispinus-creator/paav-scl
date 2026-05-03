@@ -24,7 +24,7 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
   const pathname = usePathname();
   const [showMobileNav, setShowMobileNav] = useState(false);
 
-  const { impersonateId } = useProfile() || {};
+  const { impersonateId, setUser } = useProfile() || {};
   const activeRoles = [user?.role || 'member'];
   if (user?.role === 'super-admin' && impersonateId) {
     activeRoles.push('admin'); // Add admin role to see school management tabs
@@ -53,6 +53,7 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ action: 'logout' }),
     });
+    if (setUser) setUser(null);
     clearAllCache();
     router.push('/');
   }

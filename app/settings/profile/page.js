@@ -1,9 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDB, mutateDB } from '@/lib/client-cache';
 import { readSchoolProfile } from '@/lib/school-profile';
 import { useProfile } from '@/app/PortalShell';
+import { useSearchParams } from 'next/navigation';
 
 const PRESET_COLORS = [
   { name: 'Maroon (Default)', p: '#8B1A1A', s: '#D4AF37' },
@@ -13,7 +14,7 @@ const PRESET_COLORS = [
   { name: 'Sleek Black', p: '#0F172A', s: '#64748B' },
 ];
 
-export default function SchoolProfilePage() {
+function SchoolProfileContent() {
   const router = useRouter();
   const { playSuccessSound } = useProfile();
   const [user, setUser] = useState(null);
@@ -45,9 +46,10 @@ export default function SchoolProfilePage() {
   const [announcement, setAnnouncement] = useState('');
   const [heroImg, setHeroImg] = useState('');
   
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [tab, setTab] = useState('branding'); // branding | info | payments
+  const [tab, setTab] = useState(searchParams.get('tab') || 'branding'); // branding | info | payments
 
   useEffect(() => {
     async function load() {
@@ -168,6 +170,7 @@ export default function SchoolProfilePage() {
 
       <div className="tabs no-print" style={{ marginBottom: 20 }}>
         <button className={`tab-btn ${tab === 'branding' ? 'on' : ''}`} onClick={() => setTab('branding')}>✨ Visual Identity</button>
+        <button className={`tab-btn ${tab === 'curriculum' ? 'on' : ''}`} onClick={() => setTab('curriculum')}>🎓 Education System</button>
         <button className={`tab-btn ${tab === 'info' ? 'on' : ''}`} onClick={() => setTab('info')}>📞 Info & Contacts</button>
         <button className={`tab-btn ${tab === 'payments' ? 'on' : ''}`} onClick={() => setTab('payments')}>💰 Payment Accounts</button>
       </div>
@@ -246,6 +249,40 @@ export default function SchoolProfilePage() {
               </div>
             )}
 
+            {tab === 'curriculum' && (
+              <div className="sg sg1">
+                <div style={{ background: '#F8FAFC', padding: 20, borderRadius: 16, border: '1.5px solid var(--border)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 15 }}>
+                    <div style={{ fontSize: 24 }}>🎓</div>
+                    <h3 style={{ margin: 0, fontSize: 18 }}>Select Education System</h3>
+                  </div>
+                  <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6, marginBottom: 20 }}>
+                    The portal dynamically adapts to the selected curriculum. This affects grade levels (e.g., "Grade 1" vs "Year 1"), subjects, and the grading engine.
+                  </p>
+                  
+                  <div className="field">
+                    <label>Active Curriculum</label>
+                    <select 
+                      value={profile.curriculum || 'CBC'} 
+                      onChange={e => setProfile({...profile, curriculum: e.target.value})}
+                      style={{ width: '100%', padding: '14px 18px', border: '2px solid var(--primary)', borderRadius: 12, fontSize: 16, fontWeight: 700, outline: 'none', background: '#fff', color: 'var(--primary)' }}
+                    >
+                      <option value="CBC">🇰🇪 Kenya CBC (Competency-Based)</option>
+                      <option value="BRITISH">🇬🇧 British National Curriculum (IGCSE/A-Level)</option>
+                      <option value="IB">🌍 International Baccalaureate (PYP/MYP/DP)</option>
+                    </select>
+                  </div>
+                  
+                  <div style={{ marginTop: 20, padding: 15, background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 12, display: 'flex', gap: 12 }}>
+                    <span style={{ fontSize: 20 }}>⚠️</span>
+                    <div style={{ fontSize: 13, color: '#991B1B', lineHeight: 1.5 }}>
+                      <strong>Important:</strong> Changing the curriculum is a major system change. It will update the structure of your student records and academic reporting. Please ensure you have backed up any necessary data before switching.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {tab === 'info' && (
               <div className="sg sg1">
                 <div className="field-row">
@@ -265,21 +302,6 @@ export default function SchoolProfilePage() {
                 <div className="field">
                   <label>Website URL</label>
                   <input value={profile.website} onChange={e => setProfile({...profile, website: e.target.value})} placeholder="https://www.school.com" />
-                </div>
-                <div className="field">
-                  <label>Education System / Curriculum</label>
-                  <select 
-                    value={profile.curriculum || 'CBC'} 
-                    onChange={e => setProfile({...profile, curriculum: e.target.value})}
-                    style={{ width: '100%', padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: 12, fontSize: 14, outline: 'none', background: '#fff' }}
-                  >
-                    <option value="CBC">Kenya CBC (Competency-Based)</option>
-                    <option value="BRITISH">British National Curriculum (IGCSE/A-Level)</option>
-                    <option value="IB">International Baccalaureate (PYP/MYP/DP)</option>
-                  </select>
-                  <p style={{ fontSize: 11, color: '#DC2626', marginTop: 8, fontWeight: 600 }}>
-                    ⚠️ Warning: Changing the curriculum will alter the grades and subjects available across the portal.
-                  </p>
                 </div>
               </div>
             )}
@@ -407,5 +429,13 @@ export default function SchoolProfilePage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function SchoolProfilePage() {
+  return (
+    <Suspense fallback={<div className="page on"><p>Loading Identity & Branding...</p></div>}>
+      <SchoolProfileContent />
+    </Suspense>
   );
 }
