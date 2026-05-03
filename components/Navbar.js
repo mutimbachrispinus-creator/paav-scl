@@ -48,14 +48,16 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
   }
 
   async function logout() {
-    await fetch('/api/auth', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ action: 'logout' }),
-    });
+    try {
+      await fetch('/api/auth', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ action: 'logout' }),
+      });
+    } catch {}
     if (setUser) setUser(null);
     clearAllCache();
-    router.push('/');
+    window.location.href = '/';
   }
 
   if (!user) return null;
