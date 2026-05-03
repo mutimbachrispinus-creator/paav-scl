@@ -34,6 +34,7 @@ export default function GradesPage() {
   const [learners, setLearners] = useState([]);
   const [marks,    setMarks]    = useState({});
   const [locked,   setLocked]   = useState({});
+  const [pending,  setPending]  = useState({}); // { key: { teacher, ts } }
   const [subjCfg,  setSubjCfg]  = useState({});
   const [streams,  setStreams]  = useState([]);
   const [gradCfg,  setGradCfg]  = useState(null);
@@ -95,6 +96,7 @@ export default function GradesPage() {
       setMarks(mergedMarks);
 
       setLocked(  db.paav_marks_locked || {});
+      setPending( db.paav_marks_pending || {});
       setStreams( db.paav7_streams  || []);
       setGradCfg( db.paav8_grad     || null);
       setSubjCfg( db.paav8_subj     || {});
@@ -119,6 +121,10 @@ export default function GradesPage() {
     window.addEventListener('paav:sync', handler);
     return () => window.removeEventListener('paav:sync', handler);
   }, [load]);
+
+  /* ── Pending approval helpers ── */
+  const getPendingKey = (subj) => `${term}:${grade}:${assess}:${subj}`;
+  const isSubjPending = (subj) => !!pending[getPendingKey(subj)];
 
   /* ── Derived ── */
   const classLearners = learners.filter(l => l.grade === grade && (!stream || (l.stream || 'Default') === stream))
@@ -187,26 +193,8 @@ export default function GradesPage() {
       reqs.push({ type: 'updateMarksBulk', marks: marksToSync });
     }
     
-    // Auto-lock for non-admins (only on manual save or first entry)
-    // Auto-lock only for the specific subjects being saved (non-admins)
-    if (!isAuto && user?.role !== 'admin') {
-      const subjsToLock = [...new Set(marksToSync.map(m => m.gsa.split('|')[1]))];
-      let changed = false;
-      nextLocked = { ...locked };
-      
-      subjsToLock.forEach(s => {
-        const key = getLockKey(s);
-        if (!nextLocked[key]) {
-          nextLocked[key] = true;
-          changed = true;
-        }
-      });
-
-      if (changed) {
-        reqs.push({ type: 'set', key: 'paav_marks_locked', value: nextLocked });
-      }
-    }
-
+    // Teachers NO LONGER auto-lock. They submit for approval instead.
+    // Admin can still manually lock/unlock via the toggle.
     if (reqs.length === 0) {
       if (!isAuto) setSaving(false);
       return;
@@ -227,10 +215,8 @@ export default function GradesPage() {
 
       if (!isAuto) {
         playSuccessSound();
-        if (user?.role !== 'admin' && !isLocked) setLocked(nextLocked);
-
-        setAlert({ msg: '✅ Marks saved!', type: 'ok' });
-        setTimeout(() => setAlert({ msg: '', type: '' }), 3000);
+        setAlert({ msg: '✅ Marks saved! Use "Submit for Approval" when done.', type: 'ok' });
+        setTimeout(() => setAlert({ msg: '', type: '' }), 4000);
       }
     } catch (e) {
       console.warn('[Grades] Save failed, queuing in outbox:', e.message);
@@ -248,6 +234,65 @@ export default function GradesPage() {
     } finally {
       if (!isAuto) setSaving(false);
     }
+  }
+
+  /* ── Submit for approval (teacher) ── */
+  async function submitForApproval() {
+    const subjsInView = subjects;
+    const newPending = { ...pending };
+    let changed = false;
+    subjsInView.forEach(s => {
+      const key = getPendingKey(s);
+      if (!locked[getLockKey(s)]) {
+        newPending[key] = { teacher: user.name || user.username, ts: Date.now() };
+        changed = true;
+      }
+    });
+    if (!changed) {
+      setAlert({ msg: 'These marks are already locked or have no changes.', type: 'err' });
+      return;
+    }
+    setPending(newPending);
+    await fetch('/api/db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_marks_pending', value: newPending }] })
+    });
+    setAlert({ msg: '📨 Submitted for admin approval! Your marks remain editable until approved.', type: 'ok' });
+    setTimeout(() => setAlert({ msg: '', type: '' }), 5000);
+  }
+
+  /* ── Admin: approve or reject pending ── */
+  async function approveSubject(subj) {
+    const key = getLockKey(subj);
+    const pKey = getPendingKey(subj);
+    const newLocked = { ...locked, [key]: true };
+    const newPending = { ...pending };
+    delete newPending[pKey];
+    setLocked(newLocked);
+    setPending(newPending);
+    await fetch('/api/db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [
+        { type: 'set', key: 'paav_marks_locked', value: newLocked },
+        { type: 'set', key: 'paav_marks_pending', value: newPending }
+      ]})
+    });
+  }
+
+  async function rejectSubject(subj) {
+    const pKey = getPendingKey(subj);
+    const newPending = { ...pending };
+    delete newPending[pKey];
+    setPending(newPending);
+    await fetch('/api/db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_marks_pending', value: newPending }] })
+    });
+    setAlert({ msg: `❌ ${subj} marks sent back to teacher for correction.`, type: 'warn' });
+    setTimeout(() => setAlert({ msg: '', type: '' }), 4000);
   }
 
   /* ── Lock toggle (admin only) ── */
@@ -357,7 +402,12 @@ export default function GradesPage() {
             <button
               className={`btn btn-sm ${isLocked ? 'btn-success' : 'btn-danger'}`}
               onClick={toggleLock}>
-              {isLocked ? '🔓 Unlock Marks' : '🔒 Lock Marks'}
+              {isLocked ? '🔓 Unlock All' : '🔒 Lock All'}
+            </button>
+          )}
+          {user?.role !== 'admin' && (
+            <button className="btn btn-warning btn-sm" onClick={submitForApproval}>
+              📨 Submit for Approval
             </button>
           )}
           <button className="btn btn-ghost btn-sm no-print" onClick={() => window.print()}>
@@ -430,6 +480,23 @@ export default function GradesPage() {
             {classLearners.length} learner{classLearners.length !== 1 ? 's' : ''}
           </div>
         </div>
+
+        {/* Admin: pending approval panel */}
+        {user?.role === 'admin' && subjects.some(s => isSubjPending(s)) && (
+          <div style={{ padding: '12px 16px', background: '#FFFBEB', border: '1.5px solid #FCD34D', borderRadius: 10, margin: '10px 20px' }}>
+            <div style={{ fontWeight: 800, fontSize: 12, color: '#92400E', marginBottom: 8 }}>⏳ Pending Approval Requests</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {subjects.filter(s => isSubjPending(s)).map(s => (
+                <div key={s} style={{ background: '#fff', border: '1.5px solid #FCD34D', borderRadius: 8, padding: '6px 12px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontWeight: 700 }}>{s}</span>
+                  <span style={{ color: 'var(--muted)', fontSize: 10 }}>by {pending[getPendingKey(s)]?.teacher}</span>
+                  <button className="btn btn-success btn-xs" style={{ padding: '2px 8px', fontSize: 11 }} onClick={() => approveSubject(s)}>✅ Approve</button>
+                  <button className="btn btn-danger btn-xs" style={{ padding: '2px 8px', fontSize: 11 }} onClick={() => rejectSubject(s)}>❌ Reject</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Grade scale bar */}
         <div className="grading-scale-bar">
