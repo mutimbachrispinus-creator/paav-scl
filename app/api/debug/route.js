@@ -1,31 +1,45 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { createClient } from '@libsql/client/web';
-import { getSession, hashPassword } from '@/lib/auth';
-import { getClient } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 
-export async function GET(req) {
-  const { searchParams } = new URL(req.url);
-  if (searchParams.get('secret') !== 'resetadmin') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export async function GET() {
+  const session = await getSession();
+  if (!session || session.role !== 'admin') {
+    return new NextResponse('Unauthorized', { status: 401 });
   }
+  const url = process.env.TURSO_URL;
+  const token = process.env.TURSO_TOKEN;
+
+  let dbStatus = 'Not connected';
+  let staffCount = 0;
+  let dbError = null;
 
   try {
-    const db = getClient();
-    const newHash = await hashPassword('Junior@#1');
-    
-    // Update both global and tenant-specific admin accounts just in case
-    const res = await db.execute({
-      sql: "UPDATE staff SET password = ? WHERE username = 'admin'",
-      args: [newHash]
+    if (!url || !token) {
+      throw new Error('Missing environment variables');
+    }
+
+    const client = createClient({
+      url: url,
+      authToken: token,
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Admin password successfully reset to Junior@#1',
-      rows_affected: res.rowsAffected
-    });
+    const result = await client.execute('SELECT COUNT(*) as count FROM staff');
+    staffCount = result.rows[0].count;
+    dbStatus = 'Connected successfully';
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    dbStatus = 'Connection failed';
+    dbError = err.message;
   }
+
+  return NextResponse.json({
+    env_vars_present: {
+      TURSO_URL: !!url,
+      TURSO_TOKEN: !!token,
+    },
+    database_status: dbStatus,
+    staff_rows_found: staffCount,
+    error: dbError
+  });
 }
