@@ -6,22 +6,29 @@
  * Persists to 'paav8_subj' in Turso KV.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ALL_GRADES, DEFAULT_SUBJECTS } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
+import { readSchoolProfile } from '@/lib/school-profile';
 
-export default function SubjectsPage() {
+function SubjectsContent() {
   const router = useRouter();
   const [subjCfg, setSubjCfg] = useState({});
-  const [selectedGrade, setSelectedGrade] = useState(ALL_GRADES[0]);
+  const [selectedGrade, setSelectedGrade] = useState('');
   const [newSubj, setNewSubj] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
+  const [curr, setCurr] = useState(getCurriculum('CBC'));
 
   const load = useCallback(async () => {
     try {
+      const profile = readSchoolProfile() || {};
+      const c = getCurriculum(profile.curriculum || 'CBC');
+      setCurr(c);
+      setSelectedGrade(prev => prev || c.ALL_GRADES[0]);
+
       const res = await fetch('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -30,8 +37,8 @@ export default function SubjectsPage() {
       const data = await res.json();
       const cfg = data.results[0]?.value || {};
       
-      // Merge with defaults if missing
-      const merged = { ...DEFAULT_SUBJECTS };
+      // Merge with defaults from the CURRENT curriculum if missing
+      const merged = { ...c.DEFAULT_SUBJECTS };
       Object.keys(cfg).forEach(k => { if(cfg[k]) merged[k] = cfg[k]; });
       
       setSubjCfg(merged);
@@ -86,6 +93,16 @@ export default function SubjectsPage() {
     save(updated);
   }
 
+  function importDefaults() {
+    if (!confirm(`This will import the standard ${curr.curriculum || 'system'} subjects for ${selectedGrade}. Existing subjects for this grade will be kept. Proceed?`)) return;
+    const defaults = curr.DEFAULT_SUBJECTS[selectedGrade] || [];
+    const current = subjCfg[selectedGrade] || [];
+    const combined = Array.from(new Set([...current, ...defaults]));
+    const updated = { ...subjCfg, [selectedGrade]: combined };
+    setSubjCfg(updated);
+    save(updated);
+  }
+
   if (loading) return <div className="page on"><p>Loading configuration...</p></div>;
 
   const currentList = subjCfg[selectedGrade] || [];
@@ -97,8 +114,11 @@ export default function SubjectsPage() {
           <Link href="/settings" className="btn btn-ghost btn-sm">← Back</Link>
           <div>
             <h2>📚 Subjects Configuration</h2>
-            <p>Define available subjects for each grade level</p>
+            <p>System: <strong style={{color:'var(--primary)'}}>{curr.curriculum || 'Standard'}</strong> — Define learning areas for each level</p>
           </div>
+        </div>
+        <div className="page-hdr-acts">
+           <button className="btn btn-ghost btn-sm" onClick={importDefaults}>📥 Import {curr.curriculum} Defaults</button>
         </div>
       </div>
 
@@ -113,7 +133,7 @@ export default function SubjectsPage() {
           <div className="panel-hdr"><h3>Grade Level</h3></div>
           <div className="panel-body">
             <div className="grade-list" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {ALL_GRADES.map(g => (
+              {curr.ALL_GRADES.map(g => (
                 <button
                   key={g}
                   className={`btn ${selectedGrade === g ? 'btn-primary' : 'btn-ghost'}`}
@@ -164,5 +184,13 @@ export default function SubjectsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SubjectsPage() {
+  return (
+    <Suspense fallback={<div className="page on"><p>Loading Subjects...</p></div>}>
+      <SubjectsContent />
+    </Suspense>
   );
 }

@@ -102,14 +102,29 @@ export default function NotificationBell({ userId }) {
 
       {/* Dropdown */}
       {open && (
-        <div style={{
-          position: 'absolute', right: 0, top: 'calc(100% + 8px)',
-          background: '#fff', borderRadius: 16, width: 340,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-          border: '1px solid #E5E7EB', zIndex: 9999,
-          maxHeight: 480, display: 'flex', flexDirection: 'column',
-          overflow: 'hidden'
-        }}>
+        <div 
+          className="notif-dropdown"
+          style={{
+            position: 'absolute', right: 0, top: 'calc(100% + 8px)',
+            background: '#fff', borderRadius: 16, width: 340,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+            border: '1px solid #E5E7EB', zIndex: 9999,
+            maxHeight: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column',
+            overflow: 'hidden'
+          }}
+        >
+          <style jsx>{`
+            @media (max-width: 600px) {
+              .notif-dropdown {
+                position: fixed !important;
+                top: 70px !important;
+                left: 10px !important;
+                right: 10px !important;
+                width: calc(100vw - 20px) !important;
+                max-height: 70vh !important;
+              }
+            }
+          `}</style>
           {/* Header */}
           <div style={{
             padding: '14px 16px', borderBottom: '1px solid #F3F4F6',

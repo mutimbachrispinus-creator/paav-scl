@@ -546,7 +546,17 @@ export default function PortalShell({ children }) {
       {showNav && user && (
         <div className="mobile-bottom-nav no-print">
           {ALL_NAV
-            .filter(n => !n.roles || n.roles.includes(user.role))
+            .filter(n => {
+              // Only show key items on mobile bottom nav
+              const keyItems = {
+                admin:   ['dashboard', 'fees', 'teachers', 'settings', 'profile'],
+                teacher: ['dashboard', 'grades', 'attendance', 'timetable', 'profile'],
+                parent:  ['dashboard', 'performance', 'fees', 'diary', 'profile'],
+                member:  ['dashboard', 'learning', 'messages', 'profile'],
+              };
+              const roleItems = keyItems[user.role] || keyItems.member;
+              return roleItems.includes(n.key);
+            })
             .map(n => {
               const b = (n.key === 'messages' || n.key === 'sms') ? unreadCount :
                         (n.key === 'duties') ? (pendingDuties + (user.role === 'admin' ? pendingReqs : 0)) : 0;
@@ -555,12 +565,12 @@ export default function PortalShell({ children }) {
                   key={n.key}
                   href={n.key === 'classes' ? '/classes' : `/${n.key}`}
                   className={pathname.startsWith('/' + n.key) || (n.key === 'dashboard' && pathname === '/dashboard') ? 'active' : ''}
-                  style={{ position: 'relative' }}
+                  style={{ position: 'relative', flex: 1 }}
                   onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
                 >
                   <span className="icon">{n.icon}</span>
                   <span className="label">{n.label}</span>
-                  {b > 0 && <span className="nav-badge" style={{ top: 5, right: '15%', transform: 'scale(0.8)' }}>{b > 9 ? '9+' : b}</span>}
+                  {b > 0 && <span className="nav-badge" style={{ top: 5, right: '20%', transform: 'scale(0.8)' }}>{b > 9 ? '9+' : b}</span>}
                 </Link>
               );
             })}
