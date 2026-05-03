@@ -1,0 +1,171 @@
+  ▲ Next.js 14.2.3
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for client (static)...
+ ○ (pwa) Service worker: /home/chrispinus/paav-school-portal/public/sw.js
+ ○ (pwa)   URL: /sw.js
+ ○ (pwa)   Scope: /
+ ⚠ Compiled with warnings
+
+./app/classes/[grade]/page.js
+Attempted import error: 'getDefaultSubjects' is not exported from '@/lib/cbe' (imported as 'getDefaultSubjects').
+
+Import trace for requested module:
+./app/classes/[grade]/page.js
+
+./app/timetable/page.js
+Attempted import error: 'getAllGrades' is not exported from '@/lib/cbe' (imported as 'getAllGrades').
+
+Import trace for requested module:
+./app/timetable/page.js
+
+./app/classes/[grade]/page.js
+Attempted import error: 'getDefaultSubjects' is not exported from '@/lib/cbe' (imported as 'getDefaultSubjects').
+
+Import trace for requested module:
+./app/classes/[grade]/page.js
+
+./app/timetable/page.js
+Attempted import error: 'getAllGrades' is not exported from '@/lib/cbe' (imported as 'getAllGrades').
+
+Import trace for requested module:
+./app/timetable/page.js
+
+   Linting and checking validity of types ...
+
+./app/PortalShell.js
+285:6  Warning: React Hook useCallback has missing dependencies: 'impersonateId' and 'showNav'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+379:6  Warning: React Hook useEffect has a missing dependency: 'resetIdleTimers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/demo/page.js
+86:6  Warning: React Hook useEffect has missing dependencies: 'next' and 'prev'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/fees/[adm]/receipt/page.js
+80:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/grades/page.js
+95:6  Warning: React Hook useCallback has a missing dependency: 'setGrade'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+154:6  Warning: React Hook useEffect has missing dependencies: 'loading', 'save', and 'saving'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/grades/report-card/[id]/page.js
+158:30  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/grades/report-card/bulk/page.js
+151:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/login/page.js
+220:12  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+256:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/merit-list/page.js
+90:9  Warning: The 'subjects' logical expression could make the dependencies of useMemo Hook (at line 108) change on every render. To fix this, wrap the initialization of 'subjects' in its own useMemo() Hook.  react-hooks/exhaustive-deps
+
+./app/page.js
+39:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+79:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+292:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/parent-home/page.js
+249:30  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+256:16  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/profile/page.js
+265:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+356:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+386:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+386:21  Warning: img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.  jsx-a11y/alt-text
+
+./app/saas/signup/page.js
+51:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/settings/profile/page.js
+356:39  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+382:39  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/teachers/page.js
+111:37  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/templates/page.js
+830:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+839:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/Navbar.js
+74:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+166:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/PrintHeader.js
+16:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./components/ProfilePanel.js
+141:28  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/83) ...
+[DB] Ensuring schema...
+[DB] Schema verified
+   Generating static pages (20/83) 
+   Generating static pages (41/83) 
+ReferenceError: getCurriculum is not defined
+    at u (/home/chrispinus/paav-school-portal/.next/server/app/merit-list/page.js:1:2804)
+    at nj (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nN (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nI (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47010)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47717)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680) {
+  digest: '929048260'
+}
+
+Error occurred prerendering page "/merit-list". Read more: https://nextjs.org/docs/messages/prerender-error
+
+ReferenceError: getCurriculum is not defined
+    at u (/home/chrispinus/paav-school-portal/.next/server/app/merit-list/page.js:1:2804)
+    at nj (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nN (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nI (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47010)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47717)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+   Generating static pages (62/83) 
+TypeError: (0 , s.getAllGrades) is not a function
+    at b (/home/chrispinus/paav-school-portal/.next/server/app/timetable/page.js:1:4225)
+    at nj (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nN (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nI (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47010)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47717)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680) {
+  digest: '3877821740'
+}
+
+Error occurred prerendering page "/timetable". Read more: https://nextjs.org/docs/messages/prerender-error
+
+TypeError: (0 , s.getAllGrades) is not a function
+    at b (/home/chrispinus/paav-school-portal/.next/server/app/timetable/page.js:1:4225)
+    at nj (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46251)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47571)
+    at nN (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nI (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47010)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47717)
+    at nM (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61546)
+    at nN (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64546)
+    at nB (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67538)
+    at nD (/home/chrispinus/paav-school-portal/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66680)
+ ✓ Generating static pages (83/83)
+
+> Export encountered errors on following paths:
+	/merit-list/page: /merit-list
+	/timetable/page: /timetable

@@ -1,11 +1,13 @@
 'use client';
+export const dynamic = 'force-dynamic';
 /**
  * app/classes/[grade]/page.js — Class & stream list for a specific grade
  */
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { DEFAULT_SUBJECTS, fmtK } from '@/lib/cbe';
+import { getDefaultSubjects, fmtK } from '@/lib/cbe';
 import PrintHeader from '@/components/PrintHeader';
+import { useProfile } from '@/app/PortalShell';
 
 export default function ClassPage() {
   const router = useRouter();
@@ -17,6 +19,8 @@ export default function ClassPage() {
   const [feeCfg,   setFeeCfg]  = useState({});
   const [loading,  setLoading] = useState(true);
   const [streamF,  setStreamF] = useState('');
+  const [mounted,  setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     async function load() {
@@ -42,12 +46,13 @@ export default function ClassPage() {
     load();
   }, [grade, router]);
 
+  const { profile: school } = useProfile() || { profile: {} };
   const annualFee  = feeCfg[grade]?.annual || 5000;
   const allStreams  = [...new Set(learners.map(l => l.stream || 'Default').filter(Boolean))];
   const filtered   = learners.filter(l => !streamF || (l.stream || 'Default') === streamF);
-  const subjects   = DEFAULT_SUBJECTS[grade] || [];
+  const subjects   = getDefaultSubjects(grade, school?.curriculum || 'CBC');
 
-  if (loading) return <div style={{ padding:40, color:'var(--muted)' }}>Loading class…</div>;
+  if (!mounted || loading) return <div style={{ padding:40, color:'var(--muted)' }}>Loading class…</div>;
 
   return (
     <div className="page on">

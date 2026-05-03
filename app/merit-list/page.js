@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 /**
  * app/merit-list/page.js — Merit List (Top Learners, CBC-based)
  *
@@ -13,6 +14,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { buildMeritList, ALL_GRADES, maxPts, DEFAULT_SUBJECTS, gInfo, JSS, SENIOR } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { useSchoolProfile } from '@/lib/school-profile';
@@ -37,6 +39,9 @@ export default function MeritListPage() {
   const [marks,    setMarks]    = useState({});
   const [gradCfg,  setGradCfg]  = useState(null);
   const [loading,  setLoading]  = useState(true);
+  const [mounted,  setMounted]  = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const [grade,  setGrade]  = usePersistedState('paav_grades_grade',  'GRADE 1');
   const [term,   setTerm]   = useState('T1');
@@ -44,6 +49,15 @@ export default function MeritListPage() {
   const { profile: ctxProfile } = useProfile() || {};
   const localProfile = useSchoolProfile();
   const school = ctxProfile && Object.keys(ctxProfile).length > 0 ? ctxProfile : localProfile;
+
+  const curr = getCurriculum(school?.curriculum || 'CBC');
+  const { ALL_GRADES } = curr;
+
+  useEffect(() => {
+    if (!grade && ALL_GRADES.length > 0) {
+      setGrade(ALL_GRADES[0]);
+    }
+  }, [ALL_GRADES, grade, setGrade]);
 
   const load = useCallback(async () => {
     try {
@@ -73,9 +87,9 @@ export default function MeritListPage() {
   useEffect(() => { load(); }, [load]);
 
   /* ── Build ranked list (memoized so dropdowns trigger re-render) ── */
-  const ranked = useMemo(() => loading ? [] : buildMeritList(learners, marks, grade, term, assess, gradCfg), [learners, marks, grade, term, assess, gradCfg, loading]);
-  const subjects = DEFAULT_SUBJECTS[grade] || [];
-  const max = maxPts(grade, subjects);
+  const ranked = useMemo(() => loading ? [] : buildMeritList(learners, marks, grade, term, assess, gradCfg, school?.curriculum || 'CBC'), [learners, marks, grade, term, assess, gradCfg, loading, school?.curriculum]);
+  const subjects = curr.DEFAULT_SUBJECTS[grade] || [];
+  const max = curr.maxPts(grade, subjects);
 
   const colStats = useMemo(() => {
     return subjects.map(s => {
@@ -117,7 +131,7 @@ export default function MeritListPage() {
   }, [ranked, max, grade, gradCfg]);
 
 
-  if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading merit list…</div>;
+  if (!mounted || loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading merit list…</div>;
 
   return (
     <div className="page on">

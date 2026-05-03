@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 /**
  * app/timetable/page.js — School Timetable (CBC Rules)
  * Tabs: Calendar | Grade View | My Timetable | Generate (admin)
@@ -6,8 +7,9 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
-import { ALL_GRADES } from '@/lib/cbe';
+import { getAllGrades } from '@/lib/cbe';
 import { getDefaultSubjectConfig, generateTimetableData } from '@/lib/timetable-gen.js';
+import { useProfile } from '@/app/PortalShell';
 
 const M = '#8B1A1A';
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
@@ -21,9 +23,25 @@ const LEVEL_CFG = {
 
 function gradeLevel(g) {
   if (!g) return 'primary13';
-  if (g.includes('PP') || g.includes('KINDERGARTEN') || g.includes('GRADE 1') || g.includes('GRADE 2') || g.includes('GRADE 3')) return 'primary13';
-  if (g.includes('GRADE 4') || g.includes('GRADE 5') || g.includes('GRADE 6')) return 'primary46';
-  if (g.includes('GRADE 7') || g.includes('GRADE 8') || g.includes('GRADE 9')) return 'jss';
+  const gu = g.toUpperCase();
+  // British
+  if (gu.startsWith('YEAR')) {
+    const y = parseInt(gu.replace('YEAR ', ''));
+    if (y <= 2) return 'ks1';
+    if (y <= 6) return 'ks2';
+    if (y <= 9) return 'ks3';
+    if (y <= 11) return 'igcse';
+    return 'senior';
+  }
+  // IB
+  if (gu.includes('PYP')) return 'pyp';
+  if (gu.includes('MYP')) return 'myp';
+  if (gu.includes('DP')) return 'senior';
+
+  // CBC
+  if (gu.includes('PP') || gu.includes('KINDERGARTEN') || gu.includes('GRADE 1') || gu.includes('GRADE 2') || gu.includes('GRADE 3')) return 'primary13';
+  if (gu.includes('GRADE 4') || gu.includes('GRADE 5') || gu.includes('GRADE 6')) return 'primary46';
+  if (gu.includes('GRADE 7') || gu.includes('GRADE 8') || gu.includes('GRADE 9')) return 'jss';
   return 'senior';
 }
 
@@ -42,14 +60,25 @@ function subjColor(s) { return SUBJ_COLORS[s] || SUBJ_COLORS.default; }
 
 export default function TimetablePage() {
   const router = useRouter();
+  const { profile: school } = useProfile() || { profile: {} };
+  const ALL_GRADES = getAllGrades(school?.curriculum || 'CBC');
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('calendar');
   const [events, setEvents] = useState([]);
   const [timetable, setTimetable] = useState({});
   const [staff, setStaff] = useState([]);
-  const [selGrade, setSelGrade] = useState('GRADE 7');
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const [selGrade, setSelGrade] = useState('');
   const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    if (!selGrade && ALL_GRADES.length > 0) {
+      setSelGrade(ALL_GRADES[0]);
+    }
+  }, [ALL_GRADES, selGrade]);
   const [editEv, setEditEv] = useState(null);
   const [form, setForm] = useState({ title:'', date:'', desc:'', type:'Academic' });
   const [busy, setBusy] = useState(false);
@@ -132,7 +161,7 @@ export default function TimetablePage() {
     ...(isAdmin   ? [{ id:'edit', label:'⚙️ Edit Timetable' }] : []),
   ];
 
-  if (loading || !user) return (
+  if (!mounted || loading || !user) return (
     <div className="page on" style={{padding:60,textAlign:'center',color:'var(--muted)'}}>
       <div style={{fontSize:32,marginBottom:10}}>📅</div>Loading…
     </div>
