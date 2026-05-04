@@ -1,4 +1,3 @@
-import { Inter, Sora } from 'next/font/google';
 import '../styles/globals.css';
 import PortalShell from './PortalShell';
 import { getSession } from '@/lib/auth';
@@ -6,18 +5,9 @@ import { kvGet } from '@/lib/db';
 
 export const runtime = 'edge';
 
-const inter = Inter({
-  subsets:  ['latin'],
-  variable: '--font-inter',
-  display:  'swap',
-});
-
-const sora = Sora({
-  subsets:  ['latin'],
-  variable: '--font-sora',
-  display:  'swap',
-  weight:   ['400','600','700','800'],
-});
+// Using system font stacks to avoid network-dependent build errors
+const inter = { variable: 'font-inter' };
+const sora = { variable: 'font-sora' };
 
 export const metadata = {
   title:       'EduVantage School Management System',

@@ -1,5 +1,7 @@
 'use client';
 
+export const runtime = 'edge';
+
 import QuickReceipt from '@/components/nexed/QuickReceipt';
 import ExpenseVoucher from '@/components/nexed/ExpenseVoucher';
 import { useState } from 'react';

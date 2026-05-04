@@ -1,0 +1,130 @@
+
+> eduvantage-school-management-system@2.1.0 build
+> next build
+
+   ▲ Next.js 15.5.2
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ⨯ webpackBuildWorker
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 109s
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+ ⚠ Using edge runtime on a page currently disables static generation for that page
+   Generating static pages (0/3) ...
+ ✓ Generating static pages (3/3)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                    15.1 kB         120 kB
+├ ○ /_not-found                            232 B         102 kB
+├ ƒ /allocations                         4.22 kB         138 kB
+├ ƒ /analytics                           10.5 kB         231 kB
+├ ƒ /analytics/activity                  3.99 kB         109 kB
+├ ƒ /api/auth                              232 B         102 kB
+├ ƒ /api/auth/check-username               232 B         102 kB
+├ ƒ /api/auth/recovery                     232 B         102 kB
+├ ƒ /api/comms/push                        232 B         102 kB
+├ ƒ /api/cron/backup                       232 B         102 kB
+├ ƒ /api/cron/promote                      232 B         102 kB
+├ ƒ /api/db                                232 B         102 kB
+├ ƒ /api/debug                             232 B         102 kB
+├ ƒ /api/email/receipt                     232 B         102 kB
+├ ƒ /api/email/report-card                 232 B         102 kB
+├ ƒ /api/finance/expenses                  232 B         102 kB
+├ ƒ /api/finance/ledger                    232 B         102 kB
+├ ƒ /api/health                            232 B         102 kB
+├ ƒ /api/mpesa/callback                    232 B         102 kB
+├ ƒ /api/mpesa/stk                         232 B         102 kB
+├ ƒ /api/notifications                     232 B         102 kB
+├ ƒ /api/ping                              232 B         102 kB
+├ ƒ /api/saas/config                       232 B         102 kB
+├ ƒ /api/saas/global-config                232 B         102 kB
+├ ƒ /api/saas/init                         232 B         102 kB
+├ ƒ /api/saas/manage                       232 B         102 kB
+├ ƒ /api/saas/schools                      232 B         102 kB
+├ ƒ /api/saas/schools/delete               232 B         102 kB
+├ ƒ /api/saas/signup                       232 B         102 kB
+├ ƒ /api/saas/stats                        232 B         102 kB
+├ ƒ /api/saas/subscription                 232 B         102 kB
+├ ƒ /api/seed                              232 B         102 kB
+├ ƒ /api/sms                               232 B         102 kB
+├ ƒ /api/stats                             232 B         102 kB
+├ ƒ /api/stats/dashboard                   232 B         102 kB
+├ ƒ /api/upload                            232 B         102 kB
+├ ƒ /api/upload/[id]                       232 B         102 kB
+├ ƒ /api/v1/payments/stk-callback          232 B         102 kB
+├ ƒ /api/whatsapp/reminder                 232 B         102 kB
+├ ƒ /api/whatsapp/report-card              232 B         102 kB
+├ ƒ /attendance                          5.88 kB         139 kB
+├ ƒ /audit                               1.36 kB         106 kB
+├ ƒ /classes                             3.35 kB         115 kB
+├ ƒ /classes/[grade]                     3.95 kB         137 kB
+├ ƒ /comms/push                          6.74 kB         115 kB
+├ ƒ /dashboard                           4.77 kB         138 kB
+├ ƒ /database                            1.94 kB         115 kB
+├ ƒ /demo                                4.99 kB         110 kB
+├ ƒ /diary                               4.66 kB         109 kB
+├ ƒ /documents                           3.96 kB         110 kB
+├ ƒ /duties                              4.98 kB         135 kB
+├ ƒ /fees                                7.99 kB         141 kB
+├ ƒ /fees/[adm]/receipt                  2.77 kB         132 kB
+├ ƒ /fees/pay                            5.49 kB         111 kB
+├ ƒ /finance                              5.3 kB         222 kB
+├ ƒ /finance/budgets                     2.38 kB         219 kB
+├ ƒ /finance/expenses                    5.61 kB         110 kB
+├ ƒ /finance/invoices                    6.96 kB         115 kB
+├ ƒ /finance/payroll                     4.87 kB         135 kB
+├ ƒ /finance/petty-cash                  2.53 kB         107 kB
+├ ƒ /finance/reconcile                   5.23 kB         110 kB
+├ ƒ /finance/transactions                2.02 kB         107 kB
+├ ƒ /grades                              6.66 kB         140 kB
+├ ƒ /grades/report-card/[id]             6.82 kB         112 kB
+├ ƒ /grades/report-card/bulk             9.18 kB         115 kB
+├ ƒ /learners                             6.8 kB         140 kB
+├ ƒ /learners/[id]                       4.27 kB         138 kB
+├ ƒ /learners/bulk                        4.7 kB         138 kB
+├ ƒ /learning                            6.13 kB         140 kB
+├ ƒ /login                               5.92 kB         136 kB
+├ ƒ /merit-list                           6.5 kB         140 kB
+├ ƒ /messages                            4.35 kB         110 kB
+├ ƒ /nexed                                493 kB         606 kB
+├ ƒ /parent-home                         11.4 kB         117 kB
+├ ƒ /parent-marks                        3.16 kB         109 kB
+├ ƒ /performance                         7.15 kB         141 kB
+├ ƒ /predictor                           5.05 kB         139 kB
+├ ƒ /profile                             7.35 kB         113 kB
+├ ƒ /proposal                             4.7 kB         106 kB
+├ ƒ /reports                             4.34 kB         109 kB
+├ ƒ /saas/signup                         5.08 kB         107 kB
+├ ƒ /settings                            4.43 kB         112 kB
+├ ƒ /settings/billing                    4.64 kB         109 kB
+├ ƒ /settings/grading                    3.09 kB         109 kB
+├ ƒ /settings/profile                    5.27 kB         135 kB
+├ ƒ /settings/sms                        1.45 kB         103 kB
+├ ƒ /settings/subjects                   2.69 kB         112 kB
+├ ƒ /settings/timetable                  1.53 kB         103 kB
+├ ƒ /sms                                 2.23 kB         104 kB
+├ ƒ /sms/api/send                          232 B         102 kB
+├ ƒ /streams                             3.24 kB         112 kB
+├ ƒ /super-admin                         13.8 kB         222 kB
+├ ƒ /teachers                            3.54 kB         137 kB
+├ ƒ /teachers/subjects                   2.82 kB         108 kB
+├ ƒ /templates                           9.76 kB         143 kB
+├ ƒ /timetable                           8.29 kB         142 kB
+├ ƒ /welfare                             3.08 kB         112 kB
+└ ƒ /welfare/portfolio                   6.49 kB         115 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/1255-49bf57147b1628c5.js      45.5 kB
+  ├ chunks/4bd1b696-100b9d70ed4e49c1.js  54.2 kB
+  └ other shared chunks (total)          2.01 kB
+
+
+ƒ Middleware                             34.6 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

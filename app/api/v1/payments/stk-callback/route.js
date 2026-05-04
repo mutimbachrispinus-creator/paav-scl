@@ -1,9 +1,9 @@
 export const runtime = 'edge';
 
-import { db } from '@/lib/db';
+import { db } from '@/lib/db/index';
 import { transactions, mpesaLogs, students, pendingReconciliation } from '@/lib/db/schema';
 import { eq, or, like } from 'drizzle-orm';
-import { crypto } from 'next/dist/compiled/@edge-runtime/primitives';
+// import { crypto } from 'next/dist/compiled/@edge-runtime/primitives'; // Removed to avoid resolution issues
 
 export async function POST(req) {
   try {
