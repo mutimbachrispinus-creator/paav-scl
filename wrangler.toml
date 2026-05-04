@@ -17,8 +17,3 @@ compatibility_flags = ["nodejs_compat"]
 #   (TURSO_URL, TURSO_TOKEN, JWT_SECRET, PASS_SALT, etc.)
 # For local wrangler dev, use .dev.vars file.
 
-[[headers]]
-  pattern = "/api/*"
-  [headers.values]
-    Cache-Control = "no-store, no-cache, must-revalidate"
-    X-Content-Type-Options = "nosniff"
