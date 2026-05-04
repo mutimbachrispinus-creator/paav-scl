@@ -1,320 +1,227 @@
 'use client';
-export const runtime = 'edge';
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { 
-  LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis 
-} from 'recharts';
-import { fmtK, getDefaultSubjects, calcLearnerPoints } from '@/lib/cbe';
-import { getCurriculum } from '@/lib/curriculum';
-import { useProfile } from '@/app/PortalShell';
-import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
-const M = '#8B1A1A', M2 = '#6B1212', ML = '#FDF2F2', MB = '#F5E6E6';
+import React, { useState, useEffect, useTransition } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
+import { TrendingUp, Users, BookOpen, AlertCircle, Loader2, Filter, ChevronRight } from 'lucide-react';
+import { getAcademicStats } from '@/lib/actions/analytics';
+import { getAllGrades } from '@/lib/cbe';
+import { useSchoolProfile } from '@/lib/school-profile';
 
-const ASSESS = ['op1', 'mt1', 'et1'];
+const COLORS = ['#8B1A1A', '#2563EB', '#059669', '#D97706', '#7C3AED', '#DB2777'];
 
 export default function AnalyticsPage() {
-  const router = useRouter();
-  const { profile: school } = useProfile();
-  const curr = getCurriculum(school?.curriculum || 'CBC');
-  const ALL_GRADES = curr.ALL_GRADES;
-  const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
+  const { profile } = useSchoolProfile();
+  const [grade, setGrade] = useState('GRADE 1');
+  const [term, setTerm] = useState('TERM 1');
+  const [stats, setStats] = useState(null);
+  const [isPending, startTransition] = useTransition();
 
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [learners, setLearners] = useState([]);
-  const [paylog, setPaylog] = useState([]);
-  const [marks, setMarks] = useState({});
-  const [feeCfg, setFeeCfg] = useState({});
-  const [tab, setTab] = useState('school'); 
-  const [selGrade, setSelGrade] = useState('');
-  const [selAdm, setSelAdm] = useState('');
+  const grades = getAllGrades();
 
   useEffect(() => {
-    if (!selGrade && ALL_GRADES.length > 0) setSelGrade(ALL_GRADES[0]);
-  }, [ALL_GRADES, selGrade]);
-
-  const load = useCallback(async () => {
-    try {
-      const [u, db] = await Promise.all([
-        getCachedUser(),
-        getCachedDBMulti(['paav6_learners', 'paav6_paylog', 'paav6_marks', 'paav6_feecfg'])
-      ]);
-
-      if (!u || u.role !== 'admin') { router.push('/dashboard'); return; }
-      setUser(u);
-      setLearners(db.paav6_learners || []);
-      setPaylog(db.paav6_paylog || []);
-      setMarks(db.paav6_marks || {});
-      setFeeCfg(db.paav6_feecfg || {});
-    } catch (e) {
-      console.error('Analytics load error:', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const filteredLearners = useMemo(() => learners.filter(l => l.grade === selGrade), [learners, selGrade]);
-  const learner = useMemo(() => learners.find(l => l.adm === selAdm), [learners, selAdm]);
-
-  /* ── AI Early Warning System ── */
-  const warnings = useMemo(() => {
-    const list = [];
-    learners.forEach(l => {
-      const subjects = getDefaultSubjects(l.grade, school?.curriculum || 'CBC');
-      const mt1 = calcLearnerPoints(marks, l.adm, l.grade, 'T1', 'mt1', subjects, null, school?.curriculum || 'CBC');
-      const et1 = calcLearnerPoints(marks, l.adm, l.grade, 'T1', 'et1', subjects, null, school?.curriculum || 'CBC');
-      if (mt1.enteredCount > 0 && et1.enteredCount > 0) {
-        const mt1Avg = Math.round((mt1.totalPts / mt1.maxTotal) * 100);
-        const et1Avg = Math.round((et1.totalPts / et1.maxTotal) * 100);
-        const drop = mt1Avg - et1Avg;
-        if (drop > 7) list.push({ ...l, oldAvg: mt1Avg, curAvg: et1Avg, drop });
-      }
-    });
-    return list.sort((a,b) => b.drop - a.drop);
-  }, [learners, marks, school?.curriculum]);
-
-  /* ── School Data Processing ── */
-  const schoolStats = useMemo(() => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const collection = months.map((m, i) => {
-      const total = paylog.filter(p => Number(p.date.split('/')[1]) === (i + 1)).reduce((s, p) => s + Number(p.amount), 0);
-      return { name: m, amount: total };
-    });
-
-    const perf = ALL_GRADES.map(g => {
-      const lInG = learners.filter(l => l.grade === g);
-      let total = 0, count = 0;
-      lInG.forEach(l => Object.keys(marks).forEach(k => { if (marks[k][l.adm]) { total += Number(marks[k][l.adm]); count++; } }));
-      return { name: g.replace('GRADE ', 'G'), avg: count ? Math.round(total / count) : 0 };
-    }).filter(d => d.avg > 0);
-
-    return { collection, perf };
-  }, [paylog, learners, marks]);
-
-  /* ── Student Data Processing ── */
-  const trendData = useMemo(() => {
-    if (!learner) return [];
-    const subjects = getDefaultSubjects(learner.grade, school?.curriculum || 'CBC');
-    const data = [];
-    TERMS.forEach(t => ASSESS.forEach(a => {
-      const stats = calcLearnerPoints(marks, learner.adm, learner.grade, t.id, a, subjects, null, school?.curriculum || 'CBC');
-      if (stats.enteredCount > 0) data.push({ name: `${t.id} ${a.toUpperCase().replace('1','')}`, score: Math.round((stats.totalPts / stats.maxTotal) * 100) });
-    }));
-    return data;
-  }, [learner, marks, school?.curriculum, TERMS]);
-
-  const radarData = useMemo(() => {
-    if (!learner) return [];
-    const subjects = getDefaultSubjects(learner.grade, school?.curriculum || 'CBC');
-    const clusters = {
-      'Languages': ['English', 'Kiswahili', 'Language', 'Kusoma', 'Reading'],
-      'Sciences': ['Mathematics', 'Science', 'Integrated Science', 'Biology', 'Chemistry', 'Physics', 'Environmental'],
-      'Humanities': ['Social Studies', 'History', 'Geography', 'CRE', 'IRE', 'Life Skills'],
-      'Arts/Sports': ['Art', 'Music', 'Physical Education', 'Creative']
-    };
-    return Object.entries(clusters).map(([name, keywords]) => {
-      let total = 0, maxTotal = 0;
-      subjects.forEach(s => {
-        if (keywords.some(k => s.toLowerCase().includes(k.toLowerCase()))) {
-          const stats = calcLearnerPoints(marks, learner.adm, learner.grade, 'T1', 'et1', [s], null, school?.curriculum || 'CBC');
-          if (stats.enteredCount > 0) { total += stats.totalPts; maxTotal += stats.maxTotal; }
-        }
+    if (profile?.tenantId) {
+      startTransition(async () => {
+        const res = await getAcademicStats({ 
+          tenantId: profile.tenantId, 
+          grade, 
+          term,
+          curriculum: profile.curriculum || 'CBC'
+        });
+        if (res.success) setStats(res.data);
       });
-      return { subject: name, A: maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0, fullMark: 100 };
-    });
-  }, [learner, marks, school?.curriculum]);
+    }
+  }, [grade, term, profile]);
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Analyzing performance trends…</div>;
+  if (!stats) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <Loader2 className="animate-spin text-slate-400" size={40} />
+      <p className="text-slate-500 font-medium animate-pulse">Calculating institutional insights...</p>
+    </div>
+  );
 
   return (
-    <div className="page on">
-      <div className="page-hdr">
+    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+      
+      {/* Header & Filters */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
         <div>
-          <h2>📊 Analytics Command Center</h2>
-          <p>Holistic view of performance analytics</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Academic Analytics</h1>
+          <p className="text-slate-500 mt-1 font-medium flex items-center gap-2">
+            <Users size={16} /> Data-driven insights for {stats.studentCount} students in {grade}
+          </p>
+        </div>
+        
+        <div className="flex gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+          <select 
+            value={grade} 
+            onChange={(e) => setGrade(e.target.value)}
+            className="bg-transparent border-none focus:ring-0 font-bold text-slate-700 px-4 py-2 outline-none cursor-pointer"
+          >
+            {grades.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+          <div className="w-px h-8 bg-slate-200 self-center" />
+          <select 
+            value={term} 
+            onChange={(e) => setTerm(e.target.value)}
+            className="bg-transparent border-none focus:ring-0 font-bold text-slate-700 px-4 py-2 outline-none cursor-pointer"
+          >
+            <option value="TERM 1">TERM 1</option>
+            <option value="TERM 2">TERM 2</option>
+            <option value="TERM 3">TERM 3</option>
+          </select>
         </div>
       </div>
 
-      <div className="tabs" style={{ marginBottom: 25, background: MB, borderRadius: 12, padding: 5 }}>
-        <button className={`tab-btn ${tab === 'school' ? 'on' : ''}`} onClick={() => setTab('school')} style={tab === 'school' ? { background: M, color: '#fff' } : {}}>🏫 School</button>
-        <button className={`tab-btn ${tab === 'student' ? 'on' : ''}`} onClick={() => setTab('student')} style={tab === 'student' ? { background: M, color: '#fff' } : {}}>👤 Individual</button>
-        <button className={`tab-btn ${tab === 'warning' ? 'on' : ''}`} onClick={() => setTab('warning')} style={tab === 'warning' ? { background: M, color: '#fff' } : {}}>⚠️ Early Warning {warnings.length > 0 && <span className="badge bg-red" style={{ marginLeft: 5 }}>{warnings.length}</span>}</button>
-      </div>
-
-      {tab === 'warning' ? (
-        <div className="panel">
-          <div className="panel-hdr">
-            <h3>⚠️ Academic Risk Report (AI Analysis)</h3>
-            <p style={{ fontSize: 11, color: 'var(--muted)' }}>Students with {'>'}7% drop between Mid-Term and End-Term</p>
+      {/* Insight Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm group hover:border-maroon-100 transition-colors">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-3 bg-green-50 text-green-600 rounded-2xl"><BookOpen size={24} /></div>
+            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Strength</div>
           </div>
-          <div className="panel-body">
-            {warnings.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 100, color: 'var(--green)', fontWeight: 700 }}>✅ No students currently flagged for academic risk.</div>
-            ) : (
-              <div className="tbl-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Learner</th>
-                      <th>Grade</th>
-                      <th>Previous Avg</th>
-                      <th>Current Avg</th>
-                      <th>Drop</th>
-                      <th>Intervention</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {warnings.map(w => (
-                      <tr key={w.adm}>
-                        <td><strong>{w.name}</strong></td>
-                        <td>{w.grade}</td>
-                        <td>{w.oldAvg}%</td>
-                        <td style={{ fontWeight: 700 }}>{w.curAvg}%</td>
-                        <td style={{ color: '#DC2626', fontWeight: 900 }}>↓ {w.drop}%</td>
-                        <td><button className="btn btn-sm btn-gold" onClick={() => { setSelGrade(w.grade); setSelAdm(w.adm); setTab('student'); }}>View Trends</button></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+          <div className="text-xs font-bold text-slate-500 uppercase mb-1">Top Subject</div>
+          <div className="text-2xl font-black text-slate-900 uppercase">{stats.subjectMastery[0]?.name || '—'}</div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-green-600 font-black text-2xl">{stats.subjectMastery[0]?.level || '—'}</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase">({stats.subjectMastery[0]?.average || 0}%)</span>
           </div>
         </div>
-      ) : tab === 'school' ? (
-        <>
-          <div className="sg sg3" style={{ marginBottom: 20 }}>
-            <div className="panel" style={{ textAlign: 'center', borderTop: `4px solid ${M}` }}>
-              <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>COLLECTION</div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: M }}>
-                {Math.round(paylog.reduce((s,p)=>s+Number(p.amount),0) / learners.reduce((s,l)=>s+(feeCfg[l.grade]?.annual||5000), 0) * 100)}%
-              </div>
-            </div>
-            <div className="panel" style={{ textAlign: 'center', borderTop: `4px solid #16A34A` }}>
-              <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>ACADEMIC MEAN</div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: '#16A34A' }}>
-                {Math.round(schoolStats.perf.reduce((s,p)=>s+p.avg,0)/schoolStats.perf.length)}%
-              </div>
-            </div>
-            <div className="panel" style={{ textAlign: 'center', borderTop: `4px solid #0369A1` }}>
-              <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>ENROLMENT</div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: '#0369A1' }}>{learners.length}</div>
-            </div>
-          </div>
 
-          <div className="sg sg2">
-            <div className="panel">
-              <div className="panel-hdr"><h3>💰 Collection Trend</h3></div>
-              <div className="panel-body" style={{ height: 250 }}>
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm group hover:border-maroon-100 transition-colors">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-3 bg-red-50 text-red-600 rounded-2xl"><AlertCircle size={24} /></div>
+            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Action Required</div>
+          </div>
+          <div className="text-xs font-bold text-slate-500 uppercase mb-1">Weakest Subject</div>
+          <div className="text-2xl font-black text-slate-900 uppercase">{stats.subjectMastery[stats.subjectMastery.length-1]?.name || '—'}</div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-red-600 font-black text-2xl">{stats.subjectMastery[stats.subjectMastery.length-1]?.level || '—'}</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase">({stats.subjectMastery[stats.subjectMastery.length-1]?.average || 0}%)</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm group hover:border-maroon-100 transition-colors">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl"><TrendingUp size={24} /></div>
+            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Parity Check</div>
+          </div>
+          <div className="text-xs font-bold text-slate-500 uppercase mb-1">Gender Gap</div>
+          <div className="text-2xl font-black text-slate-900">
+            {Math.abs((stats.genderComparison[0]?.average || 0) - (stats.genderComparison[1]?.average || 0)).toFixed(1)}%
+          </div>
+          <div className="mt-2 text-slate-400 text-[10px] font-bold uppercase tracking-wider">Difference in Gender Averages</div>
+        </div>
+      </div>
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {/* Subject Mastery Chart */}
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-black text-slate-900">Subject Mastery Heatmap</h3>
+            <div className="px-3 py-1 bg-slate-50 rounded-full text-[10px] font-bold text-slate-400 uppercase">Sort: High to Low</div>
+          </div>
+          <div className="h-[400px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.subjectMastery} layout="vertical" margin={{ left: 60, right: 30 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                <XAxis type="number" hide domain={[0, 100]} />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fontWeight: 900, fill: '#64748b' }}
+                  width={80}
+                />
+                <Tooltip 
+                  cursor={{ fill: '#f8fafc' }} 
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const d = payload[0].payload;
+                      return (
+                        <div className="bg-white p-4 rounded-2xl shadow-2xl border border-slate-100">
+                          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{d.name}</div>
+                          <div className="flex items-baseline gap-2">
+                            <div className="text-2xl font-black text-slate-900">{d.level}</div>
+                            <div className="text-xs font-bold text-slate-400">({d.average}%)</div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="average" radius={[0, 8, 8, 0]} barSize={24}>
+                  {stats.subjectMastery.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {/* Gender Comparison */}
+          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+            <h3 className="text-xl font-black text-slate-900 mb-6">Gender Parity</h3>
+            <div className="flex flex-col md:flex-row items-center justify-around gap-8">
+              <div className="h-[200px] w-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={schoolStats.collection}>
-                    <defs>
-                      <linearGradient id="colorAmt" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={M} stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor={M} stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                    <YAxis fontSize={10} axisLine={false} tickLine={false} tickFormatter={v => `${v/1000}k`} />
+                  <PieChart>
+                    <Pie
+                      data={stats.genderComparison}
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={8}
+                      dataKey="average"
+                    >
+                      {stats.genderComparison.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
                     <Tooltip />
-                    <Area type="monotone" dataKey="amount" stroke={M} fillOpacity={1} fill="url(#colorAmt)" strokeWidth={3} />
-                  </AreaChart>
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
+              <div className="space-y-4 flex-1">
+                {stats.genderComparison.map((g, idx) => (
+                  <div key={g.name} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[idx] }} />
+                      <span className="font-bold text-slate-700">{g.name}</span>
+                    </div>
+                    <span className="text-lg font-black text-slate-900">{g.average}%</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="panel">
-              <div className="panel-hdr"><h3>📊 Academic Average by Grade</h3></div>
-              <div className="panel-body" style={{ height: 250 }}>
+          </div>
+
+          {/* Stream Comparison */}
+          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+             <h3 className="text-xl font-black text-slate-900 mb-6">Stream Comparison</h3>
+             <div className="h-[200px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={schoolStats.perf}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                    <YAxis fontSize={10} axisLine={false} tickLine={false} domain={[0, 100]} />
+                  <BarChart data={stats.streamComparison}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#64748b' }} />
+                    <YAxis hide domain={[0, 100]} />
                     <Tooltip />
-                    <Bar dataKey="avg" fill="#16A34A" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="average" fill="#2563EB" radius={[8, 8, 0, 0]} barSize={40} />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
-            </div>
+             </div>
           </div>
-        </>
-      ) : (
-        <>
-          <div className="panel" style={{ marginBottom: 20 }}>
-            <div className="panel-body" style={{ display: 'flex', gap: 15, flexWrap: 'wrap' }}>
-              <div className="field" style={{ marginBottom: 0, minWidth: 150 }}>
-                <label>Grade</label>
-                <select value={selGrade} onChange={e => { setSelGrade(e.target.value); setSelAdm(''); }}>
-                  {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
-                </select>
-              </div>
-              <div className="field" style={{ marginBottom: 0, flex: 1, minWidth: 200 }}>
-                <label>Learner</label>
-                <select value={selAdm} onChange={e => setSelAdm(e.target.value)}>
-                  <option value="">— Choose Learner —</option>
-                  {filteredLearners.map(l => <option key={l.adm} value={l.adm}>{l.name} ({l.adm})</option>)}
-                </select>
-              </div>
-            </div>
-          </div>
+        </div>
+      </div>
 
-          {!learner ? (
-            <div className="panel" style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>Select a learner above to view detailed analytics</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div className="panel">
-                <div className="panel-hdr"><h3>📈 Termly Progress — {learner.name}</h3></div>
-                <div className="panel-body" style={{ height: 300 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="name" fontSize={11} axisLine={false} />
-                      <YAxis domain={[0, 100]} fontSize={11} axisLine={false} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="score" stroke={M} strokeWidth={4} dot={{ r: 6, fill: M }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              <div className="sg sg2">
-                <div className="panel">
-                  <div className="panel-hdr"><h3>🕸 Competency Radar</h3></div>
-                  <div className="panel-body" style={{ height: 300 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart data={radarData}>
-                        <PolarGrid />
-                        <PolarAngleAxis dataKey="subject" fontSize={10} />
-                        <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                        <Radar name={learner.name} dataKey="A" stroke={M} fill={M} fillOpacity={0.6} />
-                        <Tooltip />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-                <div className="panel" style={{ border: `2px solid ${M}`, background: ML }}>
-                  <div className="panel-hdr"><h3 style={{ color: M }}>🤖 AI Feedback</h3></div>
-                  <div className="panel-body">
-                    <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
-                      Strongest: <strong>{radarData.sort((a,b)=>b.A-a.A)[0]?.subject}</strong>.<br/>
-                      Focus: <strong>{radarData.sort((a,b)=>a.A-b.A)[0]?.subject}</strong>.
-                    </p>
-                    <ul style={{ fontSize: 12, color: '#475569', paddingLeft: 15, marginTop: 10 }}>
-                      <li>Maintain current study habits in language units.</li>
-                      <li>Review science fundamentals to boost overall mean.</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+      <style jsx>{`
+        .bg-maroon-100 { background-color: #FFF5F5; }
+        .hover\\:border-maroon-100:hover { border-color: #FED7D7; }
+      `}</style>
     </div>
   );
 }
