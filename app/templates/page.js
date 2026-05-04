@@ -346,7 +346,25 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
           ))}
           {data.length > 0 && (
             <>
-              <tr style={{ background: '#f9f9f9', borderTop: '2px solid #8B1A1A' }}>
+              <tr style={{ background: '#f0fdf4', borderTop: '2px solid #000' }}>
+                <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>TOTAL MARKS</td>
+                {subjects.map((s, i) => {
+                  let sum = 0;
+                  data.forEach(l => {
+                    const score = getMark(marks, term, grade, s, assess, l.adm);
+                    if (score !== null) sum += score;
+                  });
+                  return (
+                    <td key={i} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800 }}>
+                      {sum || '—'}
+                    </td>
+                  );
+                })}
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800 }}>{totalMarksSum}</td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
+              </tr>
+              <tr style={{ background: '#f9f9f9', borderTop: '1px solid #000' }}>
                 <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>AVERAGE SCORE</td>
                 {colStats.map((stat, i) => (
                   <td key={i} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>
