@@ -210,6 +210,9 @@ export default function MeritListPage() {
                         color: l.rank === 1 ? '#B45309' : l.rank === 2 ? '#475569' : '#C2410C' }}>
                         {l.totalPts}
                       </div>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: '#059669', marginBottom: 2 }}>
+                        {l.detail.reduce((s,d)=>s+(d.score||0),0)} Marks
+                      </div>
                       <div style={{ fontSize: 10, color: 'var(--muted)', marginBottom: 6 }}>out of {max} pts</div>
                       <div style={{ display:'flex', gap:5, justifyContent:'center', flexWrap:'wrap' }}>
                         <span className="badge bg-blue">{overallPct}%</span>
@@ -329,7 +332,8 @@ export default function MeritListPage() {
                           );
                         })}
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#059669' }}>{totalMarksSum}</td>
-                        <td colSpan={4}></td>
+                        <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#059669' }}>{totalPtsSum}</td>
+                        <td colSpan={3}></td>
                       </tr>
                       <tr style={{ background: '#f9f9f9', borderTop: '1px solid #ddd' }}>
                         <td colSpan={3} style={{ padding: 6, textAlign: 'right', fontWeight: 800 }}>AVERAGE SCORE</td>
@@ -339,7 +343,7 @@ export default function MeritListPage() {
                           </td>
                         ))}
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 700 }}>{totalAvgMarks}</td>
-                        <td style={{ padding: 6, textAlign: 'center' }}>—</td>
+                        <td style={{ padding: 6, textAlign: 'center', fontWeight: 700 }}>{totalAvgPts}</td>
                         <td style={{ padding: 6, textAlign: 'center' }}>—</td>
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 700 }}>{avgPct}%</td>
                         <td></td>
