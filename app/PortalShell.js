@@ -1,14 +1,17 @@
 'use client';
+import dynamic from 'next/dynamic';
 import { useEffect, useState, useCallback, useRef, createContext, useContext } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
-import ProfilePanel from '@/components/ProfilePanel';
 import { ALL_NAV } from '@/lib/navigation';
 import { getCachedUser, getCachedDBMulti, prefetchKeys, clearAllCache, fetchWithRetry, hydrateCache } from '@/lib/client-cache';
 import { initSyncEngine, stopSyncEngine } from '@/lib/sync-engine';
 import { readSchoolProfile } from '@/lib/school-profile';
-import NotificationBell from '@/components/NotificationBell';
+
+// Dynamic imports for performance
+const ProfilePanel = dynamic(() => import('@/components/ProfilePanel'), { ssr: false });
+const NotificationBell = dynamic(() => import('@/components/NotificationBell'), { ssr: false });
 
 /**
  * app/PortalShell.js — Client-side portal shell
@@ -196,14 +199,12 @@ export default function PortalShell({ children }) {
 
   const loadSession = useCallback(async () => {
     try {
-      // 🚀 If we already have server-injected data, skip the first fetch to save time
+      // 🚀 1. Speed Injection: If we already have server-injected data, skip the first fetch
       if (window.__INITIAL_USER__ && window.__INITIAL_BRANDING__) {
         console.log('[PortalShell] Using injected session data');
-        const { profile, theme } = window.__INITIAL_BRANDING__;
-        if (profile) hydrateCache({ paav_school_profile: profile });
-        if (theme) hydrateCache({ paav_theme: theme });
-        // Clean up to prevent stale data on route changes within SPA
-        // window.__INITIAL_USER__ = null; 
+        const { profile: p, theme: t } = window.__INITIAL_BRANDING__;
+        if (p) { setProfile(p); hydrateCache({ paav_school_profile: p }); }
+        if (t) { setTheme(t); hydrateCache({ paav_theme: t }); }
       }
 
       const [u, db] = await Promise.all([
@@ -218,86 +219,50 @@ export default function PortalShell({ children }) {
         ])
       ]);
         
-      // If we have a nav shell but no user, and we're not already on the login page
       if (!u && showNav) {
         console.warn('[PortalShell] No session found, redirecting...');
         window.location.href = '/';
         return;
       }
 
-      // 2. Fetch Branding (Strict URL-Driven Isolation)
+      // 2. Branding isolation logic
       const params = new URLSearchParams(window.location.search);
       const tenantParam = params.get('tenant');
-      
-      // If we have a tenant param in the URL, it OVERRIDES the user's session tenant
-      // for branding purposes. This prevents branding of School A appearing on School B's login.
       const brandingTenant = tenantParam || impersonateId || u?.tenant_id || u?.tenantId || 'platform-master';
-      const activeTenant   = impersonateId || u?.tenant_id || u?.tenantId || tenantParam || 'platform-master';
 
       if (brandingTenant && brandingTenant !== 'platform-master') {
         try { localStorage.setItem('paav_last_tenant', brandingTenant); } catch {}
       }
 
-      // If we are on the login page, we MUST use global branding UNLESS a tenant is specified
-      if ((pathname === '/' || pathname === '/login') && !tenantParam && !impersonateId) {
+      // Use platform branding on public pages unless a tenant is specified
+      const isPublic = pathname === '/' || pathname === '/login' || pathname === '/saas/signup';
+      if (isPublic && !tenantParam && !impersonateId) {
         setProfile({ name: 'EduVantage School Management System', tagline: 'Global Education SaaS Network', logo: '/ev-brand-v3.png' });
         setTheme({ primary: '#1E40AF', secondary: '#D4AF37', accent: '#0F172A' });
       } else {
         const configRes = await fetch(`/api/saas/config?tenant=${brandingTenant}&_t=${Date.now()}`);
         if (configRes.ok) {
           const config = await configRes.json();
-          if (config.profile) {
-            setProfile(config.profile);
-            const stamp = Date.now();
-            const cacheKey = `paav_cache_${brandingTenant}_db_paav_school_profile`;
-            localStorage.setItem(cacheKey, JSON.stringify({ v: config.profile, t: stamp, s: stamp }));
-            window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_school_profile'] } }));
-          }
-          if (config.theme) {
-            setTheme(config.theme);
-            const stamp = Date.now();
-            const cacheKey = `paav_cache_${brandingTenant}_db_paav_theme`;
-            localStorage.setItem(cacheKey, JSON.stringify({ v: config.theme, t: stamp, s: stamp }));
-            window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav_theme'] } }));
-          }
+          if (config.profile) setProfile(config.profile);
+          if (config.theme) setTheme(config.theme);
         }
       }
 
       if (u) {
         setUser(u);
-        const ann = db?.paav_announcement;
-        if (ann?.text && ann?.active) setAnnouncement(ann.text);
-        if (db?.paav_hero_img) setHeroUrl(db.paav_hero_img);
-
-        const msgs = db?.paav6_msgs || [];
-        const unr  = msgs.filter(m => 
-          !m.read?.includes(u.username) && (
-            m.to === 'ALL' || 
-            m.to === u.username || 
-            (m.to === 'ALL_STAFF' && ['admin','teacher','staff'].includes(u.role)) ||
-            (m.to === 'ALL_PARENTS' && u.role === 'parent')
-          )
-        ).length;
-        setUnreadCount(unr);
-
-        const duties = db?.paav7_duties || [];
-        setPendingDuties(duties.filter(d => d.staffId === u.id && d.status === 'pending').length);
-
-        if (u.role === 'admin') {
-          const reqs = db?.paav_staff_reqs || [];
-          setPendingReqs(reqs.filter(r => r.status === 'pending').length);
+        if (db?.paav_announcement?.text) setAnnouncement(db.paav_announcement.text);
+        if (db?.paav6_msgs) {
+          const unr = db.paav6_msgs.filter(m => !m.read?.includes(u.username)).length;
+          setUnreadCount(unr);
         }
         
-        prefetchKeys([
-          'paav6_learners', 'paav6_staff', 'paav6_marks',
-          'paav6_feecfg',  'paav_calendar_events', 'paav_presence',
-          'paav6_dept_reports'
-        ]);
+        // Only prefetch once session is confirmed
+        prefetchKeys(['paav6_learners', 'paav6_staff', 'paav6_marks', 'paav6_feecfg']);
       }
     } catch (e) {
       console.error('[PortalShell] session load error:', e);
     }
-  }, [showNav, impersonateId, pathname]);
+  }, [showNav, impersonateId]); // Removed pathname to stop nav lag
 
   useEffect(() => {
     if (showNav) {
@@ -306,6 +271,16 @@ export default function PortalShell({ children }) {
     }
     return () => stopSyncEngine();
   }, [showNav, loadSession]);
+
+  // targeted branding transition effect (public <-> private)
+  const [isPublicState, setIsPublicState] = useState(pathname === '/' || pathname === '/login' || pathname === '/saas/signup');
+  useEffect(() => {
+    const isPublic = pathname === '/' || pathname === '/login' || pathname === '/saas/signup';
+    if (isPublic !== isPublicState) {
+      setIsPublicState(isPublic);
+      loadSession();
+    }
+  }, [pathname, isPublicState, loadSession]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -551,14 +526,19 @@ export default function PortalShell({ children }) {
             <NotificationBell userId={user.id || user.username} />
           </div>
           <Link href="/dashboard" className={pathname === '/dashboard' ? 'active' : ''}>
+            <span className="icon">📊</span>
+            <span className="label">Home</span>
+          </Link>
+          <Link href="/messages" className={pathname.startsWith('/messages') ? 'active' : ''}>
             <span className="icon">💬</span>
             <span className="label">Inbox</span>
             {unreadCount > 0 && <span className="nav-badge">{unreadCount}</span>}
           </Link>
           {ALL_NAV
             .filter(n => n.roles.some(r => r === user.role || (user.role === 'super-admin' && r === 'admin')))
+            .filter(n => n.key !== 'dashboard' && n.key !== 'messages') // Prevent duplication
             .map(n => {
-              const b = (n.key === 'messages' || n.key === 'sms') ? unreadCount :
+              const b = (n.key === 'sms') ? unreadCount :
                         (n.key === 'duties') ? (pendingDuties + (user.role === 'admin' ? pendingReqs : 0)) : 0;
               return (
                 <Link

@@ -139,7 +139,7 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
         </div>
 
         {/* Message badge (Hidden on mobile topbar) */}
-        <Link href="/dashboard" className="tb-msg desktop-only" title="Messages" style={{ textDecoration: 'none' }}>
+        <Link href="/messages" className="tb-msg desktop-only" title="Messages" style={{ textDecoration: 'none' }}>
           💬
           {unreadCount > 0 && (
             <span className="msg-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
