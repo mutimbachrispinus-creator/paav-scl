@@ -356,7 +356,7 @@ export default function MeritListPage() {
                         })}
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#000', border: '1px solid #000' }}>{totalMarksSum}</td>
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#000', border: '1px solid #000' }}>{totalPtsSum}</td>
-                        <td colSpan={3} style={{ border: '1px solid #000' }}></td>
+                        <td colSpan={4} style={{ border: '1px solid #000' }}></td>
                       </tr>
                       <tr className="footer-row-avg" style={{ background: '#f9f9f9', borderTop: '1px solid #000' }}>
                         <td colSpan={3} style={{ padding: 6, textAlign: 'right', fontWeight: 800, border: '1px solid #000' }}>AVERAGE SCORE</td>
