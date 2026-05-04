@@ -114,9 +114,24 @@ export default function GradesPage() {
     const handler = (e) => {
       const changed = e.detail?.changed || [];
       if (changed.includes('paav6_marks') || changed.includes('paav_marks_locked')) {
+        // Only reload for mark changes from OTHER tabs (dirtyMarks is empty here)
+        // Never reload if WE are the ones who just wrote the marks (dirtyMarksRef.current has items)
         if (dirtyMarksRef.current.length === 0) {
           load();
         }
+      }
+    };
+    window.addEventListener('paav:sync', handler);
+    return () => window.removeEventListener('paav:sync', handler);
+  }, [load]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const changed = e.detail?.changed || [];
+      // Reload on external data changes — but NOT paav6_marks (those come from our own setScore calls)
+      const networkKeys = ['paav_announcement', 'paav7_streams', 'paav8_grad', 'paav8_subj', 'paav_marks_locked', 'paav_marks_pending'];
+      if (changed.some(k => networkKeys.includes(k))) {
+        load();
       }
     };
     window.addEventListener('paav:sync', handler);

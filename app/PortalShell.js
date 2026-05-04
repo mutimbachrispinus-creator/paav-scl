@@ -573,6 +573,15 @@ export default function PortalShell({ children }) {
                 </Link>
               );
             })}
+          {/* Logout button — always visible on mobile */}
+          <button
+            onClick={doLogout}
+            className="mbn-logout-btn"
+            aria-label="Log Out"
+          >
+            <span className="icon">🚪</span>
+            <span className="label">Log Out</span>
+          </button>
         </div>
       )}
 
