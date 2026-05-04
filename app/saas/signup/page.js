@@ -117,16 +117,17 @@ export default function EduVantageSignup() {
                   Admin Username 
                   <span 
                     onClick={() => {
-                      if (!form.schoolName) return;
-                      const slug = form.schoolName.toLowerCase().replace(/[^a-z]/g, '').slice(0, 10);
-                      setForm({...form, adminUsername: `${slug}.admin`});
+                      if (!form.adminName && !form.schoolName) return;
+                      const base = (form.adminName || form.schoolName).toLowerCase().split(' ')[0].replace(/[^a-z]/g, '');
+                      setForm({...form, adminUsername: `${base}.admin${Math.floor(Math.random()*99)}`});
                     }}
-                    style={{ color: '#2563EB', cursor: 'pointer', fontSize: 9 }}
+                    style={{ color: '#2563EB', cursor: 'pointer', fontSize: 9, fontWeight: 700 }}
                   >
                     Suggest?
                   </span>
                 </label>
                 <input required placeholder="admin-user" value={form.adminUsername} onChange={e => setForm({...form, adminUsername: e.target.value.toLowerCase().replace(/\s/g, '')})} />
+                <p style={{ fontSize: 9, color: '#94A3B8', marginTop: 4 }}>This will be your login ID</p>
               </div>
             </div>
 

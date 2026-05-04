@@ -18,9 +18,15 @@ export async function POST(request) {
     const tenantId = schoolName.toLowerCase().trim().replace(/[^a-z0-9]/g, '-');
 
     // Check if tenant already exists
-    const existing = await query('SELECT tenant_id FROM subscriptions WHERE tenant_id = ?', [tenantId]);
-    if (existing.length) {
+    const existingTenant = await query('SELECT tenant_id FROM subscriptions WHERE tenant_id = ?', [tenantId]);
+    if (existingTenant.length) {
       return NextResponse.json({ error: 'A school with a similar name already exists. Please choose a slightly different name.' }, { status: 409 });
+    }
+
+    // Check if adminUsername is taken globally (Zeraki-style global identity)
+    const existingUser = await query('SELECT id FROM staff WHERE LOWER(username) = ?', [adminUsername.toLowerCase().trim()]);
+    if (existingUser.length) {
+      return NextResponse.json({ error: `The username "${adminUsername}" is already taken. Please choose a different admin username.` }, { status: 409 });
     }
 
     // Prepare initial data
