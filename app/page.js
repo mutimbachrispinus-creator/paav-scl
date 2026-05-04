@@ -4,11 +4,27 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ChatBot from '@/components/ChatBot';
 
-const PRIMARY = '#4F46E5'; // Indigo
-const ACCENT  = '#10B981'; // Emerald
-const DARK    = '#0F172A'; // Slate 900
-const SLATE   = '#64748B'; // Slate 500
-const VIBRANT = '#8B5CF6'; // Violet
+// Colors read from CSS vars set by PortalShell theme — dynamic per tenant
+const PRIMARY = 'var(--lp-primary, #4F46E5)';
+const ACCENT  = 'var(--lp-accent,  #10B981)';
+const DARK    = 'var(--lp-dark,    #0F172A)';
+const SLATE   = 'var(--lp-slate,   #64748B)';
+const VIBRANT = 'var(--lp-vibrant, #8B5CF6)';
+
+const ALL_FEATURES = [
+  { icon: '📊', title: 'CBC / IGCSE / IB Grading', desc: 'Auto-compute grades, levels & report cards for any curriculum.' },
+  { icon: '💰', title: 'M-Pesa Auto-Reconciliation', desc: 'Real-time Paybill/Till sync — zero manual entry.' },
+  { icon: '📅', title: 'AI Timetabling', desc: 'Conflict-free master timetables generated in minutes.' },
+  { icon: '📲', title: 'Parent Portal & SMS', desc: 'Live fee balances, marks & instant absence alerts.' },
+  { icon: '🎥', title: 'Live Classes', desc: 'Built-in video conferencing for remote & hybrid teaching.' },
+  { icon: '🤖', title: 'AI Grade Predictor', desc: 'Forecast end-term performance from early assessments.' },
+  { icon: '🏆', title: 'Merit Lists & Rankings', desc: 'Auto-generated class & school-wide merit tables.' },
+  { icon: '🛡️', title: 'Welfare & Portfolio', desc: 'Track student wellness, incidents & digital portfolios.' },
+  { icon: '📋', title: 'Staff Duties & Scheduling', desc: 'Assign, track & approve duty rosters digitally.' },
+  { icon: '🔔', title: 'Push Notifications', desc: 'Web push & bulk SMS to any stakeholder group.' },
+  { icon: '📈', title: 'Finance & Payroll', desc: 'Expenses, invoicing, payslips & budget management.' },
+  { icon: '🌐', title: 'Multi-Tenant SaaS', desc: 'One platform powering unlimited school instances.' },
+];
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
@@ -16,17 +32,23 @@ export default function LandingPage() {
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', handleScroll);
-    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Sync landing page CSS vars with platform theme
+    const style = document.documentElement.style;
+    const primary = style.getPropertyValue('--primary').trim() || '#4F46E5';
+    const secondary = style.getPropertyValue('--secondary').trim() || '#10B981';
+    if (primary) style.setProperty('--lp-primary', primary);
+    if (secondary) style.setProperty('--lp-accent', secondary);
+
     async function loadStats() {
       try {
-        const res = await fetch('/api/saas/config?tenant=platform-master');
+        const res = await fetch('/api/saas/config?tenant=platform-master', { cache: 'no-store' });
         const data = await res.json();
         if (data.stats) setStats(data.stats);
       } catch (e) {}
     }
     loadStats();
-
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -115,6 +137,28 @@ export default function LandingPage() {
           <div className="stat-item">
             <strong>99.9%</strong>
             <span>Uptime & Reliability</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── ALL FEATURES GRID ── */}
+      <section className="all-features-section">
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 56 }}>
+            <div className="badge-pill">🚀 Everything Included</div>
+            <h2 className="section-title">One platform.<br/><span className="text-gradient">Every feature you need.</span></h2>
+            <p className="section-subtitle">No add-ons. No hidden fees. All modules included in every plan.</p>
+          </div>
+          <div className="feat-grid">
+            {ALL_FEATURES.map(f => (
+              <div key={f.title} className="feat-chip">
+                <span className="feat-chip-icon">{f.icon}</span>
+                <div>
+                  <div className="feat-chip-title">{f.title}</div>
+                  <div className="feat-chip-desc">{f.desc}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -325,6 +369,8 @@ export default function LandingPage() {
       <ChatBot />
 
       <style jsx>{`
+        /* Dynamic color bridge */
+        :root { --lp-primary: #4F46E5; --lp-accent: #10B981; --lp-dark: #0F172A; --lp-slate: #64748B; --lp-vibrant: #8B5CF6; }
         /* Core Reset & Fonts */
         .landing-wrap { 
           background: #fff; color: ${DARK}; font-family: var(--font-inter, sans-serif); 
@@ -461,6 +507,15 @@ export default function LandingPage() {
         
         .footer-bottom { padding: 40px 0; border-top: 1px solid rgba(0,0,0,0.05); text-align: center; color: ${SLATE}; font-weight: 600; font-size: 14px; }
 
+        /* All Features Grid */
+        .all-features-section { padding: 100px 0; background: #F8FAFC; }
+        .feat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+        .feat-chip { display: flex; align-items: flex-start; gap: 16px; padding: 20px 22px; background: #fff; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: 0.25s cubic-bezier(0.4,0,0.2,1); }
+        .feat-chip:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(79,70,229,0.1); border-color: rgba(79,70,229,0.15); }
+        .feat-chip-icon { font-size: 28px; flex-shrink: 0; width: 48px; height: 48px; background: rgba(79,70,229,0.07); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+        .feat-chip-title { font-weight: 800; font-size: 14px; color: ${DARK}; margin-bottom: 4px; }
+        .feat-chip-desc { font-size: 12.5px; color: ${SLATE}; line-height: 1.5; }
+
         /* Responsive Breakpoints */
         @media (max-width: 1024px) {
           .hero-title { font-size: 64px; }
@@ -470,19 +525,32 @@ export default function LandingPage() {
           .comp-table th, .comp-table td { padding: 16px 12px; font-size: 14px; }
           .footer-grid { grid-template-columns: 1fr; gap: 60px; }
         }
-
         @media (max-width: 768px) {
-          .hero { padding: 160px 0 80px; }
-          .hero-title { font-size: 48px; }
-          .hero-subtitle { font-size: 18px; }
+          .hero { padding: 120px 0 60px; }
+          .hero-title { font-size: 36px; letter-spacing: -0.02em; }
+          .hero-subtitle { font-size: 16px; }
           .hero-actions { flex-direction: column; gap: 12px; }
+          .btn-xl { padding: 14px 28px; font-size: 15px; }
           .desktop-only { display: none; }
           .card-1, .card-2 { display: none; }
           .stats-box { flex-direction: column; gap: 30px; }
           .stat-sep { width: 100px; height: 1px; }
-          .section-title { font-size: 40px; }
+          .section-title { font-size: 32px; }
+          .all-features-section { padding: 60px 0; }
+          .feat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+          .feat-chip { padding: 14px 14px; gap: 10px; border-radius: 14px; }
+          .feat-chip-icon { width: 36px; height: 36px; font-size: 20px; border-radius: 10px; }
+          .feat-chip-title { font-size: 12px; }
+          .feat-chip-desc { display: none; }
+          .modules-section { padding: 80px 0; }
           .solutions-section { border-radius: 40px; margin: 0 12px; padding: 80px 0; }
           .comp-table { display: block; overflow-x: auto; white-space: nowrap; }
+          .pricing-grid { grid-template-columns: 1fr; }
+          .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .fade-in-up, .pulse-glow, .floating-card { animation: none !important; }
+          .btn-primary:hover, .feat-chip:hover, .module-card:hover { transform: none !important; }
         }
       `}</style>
     </div>
