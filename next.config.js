@@ -5,6 +5,17 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  productionBrowserSourceMaps: false,
+  experimental: {
+    optimizePackageImports: [
+      'recharts',
+      'lucide-react',
+      '@react-pdf/renderer',
+      'framer-motion',
+      'clsx',
+      'tailwind-merge'
+    ],
+  },
   turbopack: {},
   webpack: (config) => {
     config.externals.push({
