@@ -1,13 +1,22 @@
 'use client';
 
 import React, { useState, useEffect, useTransition } from 'react';
+import dynamic from 'next/dynamic';
 import { Search, CreditCard, Banknote, FileText, Loader2, X } from 'lucide-react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { ReceiptPDF } from './ReceiptPDF';
 import { searchStudents, recordManualPayment } from '@/lib/actions/ledger';
 import { initiateSTKPush } from '@/lib/actions/daraja';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+
+const PDFDownloadLink = dynamic(
+  () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+);
+
+const ReceiptPDF = dynamic(
+  () => import('./ReceiptPDF').then((mod) => mod.ReceiptPDF),
+  { ssr: false }
+);
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));

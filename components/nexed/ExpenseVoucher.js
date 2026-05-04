@@ -1,12 +1,21 @@
 'use client';
 
 import React, { useState, useEffect, useTransition } from 'react';
+import dynamic from 'next/dynamic';
 import { Search, ShoppingCart, Wallet, FileText, Loader2, X, Tag } from 'lucide-react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { ExpensePDF } from './ExpensePDF';
 import { searchSuppliers, getVoteheads, recordExpenditure } from '@/lib/actions/ledger';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+
+const PDFDownloadLink = dynamic(
+  () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+);
+
+const ExpensePDF = dynamic(
+  () => import('./ExpensePDF').then((mod) => mod.ExpensePDF),
+  { ssr: false }
+);
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));
