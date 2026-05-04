@@ -23,7 +23,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-/* ── Thin localStorage wrappers ─────────────────────────────────────────── */
+/* -- Thin localStorage wrappers ------------------------------------------- */
 function lsGet(key, fallback = null) {
   try {
     if (typeof localStorage === 'undefined') return fallback;

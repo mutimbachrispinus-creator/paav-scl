@@ -121,7 +121,7 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* ── Global Network Announcement ── */}
+      {/* -- Global Network Announcement -- */}
       {announcement && (
         <div className="panel" style={{ 
           marginBottom: 18, 
@@ -143,7 +143,7 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* ── Super Admin Oversight Info ── */}
+      {/* -- Super Admin Oversight Info -- */}
       {isSuper && (
         <div className="panel" style={{ marginBottom: 18, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 15 }}>
           <div className="panel-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

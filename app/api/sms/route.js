@@ -28,7 +28,7 @@ function err(msg, status = 400) {
 }
 
 export async function POST(request) {
-  /* ── Auth check ── */
+  /* -- Auth check -- */
   const session = await getSession();
   if (!session) return err('Unauthorised', 401);
 
@@ -38,7 +38,7 @@ export async function POST(request) {
 
   const { type } = body;
 
-  /* ── Load AT credentials from DB (Super Admin Control) ── */
+  /* -- Load AT credentials from DB (Super Admin Control) -- */
   // We ALWAYS fetch from platform-master so the SaaS owner controls SMS and billing
   const savedCreds = (await kvGet('paav_at_creds', {}, 'platform-master')) || {};
   const creds = {
@@ -51,7 +51,7 @@ export async function POST(request) {
   let logEntry;
 
   switch (type) {
-    /* ── Single SMS ── */
+    /* -- Single SMS -- */
     case 'send': {
       const { to, message } = body;
       if (!to || !message) return err('to and message are required');
@@ -64,7 +64,7 @@ export async function POST(request) {
       break;
     }
 
-    /* ── Bulk SMS (admin only) ── */
+    /* -- Bulk SMS (admin only) -- */
     case 'bulk': {
       if (session.role !== 'admin') return err('Only admins can send bulk SMS', 403);
       const { phones, message } = body;
@@ -81,7 +81,7 @@ export async function POST(request) {
       break;
     }
 
-    /* ── Credential delivery for new staff/parent ── */
+    /* -- Credential delivery for new staff/parent -- */
     case 'credentials': {
       if (session.role !== 'admin') return err('Only admins can send credentials', 403);
       const { userId } = body;
@@ -99,7 +99,7 @@ export async function POST(request) {
       break;
     }
 
-    /* ── Fee reminder for one learner ── */
+    /* -- Fee reminder for one learner -- */
     case 'fee_reminder': {
       if (!['admin','staff'].includes(session.role)) {
         return err('Only admins and staff can send fee reminders', 403);
@@ -137,7 +137,7 @@ export async function POST(request) {
       return err(`Unknown SMS type: ${type}`);
   }
 
-  /* ── Persist SMS log ── */
+  /* -- Persist SMS log -- */
   if (logEntry) {
     try {
       const smsLog = (await kvGet('paav7_sms')) || [];
@@ -153,7 +153,7 @@ export async function POST(request) {
   return NextResponse.json({ ok: result.success, ...result });
 }
 
-/* ─── GET: SMS log (admin only) ─────────────────────────────────────────── */
+/* --- GET: SMS log (admin only) ------------------------------------------- */
 export async function GET(request) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });

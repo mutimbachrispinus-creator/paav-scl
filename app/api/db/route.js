@@ -21,7 +21,7 @@ import { NextResponse } from 'next/server';
 import { kvGet, kvSet, kvDelete, kvTimestamps } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 
-/* ─── Auth check ────────────────────────────────────────────────────────── */
+/* --- Auth check ---------------------------------------------------------- */
 async function authenticate() {
   // Allow requests that carry a valid session cookie ONLY
   const session = await getSession();
@@ -68,7 +68,7 @@ export async function POST(request) {
   }
 }
 
-/* ─── GET (single key shorthand) ────────────────────────────────────────── */
+/* --- GET (single key shorthand) ------------------------------------------ */
 export async function GET(request) {
   try {
     const auth = await authenticate();
@@ -95,12 +95,12 @@ export async function GET(request) {
   }
 }
 
-/* ─── Request dispatcher ────────────────────────────────────────────────── */
+/* --- Request dispatcher -------------------------------------------------- */
 async function handleRequest(req, auth, impTenant = null) {
   const tenantId = impTenant || auth.tenantId || 'platform-master';
 
   switch (req.type) {
-    /* ── Read one key ── */
+    /* -- Read one key -- */
     case 'get': {
       const { kvGetWithMeta } = await import('@/lib/db');
       
@@ -118,7 +118,7 @@ async function handleRequest(req, auth, impTenant = null) {
       return { type: 'get', key: req.key, value, updatedAt };
     }
 
-    /* ── Write one key ── */
+    /* -- Write one key -- */
     case 'set': {
       if (req.key === undefined || req.value === undefined) return { type: 'set', error: 'key/value required' };
 
@@ -132,7 +132,7 @@ async function handleRequest(req, auth, impTenant = null) {
       return { type: 'set', key: req.key, ok: true };
     }
 
-    /* ── Specialized Staff Request Handlers ── */
+    /* -- Specialized Staff Request Handlers -- */
     case 'submitStaffRequest': {
       if (!req.request) return { type: req.type, error: 'request object required' };
       const { kvSubmitStaffRequest } = await import('@/lib/db');

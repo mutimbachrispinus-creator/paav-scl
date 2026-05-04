@@ -53,7 +53,7 @@ export default function LandingPage() {
 
   return (
     <div className="landing-wrap">
-      {/* ── STICKY NAV ── */}
+      {/* -- STICKY NAV -- */}
       <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
         <div className="container nav-box">
           <Link href="/" className="logo-group">
@@ -78,7 +78,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* ── HERO ── */}
+      {/* -- HERO -- */}
       <section className="hero">
         <div className="hero-mesh"></div>
         
@@ -120,7 +120,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── STATS STRIP (HONEST FIGURES) ── */}
+      {/* -- STATS STRIP (HONEST FIGURES) -- */}
       <section className="stats-strip">
         <div className="container stats-box">
           <div className="stat-item">
@@ -140,7 +140,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── ALL FEATURES GRID ── */}
+      {/* -- ALL FEATURES GRID -- */}
       <section className="all-features-section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
@@ -162,7 +162,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── MODULES SECTION ── */}
+      {/* -- MODULES SECTION -- */}
       <section id="features" className="modules-section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 80 }}>
@@ -231,7 +231,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── STAKEHOLDER SOLUTIONS ── */}
+      {/* -- STAKEHOLDER SOLUTIONS -- */}
       <section id="solutions" className="solutions-section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
@@ -264,7 +264,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── COMPARISON SECTION (Why Us?) ── */}
+      {/* -- COMPARISON SECTION (Why Us?) -- */}
       <section id="compare" className="compare-section">
         <div className="container">
           <div className="comparison-box">
@@ -294,7 +294,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── PRICING SECTION ── */}
+      {/* -- PRICING SECTION -- */}
       <section id="pricing" className="pricing-section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 80 }}>
@@ -327,7 +327,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
+      {/* -- FOOTER -- */}
       <footer className="footer">
         <div className="container footer-grid">
           <div className="footer-info">

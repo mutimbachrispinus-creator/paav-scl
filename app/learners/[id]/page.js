@@ -87,7 +87,7 @@ export default function LearnerProfilePage() {
   const totalPaid  = (learner.t1||0) + (learner.t2||0) + (learner.t3||0);
   const balance    = annualFee + (learner.arrears || 0) - totalPaid;
 
-  /* ── Marks for selected term + assessment ── */
+  /* -- Marks for selected term + assessment -- */
   const marksRows = subjects.map(subj => {
     const k1  = `${term}:${learner.grade}|${subj}|${assess}`;
     const k0  = `${learner.grade}|${subj}|${assess}`;
@@ -122,7 +122,7 @@ export default function LearnerProfilePage() {
       </div>
 
       <div className="sg sg2">
-        {/* ── Bio card ── */}
+        {/* -- Bio card -- */}
         <div className="panel">
           <div className="panel-hdr"><h3>📋 Profile</h3></div>
           <div className="panel-body">
@@ -149,7 +149,7 @@ export default function LearnerProfilePage() {
           </div>
         </div>
 
-        {/* ── Fee statement ── */}
+        {/* -- Fee statement -- */}
         {user?.role === 'admin' && (
           <div className="panel">
             <div className="panel-hdr">
@@ -194,7 +194,7 @@ export default function LearnerProfilePage() {
         )}
       </div>
 
-      {/* ── Academic performance ── */}
+      {/* -- Academic performance -- */}
       <div className="panel">
         <div className="panel-hdr">
           <h3>📊 Academic Performance</h3>

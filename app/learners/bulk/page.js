@@ -174,7 +174,7 @@ export default function BulkLearnersPage() {
         </div>
       </div>
 
-      {/* ── Entry by Grade ── */}
+      {/* -- Entry by Grade -- */}
       <div className="panel" style={{ marginBottom: 12, overflow: 'visible' }}>
         <div className="panel-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)', marginBottom: 2 }}>📚 Entry by Grade</div>

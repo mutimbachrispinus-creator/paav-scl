@@ -231,7 +231,7 @@ export default function TemplatesPage() {
   );
 }
 
-/* ── SUB-COMPONENTS ── */
+/* -- SUB-COMPONENTS -- */
 
 function PrintHeader({ title, grade, profile = {} }) {
   return (

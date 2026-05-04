@@ -35,7 +35,7 @@ export default function UnifiedPayrollPage() {
 
   const selStaff = useMemo(() => staff.find(s => s.username === selStaffId), [staff, selStaffId]);
 
-  /* ── Kenyan Payroll Logic ── */
+  /* -- Kenyan Payroll Logic -- */
   const currentPay = useMemo(() => {
     if (!selStaff) return null;
     const g = Number(selStaff.salary) || 0;

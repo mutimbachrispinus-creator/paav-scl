@@ -39,7 +39,7 @@ export async function POST(req) {
 
       let adm, term, tenantId, pendingKey;
 
-      // ── Strategy 1: Look up the pending payment record by CheckoutRequestID ──
+      // -- Strategy 1: Look up the pending payment record by CheckoutRequestID --
       // This is the primary method and works for admission numbers of ANY length.
       if (checkoutRequestId) {
         // The pending record is stored in the tenant who initiated the STK push.
@@ -67,7 +67,7 @@ export async function POST(req) {
         }
       }
 
-      // ── Strategy 2: Fallback — parse AccountReference + resolve by shortcode ──
+      // -- Strategy 2: Fallback — parse AccountReference + resolve by shortcode --
       // Handles cases where STK push was initiated outside the portal (e.g. manual USSD).
       if (!adm) {
         const parts = String(result.accountRef || '').split(':');

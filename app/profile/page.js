@@ -266,7 +266,7 @@ export default function ProfilePage() {
         ))}
       </div>
 
-      {/* ── My Profile ── */}
+      {/* -- My Profile -- */}
       {tab === 'me' && profileData && (
         <form onSubmit={saveProfile}>
           <div className="sg sg2">
@@ -337,7 +337,7 @@ export default function ProfilePage() {
         </form>
       )}
 
-      {/* ── Change Password ── */}
+      {/* -- Change Password -- */}
       {tab === 'pw' && (
         <div className="panel no-print" style={{ maxWidth: 480 }}>
           <div className="panel-hdr"><h3>🔒 Change Password</h3></div>
@@ -353,7 +353,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* ── Staff Directory ── */}
+      {/* -- Staff Directory -- */}
       {tab === 'staff' && !selectedStaff && (
         <div className="panel no-print">
           <div className="panel-hdr">
@@ -386,7 +386,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* ── View Staff Profile (Admin) ── */}
+      {/* -- View Staff Profile (Admin) -- */}
       {tab === 'staff' && selectedStaff && (() => {
         const pExtra = allProfiles[selectedStaff.id] || {};
         return (
@@ -428,7 +428,7 @@ export default function ProfilePage() {
         );
       })()}
 
-      {/* ── Learner Lookup ── */}
+      {/* -- Learner Lookup -- */}
       {tab === 'learner' && !selectedLearner && (
         <div className="panel no-print">
           <div className="panel-hdr"><h3>🎓 Learner Lookup</h3></div>
@@ -459,7 +459,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* ── View Learner Profile ── */}
+      {/* -- View Learner Profile -- */}
       {tab === 'learner' && selectedLearner && (() => {
         const lExtra = allProfiles[selectedLearner.adm] || {};
         return (
@@ -504,7 +504,7 @@ export default function ProfilePage() {
         );
       })()}
 
-      {/* ── Bulk Enroll Learners ── */}
+      {/* -- Bulk Enroll Learners -- */}
       {tab === 'bulk' && (
         <div className="panel no-print">
           <div className="panel-hdr">

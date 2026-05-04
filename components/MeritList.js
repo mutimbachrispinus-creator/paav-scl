@@ -47,7 +47,7 @@ export default function MeritList({
 
   return (
     <div>
-      {/* ── Top 3 podium (hidden in compact mode) ── */}
+      {/* -- Top 3 podium (hidden in compact mode) -- */}
       {!compact && ranked.length >= 1 && (
         <div style={{
           display: 'grid',
@@ -99,7 +99,7 @@ export default function MeritList({
         </div>
       )}
 
-      {/* ── Full table ── */}
+      {/* -- Full table -- */}
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
           <thead>

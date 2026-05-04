@@ -123,7 +123,7 @@ export default function AllocationsPage() {
 
   return (
     <div className="page on">
-      {/* ── Header ── */}
+      {/* -- Header -- */}
       <div className="page-hdr">
         <div>
           <h2>🗓️ Allocations</h2>
@@ -141,7 +141,7 @@ export default function AllocationsPage() {
         </div>
       </div>
 
-      {/* ── Tabs ── */}
+      {/* -- Tabs -- */}
       <div className="tabs" style={{ marginBottom: 20, background: MAROON_BG }}>
         {TABS.map(t => (
           <button
@@ -155,7 +155,7 @@ export default function AllocationsPage() {
         ))}
       </div>
 
-      {/* ── CLASS TEACHERS TAB ── */}
+      {/* -- CLASS TEACHERS TAB -- */}
       {tab === 'class' && (
         <div>
           <div className="panel" style={{ marginBottom: 16 }}>
@@ -229,7 +229,7 @@ export default function AllocationsPage() {
         </div>
       )}
 
-      {/* ── SUBJECT TEACHERS TAB ── */}
+      {/* -- SUBJECT TEACHERS TAB -- */}
       {tab === 'subjects' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
           {ALL_GRADES.map(grade => {
@@ -277,7 +277,7 @@ export default function AllocationsPage() {
         </div>
       )}
 
-      {/* ── TEACHER CODES TAB ── */}
+      {/* -- TEACHER CODES TAB -- */}
       {tab === 'codes' && (
         <div className="panel">
           <div className="panel-hdr" style={{ background: MAROON_LIGHT, borderBottom: `2px solid ${MAROON_BG}` }}>

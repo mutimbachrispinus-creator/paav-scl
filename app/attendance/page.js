@@ -21,7 +21,7 @@ import { useProfile } from '@/app/PortalShell';
 const STATUS_COLORS = { P:'#059669', A:'#DC2626', L:'#D97706', E:'#7C3AED' };
 const STATUS_LABELS = { P:'Present', A:'Absent', L:'Late', E:'Excused' };
 
-/* ─── Helpers ── */
+/* --- Helpers -- */
 function getSchoolDays(term, year = new Date().getFullYear()) {
   // Each term: 14 weeks of Mon–Fri. Term 1 starts ~Jan 6, T2 ~May 5, T3 ~Sep 1
   const starts = { T1: new Date(year,0,6), T2: new Date(year,4,5), T3: new Date(year,8,1) };
@@ -164,7 +164,7 @@ export default function AttendancePage() {
     setDirtyAtt(prev => ({ ...prev, ...updates }));
   }
 
-  /* ─── Analytics helpers ── */
+  /* --- Analytics helpers -- */
   function learnerStats(adm, days) {
     const counts = { P:0, A:0, L:0, E:0, total:0 };
     days.forEach(d => {
@@ -266,7 +266,7 @@ export default function AttendancePage() {
         ))}
       </div>
 
-      {/* ── MARK REGISTER ── */}
+      {/* -- MARK REGISTER -- */}
       {activeView === 'mark' && (
         <div className="panel">
           <div className="panel-hdr">
@@ -326,7 +326,7 @@ export default function AttendancePage() {
         </div>
       )}
 
-      {/* ── ANALYTICS VIEWS ── */}
+      {/* -- ANALYTICS VIEWS -- */}
       {(['weekly','monthly','termly','annual']).includes(activeView) && (() => {
         const days = activeView==='weekly' ? weekDays : activeView==='monthly' ? monthDays : activeView==='termly' ? schoolDays : annualDays;
         const cls  = classStats(days);

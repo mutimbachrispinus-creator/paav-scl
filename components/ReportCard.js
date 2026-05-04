@@ -28,7 +28,7 @@ export default function ReportCard({
   school    = { name: 'SCHOOL PORTAL', motto: 'Quality Education' },
   promoSt   = 'review',
 }) {
-  /* ── End-term totals ── */
+  /* -- End-term totals -- */
   const etCells  = rows.map(r => r.cells[2]);
   const entered  = etCells.filter(c => c.score !== undefined);
   const totalPts = entered.reduce((s, c) => s + (c.inf?.pts || 0), 0);
@@ -36,7 +36,7 @@ export default function ReportCard({
 
   return (
     <div className="rc-a4">
-      {/* ── Header ── */}
+      {/* -- Header -- */}
       <div className="rc-hdr">
         <div className="rc-school">🏫 {school.name}</div>
         <div style={{ fontSize: 11, color: '#64748B', margin: '2px 0' }}>
@@ -51,7 +51,7 @@ export default function ReportCard({
         <div className="rc-motto">{school.motto}</div>
       </div>
 
-      {/* ── Learner info ── */}
+      {/* -- Learner info -- */}
       <div className="rc-learner-info">
         {[
           ['Name',            learner.name          ],
@@ -70,7 +70,7 @@ export default function ReportCard({
         ))}
       </div>
 
-      {/* ── Subject table ── */}
+      {/* -- Subject table -- */}
       <table className="rc-subj-table">
         <thead>
           <tr>
@@ -134,7 +134,7 @@ export default function ReportCard({
         </tbody>
       </table>
 
-      {/* ── Grade scale legend ── */}
+      {/* -- Grade scale legend -- */}
       <div style={{ marginBottom: 10 }}>
         <div style={{
           fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
@@ -154,7 +154,7 @@ export default function ReportCard({
         </div>
       </div>
 
-      {/* ── Summary boxes ── */}
+      {/* -- Summary boxes -- */}
       <div style={{
         display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12,
       }}>
@@ -178,7 +178,7 @@ export default function ReportCard({
         />
       </div>
 
-      {/* ── Signature lines ── */}
+      {/* -- Signature lines -- */}
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(3,1fr)',
         gap: 20, marginBottom: 12, marginTop: 16,
@@ -191,7 +191,7 @@ export default function ReportCard({
         ))}
       </div>
 
-      {/* ── Footer ── */}
+      {/* -- Footer -- */}
       <div className="rc-footer">
         <div><strong>{school.name}</strong> &nbsp;|&nbsp; {school.motto}</div>
         <div style={{ marginTop: 3 }}>

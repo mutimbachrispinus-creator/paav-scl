@@ -64,7 +64,7 @@ export default function GradesPage() {
   const dirtyMarksRef = useRef([]);
   useEffect(() => { dirtyMarksRef.current = dirtyMarks; }, [dirtyMarks]);
 
-  /* ── Load data ── */
+  /* -- Load data -- */
   const load = useCallback(async () => {
     try {
       const [u, db] = await Promise.all([
@@ -139,11 +139,11 @@ export default function GradesPage() {
     return () => window.removeEventListener('paav:sync', handler);
   }, [load]);
 
-  /* ── Pending approval helpers ── */
+  /* -- Pending approval helpers -- */
   const getPendingKey = (subj) => `${term}:${grade}:${assess}:${subj}`;
   const isSubjPending = (subj) => !!pending[getPendingKey(subj)];
 
-  /* ── Derived ── */
+  /* -- Derived -- */
   const classLearners = learners.filter(l => l.grade === grade && (!stream || (l.stream || 'Default') === stream))
     .sort((a, b) => a.name.localeCompare(b.name));
   const gradeStreams = streams.filter(s => s.grade === grade);
@@ -152,7 +152,7 @@ export default function GradesPage() {
   const isSubjLocked = (subj) => !!locked[getLockKey(subj)] || !!locked[`${term}:${grade}:${assess}`];
   const isLocked      = !!locked[`${term}:${grade}:${assess}`];
 
-  /* ── Score change ── */
+  /* -- Score change -- */
   function setScore(admNo, subj, value) {
     if (isSubjLocked(subj) && user?.role !== 'admin') return;
     const gsa = `${term}:${grade}|${subj}|${assess}`;
@@ -182,7 +182,7 @@ export default function GradesPage() {
     return marks[key]?.[admNo];
   }
 
-  /* ── Auto-save (Sync immediately) ── */
+  /* -- Auto-save (Sync immediately) -- */
   useEffect(() => {
     if (loading || saving || dirtyMarks.length === 0) return;
     const timer = setTimeout(() => {
@@ -191,7 +191,7 @@ export default function GradesPage() {
     return () => clearTimeout(timer);
   }, [dirtyMarks]);
 
-  /* ── Save ── */
+  /* -- Save -- */
   async function save(isAuto = false) {
     const marksToSync = [...dirtyMarks];
     if (marksToSync.length === 0 && isAuto) return;
@@ -259,7 +259,7 @@ export default function GradesPage() {
     }
   }
 
-  /* ── Submit for approval (teacher) ── */
+  /* -- Submit for approval (teacher) -- */
   async function submitForApproval() {
     const subjsInView = subjects;
     const newPending = { ...pending };
@@ -285,7 +285,7 @@ export default function GradesPage() {
     setTimeout(() => setAlert({ msg: '', type: '' }), 5000);
   }
 
-  /* ── Admin: approve or reject pending ── */
+  /* -- Admin: approve or reject pending -- */
   async function approveSubject(subj) {
     const key = getLockKey(subj);
     const pKey = getPendingKey(subj);
@@ -334,7 +334,7 @@ export default function GradesPage() {
     }
   }
 
-  /* ── Lock toggle (admin only) ── */
+  /* -- Lock toggle (admin only) -- */
   async function toggleLock() {
     const key = `${term}:${grade}:${assess}`;
     const next = { ...locked, [key]: !isLocked };
@@ -348,7 +348,7 @@ export default function GradesPage() {
     });
   }
 
-  /* ── Clear marks ── */
+  /* -- Clear marks -- */
   async function clearAllInView() {
     if (isLocked && user?.role !== 'admin') {
       alert('Marks are locked. Only admin can clear.');
@@ -422,7 +422,7 @@ export default function GradesPage() {
     }
   }
 
-  /* ── Grade scale pills ── */
+  /* -- Grade scale pills -- */
   const scale = curr.getScale ? curr.getScale(grade, gradCfg) : [];
 
   if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading marks…</div>;
@@ -463,14 +463,14 @@ export default function GradesPage() {
         </div>
       </div>
 
-      {/* ── Alert ── */}
+      {/* -- Alert -- */}
       {alert.msg && (
         <div className={`alert show alert-${alert.type}`} style={{ display: 'flex', marginBottom: 14 }}>
           {alert.msg}
         </div>
       )}
 
-      {/* ── Filters ── */}
+      {/* -- Filters -- */}
       <div className="panel" style={{ marginBottom: 16 }}>
         <div className="panel-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           <div className="field" style={{ marginBottom: 0, minWidth: 160 }}>
@@ -549,7 +549,7 @@ export default function GradesPage() {
         </div>
       </div>
 
-      {/* ── Marks table ── */}
+      {/* -- Marks table -- */}
       {classLearners.length === 0 ? (
         <div className="panel">
           <div className="panel-body" style={{ textAlign: 'center', padding: 32, color: 'var(--muted)' }}>

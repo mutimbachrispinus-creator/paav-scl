@@ -267,7 +267,7 @@ export default function DutiesPage() {
         </div>
       </div>
 
-      {/* ── Today banner ── */}
+      {/* -- Today banner -- */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
         <div style={{ background: todayRecord?.login ? 'linear-gradient(135deg,#065f46,#059669)' : 'linear-gradient(135deg,#8B1A1A,#6B1212)',
           color: '#fff', borderRadius: 12, padding: '14px 20px', flex: 1, minWidth: 200 }}>
@@ -289,14 +289,14 @@ export default function DutiesPage() {
         </div>
       </div>
 
-      {/* ── Success banner ── */}
+      {/* -- Success banner -- */}
       {reqSent && (
         <div className="alert alert-ok show" style={{ marginBottom: 14 }}>
           ✅ Request submitted successfully! Admin will review it shortly.
         </div>
       )}
 
-      {/* ── Inline Request Form ── */}
+      {/* -- Inline Request Form -- */}
       {showReqForm && (
         <div className="panel" style={{ border: `2px solid ${M}`, marginBottom: 16 }}>
           <div className="panel-hdr" style={{ background: `linear-gradient(135deg,${M},#6B1212)` }}>
@@ -347,7 +347,7 @@ export default function DutiesPage() {
         </div>
       )}
 
-      {/* ── Tabs ── */}
+      {/* -- Tabs -- */}
       <div className="profile-tabs" style={{ marginBottom: 16 }}>
         {TABS.map(t => (
           <button key={t.id} className={`profile-tab-btn${activeTab === t.id ? ' on' : ''}`}
@@ -355,7 +355,7 @@ export default function DutiesPage() {
         ))}
       </div>
 
-      {/* ── My Duties Tab ── */}
+      {/* -- My Duties Tab -- */}
       {activeTab === 'duties' && (
         <div className="panel">
           <div className="panel-hdr"><h3>📋 Your Assigned Duties</h3></div>
@@ -394,7 +394,7 @@ export default function DutiesPage() {
         </div>
       )}
 
-      {/* ── Admin: Manage Duties ── */}
+      {/* -- Admin: Manage Duties -- */}
       {activeTab === 'manage_duties' && isAdmin && (
         <>
           <div className="panel" style={{ marginBottom: 16 }}>
@@ -464,7 +464,7 @@ export default function DutiesPage() {
         </>
       )}
 
-      {/* ── Presence/Attendance Tab ── */}
+      {/* -- Presence/Attendance Tab -- */}
       {activeTab === 'presence' && (
         <div className="panel">
           <div className="panel-hdr"><h3>📍 Recent Attendance Log</h3></div>
@@ -497,7 +497,7 @@ export default function DutiesPage() {
         </div>
       )}
 
-      {/* ── My Requests Tab ── */}
+      {/* -- My Requests Tab -- */}
       {activeTab === 'requests' && (
         <div className="panel">
           <div className="panel-hdr"><h3>✋ My Requests</h3>
@@ -537,7 +537,7 @@ export default function DutiesPage() {
         </div>
       )}
 
-      {/* ── Admin: All Requests ── */}
+      {/* -- Admin: All Requests -- */}
       {activeTab === 'admin_reqs' && isAdmin && (
         <div className="panel">
           <div className="panel-hdr"><h3>🛡 All Staff Requests</h3></div>

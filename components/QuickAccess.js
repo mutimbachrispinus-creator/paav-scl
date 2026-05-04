@@ -12,7 +12,7 @@
 import { useRouter } from 'next/navigation';
 import { ALL_NAV } from '@/lib/navigation';
 
-/* ── All possible shortcuts ── */
+/* -- All possible shortcuts -- */
 const ALL_SHORTCUTS = [
   /* Super Admin Specific */
   {

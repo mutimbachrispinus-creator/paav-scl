@@ -198,7 +198,7 @@ export default function TimetablePage() {
           ))}
         </div>
 
-        {/* ── CALENDAR TAB ── */}
+        {/* -- CALENDAR TAB -- */}
         {tab==='calendar' && (
           <div>
             {upcoming.length === 0 ? (
@@ -260,7 +260,7 @@ export default function TimetablePage() {
           </div>
         )}
 
-        {/* ── GRADE TIMETABLE TAB ── */}
+        {/* -- GRADE TIMETABLE TAB -- */}
         {tab==='grade' && (
           <div>
             <div className="panel" style={{marginBottom:12}}>
@@ -312,7 +312,7 @@ export default function TimetablePage() {
           </div>
         )}
 
-        {/* ── MY TIMETABLE ── */}
+        {/* -- MY TIMETABLE -- */}
         {tab==='mine' && isTeacher && (
           <div>
             {mySlots.length === 0 ? (
@@ -353,7 +353,7 @@ export default function TimetablePage() {
           </div>
         )}
 
-        {/* ── EDIT/GENERATE (admin) ── */}
+        {/* -- EDIT/GENERATE (admin) -- */}
         {tab==='edit' && isAdmin && (
           <EditTimetablePanel
             timetable={timetable}
@@ -400,7 +400,7 @@ export default function TimetablePage() {
   );
 }
 
-/* ── Edit Timetable Panel ── */
+/* -- Edit Timetable Panel -- */
 function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave }) {
   const [localTT, setLocalTT] = useState(timetable);
   const [saving, setSaving] = useState(false);

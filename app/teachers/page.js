@@ -173,7 +173,7 @@ export default function TeachersPage() {
   );
 }
 
-/* ─── Add / Edit User Modal ─────────────────────────────────────────────── */
+/* --- Add / Edit User Modal ----------------------------------------------- */
 function UserModal({ user, currentUser, allStaff, onClose, curr }) {
   const { playSuccessSound, profile } = useProfile();
   const { ALL_GRADES } = curr;

@@ -87,7 +87,7 @@ export default function MeritListPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  /* ── Build ranked list (memoized so dropdowns trigger re-render) ── */
+  /* -- Build ranked list (memoized so dropdowns trigger re-render) -- */
   const ranked = useMemo(() => loading ? [] : buildMeritList(learners, marks, grade, term, assess, gradCfg, school?.curriculum || 'CBC'), [learners, marks, grade, term, assess, gradCfg, loading, school?.curriculum]);
   const subjects = curr.DEFAULT_SUBJECTS?.[grade] || [];
   const max = curr.maxPts ? curr.maxPts(grade, subjects) : 0;
@@ -156,8 +156,8 @@ export default function MeritListPage() {
         </div>
       </div>
 
-      {/* ── Filters ── */}
-      {/* ── Print-Only Summary ── */}
+      {/* -- Filters -- */}
+      {/* -- Print-Only Summary -- */}
       <div className="print-only" style={{ marginBottom: 20 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 15, border: '2px solid #000', padding: 15, borderRadius: 8 }}>
           <div style={{ textAlign: 'center' }}>
@@ -214,7 +214,7 @@ export default function MeritListPage() {
         </div>
       ) : (
         <>
-          {/* ── Top 3 podium ── */}
+          {/* -- Top 3 podium -- */}
           {ranked.length >= 1 && (
             <div className="sg sg3" style={{ marginBottom: 18 }}>
               {ranked.slice(0, 3).map(l => {
@@ -250,7 +250,7 @@ export default function MeritListPage() {
           )}
 
 
-          {/* ── Full ranked table ── */}
+          {/* -- Full ranked table -- */}
           <div className="panel">
             <div className="panel-hdr">
               <h3>📋 Full Rankings — {grade} · Term {term.replace('T','')} · {ASSESSMENTS.find(a=>a.key===assess)?.label} ({ASSESS_LABELS[assess]})</h3>
@@ -397,7 +397,7 @@ export default function MeritListPage() {
             </div>
           </div>
 
-          {/* ── DISTRIBUTION GRAPH (at bottom) ── */}
+          {/* -- DISTRIBUTION GRAPH (at bottom) -- */}
           <div className="panel" style={{ marginTop: 24, background: 'linear-gradient(to bottom right, #fff, #f8fafc)' }}>
             <div className="panel-body">
               <div style={{ fontSize: 12, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: 20, letterSpacing: 0.5, borderBottom: '1px solid #f1f5f9', paddingBottom: 10 }}>📊 Class Performance Distribution</div>

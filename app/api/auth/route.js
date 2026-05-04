@@ -22,7 +22,7 @@ import {
 import { kvGet, kvSet, ensureSchema, query } from '@/lib/db';
 import { sendCredentialsSMS } from '@/lib/sms-client';
 
-/* ─── Helpers ───────────────────────────────────────────────────────────── */
+/* --- Helpers ------------------------------------------------------------- */
 function ok(data, response) {
   return NextResponse.json({ ok: true, ...data }, { status: 200, ...response });
 }
@@ -34,7 +34,7 @@ async function getStaffList() {
   return (await kvGet('paav6_staff')) || [];
 }
 
-/* ─── Router ────────────────────────────────────────────────────────────── */
+/* --- Router -------------------------------------------------------------- */
 export async function POST(request) {
   let body;
   try { body = await request.json(); }
@@ -68,7 +68,7 @@ export async function GET(request) {
   return response;
 }
 
-/* ─── login ─────────────────────────────────────────────────────────────── */
+/* --- login --------------------------------------------------------------- */
 async function handleLogin({ username, password }, request) {
   if (!username || !password) return err('Username and password are required');
   
@@ -181,14 +181,14 @@ async function handleLogin({ username, password }, request) {
   return response;
 }
 
-/* ─── logout ────────────────────────────────────────────────────────────── */
+/* --- logout -------------------------------------------------------------- */
 async function handleLogout() {
   const response = NextResponse.json({ ok: true });
   clearSessionCookie(response);
   return response;
 }
 
-/* ─── register ──────────────────────────────────────────────────────────── */
+/* --- register ------------------------------------------------------------ */
 async function handleRegister({ role, name, username, phone, password, links, grade }, request) {
   const session = await getSession();
   
@@ -246,7 +246,7 @@ async function handleRegister({ role, name, username, phone, password, links, gr
   return NextResponse.json({ ok: true, username: username.toLowerCase() });
 }
 
-/* ─── add_child (logged-in parent links a child from any school) ─────────── */
+/* --- add_child (logged-in parent links a child from any school) ----------- */
 async function handleAddChild({ schoolId, adm }, request) {
   const session = await getSession();
   if (!session) return err('Unauthorised — please log in first', 401);
@@ -307,7 +307,7 @@ async function handleAddChild({ schoolId, adm }, request) {
   }
 }
 
-/* ─── Google Sign-In ────────────────────────────────────────────────────── */
+/* --- Google Sign-In ------------------------------------------------------ */
 async function handleGoogle({ idToken }, request) {
   if (!idToken) return err('idToken is required');
 
@@ -347,7 +347,7 @@ async function handleGoogle({ idToken }, request) {
   }
 }
 
-/* ─── whoami ────────────────────────────────────────────────────────────── */
+/* --- whoami -------------------------------------------------------------- */
 async function handleWhoami() {
   const session = await getSession();
   if (!session) return NextResponse.json({ ok: false, user: null }, { status: 401 });
@@ -398,7 +398,7 @@ async function handleWhoami() {
   return NextResponse.json({ ok: true, user: session });
 }
 
-/* ─── change password ───────────────────────────────────────────────────── */
+/* --- change password ----------------------------------------------------- */
 async function handleChangePassword({ current, next }, request) {
   const session = await getSession();
   if (!session) return err('Unauthorised', 401);
@@ -417,7 +417,7 @@ async function handleChangePassword({ current, next }, request) {
   return ok({ message: 'Password updated' });
 }
 
-/* ─── forgot password ───────────────────────────────────────────────────── */
+/* --- forgot password ----------------------------------------------------- */
 async function handleForgot({ username, secQ, secA }) {
   if (!username) return err('Username is required');
   const { query } = await import('@/lib/db');
@@ -435,7 +435,7 @@ async function handleForgot({ username, secQ, secA }) {
   return NextResponse.json({ ok: true, secQ: user.secQ || null, hasPhone: !!user.phone });
 }
 
-/* ─── reset password ────────────────────────────────────────────────────── */
+/* --- reset password ------------------------------------------------------ */
 async function handleResetPw({ username, newPassword, secA }) {
   if (!username || !newPassword) return err('username and newPassword are required');
   if (newPassword.length < 8)    return err('Password must be at least 8 characters');
@@ -454,7 +454,7 @@ async function handleResetPw({ username, newPassword, secA }) {
   return NextResponse.json({ ok: true });
 }
 
-/* ─── Admin edit user ───────────────────────────────────────────────────── */
+/* --- Admin edit user ----------------------------------------------------- */
 async function handleEditUser({ id, name, role, grade, phone, status, password, avatar }, request) {
   const session = await getSession();
   if (!session) return err('Unauthorised', 401);
@@ -509,7 +509,7 @@ async function handleEditUser({ id, name, role, grade, phone, status, password, 
   return NextResponse.json({ ok: true });
 }
 
-/* ─── Utilities ─────────────────────────────────────────────────────────── */
+/* --- Utilities ----------------------------------------------------------- */
 function publicUser(u) {
   const { password, secA, ...safe } = u;  // never send password or secret answer
   return { ...safe, emoji: ROLE_EMOJI[u.role] || '👤', color: ROLE_COLOR[u.role] };

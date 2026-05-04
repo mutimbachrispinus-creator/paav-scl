@@ -126,7 +126,7 @@ export default function ParentHome() {
     reader.readAsDataURL(file);
   }
 
-  /* ── M-Pesa STK Push ── */
+  /* -- M-Pesa STK Push -- */
   async function initiateMpesa(account, termLabel) {
     const phone = user.phone || prompt('Enter M-Pesa Phone Number (07xxxxxxxx):');
     if (!phone) return;

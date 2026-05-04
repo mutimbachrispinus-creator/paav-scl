@@ -67,7 +67,7 @@ export default function LearnersPage() {
     return () => window.removeEventListener('paav:sync', handler);
   }, [load]);
 
-  /* ── Filtered list ── */
+  /* -- Filtered list -- */
   const filtered = learners.filter(l => {
     const q = query.toLowerCase();
     const nameMatch = l.name?.toLowerCase().includes(q);
@@ -76,7 +76,7 @@ export default function LearnersPage() {
     return (!q || nameMatch || admMatch) && gradeMatch;
   });
 
-  /* ── Fee helpers ── */
+  /* -- Fee helpers -- */
   function getAnnualFee(grade) { return feeCfg[grade]?.annual || 5000; }
   function getBal(l) {
     return getAnnualFee(l.grade) + (l.arrears || 0) - (l.t1||0) - (l.t2||0) - (l.t3||0);
@@ -230,7 +230,7 @@ export default function LearnersPage() {
         </div>
       </div>
 
-      {/* ── Modals ── */}
+      {/* -- Modals -- */}
       {modal === 'add'     && <AddLearnerModal     curr={curr} isAdmin={user.role === 'admin'} streams={streams} onClose={() => { setModal(null); load(); }} />}
       {modal === 'promote' && <PromoteLearnersModal curr={curr} onClose={() => { setModal(null); load(); }} learners={learners} />}
       {modal?.type === 'edit' && <EditLearnerModal curr={curr} isAdmin={user.role === 'admin'} streams={streams} onClose={() => { setModal(null); load(); }} learner={modal.learner} />}
@@ -238,7 +238,7 @@ export default function LearnersPage() {
   );
 }
 
-/* ─── Add Learner Modal ─────────────────────────────────────────────────── */
+/* --- Add Learner Modal --------------------------------------------------- */
 function AddLearnerModal({ onClose, isAdmin, streams, curr }) {
   const { ALL_GRADES } = curr;
   const [form, setForm] = useState({
@@ -384,7 +384,7 @@ function AddLearnerModal({ onClose, isAdmin, streams, curr }) {
 }
 
 
-/* ─── Promote Learners Modal ────────────────────────────────────────────── */
+/* --- Promote Learners Modal ---------------------------------------------- */
 function PromoteLearnersModal({ onClose, learners, curr }) {
   const { ALL_GRADES } = curr;
   const [busy, setBusy] = useState(false);
@@ -495,7 +495,7 @@ function PromoteLearnersModal({ onClose, learners, curr }) {
 }
 
 
-/* ─── Edit Learner Modal ───────────────────────────────────────────────── */
+/* --- Edit Learner Modal ------------------------------------------------- */
 function EditLearnerModal({ onClose, learner, isAdmin, streams, curr }) {
   const { ALL_GRADES } = curr;
   const [form, setForm] = useState({ ...learner });
@@ -641,7 +641,7 @@ function EditLearnerModal({ onClose, learner, isAdmin, streams, curr }) {
 }
 
 
-/* ─── Shared modal wrapper ──────────────────────────────────────────────── */
+/* --- Shared modal wrapper ------------------------------------------------ */
 function ModalOverlay({ title, onClose, children }) {
   return (
     <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onClose()}>

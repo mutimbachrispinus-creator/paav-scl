@@ -105,7 +105,7 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
       </Link>
 
 
-      {/* ── Nav tabs ── */}
+      {/* -- Nav tabs -- */}
       <div className="nav-container">
         <button className="nav-scroll-btn no-print desktop-only" onClick={() => document.getElementById('tb-nav-inner').scrollBy({left:-200, behavior:'smooth'})}>‹</button>
         <nav className="tb-nav" id="tb-nav-inner">
@@ -131,7 +131,7 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
 
 
 
-      {/* ── Actions ── */}
+      {/* -- Actions -- */}
       <div className="tb-actions">
         {/* Notification Bell (Hidden on mobile topbar) */}
         <div className="desktop-only">

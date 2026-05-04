@@ -530,7 +530,7 @@ export default function PortalShell({ children }) {
         </button>
       </div>
 
-      {/* ── Mobile Bottom Nav ── */}
+      {/* -- Mobile Bottom Nav -- */}
       {showNav && user && (
         <div className="mobile-bottom-nav no-print">
           <div className="mbn-bell">

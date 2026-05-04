@@ -133,7 +133,7 @@ export default function PayPage() {
     }
   }
 
-  /* ── Computed per-term balances ── */
+  /* -- Computed per-term balances -- */
   const termData = learner ? TERMS.map(t => {
     const expected = getTermFee(feeCfg, learner.grade, t.key);
     const paid     = learner[t.col] || 0;
@@ -167,7 +167,7 @@ export default function PayPage() {
           {err && <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B',
             padding: '10px 14px', borderRadius: 10, fontSize: 13, marginBottom: 16 }}>{err}</div>}
 
-          {/* ── Step 1: Lookup ── */}
+          {/* -- Step 1: Lookup -- */}
           {!learner && (
             <form onSubmit={lookup}>
               <div style={{ marginBottom: 14 }}>
@@ -190,7 +190,7 @@ export default function PayPage() {
             </form>
           )}
 
-          {/* ── Step 2: Termly Breakdown + Pay ── */}
+          {/* -- Step 2: Termly Breakdown + Pay -- */}
           {learner && !success && (
             <>
               {/* Learner card */}
@@ -339,7 +339,7 @@ export default function PayPage() {
             </>
           )}
 
-          {/* ── Step 3: Success ── */}
+          {/* -- Step 3: Success -- */}
           {success && (
             <div style={{ textAlign: 'center', padding: '10px 0' }}>
               <div style={{ fontSize: 56, marginBottom: 12 }}>📱</div>

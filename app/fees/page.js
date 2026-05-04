@@ -191,7 +191,7 @@ export default function FeesPage() {
           </div>
         </div>
 
-        {/* ── Summary cards (Admin Only) ── */}
+        {/* -- Summary cards (Admin Only) -- */}
         {user?.role === 'admin' && (
           <div className="sg sg4 no-print" style={{ marginBottom: 18 }}>
             <SCard icon="🎯" label={termF ? `${termF} Expected` : "Expected"} value={fmtK(totalExp)}    bg="#EFF6FF" />
@@ -201,7 +201,7 @@ export default function FeesPage() {
           </div>
         )}
 
-        {/* ── Pending Approvals ── */}
+        {/* -- Pending Approvals -- */}
         {user?.role === 'admin' && paylog.some(p => p.status === 'pending') && (
           <div className="panel no-print" style={{ marginBottom: 18, border: '2px solid var(--amber)' }}>
             <div className="panel-hdr" style={{ background: '#FFF7ED' }}>
@@ -242,7 +242,7 @@ export default function FeesPage() {
           </div>
         )}
 
-        {/* ── Payment log ── */}
+        {/* -- Payment log -- */}
         <div className="panel no-print" style={{ marginBottom: 18 }}>
           <div className="panel-hdr">
             <h3>📥 Recent Payments</h3>
@@ -307,7 +307,7 @@ export default function FeesPage() {
           </div>
         </div>
 
-        {/* ── Learner fee balances ── */}
+        {/* -- Learner fee balances -- */}
         <div className="panel">
           <div className="panel-hdr">
             <h3>📋 Learner Fee Balances</h3>
@@ -429,7 +429,7 @@ export default function FeesPage() {
         </div>
       </div>
 
-      {/* ── Pay Modal ── */}
+      {/* -- Pay Modal -- */}
       {modal === 'pay' && selLearner && (
         <PayModal
           learner={selLearner}
@@ -440,7 +440,7 @@ export default function FeesPage() {
         />
       )}
 
-      {/* ── Fee Config Modal ── */}
+      {/* -- Fee Config Modal -- */}
       {modal === 'config' && (
         <FeeConfigModal
           feeCfg={feeCfg}
@@ -449,7 +449,7 @@ export default function FeesPage() {
         />
       )}
 
-      {/* ── Paybill Config Modal ── */}
+      {/* -- Paybill Config Modal -- */}
       {modal === 'paybills' && (
         <PaybillConfigModal
           accounts={paybillAccounts}
@@ -461,7 +461,7 @@ export default function FeesPage() {
   );
 }
 
-/* ─── Paybill Config Modal ──────────────────────────────────────────────── */
+/* --- Paybill Config Modal ------------------------------------------------ */
 function PaybillConfigModal({ accounts, onClose }) {
   const [list, setList] = useState(
     accounts.length ? accounts : [{ id: Date.now(), name: '', shortcode: '', passkey: '', type: 'Paybill' }]
@@ -659,7 +659,7 @@ function PayModal({ learner, feeCfg, onClose, recordedBy, TERMS }) {
   );
 }
 
-/* ─── Fee Config Modal ───────────────────────────────────────────────────── */
+/* --- Fee Config Modal ----------------------------------------------------- */
 function FeeConfigModal({ feeCfg, onClose, TERMS }) {
   const [cfg,  setCfg]  = useState({ ...feeCfg });
   const [busy, setBusy] = useState(false);
@@ -729,7 +729,7 @@ function FeeConfigModal({ feeCfg, onClose, TERMS }) {
   );
 }
 
-/* ─── Helpers ────────────────────────────────────────────────────────────── */
+/* --- Helpers -------------------------------------------------------------- */
 function SCard({ icon, label, value, bg }) {
   return (
     <div className="stat-card">

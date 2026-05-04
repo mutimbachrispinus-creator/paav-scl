@@ -5,7 +5,7 @@ import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { getCurriculum } from '@/lib/curriculum';
 import { useProfile } from '@/app/PortalShell';
 
-/* ── Tool palette for whiteboard ── */
+/* -- Tool palette for whiteboard -- */
 const TOOLS = [
   { id: 'pen',    icon: '✏️', label: 'Pen' },
   { id: 'eraser', icon: '🧹', label: 'Eraser' },
@@ -105,7 +105,7 @@ export default function EducationHubPage() {
     return () => { if (apiRef.current) { try { apiRef.current.dispose(); } catch {} apiRef.current = null; } };
   }, [activeSession, activeLiveTab, user, school]);
 
-  /* ── Whiteboard drawing ── */
+  /* -- Whiteboard drawing -- */
   function startDraw(e) {
     drawing.current = true;
     const pt = getPoint(e);
@@ -140,7 +140,7 @@ export default function EducationHubPage() {
     if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
   }
 
-  /* ── Slides ── */
+  /* -- Slides -- */
   async function uploadSlide(e) {
     const file = e.target.files?.[0]; if (!file) return;
     setUploadingSlide(true);
@@ -157,7 +157,7 @@ export default function EducationHubPage() {
     setUploadingSlide(false);
   }
 
-  /* ── Hub Resource Management ── */
+  /* -- Hub Resource Management -- */
   async function handleFileChange(e) {
     const file = e.target.files?.[0]; if (!file) return;
     setUploading(true);
@@ -179,7 +179,7 @@ export default function EducationHubPage() {
     setNewDoc({ title: '', grade: ALL_GRADES[0] || '', subject: '', category: 'notes', url: '' });
   }
 
-  /* ── Session management ── */
+  /* -- Session management -- */
   async function createSession() {
     if (!newSession.title.trim()) return;
     setSaving(true);

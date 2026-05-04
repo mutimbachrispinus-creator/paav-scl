@@ -72,7 +72,7 @@ function BulkReportCardContent() {
 
   return (
     <>
-      {/* ── Controls bar (hidden on print) ── */}
+      {/* -- Controls bar (hidden on print) -- */}
       <div className="no-print" style={{ padding: '14px 22px', background: 'linear-gradient(135deg,#1e293b,#0f172a)',
         display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <span style={{ color: '#fff', fontWeight: 700, fontSize: 13 }}>
@@ -144,7 +144,7 @@ function BulkReportCardContent() {
                   pointerEvents: 'none', zIndex: 0, userSelect: 'none',
                   fontFamily: 'Sora,sans-serif', letterSpacing: 8 }}>{school.name.split(' ')[0]}</div>
 
-                {/* ── HEADER ── */}
+                {/* -- HEADER -- */}
                 <div className="rc-hdr" style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
                   <div className="rc-hdr-logo" style={{ background: 'transparent' }}>
                     {school.logo ? (
@@ -171,7 +171,7 @@ function BulkReportCardContent() {
                   </div>
                 </div>
 
-                {/* ── LEARNER INFO ── */}
+                {/* -- LEARNER INFO -- */}
                 <div className="rc-learner-info" style={{ position: 'relative', zIndex: 1 }}>
                   {[
                     ['Name',             learner.name ],
@@ -190,7 +190,7 @@ function BulkReportCardContent() {
                   ))}
                 </div>
 
-                {/* ── PERFORMANCE GRAPHS ── */}
+                {/* -- PERFORMANCE GRAPHS -- */}
                 <div style={{ position: 'relative', zIndex: 1, marginBottom: 15, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   
                   {/* Trend Graph */}
@@ -237,7 +237,7 @@ function BulkReportCardContent() {
 
                 </div>
 
-                {/* ── MARKS TABLE ── */}
+                {/* -- MARKS TABLE -- */}
                 <table className="rc-subj-table" style={{ position: 'relative', zIndex: 1 }}>
                   <thead>
                     <tr>
@@ -323,7 +323,7 @@ function BulkReportCardContent() {
                   </tbody>
                 </table>
 
-                {/* ── CBC SCALE LEGEND ── */}
+                {/* -- CBC SCALE LEGEND -- */}
                 <div style={{ position:'relative', zIndex:1 }}>
                   <div style={{ fontSize: 8.5, fontWeight: 700, textTransform:'uppercase', color:'#94a3b8',
                     marginBottom: 5, letterSpacing: .6 }}>{curr.name} Grading Scale:</div>
@@ -341,7 +341,7 @@ function BulkReportCardContent() {
                   </div>
                 </div>
 
-                {/* ── STATUS BOXES ── */}
+                {/* -- STATUS BOXES -- */}
                 <div className="rc-status-grid" style={{ position:'relative', zIndex:1 }}>
                   <div className="rc-status-box" style={{ borderColor: promoColor+'44', background: promoColor+'0a' }}>
                     <div className="rc-status-label">Promotion Recommendation</div>
@@ -364,7 +364,7 @@ function BulkReportCardContent() {
                   </div>
                 </div>
 
-                {/* ── REMARKS ── */}
+                {/* -- REMARKS -- */}
                 <div className="rc-remarks" style={{ position: 'relative', zIndex: 1, marginTop: 12, display: 'grid', gap: 10 }}>
                   <div style={{ border: '1.5px solid #e2e8f0', borderRadius: 8, padding: 8 }}>
                     <div style={{ fontSize: 8, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Class Teacher's Remarks</div>
@@ -382,7 +382,7 @@ function BulkReportCardContent() {
                   </div>
                 </div>
 
-                {/* ── SIGNATURES ── */}
+                {/* -- SIGNATURES -- */}
                 <div className="rc-sigs" style={{ position:'relative', zIndex:1, marginTop: 20 }}>
                   {['Class Teacher','Head Teacher','Parent / Guardian'].map(role => (
                     <div key={role} className="rc-sig-box">
@@ -392,7 +392,7 @@ function BulkReportCardContent() {
                   ))}
                 </div>
 
-                {/* ── FOOTER ── */}
+                {/* -- FOOTER -- */}
                 <div className="rc-footer" style={{ position:'relative', zIndex:1 }}>
                   <div>
                     <strong>{school.name}</strong>
