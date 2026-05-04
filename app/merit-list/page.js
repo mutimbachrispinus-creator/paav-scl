@@ -339,9 +339,11 @@ export default function MeritListPage() {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+                <tfoot style={{ position: 'sticky', bottom: 0, zIndex: 10 }}>
                   {ranked.length > 0 && (
                     <>
-                      <tr className="footer-row-total" style={{ background: '#f0fdf4', borderTop: '2px solid #000' }}>
+                      <tr style={{ background: '#f0fdf4', borderTop: '2px solid #000' }}>
                         <td colSpan={3} style={{ padding: 6, textAlign: 'right', fontWeight: 800, border: '1px solid #000' }}>TOTAL MARKS</td>
                         {colStats.map((stat, i) => {
                           const totalSubjMarks = ranked.reduce((acc, l) => {
@@ -358,7 +360,7 @@ export default function MeritListPage() {
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#000', border: '1px solid #000' }}>{totalPtsSum}</td>
                         <td colSpan={4} style={{ border: '1px solid #000' }}></td>
                       </tr>
-                      <tr className="footer-row-avg" style={{ background: '#f9f9f9', borderTop: '1px solid #000' }}>
+                      <tr style={{ background: '#f9f9f9', borderTop: '1px solid #000' }}>
                         <td colSpan={3} style={{ padding: 6, textAlign: 'right', fontWeight: 800, border: '1px solid #000' }}>AVERAGE SCORE</td>
                         {colStats.map((stat, i) => (
                           <td key={i} style={{ padding: 6, textAlign: 'center', fontWeight: 700, border: '1px solid #000' }}>
@@ -393,7 +395,7 @@ export default function MeritListPage() {
                       </tr>
                     </>
                   )}
-                </tbody>
+                </tfoot>
               </table>
             </div>
           </div>
