@@ -1,4 +1,5 @@
 'use client';
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 /**
  * app/timetable/page.js — School Timetable (CBC Rules)

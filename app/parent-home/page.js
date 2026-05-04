@@ -1,4 +1,5 @@
 'use client';
+export const runtime = 'edge';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { DEFAULT_SUBJECTS, gInfo, fmtK } from '@/lib/cbe';

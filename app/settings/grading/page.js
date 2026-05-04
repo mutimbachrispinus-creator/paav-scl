@@ -1,4 +1,5 @@
 'use client';
+export const runtime = 'edge';
 /**
  * app/settings/grading/page.js — Adjust CBE/CBC grading thresholds
  */

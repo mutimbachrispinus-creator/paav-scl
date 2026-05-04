@@ -1,4 +1,5 @@
 'use client';
+export const runtime = 'edge';
 /**
  * app/learners/page.js — Learner list
  *

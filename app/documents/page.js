@@ -1,4 +1,5 @@
 'use client';
+export const runtime = 'edge';
 /**
  * app/documents/page.js — Role-based Document Portal
  * 

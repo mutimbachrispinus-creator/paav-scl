@@ -1,4 +1,5 @@
 'use client';
+export const runtime = 'edge';
 /**
  * app/teachers/subjects/page.js — Assign subjects to teachers
  */

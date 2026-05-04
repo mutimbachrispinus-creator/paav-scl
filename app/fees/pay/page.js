@@ -1,4 +1,5 @@
 'use client';
+export const runtime = 'edge';
 /**
  * app/fees/pay/page.js — Parent self-service M-Pesa payment
  *

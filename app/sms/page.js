@@ -1,4 +1,5 @@
 'use client';
+export const runtime = 'edge';
 /**
  * app/sms/page.js — Bulk SMS & event alerts
  */

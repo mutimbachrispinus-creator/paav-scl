@@ -1,4 +1,5 @@
 'use client';
+export const runtime = 'edge';
 /**
  * app/grades/page.js — CBC Marks Entry & Grading
  *
