@@ -103,17 +103,17 @@ export default function MeritListPage() {
           count++;
         }
       });
-      const avgScore = count > 0 ? Math.round(sum / count) : null;
+      const avgScore = count > 0 ? Number((sum / count).toFixed(2)) : null;
       const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg, school?.curriculum || 'CBC') : null;
       return { avgScore, avgInfo };
     });
   }, [ranked, subjects, grade, gradCfg, school?.curriculum]);
 
   const totalPtsSum = ranked.reduce((acc, l) => acc + l.totalPts, 0);
-  const totalAvgPts = ranked.length > 0 ? Math.round(totalPtsSum / ranked.length) : 0;
-  const avgPct = ranked.length > 0 && max > 0 ? Math.round((totalAvgPts / max) * 100) : 0;
+  const totalAvgPts = ranked.length > 0 ? Number((totalPtsSum / ranked.length).toFixed(2)) : 0;
+  const avgPct = ranked.length > 0 && max > 0 ? Number(((totalAvgPts / max) * 100).toFixed(2)) : 0;
   const totalMarksSum = ranked.reduce((acc, l) => acc + l.detail.reduce((s,d)=>s+(d.score||0),0), 0);
-  const totalAvgMarks = ranked.length > 0 ? Math.round(totalMarksSum / ranked.length) : 0;
+  const totalAvgMarks = ranked.length > 0 ? Number((totalMarksSum / ranked.length).toFixed(2)) : 0;
   
   const distribution = useMemo(() => {
     const isJSS = JSS.includes(grade) || SENIOR.includes(grade);
@@ -122,7 +122,7 @@ export default function MeritListPage() {
       : { EE: 0, ME: 0, AE: 0, BE: 0 };
 
     ranked.forEach(l => {
-      const pct = max ? Math.round((l.totalPts/max)*100) : 0;
+      const pct = max ? Number(((l.totalPts/max)*100).toFixed(2)) : 0;
       const inf = gInfo(pct, grade, gradCfg, school?.curriculum || 'CBC');
       if (inf && counts[inf.lv] !== undefined) {
         counts[inf.lv]++;
@@ -197,7 +197,7 @@ export default function MeritListPage() {
           {ranked.length >= 1 && (
             <div className="sg sg3" style={{ marginBottom: 18 }}>
               {ranked.slice(0, 3).map(l => {
-                const overallPct = max ? Math.round((l.totalPts/max)*100) : 0;
+                const overallPct = max ? Number(((l.totalPts/max)*100).toFixed(2)) : 0;
                 const overallInfo = max ? (curr.gInfo ? curr.gInfo(overallPct, grade) : gInfo(overallPct, grade)) : null;
                 return (
                   <div key={l.adm} className={`stat-card merit-rank-${l.rank}`}>
@@ -296,7 +296,7 @@ export default function MeritListPage() {
                       </td>
                       <td style={{ textAlign: 'center', fontWeight: 700,
                         color: l.totalPts/max >= 0.5 ? 'var(--green)' : 'var(--red)', padding: '4px' }}>
-                        {Math.round((l.totalPts/max)*100)}%
+                        {Number(((l.totalPts/max)*100).toFixed(2))}%
                       </td>
                       <td style={{ textAlign: 'center', padding: '4px' }}>
                         {l.vap !== 0 ? (

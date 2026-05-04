@@ -621,7 +621,7 @@ export default function GradesPage() {
                         color: entered > 0
                           ? totalPts / maxTotal >= 0.5 ? 'var(--green)' : 'var(--red)'
                           : 'var(--muted)' }}>
-                        {entered > 0 ? Math.round((totalPts / maxTotal) * 100) + '%' : '—'}
+                        {entered > 0 ? Number(((totalPts / maxTotal) * 100).toFixed(2)) + '%' : '—'}
                       </td>
                       <td className="no-print">
                         <button className="btn btn-ghost btn-xs" 

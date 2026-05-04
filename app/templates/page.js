@@ -277,15 +277,15 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
         count++;
       }
     });
-    const avgScore = count > 0 ? Math.round(sum / count) : null;
+    const avgScore = count > 0 ? Number((sum / count).toFixed(2)) : null;
     const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg, profile?.curriculum || 'CBC') : null;
     return { avgScore, avgInfo };
   });
 
   const totalPtsSum = data.reduce((acc, l) => acc + l.total, 0);
-  const totalAvgPts = data.length > 0 ? Math.round(totalPtsSum / data.length) : 0;
+  const totalAvgPts = data.length > 0 ? Number((totalPtsSum / data.length).toFixed(2)) : 0;
   const totalMarksSum = data.reduce((acc, l) => acc + l.totalMarks, 0);
-  const totalAvgMarks = data.length > 0 ? Math.round(totalMarksSum / data.length) : 0;
+  const totalAvgMarks = data.length > 0 ? Number((totalMarksSum / data.length).toFixed(2)) : 0;
   const avgPct = data.length > 0 ? (data.reduce((acc, l) => acc + parseFloat(l.avg), 0) / data.length).toFixed(1) : 0;
 
   // Distribution stats
