@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { buildMeritList, fmtK, JSS, SENIOR, gInfo, getCurriculum } from '@/lib/cbe';
+import { buildMeritList, fmtK, JSS, SENIOR, gInfo, getCurriculum, getDistributionBuckets, getGradeColors } from '@/lib/cbe';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { useSchoolProfile } from '@/lib/school-profile';
@@ -118,10 +118,7 @@ export default function MeritListPage() {
   const overallLevel = max > 0 ? gInfo(avgPct, grade, gradCfg, school?.curriculum || 'CBC') : { lv: '—' };
   
   const distribution = useMemo(() => {
-    const isJSS = JSS.includes(grade) || SENIOR.includes(grade);
-    const counts = isJSS 
-      ? { EE1:0, EE2:0, ME1:0, ME2:0, AE1:0, AE2:0, BE1:0, BE2:0 }
-      : { EE: 0, ME: 0, AE: 0, BE: 0 };
+    const counts = getDistributionBuckets(grade, school?.curriculum || 'CBC');
 
     ranked.forEach(l => {
       const pct = max ? Number(((l.totalPts/max)*100).toFixed(2)) : 0;
@@ -409,10 +406,7 @@ export default function MeritListPage() {
                   {Object.entries(distribution).map(([lv, count]) => {
                     const maxCount = Math.max(...Object.values(distribution), 1);
                     const barH = (count / maxCount) * 100;
-                    const colors = { 
-                      EE: '#059669', ME: '#2563EB', AE: '#D97706', BE: '#DC2626',
-                      EE1: '#065F46', EE2: '#059669', ME1: '#1D4ED8', ME2: '#2563EB', AE1: '#B45309', AE2: '#92400E', BE1: '#DC2626', BE2: '#991B1B'
-                    };
+                    const colors = getGradeColors(school?.curriculum || 'CBC');
                     return (
                       <div key={lv} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                         <div style={{ fontSize: 14, fontWeight: 900, color: colors[lv] || '#64748b' }}>{count}</div>

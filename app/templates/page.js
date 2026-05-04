@@ -16,7 +16,7 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
-import { getAllGrades, gInfo, getDefaultSubjects, maxPts, calcLearnerReportData, getMark, isJSSGrade } from '@/lib/cbe';
+import { getAllGrades, gInfo, getDefaultSubjects, maxPts, calcLearnerReportData, getMark, isJSSGrade, getDistributionBuckets, getGradeColors } from '@/lib/cbe';
 import { useSchoolProfile } from '@/lib/school-profile';
 import { useProfile } from '@/app/PortalShell';
 
@@ -288,16 +288,14 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
   const totalAvgMarks = data.length > 0 ? Number((totalMarksSum / data.length).toFixed(2)) : 0;
   const avgPct = data.length > 0 ? (data.reduce((acc, l) => acc + parseFloat(l.avg), 0) / data.length).toFixed(1) : 0;
 
-  // Distribution stats
-  const isJSS = isJSSGrade(grade);
-  const dist = isJSS 
-    ? { EE1:0, EE2:0, ME1:0, ME2:0, AE1:0, AE2:0, BE1:0, BE2:0 }
-    : { EE: 0, ME: 0, AE: 0, BE: 0 };
+  // Distribution stats — dynamically initialized based on curriculum
+  const curr = profile?.curriculum || 'CBC';
+  const dist = getDistributionBuckets(grade, curr);
     
-    data.forEach(l => {
-      const info = gInfo(l.totalMarks / (subjects.length || 1), grade, gradCfg);
-      if (dist[info.lv] !== undefined) dist[info.lv]++;
-    });
+  data.forEach(l => {
+    const info = gInfo(parseFloat(l.avg), grade, gradCfg, curr);
+    if (dist[info.lv] !== undefined) dist[info.lv]++;
+  });
 
   return (
     <div>
@@ -410,10 +408,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
             {Object.entries(dist).map(([k, v]) => {
               const max = Math.max(...Object.values(dist), 1);
               const h = (v / max) * 100;
-              const colors = { 
-                EE: '#059669', ME: '#2563EB', AE: '#D97706', BE: '#DC2626',
-                EE1: '#065F46', EE2: '#059669', ME1: '#1D4ED8', ME2: '#2563EB', AE1: '#B45309', AE2: '#92400E', BE1: '#DC2626', BE2: '#991B1B'
-              };
+              const colors = getGradeColors(profile?.curriculum || 'CBC');
               return (
                 <div key={k} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <div style={{ fontSize: 8, fontWeight: 800, marginBottom: 2 }}>{v}</div>
