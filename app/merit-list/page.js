@@ -315,7 +315,23 @@ export default function MeritListPage() {
                   ))}
                   {ranked.length > 0 && (
                     <>
-                      <tr style={{ background: '#f9f9f9', borderTop: '2px solid #8B1A1A' }}>
+                      <tr style={{ background: '#f0fdf4', borderTop: '2px solid #059669' }}>
+                        <td colSpan={3} style={{ padding: 6, textAlign: 'right', fontWeight: 800 }}>TOTAL MARKS</td>
+                        {colStats.map((stat, i) => {
+                          const totalSubjMarks = ranked.reduce((acc, l) => {
+                            const d = l.detail.find(x => x.subj === subjects[i]);
+                            return acc + (d && d.score !== null ? d.score : 0);
+                          }, 0);
+                          return (
+                            <td key={i} style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#059669' }}>
+                              {totalSubjMarks}
+                            </td>
+                          );
+                        })}
+                        <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#059669' }}>{totalMarksSum}</td>
+                        <td colSpan={4}></td>
+                      </tr>
+                      <tr style={{ background: '#f9f9f9', borderTop: '1px solid #ddd' }}>
                         <td colSpan={3} style={{ padding: 6, textAlign: 'right', fontWeight: 800 }}>AVERAGE SCORE</td>
                         {colStats.map((stat, i) => (
                           <td key={i} style={{ padding: 6, textAlign: 'center', fontWeight: 700 }}>
