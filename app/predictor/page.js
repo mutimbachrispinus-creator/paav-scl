@@ -2,7 +2,8 @@
 export const runtime = 'edge';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { DEFAULT_SUBJECTS, calcLearnerPoints, promotionStatus, ALL_GRADES, gInfo } from '@/lib/cbe';
+import { getDefaultSubjects, calcLearnerPoints, promotionStatus, getAllGrades, gInfo } from '@/lib/cbe';
+import { useProfile } from '@/app/PortalShell';
 
 const ASSESS_LIST = [
   { id: 'op1', label: 'Opener' },
@@ -12,16 +13,25 @@ const ASSESS_LIST = [
 
 export default function PredictorPage() {
   const router = useRouter();
+  const { profile: school } = useProfile() || { profile: {} };
+  const ALL_GRADES = getAllGrades(school?.curriculum || 'CBC');
+
   const [user, setUser] = useState(null);
   const [learners, setLearners] = useState([]);
   const [marks, setMarks] = useState({});
   const [gradCfg, setGradCfg] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  const [selGrade, setSelGrade] = useState('GRADE 9');
+  const [selGrade, setSelGrade] = useState('');
   const [selTerm, setSelTerm] = useState('T1');
   const [selAssess, setSelAssess] = useState('mt1');
   const [selLearner, setSelLearner] = useState(null);
+
+  useEffect(() => {
+    if (!selGrade && ALL_GRADES.length > 0) {
+      setSelGrade(ALL_GRADES[0]);
+    }
+  }, [ALL_GRADES, selGrade]);
 
   const load = useCallback(async () => {
     try {
@@ -58,15 +68,15 @@ export default function PredictorPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const subjects = useMemo(() => DEFAULT_SUBJECTS[selGrade] || [], [selGrade]);
+  const subjects = useMemo(() => getDefaultSubjects(selGrade, school?.curriculum || 'CBC'), [selGrade, school?.curriculum]);
   
   const gradeLearners = useMemo(() => {
     return learners.filter(l => l.grade === selGrade).map(l => {
-      const pts = calcLearnerPoints(marks, l.adm, selGrade, selTerm, selAssess, subjects, gradCfg);
+      const pts = calcLearnerPoints(marks, l.adm, selGrade, selTerm, selAssess, subjects, gradCfg, school?.curriculum || 'CBC');
       const status = promotionStatus(pts.totalPts, pts.maxTotal);
       return { ...l, ...pts, status };
     }).filter(l => l.enteredCount > 0).sort((a, b) => b.totalPts - a.totalPts);
-  }, [learners, selGrade, selTerm, selAssess, subjects, gradCfg, marks]);
+  }, [learners, selGrade, selTerm, selAssess, subjects, gradCfg, marks, school?.curriculum]);
 
   const stats = useMemo(() => ({
     promote: gradeLearners.filter(l => l.status === 'promote').length,
@@ -86,18 +96,18 @@ export default function PredictorPage() {
         return { assess: a.label, score: score ?? 0 };
       });
       const currentScore = marks[`${selTerm}:${selGrade}|${s}|${selAssess}`]?.[l.adm] || 0;
-      const info = gInfo(currentScore, selGrade);
+      const info = gInfo(currentScore, selGrade, gradCfg, school?.curriculum || 'CBC');
       return { subject: s, assessData, currentScore, level: info.lv, color: info.pts >= 3 ? 'var(--green)' : info.pts >= 2 ? 'var(--amber)' : 'var(--red)' };
     });
 
     // Overall trajectory
     const trajectory = ASSESS_LIST.map(a => {
-      const pts = calcLearnerPoints(marks, l.adm, selGrade, selTerm, a.id, subjects, gradCfg);
+      const pts = calcLearnerPoints(marks, l.adm, selGrade, selTerm, a.id, subjects, gradCfg, school?.curriculum || 'CBC');
       return { assess: a.label, pct: Math.round((pts.totalPts / pts.maxTotal) * 100) };
     });
 
     return { ...l, subTrends, trajectory };
-  }, [selLearner, learners, subjects, marks, selTerm, selGrade, selAssess, gradCfg]);
+  }, [selLearner, learners, subjects, marks, selTerm, selGrade, selAssess, gradCfg, school?.curriculum]);
 
   if (loading || !user) return <div className="page on"><LoadingSkeleton /></div>;
 

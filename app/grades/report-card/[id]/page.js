@@ -8,6 +8,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   promotionStatus,
+  JSS_SCALE,
+  PRIMARY_SCALE,
 } from '@/lib/cbe';
 import { getCurriculum } from '@/lib/curriculum';
 import { useSchoolProfile } from '@/lib/school-profile';

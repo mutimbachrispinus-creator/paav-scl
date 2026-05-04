@@ -52,7 +52,7 @@ export default function MeritListPage() {
 
   const curr = getCurriculum(school?.curriculum || 'CBC');
   const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
-  const { ALL_GRADES } = curr;
+  const { ALL_GRADES = [] } = curr;
 
   useEffect(() => {
     if (!grade && ALL_GRADES.length > 0) {
@@ -89,8 +89,8 @@ export default function MeritListPage() {
 
   /* ── Build ranked list (memoized so dropdowns trigger re-render) ── */
   const ranked = useMemo(() => loading ? [] : buildMeritList(learners, marks, grade, term, assess, gradCfg, school?.curriculum || 'CBC'), [learners, marks, grade, term, assess, gradCfg, loading, school?.curriculum]);
-  const subjects = curr.DEFAULT_SUBJECTS[grade] || [];
-  const max = curr.maxPts(grade, subjects);
+  const subjects = curr.DEFAULT_SUBJECTS?.[grade] || [];
+  const max = curr.maxPts ? curr.maxPts(grade, subjects) : 0;
 
   const colStats = useMemo(() => {
     return subjects.map(s => {
@@ -104,10 +104,10 @@ export default function MeritListPage() {
         }
       });
       const avgScore = count > 0 ? Math.round(sum / count) : null;
-      const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg) : null;
+      const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg, school?.curriculum || 'CBC') : null;
       return { avgScore, avgInfo };
     });
-  }, [ranked, subjects, grade, gradCfg]);
+  }, [ranked, subjects, grade, gradCfg, school?.curriculum]);
 
   const totalPtsSum = ranked.reduce((acc, l) => acc + l.totalPts, 0);
   const totalAvgPts = ranked.length > 0 ? Math.round(totalPtsSum / ranked.length) : 0;
@@ -123,13 +123,13 @@ export default function MeritListPage() {
 
     ranked.forEach(l => {
       const pct = max ? Math.round((l.totalPts/max)*100) : 0;
-      const inf = curr.gInfo ? curr.gInfo(pct, grade, gradCfg) : gInfo(pct, grade, gradCfg);
+      const inf = gInfo(pct, grade, gradCfg, school?.curriculum || 'CBC');
       if (inf && counts[inf.lv] !== undefined) {
         counts[inf.lv]++;
       }
     });
     return counts;
-  }, [ranked, max, grade, gradCfg]);
+  }, [ranked, max, grade, gradCfg, school?.curriculum]);
 
 
   if (!mounted || loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading merit list…</div>;

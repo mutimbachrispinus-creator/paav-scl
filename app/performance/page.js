@@ -80,7 +80,7 @@ export default function PerformancePage() {
       const detail = subjects.map(s => {
         const score = getMark(marks, term, grade, s, assess, l.adm);
         if (score !== null) {
-          const info = gInfo(score, grade, gradCfg);
+          const info = gInfo(score, grade, gradCfg, school?.curriculum || 'CBC');
           totalPts += info.pts;
           totalScore += score;
           count++;
@@ -127,7 +127,7 @@ export default function PerformancePage() {
       if (sc !== null) { tot += sc; cnt++; }
     });
     const avg=cnt?Math.round(tot/cnt):0;
-    const info=avg?gInfo(avg,grade,gradCfg):{lv:'—'};
+    const info=avg?gInfo(avg,grade,gradCfg, school?.curriculum || 'CBC'):{lv:'—'};
     return {name:s,avg,count:cnt,lv:info.lv};
   }).sort((a,b)=>b.avg-a.avg),[learners,marks,grade,term,assess,subjects,gradCfg]);
 
@@ -243,7 +243,7 @@ export default function PerformancePage() {
               </thead>
               <tbody>
                 {gradeData.map(l=>{
-                  const overallInfo = l.avgScore ? gInfo(l.avgScore,grade,gradCfg) : {lv:'—'};
+                  const overallInfo = l.avgScore ? gInfo(l.avgScore,grade,gradCfg, school?.curriculum || 'CBC') : {lv:'—'};
                   return (
                     <tr key={l.adm} style={l.rank<=3?{background:l.rank===1?'#FFFBEB':l.rank===2?'#F8FAFC':'#FFF7F0'}:{}}>
                       <td style={{fontWeight:800,fontSize:15,color:l.rank===1?'#D97706':l.rank===2?'#475569':l.rank===3?'#C2410C':'var(--navy)'}}>
@@ -283,7 +283,7 @@ export default function PerformancePage() {
           <div className="panel-body">
             {streamStats.map(s => {
               const barColor = s.avg>=70?'#059669':s.avg>=50?'#2563EB':s.avg>=30?'#D97706':'#DC2626';
-              const info = s.avg ? gInfo(s.avg, grade, gradCfg) : {lv:'—'};
+              const info = s.avg ? gInfo(s.avg, grade, gradCfg, school?.curriculum || 'CBC') : {lv:'—'};
               return (
                 <div key={s.stream} onClick={()=>setStream(s.stream)} style={{cursor:'pointer',marginBottom:12,padding:'12px 15px',borderRadius:12,background:s.stream===stream?ML:'#FAFBFF',border:`1.5px solid ${s.stream===stream?M:MB}`,transition:'all .2s'}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
@@ -380,7 +380,7 @@ export default function PerformancePage() {
           <div className="panel-body">
             {schoolStats.map(g=>{
               const barColor = g.avg>=70?'#059669':g.avg>=50?'#2563EB':g.avg>=30?'#D97706':'#DC2626';
-              const info = g.avg ? gInfo(g.avg,g.grade,gradCfg) : {lv:'—'};
+              const info = g.avg ? gInfo(g.avg,g.grade,gradCfg, school?.curriculum || 'CBC') : {lv:'—'};
               return (
                 <div key={g.grade} onClick={()=>setGrade(g.grade)} style={{cursor:'pointer',marginBottom:12,padding:'8px 10px',borderRadius:10,background:g.grade===grade?ML:'#FAFBFF',border:`1.5px solid ${g.grade===grade?M:MB}`,transition:'all .2s'}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}}>

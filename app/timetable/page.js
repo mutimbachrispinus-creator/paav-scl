@@ -62,7 +62,7 @@ function subjColor(s) { return SUBJ_COLORS[s] || SUBJ_COLORS.default; }
 export default function TimetablePage() {
   const router = useRouter();
   const { profile: school } = useProfile() || { profile: {} };
-  const ALL_GRADES = typeof getAllGrades === 'function' ? getAllGrades(school?.curriculum || 'CBC') : [];
+  const ALL_GRADES = getAllGrades(school?.curriculum || 'CBC');
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
