@@ -442,6 +442,8 @@ export default function MeritListPage() {
         @media print {
           .print-only { display: block !important; }
           .no-print { display: none !important; }
+          tfoot { display: table-footer-group !important; position: static !important; }
+          tr { page-break-inside: avoid; }
         }
       `}</style>
     </div>
