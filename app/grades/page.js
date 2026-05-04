@@ -41,6 +41,7 @@ export default function GradesPage() {
   const [gradCfg,  setGradCfg]  = useState(null);
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [alert,    setAlert]    = useState({ msg: '', type: '' });
 
   const [grade,  setGrade]  = usePersistedState('paav_grades_grade',  '');
@@ -226,8 +227,12 @@ export default function GradesPage() {
 
       if (!isAuto) {
         playSuccessSound();
+        setJustSaved(true);
         setAlert({ msg: '✅ Marks saved! Use "Submit for Approval" when done.', type: 'ok' });
-        setTimeout(() => setAlert({ msg: '', type: '' }), 4000);
+        setTimeout(() => {
+          setAlert({ msg: '', type: '' });
+          setJustSaved(false);
+        }, 4000);
       }
     } catch (e) {
       console.warn('[Grades] Save failed, queuing in outbox:', e.message);
@@ -429,8 +434,8 @@ export default function GradesPage() {
               🗑️ Clear All
             </button>
           )}
-          <button className="btn btn-primary btn-sm" onClick={save} disabled={saving}>
-            {saving ? '⏳ Saving…' : '💾 Save Marks'}
+          <button className={`btn btn-sm ${justSaved ? 'btn-success' : 'btn-primary'}`} onClick={() => save()} disabled={saving}>
+            {saving ? '⏳ Saving…' : justSaved ? '✅ Saved!' : '💾 Save Marks'}
           </button>
         </div>
       </div>
@@ -638,8 +643,8 @@ export default function GradesPage() {
                 🗑️ Clear This Assessment
               </button>
             )}
-            <button className="btn btn-primary" onClick={() => save()} disabled={saving} style={{ padding: '10px 24px', fontSize: 14 }}>
-              {saving ? '⏳ Saving…' : '💾 Save All Marks Now'}
+            <button className={`btn ${justSaved ? 'btn-success' : 'btn-primary'}`} onClick={() => save()} disabled={saving} style={{ padding: '10px 24px', fontSize: 14 }}>
+              {saving ? '⏳ Saving…' : justSaved ? '✅ Marks Saved Successfully' : '💾 Save All Marks Now'}
             </button>
           </div>
         </div>
