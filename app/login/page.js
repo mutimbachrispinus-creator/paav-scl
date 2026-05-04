@@ -292,7 +292,7 @@ function LoginContent() {
             {tab === 'login' && (
               <div className="field">
                 <label>Username</label>
-                <input required value={form.username} onChange={e => F('username', e.target.value.toLowerCase())} placeholder="your.username" />
+                <input required value={form.username} onChange={e => { F('username', e.target.value.toLowerCase()); setErr(''); }} placeholder="your.username" />
               </div>
             )}
 
@@ -350,7 +350,7 @@ function LoginContent() {
             <div className="field" style={{ position: 'relative' }}>
               <label>Password</label>
               <div style={{ position: 'relative' }}>
-                <input required type={showPass ? "text" : "password"} value={form.password} onChange={e => F('password', e.target.value)} placeholder="••••••••" style={{ paddingRight: 45 }} />
+                <input required type={showPass ? "text" : "password"} value={form.password} onChange={e => { F('password', e.target.value); setErr(''); }} placeholder="••••••••" style={{ paddingRight: 45 }} />
                 <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: 0 }}>
                   {showPass ? '🙈' : '👁️'}
                 </button>

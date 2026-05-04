@@ -148,15 +148,21 @@ async function handleLogin({ username, password }, request) {
   }
 
   // Prefetch common dashboard data to include in login response
-  const [ann, msgs, hero, feecfg, learners, profile, theme] = await Promise.all([
-    kvGet('paav_announcement', null, tenantId),
-    kvGet('paav6_msgs', [], tenantId),
-    kvGet('paav_hero_img', null, tenantId),
-    kvGet('paav6_feecfg', {}, tenantId),
-    kvGet('paav6_learners', [], tenantId),
-    kvGet('paav_school_profile', null, tenantId),
-    kvGet('paav_theme', null, tenantId)
-  ]);
+  // We use a safer approach: if one fails, we still allow login
+  let ann = null, msgs = [], hero = null, feecfg = {}, learners = [], profile = null, theme = null;
+  try {
+    [ann, msgs, hero, feecfg, learners, profile, theme] = await Promise.all([
+      kvGet('paav_announcement', null, tenantId),
+      kvGet('paav6_msgs', [], tenantId),
+      kvGet('paav_hero_img', null, tenantId),
+      kvGet('paav6_feecfg', {}, tenantId),
+      kvGet('paav6_learners', [], tenantId),
+      kvGet('paav_school_profile', null, tenantId),
+      kvGet('paav_theme', null, tenantId)
+    ]);
+  } catch (err) {
+    console.warn('[api/auth] Meta prefetch failed during login:', err.message);
+  }
 
   const response = NextResponse.json({
     ok: true,
@@ -354,15 +360,20 @@ async function handleWhoami() {
   const user = rows[0];
   
   if (user) {
-    const [ann, msgs, hero, feecfg, learners, profile, theme] = await Promise.all([
-      kvGet('paav_announcement', null, session.tenantId),
-      kvGet('paav6_msgs', [], session.tenantId),
-      kvGet('paav7_hero_img', null, session.tenantId),
-      kvGet('paav6_feecfg', {}, session.tenantId),
-      kvGet('paav6_learners', [], session.tenantId),
-      kvGet('paav_school_profile', null, session.tenantId),
-      kvGet('paav_theme', null, session.tenantId)
-    ]);
+    let ann = null, msgs = [], hero = null, feecfg = {}, learners = [], profile = null, theme = null;
+    try {
+      [ann, msgs, hero, feecfg, learners, profile, theme] = await Promise.all([
+        kvGet('paav_announcement', null, session.tenantId),
+        kvGet('paav6_msgs', [], session.tenantId),
+        kvGet('paav_hero_img', null, session.tenantId),
+        kvGet('paav6_feecfg', {}, session.tenantId),
+        kvGet('paav6_learners', [], session.tenantId),
+        kvGet('paav_school_profile', null, session.tenantId),
+        kvGet('paav_theme', null, session.tenantId)
+      ]);
+    } catch (err) {
+      console.warn('[api/auth] Meta prefetch failed during whoami:', err.message);
+    }
 
     return NextResponse.json({
       ok: true,
@@ -370,7 +381,7 @@ async function handleWhoami() {
       initialData: {
         db_paav_announcement: ann,
         db_paav6_msgs: msgs,
-        db_paav7_hero_img: hero,
+        db_paav_hero_img: hero,
         db_paav6_feecfg: feecfg,
         db_paav6_learners: learners,
         db_paav_school_profile: profile,
