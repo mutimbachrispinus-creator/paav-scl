@@ -239,7 +239,7 @@ export default function PortalShell({ children }) {
       }
 
       // If we are on the login page, we MUST use global branding UNLESS a tenant is specified
-      if (isLogin && !tenantParam && !impersonateId) {
+      if ((pathname === '/' || pathname === '/login') && !tenantParam && !impersonateId) {
         setProfile({ name: 'EduVantage School Management System', tagline: 'Global Education SaaS Network', logo: '/ev-brand-v3.png' });
         setTheme({ primary: '#1E40AF', secondary: '#D4AF37', accent: '#0F172A' });
       } else {
@@ -297,7 +297,7 @@ export default function PortalShell({ children }) {
     } catch (e) {
       console.error('[PortalShell] session load error:', e);
     }
-  }, []);
+  }, [showNav, impersonateId, pathname]);
 
   useEffect(() => {
     if (showNav) {
@@ -432,20 +432,7 @@ export default function PortalShell({ children }) {
     reader.readAsDataURL(file);
   }
 
-  async function saveAnnouncement() {
-    try {
-      await fetchWithRetry('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [
-          { type: 'set', key: 'paav_announcement', value: { text: annDraft, active: !!annDraft, ts: Date.now() } }
-        ]}),
-        timeout: 8000
-      });
-      setAnnouncement(annDraft);
-      setEditAnn(false);
-    } catch(e) { alert('Failed to save announcement'); }
-  }
+  // saveAnnouncement — single canonical definition below
 
   function playSuccessSound() {
     const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
