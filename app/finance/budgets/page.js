@@ -3,7 +3,7 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from '@/components/DynamicCharts';
 
 export default function BudgetingPage() {
   const router = useRouter();

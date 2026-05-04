@@ -71,6 +71,7 @@ export async function GET(request) {
 
 /* ─── login ─────────────────────────────────────────────────────────────── */
 async function handleLogin({ username, password }, request) {
+  console.log(`[api/auth] Login attempt: ${username} (tenant: ${request.headers.get('x-tenant-id') || 'none'})`);
   if (!username || !password) return err('Username and password are required');
   
   let tenantId = request.headers.get('x-tenant-id');
@@ -163,16 +164,16 @@ async function handleLogin({ username, password }, request) {
     console.warn('[api/auth] Meta prefetch failed during login:', err.message);
   }
 
+  console.log(`[api/auth] Login successful: ${user.username} (tenant: ${tenantId})`);
   const response = NextResponse.json({
     ok: true,
     user: publicUser(user),
     redirect: user.tenant_id === 'platform-master' ? '/super-admin' : (user.role === 'parent' ? '/parent-home' : '/dashboard'),
     initialData: {
       db_paav_announcement: ann,
-      db_paav6_msgs: msgs,
+      db_paav6_msgs: msgs.slice(0, 50), // Send only last 50 messages
       db_paav_hero_img: hero,
       db_paav6_feecfg: feecfg,
-      db_paav6_learners: learners,
       db_paav_school_profile: profile,
       db_paav_theme: theme
     }
@@ -379,10 +380,9 @@ async function handleWhoami() {
       user: publicUser(user),
       initialData: {
         db_paav_announcement: ann,
-        db_paav6_msgs: msgs,
+        db_paav6_msgs: msgs.slice(0, 50),
         db_paav_hero_img: hero,
         db_paav6_feecfg: feecfg,
-        db_paav6_learners: learners,
         db_paav_school_profile: profile,
         db_paav_theme: theme
       }

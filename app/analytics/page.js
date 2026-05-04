@@ -3,7 +3,7 @@
 export const runtime = 'edge';
 
 import React, { useState, useEffect, useTransition } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from '@/components/DynamicCharts';
 import { TrendingUp, Users, BookOpen, AlertCircle, Loader2, Filter, ChevronRight } from 'lucide-react';
 import { getAcademicStats } from '@/lib/actions/analytics';
 import { getAllGrades } from '@/lib/cbe';

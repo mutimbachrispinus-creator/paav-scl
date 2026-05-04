@@ -10,63 +10,72 @@ export default function NexedPage() {
   const [showReceipt, setShowReceipt] = useState(false);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8">
-      <div className="flex justify-between items-center bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+    <div className="page on">
+      <div className="page-hdr">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Nexed Financial Core</h1>
-          <p className="text-slate-500 mt-1 font-medium">Institutional Ledger & Payment Gateway</p>
+          <h2>Nexed Financial Core</h2>
+          <p>Institutional Ledger & Payment Gateway</p>
         </div>
-        <div className="flex gap-4">
+        <div className="page-hdr-acts">
           <button 
-            className="flex items-center gap-2 bg-white text-slate-900 border-2 border-slate-100 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 transition-all active:scale-95"
-            onClick={() => { /* This would be for the expense voucher but we use hotkeys */ }}
+            className="btn btn-ghost"
+            onClick={() => { /* Handled by hotkey */ }}
           >
-            <span>💸 New Expense</span>
-            <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 rounded text-[10px] font-mono opacity-60">
-              <span className="text-xs">⌘</span> J
-            </kbd>
+            💸 New Expense <kbd className="desktop-only" style={{ marginLeft: 8, fontSize: 10, opacity: 0.5 }}>⌘J</kbd>
           </button>
           <button 
-            onClick={() => { /* Handled by QuickReceipt hotkey */ }}
-            className="flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform active:scale-95"
+            className="btn btn-primary"
+            onClick={() => { /* Handled by hotkey */ }}
           >
-            <span>🖨️ Quick Receipt</span>
-            <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 bg-white/10 rounded text-[10px] font-mono opacity-60">
-              <span className="text-xs">⌘</span> K
-            </kbd>
+            🖨️ Quick Receipt <kbd className="desktop-only" style={{ marginLeft: 8, fontSize: 10, opacity: 0.5 }}>⌘K</kbd>
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Today's Collections</div>
-          <div className="text-4xl font-black text-slate-900">KES 0.00</div>
-          <div className="mt-4 flex items-center gap-2 text-green-600 font-bold text-sm">
-            <span>↑ 0%</span>
-            <span className="text-slate-400 font-normal">vs yesterday</span>
+      <div className="sg sg3">
+        <div className="stat-card">
+          <div className="sc-inner">
+            <div className="sc-icon" style={{ background: 'var(--green-bg)' }}>💰</div>
+            <div>
+              <div className="sc-n">KES 0.00</div>
+              <div className="sc-l">Today's Collections</div>
+              <div className="sc-sub" style={{ background: 'var(--green-bg)', color: 'var(--green)' }}>↑ 0% vs yesterday</div>
+            </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">M-Pesa Success Rate</div>
-          <div className="text-4xl font-black text-slate-900">100%</div>
-          <div className="mt-4 flex items-center gap-2 text-slate-400 font-bold text-sm">
-             <span>0 transactions today</span>
+        <div className="stat-card">
+          <div className="sc-inner">
+            <div className="sc-icon" style={{ background: 'var(--blue-light)' }}>📲</div>
+            <div>
+              <div className="sc-n">100%</div>
+              <div className="sc-l">M-Pesa Success</div>
+              <div className="sc-sub" style={{ background: 'var(--blue-light)', color: 'var(--blue)' }}>0 transactions today</div>
+            </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Pending Reconciliation</div>
-          <div className="text-4xl font-black text-red-600">0</div>
-          <div className="mt-4 flex items-center gap-2 text-slate-400 font-bold text-sm">
-             <span>Audit Required</span>
+        <div className="stat-card">
+          <div className="sc-inner">
+            <div className="sc-icon" style={{ background: 'var(--red-bg)' }}>🔍</div>
+            <div>
+              <div className="sc-n">0</div>
+              <div className="sc-l">Pending Audit</div>
+              <div className="sc-sub" style={{ background: 'var(--red-bg)', color: 'var(--red)' }}>Reconciliation Required</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 p-20 text-center">
-         <div className="text-4xl mb-4">📊</div>
-         <div className="text-slate-900 font-bold text-xl">Financial Activity Ledger</div>
-         <p className="text-slate-400 max-w-sm mx-auto mt-2">Real-time ledger events will appear here as payments are processed through STK Push or manual entry.</p>
+      <div className="panel">
+        <div className="panel-hdr">
+          <h3>🏛️ Financial Activity Ledger</h3>
+        </div>
+        <div className="panel-body" style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: 40, marginBottom: 15 }}>📊</div>
+          <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--navy)' }}>Real-time Ledger Active</div>
+          <p style={{ color: 'var(--muted)', maxWidth: 400, margin: '10px auto 0', fontSize: 13 }}>
+            All financial events, including STK Pushes and manual receipts, will be recorded here with 100% audit accuracy.
+          </p>
+        </div>
       </div>
 
       <QuickReceipt />

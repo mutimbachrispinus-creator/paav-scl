@@ -1,0 +1,532 @@
+🪵  Writing logs to "/home/chrispinus/.config/.wrangler/logs/wrangler-2026-05-04_21-39-30_120.log"
+Metrics dispatcher: Posting data {"deviceId":"ca6df1d8-91f3-4871-ab05-3d1f529a2ce4","event":"wrangler command started","timestamp":1777930770279,"properties":{"amplitude_session_id":1777930770272,"amplitude_event_id":0,"wranglerVersion":"3.114.17","osPlatform":"Linux","osVersion":"#1 SMP PREEMPT_DYNAMIC Parrot 6.19.13-1parrot1 (2026-04-30)","nodeVersion":20,"packageManager":"npm","isFirstUsage":false,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"argsUsed":["compatibilityFlag","logLevel","port"],"argsCombination":"compatibilityFlag, logLevel, port","command":"wrangler pages dev","args":{"logLevel":"debug"}}}
+.env file not found at ".env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+
+ ⛅️ wrangler 3.114.17
+---------------------
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProcessing wrangler.toml configuration:[0m
+
+    - Unexpected fields found in top-level field: "pages_build_output"
+
+
+Attaching additional modules:
+┌───────────────────────────────────────────────────────────────────────┬──────┬─────────────┐
+│ Name                                                                  │ Type │ Size        │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/cache/adaptor.js                               │ esm  │ 2.29 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/cache/cache-api.js                             │ esm  │ 0.43 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/cache/kv.js                                    │ esm  │ 0.35 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/allocations.func.js                  │ esm  │ 76.89 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/analytics/activity.func.js           │ esm  │ 72.25 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/analytics.func.js                    │ esm  │ 98.93 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/auth/check-username.func.js      │ esm  │ 48.25 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/auth/recovery.func.js            │ esm  │ 49.42 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/auth.func.js                     │ esm  │ 59.75 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/comms/push.func.js               │ esm  │ 74.26 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/cron/backup.func.js              │ esm  │ 49.00 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/cron/promote.func.js             │ esm  │ 48.96 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/db.func.js                       │ esm  │ 54.46 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/debug.func.js                    │ esm  │ 48.88 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/email/receipt.func.js            │ esm  │ 72.04 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/email/report-card.func.js        │ esm  │ 71.88 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/finance/expenses.func.js         │ esm  │ 49.62 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/finance/ledger.func.js           │ esm  │ 50.03 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/health.func.js                   │ esm  │ 48.12 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/mpesa/callback.func.js           │ esm  │ 50.79 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/mpesa/stk.func.js                │ esm  │ 49.93 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/notifications.func.js            │ esm  │ 50.32 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/ping.func.js                     │ esm  │ 47.34 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/config.func.js              │ esm  │ 49.08 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/global-config.func.js       │ esm  │ 49.84 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/init.func.js                │ esm  │ 50.78 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/manage.func.js              │ esm  │ 51.18 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/schools/delete.func.js      │ esm  │ 49.36 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/schools.func.js             │ esm  │ 48.43 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/signup.func.js              │ esm  │ 50.51 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/stats.func.js               │ esm  │ 50.03 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/saas/subscription.func.js        │ esm  │ 48.33 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/seed.func.js                     │ esm  │ 50.24 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/sms.func.js                      │ esm  │ 48.71 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/stats/dashboard.func.js          │ esm  │ 49.96 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/stats.func.js                    │ esm  │ 48.50 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/upload/[id].func.js              │ esm  │ 49.19 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/upload.func.js                   │ esm  │ 49.16 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/v1/payments/stk-callback.func.js │ esm  │ 120.51 KiB  │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/whatsapp/reminder.func.js        │ esm  │ 48.72 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/api/whatsapp/report-card.func.js     │ esm  │ 49.41 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/attendance.func.js                   │ esm  │ 84.19 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/audit.func.js                        │ esm  │ 70.98 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/classes/[grade].func.js              │ esm  │ 74.63 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/classes.func.js                      │ esm  │ 72.67 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/comms/push.func.js                   │ esm  │ 76.74 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/dashboard.func.js                    │ esm  │ 79.12 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/database.func.js                     │ esm  │ 73.01 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/demo.func.js                         │ esm  │ 73.89 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/diary.func.js                        │ esm  │ 73.53 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/documents.func.js                    │ esm  │ 75.39 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/duties.func.js                       │ esm  │ 87.19 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/fees/[adm]/receipt.func.js           │ esm  │ 78.28 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/fees/pay.func.js                     │ esm  │ 81.38 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/fees.func.js                         │ esm  │ 94.94 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/finance/budgets.func.js              │ esm  │ 75.27 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/finance/expenses.func.js             │ esm  │ 80.06 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/finance/invoices.func.js             │ esm  │ 80.22 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/finance/payroll.func.js              │ esm  │ 92.08 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/finance/petty-cash.func.js           │ esm  │ 75.58 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/finance/reconcile.func.js            │ esm  │ 76.68 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/finance/transactions.func.js         │ esm  │ 73.50 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/finance.func.js                      │ esm  │ 77.71 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/grades/report-card/[id].func.js      │ esm  │ 85.32 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/grades/report-card/bulk.func.js      │ esm  │ 87.62 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/grades.func.js                       │ esm  │ 83.79 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/index.func.js                        │ esm  │ 136.93 KiB  │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/learners/[id].func.js                │ esm  │ 76.36 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/learners/bulk.func.js                │ esm  │ 78.50 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/learners.func.js                     │ esm  │ 91.28 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/learning.func.js                     │ esm  │ 92.20 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/login.func.js                        │ esm  │ 91.31 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/merit-list.func.js                   │ esm  │ 88.98 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/messages.func.js                     │ esm  │ 77.76 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/middleware.func.js                   │ esm  │ 113.42 KiB  │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/nexed.func.js                        │ esm  │ 223.38 KiB  │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/parent-home.func.js                  │ esm  │ 109.84 KiB  │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/parent-marks.func.js                 │ esm  │ 72.99 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/performance.func.js                  │ esm  │ 87.48 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/predictor.func.js                    │ esm  │ 81.26 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/profile.func.js                      │ esm  │ 94.00 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/proposal.func.js                     │ esm  │ 75.49 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/reports.func.js                      │ esm  │ 79.81 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/saas/signup.func.js                  │ esm  │ 76.14 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/settings/billing.func.js             │ esm  │ 73.94 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/settings/grading.func.js             │ esm  │ 72.62 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/settings/profile.func.js             │ esm  │ 90.36 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/settings/sms.func.js                 │ esm  │ 71.69 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/settings/subjects.func.js            │ esm  │ 73.68 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/settings/timetable.func.js           │ esm  │ 72.33 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/settings.func.js                     │ esm  │ 71.63 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/sms/api/send.func.js                 │ esm  │ 49.02 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/sms.func.js                          │ esm  │ 73.38 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/streams.func.js                      │ esm  │ 73.04 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/super-admin.func.js                  │ esm  │ 96.20 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/teachers/subjects.func.js            │ esm  │ 72.18 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/teachers.func.js                     │ esm  │ 78.59 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/templates.func.js                    │ esm  │ 110.04 KiB  │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/timetable.func.js                    │ esm  │ 92.96 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/welfare/portfolio.func.js            │ esm  │ 75.55 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/functions/welfare.func.js                      │ esm  │ 73.26 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/manifest/88a389dd6c068190adb2efc795e4063c.js   │ esm  │ 3.58 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/20961.js                               │ esm  │ 2.72 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/213cdcdd92be4e63879fff22bd00cd7d.js    │ esm  │ 718.22 KiB  │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/33099.js                               │ esm  │ 2.85 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/3545.js                                │ esm  │ 2.60 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/36533.js                               │ esm  │ 2.23 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/46407.js                               │ esm  │ 28.47 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/481b8ca9f604d5d97c0a1f8ea5beb0e3.js    │ esm  │ 16.73 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/49194.js                               │ esm  │ 0.53 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/6ce3deae6e149c893f46ac18472382d1.js    │ esm  │ 30.37 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/74134.js                               │ esm  │ 0.42 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/79f3ee45bfca8c1ed084332d63f039e0.js    │ esm  │ 569.78 KiB  │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/88576.js                               │ esm  │ 1.75 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/9026.js                                │ esm  │ 2.56 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/94893.js                               │ esm  │ 13.41 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/95000.js                               │ esm  │ 0.79 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/b01308d5730d863eecfa84369e8e4940.js    │ esm  │ 87.37 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/b7b479cbe7aeca03e425651fd63d9790.js    │ esm  │ 1.65 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/b9b14f2d6880d5ad9e0513aa93e44374.js    │ esm  │ 166.87 KiB  │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/caa5c0cd6f0a2274f8c11e609e339e3b.js    │ esm  │ 63.23 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/d90269f1c2fe487d91f9b477f62ff837.js    │ esm  │ 12.23 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/ddb032a2839ad066aaf9561c20ecf3c5.js    │ esm  │ 89.84 KiB   │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ __next-on-pages-dist__/webpack/ec404f13debda4516c431c1a3dafb1d3.js    │ esm  │ 0.72 KiB    │
+├───────────────────────────────────────────────────────────────────────┼──────┼─────────────┤
+│ Total (124 modules)                                                   │      │ 9006.43 KiB │
+└───────────────────────────────────────────────────────────────────────┴──────┴─────────────┘
+No experimental flag store instantiated
+Attempted to use flag "MULTIWORKER" which has not been instantiated
+✨ Compiled Worker successfully
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/cache/adaptor.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/cache/cache-api.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/cache/kv.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/allocations.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/analytics/activity.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/analytics.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/auth/check-username.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/auth/recovery.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/auth.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/comms/push.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/cron/backup.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/cron/promote.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/db.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/debug.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/email/receipt.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/email/report-card.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/finance/expenses.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/finance/ledger.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/health.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/mpesa/callback.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/mpesa/stk.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/notifications.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/ping.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/saas/config.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/saas/global-config.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/saas/init.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/saas/manage.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/saas/schools/delete.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/saas/schools.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/saas/signup.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/saas/stats.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/saas/subscription.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/seed.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/sms.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/stats/dashboard.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/stats.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/upload/[id].func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/upload.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/v1/payments/stk-callback.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/whatsapp/reminder.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/api/whatsapp/report-card.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/attendance.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/audit.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/classes/[grade].func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/classes.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/comms/push.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/dashboard.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/database.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/demo.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/diary.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/documents.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/duties.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/fees/[adm]/receipt.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/fees/pay.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/fees.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/finance/budgets.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/finance/expenses.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/finance/invoices.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/finance/payroll.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/finance/petty-cash.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/finance/reconcile.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/finance/transactions.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/finance.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/grades/report-card/[id].func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/grades/report-card/bulk.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/grades.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/index.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/learners/[id].func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/learners/bulk.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/learners.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/learning.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/login.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/merit-list.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/messages.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/middleware.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/nexed.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/parent-home.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/parent-marks.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/performance.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/predictor.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/profile.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/proposal.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/reports.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/saas/signup.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/settings/billing.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/settings/grading.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/settings/profile.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/settings/sms.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/settings/subjects.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/settings/timetable.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/settings.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/sms/api/send.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/sms.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/streams.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/super-admin.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/teachers/subjects.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/teachers.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/templates.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/timetable.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/welfare/portfolio.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/functions/welfare.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/manifest/88a389dd6c068190adb2efc795e4063c.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/20961.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/213cdcdd92be4e63879fff22bd00cd7d.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/33099.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/3545.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/36533.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/46407.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/481b8ca9f604d5d97c0a1f8ea5beb0e3.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/49194.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/6ce3deae6e149c893f46ac18472382d1.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/74134.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/79f3ee45bfca8c1ed084332d63f039e0.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/88576.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/9026.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/94893.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/95000.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/b01308d5730d863eecfa84369e8e4940.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/b7b479cbe7aeca03e425651fd63d9790.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/b9b14f2d6880d5ad9e0513aa93e44374.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/caa5c0cd6f0a2274f8c11e609e339e3b.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/d90269f1c2fe487d91f9b477f62ff837.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/ddb032a2839ad066aaf9561c20ecf3c5.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/__next-on-pages-dist__/webpack/ec404f13debda4516c431c1a3dafb1d3.js
+✨ Parsed 2 valid header rules.
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProcessing wrangler.toml configuration:[0m
+
+    - Unexpected fields found in top-level field: "pages_build_output"
+
+
+Using vars defined in .dev.vars
+Your Worker and resources are simulated locally via Miniflare. For more information, see: https://developers.cloudflare.com/workers/testing/local-development.
+
+Your worker has access to the following bindings:
+- Vars:
+  - TURSO_URL: "(hidden)"
+  - TURSO_TOKEN: "(hidden)"
+  - JWT_SECRET: "(hidden)"
+  - PASS_SALT: "(hidden)"
+  - NEXTJS_ENV: "(hidden)"
+Metrics dispatcher: Posting data {"deviceId":"ca6df1d8-91f3-4871-ab05-3d1f529a2ce4","event":"run pages dev","timestamp":1777930775386,"properties":{"category":"Workers","wranglerVersion":"3.114.17","os":"linux:x64"}}
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1m*** Fatal uncaught kj::Exception: kj/async-io-unix.c++:945: failed: ::bind(sockfd, &addr.generic, addrlen): Address already in use; toString() = 127.0.0.1:8788[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mstack: /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@43b2527 /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@43b2319 /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@43b085d /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@1b7c7f5 /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@1b7d19b /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@1b7db63 /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@1b7e4aa /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@1afdb5a /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@43e2136 /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@43e2577 /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@43e0378 /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@43e007c /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@1ae8bb6 /lib/x86_64-linux-gnu/libc.so.6@29ca7 /lib/x86_64-linux-gnu/libc.so.6@29d64 /home/chrispinus/EduVantage school management system/node_modules/@cloudflare/workerd-linux-64/bin/workerd@1ae8024[0m
+
+
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/cache/adaptor.js
+Error in ProxyController: Failed to start ProxyWorker or InspectorProxyWorker
+ MiniflareCoreError [ERR_RUNTIME_FAILURE]: The Workers runtime failed to start. There is likely additional logging output above.
+    at #assembleAndUpdateConfig (/home/chrispinus/EduVantage school management system/node_modules/miniflare/dist/src/index.js:17005:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Mutex.runWith (/home/chrispinus/EduVantage school management system/node_modules/miniflare/dist/src/index.js:2504:16) {
+  code: 'ERR_RUNTIME_FAILURE',
+  cause: undefined
+}
+=> Error contextual data: {
+  config: {
+    name: 'eduvantage',
+    config: '/home/chrispinus/EduVantage school management system/wrangler.toml',
+    compatibilityDate: '2024-04-03',
+    compatibilityFlags: [ 'nodejs_compat' ],
+    entrypoint: '/home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT/bjj61gj3j0v.js',
+    projectRoot: '/home/chrispinus/EduVantage school management system',
+    bindings: {
+      ASSETS: [Object],
+      TURSO_URL: [Object],
+      TURSO_TOKEN: [Object],
+      JWT_SECRET: [Object],
+      PASS_SALT: [Object],
+      NEXTJS_ENV: [Object]
+    },
+    migrations: [],
+    sendMetrics: undefined,
+    triggers: [],
+    env: undefined,
+    build: {
+      alias: undefined,
+      additionalModules: [Array],
+      processEntrypoint: true,
+      bundle: true,
+      findAdditionalModules: undefined,
+      moduleRoot: '/home/chrispinus/EduVantage school management system/.wrangler/tmp/pages-MBAZIT',
+      moduleRules: [Array],
+      minify: undefined,
+      define: {},
+      custom: [Object],
+      format: 'modules',
+      nodejsCompatMode: 'v1',
+      jsxFactory: 'React.createElement',
+      jsxFragment: 'React.Fragment',
+      tsconfig: undefined,
+      exports: [Array]
+    },
+    dev: {
+      auth: [AsyncFunction: auth],
+      remote: false,
+      server: [Object],
+      inspector: [Object],
+      origin: [Object],
+      liveReload: false,
+      testScheduled: false,
+      persist: '/home/chrispinus/EduVantage school management system/.wrangler/state',
+      registry: undefined,
+      bindVectorizeToProd: false,
+      multiworkerPrimary: undefined,
+      imagesLocalMode: false
+    },
+    legacy: {
+      site: undefined,
+      legacyAssets: undefined,
+      enableServiceEnvironments: false
+    },
+    unsafe: { capnp: undefined, metadata: undefined },
+    assets: undefined,
+    experimental: { tailLogs: true }
+  },
+  bundle: undefined
+}
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mThe Workers runtime failed to start. There is likely additional logging output above.[0m
+
+
+MiniflareCoreError [ERR_RUNTIME_FAILURE]: The Workers runtime failed to start. There is likely additional logging output above.
+    at #assembleAndUpdateConfig (/home/chrispinus/EduVantage school management system/node_modules/miniflare/dist/src/index.js:17005:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Mutex.runWith (/home/chrispinus/EduVantage school management system/node_modules/miniflare/dist/src/index.js:2504:16)
+[32mIf you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose[0m
+? Would you like to report this error to Cloudflare? Wrangler's output and the error details will be shared with the Wrangler team to help us diagnose and fix the issue.
+🤖 Using fallback value in non-interactive context: no
+Sentry: Reporting disabled - would have sent MiniflareCoreError [ERR_RUNTIME_FAILURE]: The Workers runtime failed to start. There is likely additional logging output above..
+Metrics dispatcher: Posting data {"deviceId":"ca6df1d8-91f3-4871-ab05-3d1f529a2ce4","event":"wrangler command errored","timestamp":1777930775563,"properties":{"amplitude_session_id":1777930770272,"amplitude_event_id":1,"wranglerVersion":"3.114.17","osPlatform":"Linux","osVersion":"#1 SMP PREEMPT_DYNAMIC Parrot 6.19.13-1parrot1 (2026-04-30)","nodeVersion":20,"packageManager":"npm","isFirstUsage":false,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"argsUsed":["compatibilityFlag","logLevel","port"],"argsCombination":"compatibilityFlag, logLevel, port","command":"wrangler pages dev","args":{"logLevel":"debug"},"durationMs":5337,"durationSeconds":5.337,"durationMinutes":0.08895}}
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/cache/cache-api.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/cache/kv.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/allocations.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/analytics/activity.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/analytics.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/auth/check-username.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/auth/recovery.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/auth.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/comms/push.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/cron/backup.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/cron/promote.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/db.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/debug.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/email/receipt.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/email/report-card.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/finance/expenses.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/finance/ledger.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/health.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/mpesa/callback.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/mpesa/stk.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/notifications.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/ping.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/saas/config.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/saas/global-config.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/saas/init.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/saas/manage.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/saas/schools/delete.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/saas/schools.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/saas/signup.func.js
+Writing additional module to output /home/chrispinus/EduVantage school management system/.wrangler/tmp/dev-sECYud/__next-on-pages-dist__/functions/api/saas/stats.func.js
+🪵  Logs were written to "/home/chrispinus/.config/.wrangler/logs/wrangler-2026-05-04_21-39-30_120.log"

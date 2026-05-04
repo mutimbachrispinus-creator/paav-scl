@@ -6,7 +6,7 @@ import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   Cell, PieChart, Pie 
-} from 'recharts';
+} from '@/components/DynamicCharts';
 
 export default function FinanceDashboardPage() {
   const router = useRouter();

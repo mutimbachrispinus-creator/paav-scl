@@ -3,7 +3,7 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser } from '@/lib/client-cache';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from '@/components/DynamicCharts';
 
 const M = '#4F46E5', GOLD = '#FCD34D', NAVY = '#0F172A', EMERALD = '#10B981', SLATE = '#64748B';
 

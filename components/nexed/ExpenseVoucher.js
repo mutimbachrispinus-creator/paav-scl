@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { Search, ShoppingCart, Wallet, FileText, Loader2, X, Tag } from 'lucide-react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { ExpensePDF } from './ExpensePDF';
+import dynamic from 'next/dynamic';
+import DynamicPDFLink from '@/components/DynamicPDFLink';
+const ExpensePDF = dynamic(() => import('./ExpensePDF').then(m => m.ExpensePDF), { ssr: false });
 import { searchSuppliers, getVoteheads, recordExpenditure } from '@/lib/actions/ledger';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -92,42 +93,35 @@ export default function ExpenseVoucher({ schoolName = 'Nexed Portal' }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden border border-slate-200 animate-in slide-in-from-bottom-4 duration-300">
-        
+    <div className="modal-overlay">
+      <div className="modal modal-lg">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-900 text-white">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-slate-800 rounded-lg">
-              <ShoppingCart size={20} />
+        <div className="modal-hdr" style={{ background: 'var(--navy)', color: '#fff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 36, height: 36, background: 'rgba(255,255,255,0.1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ShoppingCart size={18} />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Expenditure Voucher</h2>
-              <p className="text-xs text-slate-400 font-medium">Record institutional spending and payouts</p>
+              <h3 style={{ color: '#fff' }}>Expenditure Voucher</h3>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Record institutional spending and payouts</p>
             </div>
           </div>
-          <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-            <X size={20} />
-          </button>
+          <button onClick={() => setIsOpen(false)} className="modal-close" style={{ color: '#fff' }}>✕</button>
         </div>
 
-        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
           
           {/* Left Column: Source & Payee */}
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <Tag size={14} /> Select Votehead
-              </label>
-              <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-2">
+          <div>
+            <div className="field">
+              <label>Select Votehead</label>
+              <div style={{ display: 'grid', gap: 8, maxHeight: 220, overflowY: 'auto' }}>
                 {voteheads.map((v) => (
                   <button
                     key={v.id}
                     onClick={() => setSelectedVotehead(v)}
-                    className={cn(
-                      "text-left p-3 rounded-xl border-2 transition-all font-bold text-sm",
-                      selectedVotehead?.id === v.id ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 border-transparent hover:border-slate-200 text-slate-600"
-                    )}
+                    className={`tab-btn${selectedVotehead?.id === v.id ? ' on' : ''}`}
+                    style={{ textAlign: 'left', border: '1.5px solid var(--border)', padding: '10px 14px' }}
                   >
                     {v.name}
                   </button>
@@ -135,107 +129,89 @@ export default function ExpenseVoucher({ schoolName = 'Nexed Portal' }) {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <Search size={14} /> Payee / Supplier (Optional)
-              </label>
-              <div className="relative">
+            <div className="field" style={{ marginTop: 20 }}>
+              <label>Payee / Supplier</label>
+              <div style={{ position: 'relative' }}>
+                <Search style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)' }} size={16} />
                 <input 
                   placeholder="Search supplier..."
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-slate-900 focus:ring-0 transition-all outline-none text-slate-900 text-sm"
+                  style={{ paddingLeft: 34 }}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
                 {suppliersList.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl z-10 max-h-[150px] overflow-y-auto">
-                    {suppliersList.map(s => (
-                      <button 
-                        key={s.id} 
-                        onClick={() => { setSelectedSupplier(s); setQuery(''); setSuppliersList([]); }}
-                        className="w-full text-left p-3 hover:bg-slate-50 text-sm font-bold border-b border-slate-50 last:border-0"
-                      >
-                        {s.name}
-                      </button>
-                    ))}
+                  <div className="panel" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, marginTop: 5 }}>
+                    <div className="panel-body" style={{ padding: 5 }}>
+                      {suppliersList.map(s => (
+                        <div 
+                          key={s.id} 
+                          onClick={() => { setSelectedSupplier(s); setQuery(''); setSuppliersList([]); }}
+                          className="msg-item"
+                          style={{ fontSize: 12, padding: '8px 12px' }}
+                        >
+                          {s.name}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
               {selectedSupplier && (
-                <div className="flex items-center justify-between p-3 bg-slate-900 text-white rounded-xl">
-                  <span className="text-sm font-bold">{selectedSupplier.name}</span>
-                  <button onClick={() => setSelectedSupplier(null)}><X size={14} /></button>
+                <div className="note-box" style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span><strong>Active Payee:</strong> {selectedSupplier.name}</span>
+                  <button onClick={() => setSelectedSupplier(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
                 </div>
               )}
             </div>
           </div>
 
           {/* Right Column: Amount & Method */}
-          <div className={cn("space-y-6 transition-opacity", !selectedVotehead && "opacity-30 pointer-events-none")}>
-            <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Amount to Pay</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">KES</span>
-                <input 
-                  type="number" 
-                  required
-                  placeholder="0.00"
-                  className="w-full pl-14 pr-4 py-4 bg-slate-900 text-white border-none rounded-xl focus:ring-4 focus:ring-slate-100 transition-all outline-none text-2xl font-black"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
+          <div style={{ opacity: selectedVotehead ? 1 : 0.3, pointerEvents: selectedVotehead ? 'auto' : 'none' }}>
+            <div className="field">
+              <label>Amount (KES)</label>
+              <input 
+                type="number" 
+                required
+                placeholder="0.00"
+                style={{ fontSize: 22, fontWeight: 900, background: 'var(--navy)', color: '#fff', border: 'none' }}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+
+            <div className="field">
+              <label>Payment Method</label>
+              <div className="tabs">
+                <button type="button" className={`tab-btn${method === 'cash' ? ' on' : ''}`} onClick={() => setMethod('cash')}>Cash</button>
+                <button type="button" className={`tab-btn${method === 'bank_transfer' ? ' on' : ''}`} onClick={() => setMethod('bank_transfer')}>Bank</button>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Payment Method</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button 
-                  type="button"
-                  onClick={() => setMethod('cash')}
-                  className={cn(
-                    "flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-bold transition-all",
-                    method === 'cash' ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-100"
-                  )}
-                >
-                  <Wallet size={16} /> Cash
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => setMethod('bank_transfer')}
-                  className={cn(
-                    "flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-bold transition-all",
-                    method === 'bank_transfer' ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-100"
-                  )}
-                >
-                  <FileText size={16} /> Bank
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Purpose</label>
+            <div className="field">
+              <label>Purpose</label>
               <textarea 
-                rows={2}
-                placeholder="Briefly describe the expenditure..."
-                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-slate-900 focus:ring-0 transition-all outline-none text-slate-900 text-sm resize-none"
+                rows={3}
+                placeholder="Describe the expenditure..."
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
               />
             </div>
 
             {voucherData ? (
-              <PDFDownloadLink 
+              <DynamicPDFLink 
                 document={<ExpensePDF data={voucherData} />} 
                 fileName={`Voucher_${voucherData.reference}.pdf`}
-                className="w-full flex items-center justify-center gap-3 bg-slate-900 text-white py-4 rounded-xl font-black transition-all shadow-xl hover:scale-[1.02] active:scale-95"
+                className="btn btn-primary"
+                style={{ width: '100%' }}
               >
                 {({ loading }) => (loading ? <Loader2 className="animate-spin" /> : <>🖨️ Download Voucher</>)}
-              </PDFDownloadLink>
+              </DynamicPDFLink>
             ) : (
               <button 
                 onClick={handleSubmit}
                 disabled={isPending || !selectedVotehead || !amount}
-                className="w-full flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white py-4 rounded-xl font-black transition-all shadow-xl"
+                className="btn btn-primary"
+                style={{ width: '100%', background: 'var(--navy)' }}
               >
                 {isPending ? <Loader2 className="animate-spin" /> : "Record Expenditure"}
               </button>
@@ -243,8 +219,8 @@ export default function ExpenseVoucher({ schoolName = 'Nexed Portal' }) {
           </div>
         </div>
 
-        <div className="p-4 bg-slate-50 text-center text-[10px] text-slate-400 uppercase tracking-widest font-black border-t border-slate-100">
-          Press ESC to close · Institutional Ledger Core
+        <div className="modal-footer" style={{ justifyContent: 'center' }}>
+          <p style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>Press ESC to close · Institutional Ledger Core</p>
         </div>
       </div>
     </div>
