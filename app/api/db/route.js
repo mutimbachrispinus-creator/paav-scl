@@ -169,6 +169,12 @@ async function handleRequest(req, auth, impTenant = null) {
       return { type: req.type, ok: true };
     }
 
+    case 'updateStaffProfile': {
+      const { kvUpdateStaffProfile } = await import('@/lib/db');
+      await kvUpdateStaffProfile(req.id, req.name, req.phone, req.avatar, null, tenantId);
+      return { type: req.type, ok: true };
+    }
+
     case 'updateLearner': {
       if (auth.role !== 'admin') return { type: req.type, error: 'Unauthorized' };
       const { kvUpdateLearner } = await import('@/lib/db');
