@@ -37,7 +37,7 @@ export default function EduVantageSignup() {
       setSuccess(json.message);
       setTimeout(() => {
         router.push(json.loginUrl);
-      }, 3000);
+      }, 1000);
     } catch (e) {
       setError(e.message);
     } finally {
