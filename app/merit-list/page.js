@@ -443,6 +443,7 @@ export default function MeritListPage() {
           .print-only { display: block !important; }
           .no-print { display: none !important; }
           tfoot { display: table-footer-group !important; position: static !important; }
+          tfoot tr { background: #fff !important; color: #000 !important; }
           tr { page-break-inside: avoid; }
         }
       `}</style>
