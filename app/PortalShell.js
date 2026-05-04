@@ -1,6 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
-import { useEffect, useState, useCallback, useRef, createContext, useContext } from 'react';
+import { useEffect, useState, useCallback, useRef, createContext, useContext, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
@@ -167,6 +167,13 @@ export default function PortalShell({ children }) {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem('paav_impersonate_id');
   });
+
+  const mobileNavItems = useMemo(() => {
+    if (!user) return [];
+    return ALL_NAV
+      .filter(n => n.roles.some(r => r === user.role || (user.role === 'super-admin' && r === 'admin')))
+      .filter(n => n.key !== 'dashboard' && n.key !== 'messages');
+  }, [user]);
 
   // Sync document title with active branding to prevent stale metadata
   useEffect(() => {
@@ -538,10 +545,7 @@ export default function PortalShell({ children }) {
             <span className="label">Inbox</span>
             {unreadCount > 0 && <span className="nav-badge">{unreadCount}</span>}
           </Link>
-          {ALL_NAV
-            .filter(n => n.roles.some(r => r === user.role || (user.role === 'super-admin' && r === 'admin')))
-            .filter(n => n.key !== 'dashboard' && n.key !== 'messages') // Prevent duplication
-            .map(n => {
+          {mobileNavItems.map(n => {
               const b = (n.key === 'sms') ? unreadCount :
                         (n.key === 'duties') ? (pendingDuties + (user.role === 'admin' ? pendingReqs : 0)) : 0;
               return (
