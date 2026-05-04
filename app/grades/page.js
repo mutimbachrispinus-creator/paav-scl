@@ -41,6 +41,7 @@ export default function GradesPage() {
   const [gradCfg,  setGradCfg]  = useState(null);
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
+  const [manualSaving, setManualSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
   const [alert,    setAlert]    = useState({ msg: '', type: '' });
 
@@ -196,7 +197,8 @@ export default function GradesPage() {
     const marksToSync = [...dirtyMarks];
     if (marksToSync.length === 0 && isAuto) return;
 
-    if (!isAuto) setSaving(true);
+    setSaving(true);
+    if (!isAuto) setManualSaving(true);
     
     let nextLocked = locked;
     const reqs = [];
@@ -248,7 +250,8 @@ export default function GradesPage() {
         setTimeout(() => setAlert({ msg: '', type: '' }), 5000);
       }
     } finally {
-      if (!isAuto) setSaving(false);
+      setSaving(false);
+      setManualSaving(false);
     }
   }
 
@@ -285,30 +288,46 @@ export default function GradesPage() {
     const newLocked = { ...locked, [key]: true };
     const newPending = { ...pending };
     delete newPending[pKey];
+    setSaving(true);
     setLocked(newLocked);
     setPending(newPending);
-    await fetch('/api/db', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [
-        { type: 'set', key: 'paav_marks_locked', value: newLocked },
-        { type: 'set', key: 'paav_marks_pending', value: newPending }
-      ]})
-    });
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [
+          { type: 'set', key: 'paav_marks_locked', value: newLocked },
+          { type: 'set', key: 'paav_marks_pending', value: newPending }
+        ]})
+      });
+      setAlert({ msg: `✅ ${subj} marks approved and locked.`, type: 'ok' });
+      setTimeout(() => setAlert({ msg: '', type: '' }), 3000);
+    } catch (e) {
+      setAlert({ msg: 'Failed to approve marks. Please try again.', type: 'err' });
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function rejectSubject(subj) {
     const pKey = getPendingKey(subj);
     const newPending = { ...pending };
     delete newPending[pKey];
+    setSaving(true);
     setPending(newPending);
-    await fetch('/api/db', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_marks_pending', value: newPending }] })
-    });
-    setAlert({ msg: `❌ ${subj} marks sent back to teacher for correction.`, type: 'warn' });
-    setTimeout(() => setAlert({ msg: '', type: '' }), 4000);
+    try {
+      await fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_marks_pending', value: newPending }] })
+      });
+      setAlert({ msg: `❌ ${subj} marks sent back to teacher for correction.`, type: 'warn' });
+      setTimeout(() => setAlert({ msg: '', type: '' }), 4000);
+    } catch (e) {
+      setAlert({ msg: 'Failed to reject marks.', type: 'err' });
+    } finally {
+      setSaving(false);
+    }
   }
 
   /* ── Lock toggle (admin only) ── */
@@ -435,7 +454,7 @@ export default function GradesPage() {
             </button>
           )}
           <button className={`btn btn-sm ${justSaved ? 'btn-success' : 'btn-primary'}`} onClick={() => save()} disabled={saving}>
-            {saving ? '⏳ Saving…' : justSaved ? '✅ Saved!' : '💾 Save Marks'}
+            {manualSaving ? '⏳ Saving…' : justSaved ? '✅ Saved!' : '💾 Save Marks'}
           </button>
         </div>
       </div>
