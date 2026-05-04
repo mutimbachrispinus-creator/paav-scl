@@ -32,14 +32,16 @@ function LoginContent() {
             console.warn('[Auth] Tenant mismatch detected. Terminating stale session.');
             fetch('/api/auth', { 
               method: 'POST', 
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ action: 'logout' }),
               keepalive: true 
             }).catch(() => {});
             clearAllCache();
-            window.location.reload();
-            return;
+            // Don't reload immediately, just let the state update
           }
-        } catch {}
+        } catch (err) {
+          console.error('[Auth] Cache parsing error:', err);
+        }
       }
     }
     else {
@@ -205,7 +207,8 @@ function LoginContent() {
         }
       }
     } catch (e) {
-      setErr(e.message || 'An unexpected error occurred');
+      console.error('[Login] Action failed:', e);
+      setErr(e.message || 'An unexpected connection error occurred. Please check your internet and try again.');
     } finally {
       setBusy(false);
     }
