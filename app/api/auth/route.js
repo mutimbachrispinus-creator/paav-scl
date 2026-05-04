@@ -42,9 +42,8 @@ export async function POST(request) {
   catch { return err('Invalid JSON body'); }
 
   const { action } = body;
-  await ensureSchema();
-
   try {
+    await ensureSchema();
     switch (action) {
       case 'login':      return handleLogin(body, request);
       case 'logout':     return handleLogout(request);
