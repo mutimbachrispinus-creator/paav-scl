@@ -117,17 +117,26 @@ export default function ProfilePage() {
   async function saveProfile(e) {
     e.preventDefault();
     setBusy(true);
+    setSaved(false);
+
     try {
-      const dbRes = await fetch('/api/db', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav_profiles' }] })
-      });
-      const db = await dbRes.json();
-      const profiles = db.results[0]?.value || {};
-      profiles[user.id] = { ...profiles[user.id], ...profileData, photo: newPhoto || photoPreview || '' };
-
+      // 1. Prepare updated profiles using local state (Optimistic)
+      const profiles = { ...allProfiles };
       const finalPhoto = newPhoto || photoPreview || '';
+      profiles[user.id] = { ...profiles[user.id], ...profileData, photo: finalPhoto };
 
+      // 2. Immediate feedback for "Saved" state
+      setAllProfiles(profiles);
+      
+      const newStaffList = [...allStaff];
+      const idx = newStaffList.findIndex(s => s.id === user.id);
+      if (idx >= 0) {
+        newStaffList[idx] = { ...newStaffList[idx], name: profileData.name, phone: profileData.phone, avatar: finalPhoto };
+        setAllStaff(newStaffList);
+      }
+
+      // 3. Sync with minimal UX delay (so user sees "Saving..." even if network is instant)
+      const start = Date.now();
       const res = await fetch('/api/db', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [
@@ -135,16 +144,22 @@ export default function ProfilePage() {
           { type: 'updateStaffProfile', id: user.id, name: profileData.name, phone: profileData.phone, avatar: finalPhoto }
         ] })
       });
+      
       const out = await res.json();
       if (!res.ok) throw new Error(out.error || 'API request failed');
       if (out.results?.some(r => r.error)) throw new Error(out.results.find(r => r.error).error);
-      setSaved(true); setTimeout(() => setSaved(false), 3000);
-            const newStaffList = [...allStaff];
-      const idx = newStaffList.findIndex(s => s.id === user.id);
-      if (idx >= 0) newStaffList[idx] = { ...newStaffList[idx], name: profileData.name, phone: profileData.phone, avatar: finalPhoto };
-      setAllProfiles(profiles); setAllStaff(newStaffList);
-    } catch (e) { alert('Error saving profile: ' + e.message); }
-    finally { setBusy(false); }
+      
+      // Ensure "Saving..." is visible for at least 600ms for psychological "work" confirmation
+      const elapsed = Date.now() - start;
+      if (elapsed < 600) await new Promise(r => setTimeout(r, 600 - elapsed));
+
+      setSaved(true); 
+      setTimeout(() => setSaved(false), 5000);
+    } catch (e) { 
+      alert('Error saving profile: ' + e.message); 
+    } finally { 
+      setBusy(false); 
+    }
   }
 
   async function changePassword(e) {
@@ -313,10 +328,10 @@ export default function ProfilePage() {
                 </div>
                 <div className="field"><label>ID Number</label><input value={profileData.nok_id || ''} onChange={e => setProfileData(p => ({ ...p, nok_id: e.target.value }))} /></div>
 
-                {saved && <div className="alert alert-ok show">✅ Profile saved!</div>}
-                <button type="submit" className="btn btn-maroon" style={{ width: '100%', marginTop: 8, justifyContent: 'center' }} disabled={busy}>
-                  {busy ? 'Saving…' : '💾 Save Profile'}
+                <button type="submit" className="btn btn-maroon" style={{ width: '100%', marginTop: 8, justifyContent: 'center', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }} disabled={busy}>
+                  {busy ? '⏳ Saving…' : saved ? '✅ Changes Saved!' : '💾 Save Profile'}
                 </button>
+                {saved && <div className="alert alert-ok show" style={{ marginTop: 12, animation: 'slideUp 0.3s ease-out' }}>✅ Success! Your profile details have been updated.</div>}
               </div>
             </div>
           </div>

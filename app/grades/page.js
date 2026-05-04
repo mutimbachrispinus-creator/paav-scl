@@ -215,6 +215,7 @@ export default function GradesPage() {
     }
 
     try {
+      const start = Date.now();
       const res = await fetch('/api/db', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -228,13 +229,17 @@ export default function GradesPage() {
       setDirtyMarks(prev => prev.filter(m => !marksToSync.some(ms => ms.gsa === m.gsa && ms.adm === m.adm)));
 
       if (!isAuto) {
+        // Ensure "Saving..." is visible for at least 600ms
+        const elapsed = Date.now() - start;
+        if (elapsed < 600) await new Promise(r => setTimeout(r, 600 - elapsed));
+
         playSuccessSound();
         setJustSaved(true);
         setAlert({ msg: '✅ Marks saved! Use "Submit for Approval" when done.', type: 'ok' });
         setTimeout(() => {
           setAlert({ msg: '', type: '' });
           setJustSaved(false);
-        }, 4000);
+        }, 5000);
       }
     } catch (e) {
       console.warn('[Grades] Save failed, queuing in outbox:', e.message);
