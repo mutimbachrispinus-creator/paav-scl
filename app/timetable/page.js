@@ -1,5 +1,4 @@
 'use client';
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 /**
  * app/timetable/page.js — School Timetable (CBC Rules)
@@ -8,7 +7,8 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
-import { getAllGrades, getCurriculum } from '@/lib/cbe';
+import { getAllGrades } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 import { getDefaultSubjectConfig, generateTimetableData } from '@/lib/timetable-gen.js';
 import { useProfile } from '@/app/PortalShell';
 

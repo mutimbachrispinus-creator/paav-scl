@@ -510,7 +510,7 @@ tr:hover td{background:#F8FAFF}
 
   /* Landscape pages (merit list, class list) */
   .print-landscape { }
-  .print-landscape @page { size: A4 landscape; margin: 8mm 10mm; }
+  /* Invalid @page nesting removed */
   body.merit-print, body.classlist-print { }
   @page merit-print { size: A4 landscape; margin: 8mm; }
 
@@ -1038,7 +1038,7 @@ tr:hover td{background:#F8FAFF}
 /* Landscape print for merit & class lists */
 @media print {
   body.print-landscape { }
-  .print-landscape-page @page { size: A4 landscape !important; margin: 6mm; }
+  /* Invalid @page nesting removed */
 }
 @page :blank {}
 

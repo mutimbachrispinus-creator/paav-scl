@@ -4,7 +4,6 @@ import PortalShell from './PortalShell';
 import { getSession } from '@/lib/auth';
 import { kvGet } from '@/lib/db';
 
-export const runtime = 'edge';
 
 const inter = Inter({
   subsets:  ['latin'],

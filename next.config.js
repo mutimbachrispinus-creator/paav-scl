@@ -2,17 +2,19 @@
 
 const nextConfig = {
   reactStrictMode: false,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     unoptimized: true,
   },
+  turbopack: {},
   webpack: (config) => {
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',
       bufferutil: 'commonjs bufferutil',
     });
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      diagnostics_channel: false,
+    };
     return config;
   },
 };
@@ -108,3 +110,5 @@ if (process.env.SKIP_PWA === '1' || process.env.CF_PAGES === '1') {
   });
   module.exports = withPWA(nextConfig);
 }
+
+import('@opennextjs/cloudflare').then(m => m.initOpenNextCloudflareForDev());

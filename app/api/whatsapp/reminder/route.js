@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { sendSMS, getFeeReminderSMS } from '@/lib/sms-client';
 import { kvGet } from '@/lib/db';

@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { ALL_GRADES } from '@/lib/cbe';
 import { kvGet, kvSet } from '@/lib/db';

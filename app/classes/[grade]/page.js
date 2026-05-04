@@ -1,5 +1,4 @@
 'use client';
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 /**
  * app/classes/[grade]/page.js — Class & stream list for a specific grade

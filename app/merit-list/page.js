@@ -1,5 +1,4 @@
 'use client';
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 /**
  * app/merit-list/page.js — Merit List (Top Learners, CBC-based)
@@ -14,7 +13,8 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { buildMeritList, fmtK, JSS, SENIOR, gInfo, getCurriculum, getDistributionBuckets, getGradeColors } from '@/lib/cbe';
+import { buildMeritList, fmtK, JSS, SENIOR, gInfo, getDistributionBuckets, getGradeColors } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { useSchoolProfile } from '@/lib/school-profile';
