@@ -335,6 +335,7 @@ export default function MeritListPage() {
                               {l.vap > 0 ? `+${l.vap}` : l.vap}
                             </span>
                           </div>
+                        ) : <span style={{ color: 'var(--muted)', fontSize: 10 }}>—</span>}
                       </td>
                     </tr>
                   ))}
