@@ -13,8 +13,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { buildMeritList, fmtK, JSS, SENIOR, gInfo } from '@/lib/cbe';
-import { getCurriculum } from '@/lib/curriculum';
+import { buildMeritList, fmtK, JSS, SENIOR, gInfo, getCurriculum } from '@/lib/cbe';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { useSchoolProfile } from '@/lib/school-profile';

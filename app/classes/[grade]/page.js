@@ -4,8 +4,9 @@ export const runtime = 'edge';
 /**
  * app/classes/[grade]/page.js — Class & stream list for a specific grade
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { getDefaultSubjects, fmtK } from '@/lib/cbe';
 import PrintHeader from '@/components/PrintHeader';
 import { useProfile } from '@/app/PortalShell';
@@ -23,29 +24,27 @@ export default function ClassPage() {
   const [mounted,  setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  useEffect(() => {
-    async function load() {
-      const authRes = await fetch('/api/auth');
-      const auth    = await authRes.json();
-      if (!auth.ok) { router.push('/'); return; }
+  const load = useCallback(async () => {
+    try {
+      const [u, db] = await Promise.all([
+        getCachedUser(),
+        getCachedDBMulti(['paav6_learners', 'paav7_streams', 'paav6_feecfg'])
+      ]);
 
-      const dbRes = await fetch('/api/db', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ requests:[
-          { type:'get', key:'paav6_learners' },
-          { type:'get', key:'paav7_streams'  },
-          { type:'get', key:'paav6_feecfg'  },
-        ]}),
-      });
-      const db = await dbRes.json();
-      const all = (db.results[0]?.value || []).filter(l => l.grade === grade);
+      if (!u) { router.push('/'); return; }
+
+      const all = (db.paav6_learners || []).filter(l => l.grade === grade);
       setLearners(all);
-      setStreams( Array.isArray(db.results[1]?.value) ? db.results[1].value : []);
-      setFeeCfg(  db.results[2]?.value || {});
+      setStreams(Array.isArray(db.paav7_streams) ? db.paav7_streams : []);
+      setFeeCfg(db.paav6_feecfg || {});
+    } catch (e) {
+      console.error('ClassPage load error:', e);
+    } finally {
       setLoading(false);
     }
-    load();
   }, [grade, router]);
+
+  useEffect(() => { load(); }, [load]);
 
   const { profile: school } = useProfile() || { profile: {} };
   const annualFee  = feeCfg[grade]?.annual || 5000;

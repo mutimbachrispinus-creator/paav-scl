@@ -40,12 +40,18 @@ export default async function RootLayout({ children }) {
   
   if (session?.tenantId && session.tenantId !== 'platform-master') {
     try {
-      const [profile, theme] = await Promise.all([
+      // 🚀 Safety: Don't let the server pre-fetch block the page for more than 3s
+      const fetchPromise = Promise.all([
         kvGet('paav_school_profile', null, session.tenantId),
         kvGet('paav_theme', null, session.tenantId)
       ]);
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000));
+      
+      const [profile, theme] = await Promise.race([fetchPromise, timeoutPromise]);
       initialBranding = { profile, theme };
-    } catch {}
+    } catch (e) {
+      console.warn('[Layout] Speed injection skipped:', e.message);
+    }
   }
 
   return (
