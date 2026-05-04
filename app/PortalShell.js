@@ -343,16 +343,20 @@ export default function PortalShell({ children }) {
   }
 
   async function doLogout() {
+    // 1. Clear local state immediately
     localStorage.clear();
     sessionStorage.clear();
     document.cookie = 'paav_session=; Max-Age=0; path=/; SameSite=Lax';
-    try {
-      await fetch('/api/auth', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ action: 'logout' }),
-      });
-    } catch {}
+    
+    // 2. Fire-and-forget server logout (keepalive ensures it finishes even after redirect)
+    fetch('/api/auth', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action: 'logout' }),
+      keepalive: true
+    }).catch(() => {});
+
+    // 3. Redirect immediately
     window.location.replace('/');
   }
 
