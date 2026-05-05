@@ -16,7 +16,7 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
-import { getAllGrades, gInfo, getDefaultSubjects, maxPts, calcLearnerReportData, getMark, isJSSGrade, getDistributionBuckets, getGradeColors } from '@/lib/cbe';
+import { getAllGrades, gInfo, getDefaultSubjects, maxPts, calcLearnerReportData, getMark, isJSSGrade, getDistributionBuckets, getGradeColors, shouldRankByMarks } from '@/lib/cbe';
 import { useSchoolProfile } from '@/lib/school-profile';
 import { useProfile } from '@/app/PortalShell';
 
