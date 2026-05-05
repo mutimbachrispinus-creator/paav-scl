@@ -16,6 +16,7 @@ export default function AnalyticsPage() {
   const [grade, setGrade] = useState('GRADE 1');
   const [term, setTerm] = useState('TERM 1');
   const [stats, setStats] = useState(null);
+  const [error, setError] = useState(null);
   const [isPending, startTransition] = useTransition();
 
   const grades = getAllGrades();
@@ -23,16 +24,41 @@ export default function AnalyticsPage() {
   useEffect(() => {
     if (profile?.tenantId) {
       startTransition(async () => {
-        const res = await getAcademicStats({ 
-          tenantId: profile.tenantId, 
-          grade, 
-          term,
-          curriculum: profile.curriculum || 'CBC'
-        });
-        if (res.success) setStats(res.data);
+        try {
+          const res = await getAcademicStats({ 
+            tenantId: profile.tenantId, 
+            grade, 
+            term,
+            curriculum: profile.curriculum || 'CBC'
+          });
+          if (res.success) {
+            setStats(res.data);
+            setError(null);
+          } else {
+            setError(res.error || 'Failed to calculate insights');
+          }
+        } catch (e) {
+          setError(e.message || 'An unexpected error occurred');
+        }
       });
     }
   }, [grade, term, profile]);
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-8 text-center">
+      <AlertCircle className="text-red-500" size={48} />
+      <div>
+        <h3 className="text-lg font-bold text-slate-900">Analysis Failed</h3>
+        <p className="text-slate-500">{error}</p>
+      </div>
+      <button 
+        className="btn btn-primary btn-sm"
+        onClick={() => window.location.reload()}
+      >
+        Retry Analysis
+      </button>
+    </div>
+  );
 
   if (!stats) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
