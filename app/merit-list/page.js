@@ -117,18 +117,34 @@ export default function MeritListPage() {
   
   const overallLevel = max > 0 ? gInfo(avgPct, grade, gradCfg, school?.curriculum || 'CBC') : { lv: '—' };
   
-  const distribution = useMemo(() => {
-    const counts = getDistributionBuckets(grade, school?.curriculum || 'CBC');
+  const { distribution, subjectDistribution } = useMemo(() => {
+    const buckets = getDistributionBuckets(grade, school?.curriculum || 'CBC');
+    const counts = { ...buckets };
+    const subjCounts = {};
+    subjects.forEach(s => {
+      subjCounts[s] = { ...buckets };
+    });
 
     ranked.forEach(l => {
+      // Overall distribution (based on points/percentage)
       const pct = max ? Number(((l.totalPts/max)*100).toFixed(2)) : 0;
       const inf = gInfo(pct, grade, gradCfg, school?.curriculum || 'CBC');
       if (inf && counts[inf.lv] !== undefined) {
         counts[inf.lv]++;
       }
+
+      // Subject-wise distribution
+      l.detail.forEach(d => {
+        if (d.score !== null && subjCounts[d.subj]) {
+          if (subjCounts[d.subj][d.lv] !== undefined) {
+            subjCounts[d.subj][d.lv]++;
+          }
+        }
+      });
     });
-    return counts;
-  }, [ranked, max, grade, gradCfg, school?.curriculum]);
+
+    return { distribution: counts, subjectDistribution: subjCounts };
+  }, [ranked, max, grade, gradCfg, school?.curriculum, subjects]);
 
 
   if (!mounted || loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading merit list…</div>;
@@ -426,6 +442,39 @@ export default function MeritListPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+
+              {/* ── Subject-wise Distribution Analysis ── */}
+              <div style={{ marginTop: 24, borderTop: '1px solid #f1f5f9', paddingTop: 20 }}>
+                <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 800, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Subject-wise Distribution Analysis</div>
+                <div className="tbl-wrap">
+                  <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: 10, background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>Subject</th>
+                        {Object.keys(getDistributionBuckets(grade, school?.curriculum || 'CBC')).map(lv => (
+                          <th key={lv} style={{ textAlign: 'center', padding: '6px 4px', fontSize: 10, background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>{lv}</th>
+                        ))}
+                        <th style={{ textAlign: 'center', padding: '6px 8px', fontSize: 10, background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(subjectDistribution).map(([subj, counts]) => (
+                        <tr key={subj} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '6px 8px', fontWeight: 700, fontSize: 12, color: 'var(--navy)' }}>{subj}</td>
+                          {Object.values(counts).map((count, i) => (
+                            <td key={i} style={{ textAlign: 'center', padding: '6px 4px', fontSize: 12, fontWeight: count > 0 ? 800 : 400, color: count > 0 ? 'var(--navy)' : '#cbd5e1' }}>
+                              {count || '—'}
+                            </td>
+                          ))}
+                          <td style={{ padding: '6px 8px', textAlign: 'center', fontWeight: 900, fontSize: 12, background: '#f8fafc' }}>
+                            {Object.values(counts).reduce((a, b) => a + b, 0)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
