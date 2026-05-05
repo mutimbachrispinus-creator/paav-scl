@@ -275,21 +275,21 @@ export default function MeritListPage() {
               <table>
                 <thead>
                   <tr>
-                    <th style={{ textAlign: 'center', padding: '6px 4px' }}>Rank</th>
-                    <th style={{ textAlign: 'center', padding: '6px 4px' }}>Adm</th>
-                    <th style={{ textAlign: 'left', padding: '6px 8px' }}>Name</th>
+                    <th style={{ textAlign: 'center', padding: '3px 2px', fontSize: 9 }}>Rank</th>
+                    <th style={{ textAlign: 'center', padding: '3px 2px', fontSize: 9 }}>Adm</th>
+                    <th style={{ textAlign: 'left', padding: '3px 4px', fontSize: 9 }}>Name</th>
                     {subjects.map(s => (
-                      <th key={s} style={{ textAlign: 'center', fontSize: 9, padding: '6px 2px' }} title={s}>
-                        {s.length > 6 ? s.slice(0,6)+'…' : s}
+                      <th key={s} style={{ textAlign: 'center', fontSize: 8.5, padding: '3px 1px' }} title={s}>
+                        {s.length > 5 ? s.slice(0,5)+'…' : s}
                       </th>
                     ))}
-                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>Total Marks</th>
-                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>Total Pts</th>
-                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>Level</th>
-                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>/ {max}</th>
-                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '6px 4px' }}>%</th>
-                    <th style={{ textAlign: 'center', color:'#0369A1', padding: '6px 4px' }}>VAP</th>
-                    <th></th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Total Marks</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Total Pts</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Level</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>/ {max}</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>%</th>
+                    <th style={{ textAlign: 'center', color:'#0369A1', padding: '3px 2px', fontSize: 9 }}>VAP</th>
+                    <th style={{ padding: '3px 2px' }}></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -300,54 +300,54 @@ export default function MeritListPage() {
                       <tr key={l.adm}
                         className={l.rank <= 3 ? `merit-rank-${l.rank}` : ''}
                         style={{ transition: 'background .15s' }}>
-                        <td style={{ padding: '4px' }}>
-                          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                            <span style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 14,
+                        <td style={{ padding: '2px' }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                            <span style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 12,
                               color: l.rank === 1 ? '#B45309' : l.rank === 2 ? '#475569'
                                    : l.rank === 3 ? '#C2410C' : 'var(--navy)' }}>
                               {MEDALS[l.rank] || `#${l.rank}`}
                             </span>
                             <button className="btn btn-ghost btn-sm no-print" title="View Profile"
-                              style={{ padding: '2px 6px', fontSize: 14 }}
+                              style={{ padding: '1px 4px', fontSize: 12 }}
                               onClick={() => router.push(`/learners/${l.adm}`)}>
                               👁
                             </button>
                           </div>
                         </td>
-                        <td style={{ fontWeight: 700, fontSize: 11.5, padding: '4px' }}>{l.adm}</td>
-                        <td style={{ fontWeight: 600, padding: '4px 8px' }}>{l.name}</td>
+                        <td style={{ fontWeight: 700, fontSize: 11, padding: '2px' }}>{l.adm}</td>
+                        <td style={{ fontWeight: 600, fontSize: 12, padding: '2px 4px' }}>{l.name}</td>
                         {l.detail.map(d => (
-                          <td key={d.subj} style={{ textAlign: 'center', padding: '3px 2px' }}>
+                          <td key={d.subj} style={{ textAlign: 'center', padding: '1px' }}>
                             {d.score !== null ? (
-                              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
-                                <span style={{ fontWeight:800, fontSize:12.5 }}>{d.score}</span>
-                                <span style={{ padding:'1px 5px', borderRadius:10, fontSize:9, fontWeight:900, background:d.bg||'#eee', color:d.c||'#333' }}>
+                              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:1 }}>
+                                <span style={{ fontWeight:800, fontSize:11.5 }}>{d.score}</span>
+                                <span style={{ padding:'0.5px 4px', borderRadius:8, fontSize:8, fontWeight:900, background:d.bg||'#eee', color:d.c||'#333' }}>
                                   {d.lv}
                                 </span>
                               </div>
                             ) : '—'}
                           </td>
                         ))}
-                        <td style={{ textAlign: 'center', fontWeight: 700, fontSize: 13, color: '#059669', padding: '4px' }}>
+                        <td style={{ textAlign: 'center', fontWeight: 700, fontSize: 12, color: '#059669', padding: '2px' }}>
                           {l.detail.reduce((s,d)=>s+(d.score||0),0)}
                         </td>
-                        <td style={{ textAlign: 'center', fontWeight: 800, fontSize: 14,
-                          color: 'var(--navy)', padding: '4px' }}>
+                        <td style={{ textAlign: 'center', fontWeight: 800, fontSize: 12,
+                          color: 'var(--navy)', padding: '2px' }}>
                           {l.totalPts}
                         </td>
-                        <td style={{ textAlign: 'center', padding: '4px' }}>
-                           <span style={{ padding:'2px 8px', borderRadius:4, fontSize:11, fontWeight:900, background:lInfo.bg, color:lInfo.c }}>
+                        <td style={{ textAlign: 'center', padding: '2px' }}>
+                           <span style={{ padding:'1.5px 6px', borderRadius:3, fontSize:10, fontWeight:900, background:lInfo.bg, color:lInfo.c }}>
                              {lInfo.lv}
                            </span>
                         </td>
-                        <td style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 11, padding: '4px' }}>
+                        <td style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 10, padding: '2px' }}>
                           {max}
                         </td>
-                        <td style={{ textAlign: 'center', fontWeight: 700,
-                          color: l.totalPts/max >= 0.5 ? 'var(--green)' : 'var(--red)', padding: '4px' }}>
+                        <td style={{ textAlign: 'center', fontWeight: 700, fontSize: 11,
+                          color: l.totalPts/max >= 0.5 ? 'var(--green)' : 'var(--red)', padding: '2px' }}>
                           {lPct}%
                         </td>
-                      <td style={{ textAlign: 'center', padding: '4px' }}>
+                        <td style={{ textAlign: 'center', padding: '2px' }}>
                         {l.vap !== 0 ? (
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <span style={{ fontSize: 16, color: l.vap > 0 ? 'var(--green)' : 'var(--red)' }}>

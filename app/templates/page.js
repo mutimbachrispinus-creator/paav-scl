@@ -321,17 +321,17 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
       <div style={{ textAlign: 'center', marginBottom: 15, fontSize: 13, fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: 1 }}>
         TERM {term.replace('T','')} — {assess === 'op1' ? 'OPENER' : assess === 'mt1' ? 'MID-TERM' : 'END-TERM'} EXAMINATION
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 9.5 }}>
         <thead>
           <tr>
-            <th style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>Pos</th>
-            <th style={{ border: '1px solid #ddd', padding: 4, textAlign: 'center' }}>ADM</th>
-            <th style={{ border: '1px solid #ddd', padding: 4, textAlign: 'left' }}>Name</th>
-            {subjects.map(s => <th key={s} style={{ border: '1px solid #ddd', padding: 4, fontSize: 8, textAlign: 'center' }}>{s.slice(0,5)}</th>)}
-            <th style={{ border: '1px solid #ddd', padding: 4, color: '#8B1A1A', textAlign: 'center' }}>Total Marks</th>
-            <th style={{ border: '1px solid #ddd', padding: 4, color: '#8B1A1A', textAlign: 'center' }}>Total Pts</th>
-            <th style={{ border: '1px solid #ddd', padding: 4, color: '#8B1A1A', textAlign: 'center' }}>Level</th>
-            <th style={{ border: '1px solid #ddd', padding: 4, color: '#8B1A1A', textAlign: 'center' }}>%</th>
+            <th style={{ border: '1px solid #ddd', padding: 2, textAlign: 'center' }}>Pos</th>
+            <th style={{ border: '1px solid #ddd', padding: 2, textAlign: 'center' }}>ADM</th>
+            <th style={{ border: '1px solid #ddd', padding: 2, textAlign: 'left' }}>Name</th>
+            {subjects.map(s => <th key={s} style={{ border: '1px solid #ddd', padding: 2, fontSize: 7.5, textAlign: 'center' }}>{s.slice(0,5)}</th>)}
+            <th style={{ border: '1px solid #ddd', padding: 2, color: '#8B1A1A', textAlign: 'center' }}>Total Marks</th>
+            <th style={{ border: '1px solid #ddd', padding: 2, color: '#8B1A1A', textAlign: 'center' }}>Total Pts</th>
+            <th style={{ border: '1px solid #ddd', padding: 2, color: '#8B1A1A', textAlign: 'center' }}>Level</th>
+            <th style={{ border: '1px solid #ddd', padding: 2, color: '#8B1A1A', textAlign: 'center' }}>%</th>
           </tr>
         </thead>
         <tbody>
@@ -339,29 +339,29 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
             const lInfo = gInfo(parseFloat(l.avg), grade, gradCfg, curr);
             return (
               <tr key={l.adm}>
-                <td style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center' }}>{i + 1}</td>
-                <td style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center' }}>{l.adm}</td>
-                <td style={{ border: '1px solid #ddd', padding: 3 }}>{l.name}</td>
+                <td style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center' }}>{i + 1}</td>
+                <td style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center' }}>{l.adm}</td>
+                <td style={{ border: '1px solid #ddd', padding: 1.5 }}>{l.name}</td>
                 {subjects.map(s => {
                   const score = marks[`${term}:${grade}|${s}|${assess}`]?.[l.adm];
                   const info = score !== undefined ? gInfo(Number(score), grade, gradCfg, profile?.curriculum || 'CBC') : null;
                   return (
-                    <td key={s} style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center' }}>
+                    <td key={s} style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center' }}>
                       {score !== undefined ? (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                           <span style={{ fontWeight: 600 }}>{score}</span>
-                          <span style={{ fontSize: 8, color: info.c, fontWeight: 800 }}>{info.lv}</span>
+                          <span style={{ fontSize: 7.5, color: info.c, fontWeight: 800 }}>{info.lv}</span>
                         </div>
                       ) : '—'}
                     </td>
                   );
                 })}
-                <td style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center', fontWeight: 700, color: '#059669' }}>{l.totalMarks}</td>
-                <td style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center', fontWeight: 800, color: 'var(--navy)' }}>{l.total}</td>
-                <td style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center' }}>
-                  <span style={{ color: lInfo.c, fontWeight: 800 }}>{lInfo.lv}</span>
+                <td style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center', fontWeight: 700, color: '#059669' }}>{l.totalMarks}</td>
+                <td style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center', fontWeight: 800, color: 'var(--navy)' }}>{l.total}</td>
+                <td style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center' }}>
+                  <span style={{ color: lInfo.c, fontWeight: 800, fontSize: 8.5 }}>{lInfo.lv}</span>
                 </td>
-                <td style={{ border: '1px solid #ddd', padding: 3, textAlign: 'center' }}>{l.avg}%</td>
+                <td style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center' }}>{l.avg}%</td>
               </tr>
             );
           })}
