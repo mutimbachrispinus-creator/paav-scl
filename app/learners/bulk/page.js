@@ -30,6 +30,7 @@ export default function BulkLearnersPage() {
   const [learners, setLearners] = useState([]);
   const [streams, setStreams] = useState([]);
   const [bulkGrade, setBulkGrade] = useState('');
+  const [bulkStream, setBulkStream] = useState('');
   const [pickerSearch, setPickerSearch] = useState('');
   const [showPicker, setShowPicker] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -78,14 +79,6 @@ export default function BulkLearnersPage() {
     const newRows = [...rows];
     let row = { ...newRows[idx], [field]: val };
     
-    // Auto-lookup if ADM changes
-    if (field === 'adm' && val) {
-      const existing = learners.find(l => l.adm === val);
-      if (existing) {
-        row = { ...row, ...existing };
-      }
-    }
-
     // Auto-calculate age if DOB changes
     if (field === 'dob') {
       row.age = calculateAge(val);
