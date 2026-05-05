@@ -20,7 +20,7 @@ import {
   setSessionCookie, clearSessionCookie, getSession,
   ROLE_EMOJI, ROLE_COLOR,
 } from '@/lib/auth';
-import { kvGet, kvSet, ensureSchema, query } from '@/lib/db';
+import { kvGet, kvSet, ensureSchema, query, kvDeleteStaff } from '@/lib/db';
 import { sendCredentialsSMS } from '@/lib/sms-client';
 
 /* ─── Helpers ───────────────────────────────────────────────────────────── */
@@ -55,6 +55,7 @@ export async function POST(request) {
       case 'forgot':     return handleForgot(body);
       case 'resetpw':    return handleResetPw(body);
       case 'change_password': return handleChangePassword(body, request);
+      case 'delete_user': return handleDeleteUser(body, request);
       default:           return err(`Unknown action: ${action}`);
     }
   } catch (e) {
@@ -510,7 +511,20 @@ async function handleEditUser({ id, name, role, grade, phone, status, password, 
   return NextResponse.json({ ok: true });
 }
 
-/* ─── Utilities ─────────────────────────────────────────────────────────── */
+/* ─── Admin delete user ─────────────────────────────────────────────────── */
+async function handleDeleteUser({ id }, request) {
+  const session = await getSession();
+  if (!session) return err('Unauthorised', 401);
+  if (session.role !== 'admin') return err('Forbidden: Only administrators can delete users', 403);
+  if (session.id === id) return err('Conflict: You cannot delete your own account', 409);
+
+  try {
+    await kvDeleteStaff(id, session.tenantId);
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return err('Failed to delete user: ' + e.message, 500);
+  }
+}
 function publicUser(u) {
   const { password, secA, ...safe } = u;  // never send password or secret answer
   return { ...safe, emoji: ROLE_EMOJI[u.role] || '👤', color: ROLE_COLOR[u.role] };

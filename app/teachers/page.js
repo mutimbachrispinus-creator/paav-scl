@@ -141,12 +141,17 @@ export default function TeachersPage() {
                       <button className="btn btn-danger btn-sm" style={{ marginLeft: 4 }}
                         onClick={async () => {
                           if(!confirm(`Permanently delete user ${s.name}?`)) return;
-                          const updated = staff.filter(x => x.id !== s.id);
-                          await fetch('/api/db', {
-                            method:'POST', headers:{'Content-Type':'application/json'},
-                            body: JSON.stringify({ requests:[{ type:'set', key:'paav6_staff', value: updated }] })
+                          const res = await fetch('/api/auth', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'delete_user', id: s.id })
                           });
-                          load();
+                          const data = await res.json();
+                          if (data.ok) {
+                            load();
+                          } else {
+                            alert(`❌ ${data.error}`);
+                          }
                         }}>🗑️</button>
                     </td>
                   </tr>
