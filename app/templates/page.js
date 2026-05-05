@@ -265,7 +265,11 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
     });
     const maxPoss = maxPts(grade, subjects, profile?.curriculum || 'CBC');
     return { ...l, total, totalMarks, count, avg: count > 0 ? (total / (maxPoss || 1) * 100).toFixed(1) : 0 };
-  }).sort((a, b) => b.total - a.total);
+  }).sort((a, b) => {
+    const isK6 = ['KINDERGARTEN','PP1','PP2','GRADE 1','GRADE 2','GRADE 3','GRADE 4','GRADE 5','GRADE 6'].includes(grade);
+    if (isK6) return b.totalMarks - a.totalMarks;
+    return b.total - a.total;
+  });
 
   const colStats = subjects.map(s => {
     let sum = 0;
