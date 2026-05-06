@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const [allProfiles, setAllProfiles] = useState({});
   const [allStaff, setAllStaff] = useState([]);
   const [allLearners, setAllLearners] = useState([]);
+  const [tabLoading, setTabLoading] = useState(false);
 
   // Own profile
   const [profileData, setProfileData] = useState(null);
@@ -59,7 +60,6 @@ export default function ProfilePage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ requests: [
             { type: 'get', key: 'paav6_staff' },
-            { type: 'get', key: 'paav6_learners' },
             { type: 'get', key: 'paav_profiles' },
           ]})
         })
@@ -74,11 +74,9 @@ export default function ProfilePage() {
 
       const db = await dbRes.json();
       const staff = db.results[0]?.value || [];
-      const learners = db.results[1]?.value || [];
-      const profiles = db.results[2]?.value || {};
+      const profiles = db.results[1]?.value || {};
 
       setAllStaff(staff);
-      setAllLearners(learners);
       setAllProfiles(profiles);
 
       const myStaff = staff.find(s => s.id === auth.user.id) || {};
@@ -239,6 +237,29 @@ export default function ProfilePage() {
   const filteredStaff = allStaff.filter(s => !staffQ || s.name?.toLowerCase().includes(staffQ.toLowerCase()) || s.role?.toLowerCase().includes(staffQ.toLowerCase()));
   const filteredLearners = learnerQ.length >= 2 ? allLearners.filter(l => l.name?.toLowerCase().includes(learnerQ.toLowerCase()) || l.adm?.toLowerCase().includes(learnerQ.toLowerCase())) : [];
 
+  const handleTabChange = async (newTab) => {
+    setTab(newTab);
+    setSelectedLearner(null);
+    setSelectedStaff(null);
+
+    if ((newTab === 'learner' || newTab === 'bulk') && allLearners.length === 0) {
+      setTabLoading(true);
+      try {
+        const res = await fetch('/api/db', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_learners' }] })
+        });
+        const data = await res.json();
+        setAllLearners(data.results[0]?.value || []);
+      } catch (e) {
+        console.error('Failed to load learners:', e);
+      } finally {
+        setTabLoading(false);
+      }
+    }
+  };
+
   if (loading || !user) return <div className="page on"><p style={{ padding: 30 }}>Loading profile…</p></div>;
 
   const TABS = [
@@ -265,7 +286,7 @@ export default function ProfilePage() {
 
       <div className="profile-tabs no-print">
         {TABS.map(t => (
-          <button key={t.key} className={`profile-tab-btn${tab === t.key ? ' on' : ''}`} onClick={() => { setTab(t.key); setSelectedLearner(null); setSelectedStaff(null); }}>
+          <button key={t.key} className={`profile-tab-btn${tab === t.key ? ' on' : ''}`} onClick={() => handleTabChange(t.key)}>
             {t.label}
           </button>
         ))}
@@ -438,27 +459,31 @@ export default function ProfilePage() {
         <div className="panel no-print">
           <div className="panel-hdr"><h3>🎓 Learner Lookup</h3></div>
           <div className="panel-body">
-            <div className="field" style={{ maxWidth: 340 }}>
-              <label>Search by Name or Admission No.</label>
-              <input placeholder="Type at least 2 characters…" value={learnerQ} onChange={e => setLearnerQ(e.target.value)} />
-            </div>
-            {filteredLearners.length > 0 && (
-              <div className="tbl-wrap">
-                <table>
-                  <thead><tr><th>Adm</th><th>Name</th><th>Grade</th><th>Stream</th><th></th></tr></thead>
-                  <tbody>
-                    {filteredLearners.slice(0, 20).map(l => (
-                      <tr key={l.adm}>
-                        <td><span className="badge bg-gray">{l.adm}</span></td>
-                        <td style={{ fontWeight: 600 }}>{l.name}</td>
-                        <td>{l.grade}</td>
-                        <td>{l.stream || '—'}</td>
-                        <td><button className="btn btn-sm btn-maroon" onClick={() => setSelectedLearner(l)}>View</button></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            {tabLoading ? <p style={{ color: 'var(--muted)', fontSize: 13 }}>Loading learner database…</p> : (
+              <>
+                <div className="field" style={{ maxWidth: 340 }}>
+                  <label>Search by Name or Admission No.</label>
+                  <input placeholder="Type at least 2 characters…" value={learnerQ} onChange={e => setLearnerQ(e.target.value)} />
+                </div>
+                {filteredLearners.length > 0 && (
+                  <div className="tbl-wrap">
+                    <table>
+                      <thead><tr><th>Adm</th><th>Name</th><th>Grade</th><th>Stream</th><th></th></tr></thead>
+                      <tbody>
+                        {filteredLearners.slice(0, 20).map(l => (
+                          <tr key={l.adm}>
+                            <td><span className="badge bg-gray">{l.adm}</span></td>
+                            <td style={{ fontWeight: 600 }}>{l.name}</td>
+                            <td>{l.grade}</td>
+                            <td>{l.stream || '—'}</td>
+                            <td><button className="btn btn-sm btn-maroon" onClick={() => setSelectedLearner(l)}>View</button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -517,12 +542,14 @@ export default function ProfilePage() {
               <h3 style={{color:M}}>📥 Bulk Enroll Detailed Learners</h3>
               <div style={{fontSize:12,color:'var(--muted)',marginTop:4}}>Quickly add multiple learners with extended profile data.</div>
             </div>
-            <div style={{ display:'flex', gap:10 }}>
-              <select value={bulkGrade} onChange={e=>setBulkGrade(e.target.value)} style={{padding:'6px 10px',borderRadius:6,border:'1.5px solid var(--border)'}}>
-                {ALL_GRADES.map(g=><option key={g}>{g}</option>)}
-              </select>
-              <button className="btn btn-gold btn-sm" onClick={() => setBulkRows([...bulkRows, createEmptyRow()])}>➕ Add Row</button>
-            </div>
+            {tabLoading ? <span className="badge bg-gray">Loading DB…</span> : (
+              <div style={{ display:'flex', gap:10 }}>
+                <select value={bulkGrade} onChange={e=>setBulkGrade(e.target.value)} style={{padding:'6px 10px',borderRadius:6,border:'1.5px solid var(--border)'}}>
+                  {ALL_GRADES.map(g=><option key={g}>{g}</option>)}
+                </select>
+                <button className="btn btn-gold btn-sm" onClick={() => setBulkRows([...bulkRows, createEmptyRow()])}>➕ Add Row</button>
+              </div>
+            )}
           </div>
           <div className="tbl-wrap" style={{ overflowX:'auto' }}>
             <table style={{ minWidth: 1400 }}>

@@ -32,23 +32,25 @@ export default function SettingsHubPage() {
         setUser(u);
         setLoading(false); // Show page immediately
 
-        // Fetch usage in background
-        fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ requests: [{ type: 'storageUsage' }] }),
-          signal: AbortSignal.timeout(5000)
-        })
-        .then(res => {
-          const ct = res.headers.get('content-type');
-          if (!ct || !ct.includes('application/json')) return null;
-          return res.json();
-        })
-        .then(dbData => {
-          if (!dbData) return;
-          setUsage(dbData.results?.[0]?.usage || null);
-        })
-        .catch(() => setUsage(null));
+        // Fetch usage in background ONLY for super-admin
+        if (u.role === 'super-admin') {
+          fetch('/api/db', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requests: [{ type: 'storageUsage' }] }),
+            signal: AbortSignal.timeout(5000)
+          })
+          .then(res => {
+            const ct = res.headers.get('content-type');
+            if (!ct || !ct.includes('application/json')) return null;
+            return res.json();
+          })
+          .then(dbData => {
+            if (!dbData) return;
+            setUsage(dbData.results?.[0]?.usage || null);
+          })
+          .catch(() => setUsage(null));
+        }
 
       } catch (e) {
         console.error('[Setup] Auth check failed:', e);
@@ -76,7 +78,7 @@ export default function SettingsHubPage() {
     { title: '📱 SMS Configuration', desc: 'Manage Africa\'s Talking API credentials', href: '/settings/sms', icon: '📱', superOnly: true },
     { title: 'Identity & Branding', desc: 'Customize logo, theme, hero images, and announcements', href: '/settings/profile', icon: '🎨' },
     { title: '👤 My Profile', desc: 'Update your personal info and security', href: '/dashboard?tab=profile', icon: '🔑' },
-    { title: '🗄️ Database Storage', desc: usage ? `Usage: ${usage.percent.toFixed(2)}% (${(usage.totalBytes / 1024 / 1024).toFixed(1)} MB / 9 GB)` : 'Loading database stats...', href: '#', icon: '💾' },
+    { title: '🗄️ Database Storage', desc: usage ? `Usage: ${usage.percent.toFixed(2)}% (${(usage.totalBytes / 1024 / 1024).toFixed(1)} MB / 9 GB)` : 'Loading database stats...', href: '#', icon: '💾', superOnly: true },
   ];
 
   const SETTINGS_LINKS = ALL_SETTINGS_LINKS.filter(l => !l.superOnly || user.role === 'super-admin');

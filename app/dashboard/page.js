@@ -72,7 +72,6 @@ function DashboardContent() {
       // 2. Fetch data in parallel
       const [db, glob, statRes] = await Promise.all([
         getCachedDBMulti([
-          'paav6_msgs', 
           'paav_theme'
         ]),
         isSuper 
