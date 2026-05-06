@@ -513,15 +513,6 @@ function LoginContent() {
   );
 }
 
-        @media(max-width: 900px) {
-          .auth-left { display: none; }
-          .auth-right { width: 100%; background: #0F172A; }
-          .auth-card { background: #fff; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); margin: 20px; }
-        }
-      `}</style>
-    </div>
-  );
-}
 
 export default function LoginPage() {
   return (
