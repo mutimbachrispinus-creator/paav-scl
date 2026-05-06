@@ -295,6 +295,7 @@ export default function MeritListPage() {
                     ))}
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Total Marks</th>
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Total Pts</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Avg Pts</th>
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Level</th>
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>/ {max}</th>
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>%</th>
@@ -345,6 +346,9 @@ export default function MeritListPage() {
                           color: 'var(--navy)', padding: '2px' }}>
                           {l.totalPts}
                         </td>
+                        <td style={{ textAlign: 'center', fontWeight: 700, fontSize: 11.5, color: '#0369A1', padding: '2px' }}>
+                          {l.enteredCount > 0 ? (l.totalPts / l.enteredCount).toFixed(2) : '0'}
+                        </td>
                         <td style={{ textAlign: 'center', padding: '2px' }}>
                            <span style={{ padding:'1.5px 6px', borderRadius:3, fontSize:10, fontWeight:900, background:lInfo.bg, color:lInfo.c }}>
                              {lInfo.lv}
@@ -391,6 +395,7 @@ export default function MeritListPage() {
                         })}
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#000', border: '1px solid #000' }}>{totalMarksSum}</td>
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#000', border: '1px solid #000' }}>{totalPtsSum}</td>
+                        <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#000', border: '1px solid #000' }}>{(totalPtsSum / (ranked.length * (subjects.length || 1))).toFixed(2)}</td>
                         <td colSpan={4} style={{ border: '1px solid #000' }}></td>
                       </tr>
                       <tr style={{ background: '#f9f9f9', borderTop: '1px solid #000' }}>
@@ -402,6 +407,7 @@ export default function MeritListPage() {
                         ))}
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 700, border: '1px solid #000' }}>{totalAvgMarks}</td>
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 700, border: '1px solid #000' }}>{totalAvgPts}</td>
+                        <td style={{ padding: 6, textAlign: 'center', fontWeight: 700, border: '1px solid #000' }}>{(totalAvgPts / (subjects.length || 1)).toFixed(2)}</td>
                         <td style={{ padding: 6, textAlign: 'center', border: '1px solid #000' }}>—</td>
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 700, border: '1px solid #000' }}>{avgPct}%</td>
                         <td style={{ border: '1px solid #000' }}></td>
@@ -413,7 +419,7 @@ export default function MeritListPage() {
                             {stat.avgInfo ? <span style={{ color: '#000', fontWeight: 800, fontSize: 10 }}>{stat.avgInfo.lv}</span> : '—'}
                           </td>
                         ))}
-                        <td colSpan={5} style={{ border: '1px solid #000' }}></td>
+                        <td colSpan={6} style={{ border: '1px solid #000' }}></td>
                       </tr>
                       <tr style={{ background: '#f9f9f9' }}>
                         <td colSpan={3} style={{ padding: 6, textAlign: 'right', fontWeight: 800, border: '1px solid #000' }}>AVERAGE POINTS</td>
@@ -424,6 +430,7 @@ export default function MeritListPage() {
                         ))}
                         <td style={{ padding: 6, textAlign: 'center', border: '1px solid #000' }}>—</td>
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#000', border: '1px solid #000' }}>{totalAvgPts}</td>
+                        <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#000', border: '1px solid #000' }}>{(totalAvgPts / (subjects.length || 1)).toFixed(2)}</td>
                         <td colSpan={3} style={{ border: '1px solid #000' }}></td>
                       </tr>
                     </>
