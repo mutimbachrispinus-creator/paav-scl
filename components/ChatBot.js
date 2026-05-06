@@ -181,6 +181,24 @@ export default function ChatBot() {
         .chat-input input { flex: 1; border: none; background: #F1F5F9; padding: 14px 20px; border-radius: 16px; font-size: 14px; outline: none; font-weight: 500; }
         .send-btn { width: 48px; height: 48px; background: #4F46E5; color: #fff; border: none; border-radius: 14px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: 0.3s; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
         .send-btn:hover { transform: scale(1.1) rotate(-10deg); background: #3730A3; }
+
+        @media (max-width: 450px) {
+          .chatbot-root { bottom: 15px; right: 15px; }
+          .chat-window { 
+            width: calc(100vw - 30px); 
+            height: calc(100vh - 100px); 
+            max-height: 600px;
+            bottom: 0; 
+            right: 0; 
+            border-radius: 20px; 
+          }
+          .chat-trigger { padding: 12px 20px; font-size: 13px; }
+          .chat-trigger .label { display: none; }
+          .chat-hdr { padding: 16px; }
+          .chat-body { padding: 16px; }
+          .chat-input { padding: 12px 16px; }
+          .msg-bubble { max-width: 90%; }
+        }
       `}</style>
     </div>
   );
