@@ -20,6 +20,7 @@ export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
 import { kvGet, kvSet, kvDelete, kvTimestamps } from '@/lib/db';
+import { PAAV_KEYS } from '@/lib/constants';
 import { getSession } from '@/lib/auth';
 
 /* ─── Auth check ────────────────────────────────────────────────────────── */
@@ -291,6 +292,12 @@ async function handleRequest(req, auth, impTenant = null) {
       const { kvBulkAddLearners } = await import('@/lib/db');
       await kvBulkAddLearners(req.learners, tenantId);
       return { type: req.type, ok: true };
+    }
+
+    case 'storageUsage': {
+      const { getStorageUsage } = await import('@/lib/db');
+      const usage = await getStorageUsage();
+      return { type: req.type, usage };
     }
 
     default:

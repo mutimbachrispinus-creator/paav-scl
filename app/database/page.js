@@ -9,7 +9,7 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser } from '@/lib/client-cache';
-import { PAAV_KEYS } from '@/lib/db';
+import { PAAV_KEYS } from '@/lib/constants';
 
 export default function DatabasePage() {
   const router = useRouter();

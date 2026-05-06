@@ -1,6 +1,7 @@
 export const runtime = 'edge';
 import { NextResponse } from 'next/server';
-import { kvGet, PAAV_KEYS } from '@/lib/db';
+import { kvGet } from '@/lib/db';
+import { PAAV_KEYS } from '@/lib/constants';
 import { uploadBackup } from '@/lib/storage';
 
 export async function GET(req) {

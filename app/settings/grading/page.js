@@ -16,29 +16,46 @@ export default function GradingSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
-    const authRes = await fetch('/api/auth');
-    const auth    = await authRes.json();
-    if (!auth.ok || auth.user?.role !== 'admin') { router.push('/dashboard'); return; }
+  const [error, setError] = useState(null);
 
-    const dbRes = await fetch('/api/db', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ requests:[{ type:'get', key:'paav8_grad' }] }),
-    });
-    const db  = await dbRes.json();
-    const cfg = db.results[0]?.value;
-    
-    // Backwards compatibility with old pri/jss config
-    if (cfg?.k6) setK6(cfg.k6.map(s => ({ ...s })));
-    else if (cfg?.pri) setK6(cfg.pri.map(s => ({ ...s })));
-    
-    if (cfg?.junior) setJunior(cfg.junior.map(s => ({ ...s })));
-    else if (cfg?.jss) setJunior(cfg.jss.map(s => ({ ...s })));
-    
-    if (cfg?.senior) setSenior(cfg.senior.map(s => ({ ...s })));
-    else if (cfg?.jss) setSenior(cfg.jss.map(s => ({ ...s })));
-    
-    setLoading(false);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // 1. Auth check
+      const authRes = await fetch('/api/auth', { signal: AbortSignal.timeout(5000) });
+      const auth    = await authRes.json();
+      if (!auth.ok || auth.user?.role !== 'admin') { router.push('/dashboard'); return; }
+
+      // 2. Load Grading Config
+      const dbRes = await fetch('/api/db', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ requests:[{ type:'get', key:'paav8_grad' }] }),
+        signal: AbortSignal.timeout(8000)
+      });
+      
+      if (!dbRes.ok) throw new Error('Database server is not responding.');
+      
+      const db  = await dbRes.json();
+      const cfg = db.results?.[0]?.value;
+      
+      if (cfg) {
+        // Backwards compatibility with old pri/jss config
+        if (cfg.k6) setK6(cfg.k6.map(s => ({ ...s })));
+        else if (cfg.pri) setK6(cfg.pri.map(s => ({ ...s })));
+        
+        if (cfg.junior) setJunior(cfg.junior.map(s => ({ ...s })));
+        else if (cfg.jss) setJunior(cfg.jss.map(s => ({ ...s })));
+        
+        if (cfg.senior) setSenior(cfg.senior.map(s => ({ ...s })));
+        else if (cfg.jss) setSenior(cfg.jss.map(s => ({ ...s })));
+      }
+    } catch (e) {
+      console.error('[Grading] Load failed:', e);
+      setError(e.message || 'Connection timed out. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }, [router]);
 
   useEffect(() => { load(); }, [load]);
@@ -92,6 +109,12 @@ export default function GradingSettingsPage() {
   }
 
   if (loading) return <div style={{ padding:40, color:'var(--muted)' }}>Loading…</div>;
+  if (error) return (
+    <div style={{ padding:40, textAlign:'center' }}>
+      <p style={{ color:'var(--red)', marginBottom:16 }}>{error}</p>
+      <button className="btn btn-primary" onClick={load}>Retry</button>
+    </div>
+  );
 
   return (
     <div className="page on">

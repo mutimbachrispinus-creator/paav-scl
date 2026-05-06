@@ -18,10 +18,12 @@ export default function SettingsHubPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [usage, setUsage] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function checkAuth() {
       try {
+        setError(null);
         const u = await getCachedUser();
         if (!u || u.role !== 'admin') {
           router.push('/dashboard');
@@ -30,27 +32,35 @@ export default function SettingsHubPage() {
         setUser(u);
         setLoading(false); // Show page immediately
 
-        // Fetch DB usage in background
+        // Fetch usage in background
         fetch('/api/db', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ requests: [{ type: 'storageUsage' }] })
+          body: JSON.stringify({ requests: [{ type: 'storageUsage' }] }),
+          signal: AbortSignal.timeout(5000)
         })
         .then(res => res.json())
         .then(dbData => {
           setUsage(dbData.results?.[0]?.usage || null);
         })
-        .catch(err => console.error('Storage usage fetch failed:', err));
-        
+        .catch(() => setUsage(null));
+
       } catch (e) {
-        router.push('/');
+        console.error('[Setup] Auth check failed:', e);
+        setError('Connection timed out. Please refresh.');
         setLoading(false);
       }
     }
     checkAuth();
   }, [router]);
 
-  if (loading || !user) return <div className="page on"><p>Loading settings...</p></div>;
+  if (loading) return <div className="page on"><p>Loading settings...</p></div>;
+  if (error) return (
+    <div style={{ padding:40, textAlign:'center' }}>
+      <p style={{ color:'var(--red)', marginBottom:16 }}>{error}</p>
+      <button className="btn btn-primary" onClick={() => window.location.reload()}>Refresh</button>
+    </div>
+  );
 
   const ALL_SETTINGS_LINKS = [
     { title: '📊 Grading Scale', desc: 'Configure EE/ME/AE/BE score thresholds', href: '/settings/grading', icon: '📈' },
