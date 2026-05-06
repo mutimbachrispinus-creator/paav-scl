@@ -23,6 +23,13 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     if (profile?.tenantId) {
+      setStats(null);
+      setError(null);
+      
+      const timeout = setTimeout(() => {
+        if (!stats) setError('Analysis is taking longer than expected. Please try again.');
+      }, 12000);
+
       startTransition(async () => {
         try {
           const res = await getAcademicStats({ 
@@ -31,6 +38,7 @@ export default function AnalyticsPage() {
             term,
             curriculum: profile.curriculum || 'CBC'
           });
+          clearTimeout(timeout);
           if (res.success) {
             setStats(res.data);
             setError(null);
@@ -38,9 +46,11 @@ export default function AnalyticsPage() {
             setError(res.error || 'Failed to calculate insights');
           }
         } catch (e) {
+          clearTimeout(timeout);
           setError(e.message || 'An unexpected error occurred');
         }
       });
+      return () => clearTimeout(timeout);
     }
   }, [grade, term, profile]);
 
