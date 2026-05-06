@@ -30,7 +30,7 @@ const LEVEL_CFG = {
 };
 
 function gradeLevel(g) {
-  if (!g) return 'primary13';
+  if (!g || typeof g !== 'string') return 'primary13';
   const gu = g.toUpperCase();
   // British
   if (gu.startsWith('YEAR')) {
@@ -137,8 +137,9 @@ export default function TimetablePage() {
 
   // Build slots for a grade
   const gradeTT = useMemo(() => timetable[selGrade] || {}, [timetable, selGrade]);
-  const cfg = LEVEL_CFG[gradeLevel(selGrade)] || LEVEL_CFG.primary13;
-  const maxPeriods = Math.max(...cfg.perDay);
+  const gradeLevelStr = gradeLevel(selGrade);
+  const cfg = LEVEL_CFG[gradeLevelStr] || LEVEL_CFG.primary13 || { dur: 35, perDay: [7,7,7,7,7] };
+  const maxPeriods = (cfg.perDay && cfg.perDay.length > 0) ? Math.max(...cfg.perDay) : 8;
 
   // My timetable: find all slots where this teacher is assigned
   const mySlots = useMemo(() => {
@@ -305,18 +306,20 @@ export default function TimetablePage() {
                   {Array.from({length: maxPeriods}, (_,pi) => (
                     <tr key={pi}>
                       <td style={{fontWeight:700,textAlign:'center',fontSize:12,background:'#F8FAFF'}}>{pi+1}</td>
-                      {DAYS.map(day => {
+                      {DAYS.map((day, di) => {
+                        const dayMax = cfg.perDay?.[di] || 8;
+                        const isOutOfBounds = (pi + 1) > dayMax;
                         const slot = (gradeTT[day]||{})[pi+1];
                         const bg = slot?.subject ? subjColor(slot.subject) : null;
                         return (
-                          <td key={day} style={{padding:4,verticalAlign:'top'}}>
-                            {slot?.subject ? (
+                          <td key={day} style={{padding:4,verticalAlign:'top', background: isOutOfBounds ? '#f1f5f9' : 'transparent'}}>
+                            {isOutOfBounds ? null : slot?.subject ? (
                               <div style={{background:`${bg}18`,border:`1.5px solid ${bg}40`,borderRadius:8,padding:'6px 8px'}}>
                                 <div style={{fontWeight:700,fontSize:11,color:bg}}>{slot.subject}</div>
                                 {slot.teacher && <div style={{fontSize:10,color:'var(--muted)',marginTop:1}}>{slot.teacher}</div>}
                               </div>
                             ) : (
-                              <div style={{color:'#ddd',fontSize:10,textAlign:'center',padding:8}}>—</div>
+                              <div style={{color:'#cbd5e1',fontSize:10,textAlign:'center',padding:8}}>—</div>
                             )}
                           </td>
                         );
@@ -492,8 +495,10 @@ function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave })
       const newGradeTT = {};
       DAYS.forEach(d => {
         newGradeTT[d] = {};
-        for(let p=1; p<=maxPeriods; p++) {
-          if (result.grid[d][p] && !result.grid[d][p].cont) {
+        const dayIdx = DAYS.indexOf(d);
+        const dayMax = cfg.perDay[dayIdx] || cfg.perDay[0];
+        for(let p=1; p<=dayMax; p++) {
+          if (result.grid[d]?.[p] && !result.grid[d][p].cont) {
              newGradeTT[d][p] = { subject: result.grid[d][p].subject, teacher: result.grid[d][p].teacher || '' };
           }
         }
@@ -550,28 +555,34 @@ function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave })
             {Array.from({length: maxPeriods}, (_,pi) => (
               <tr key={pi}>
                 <td style={{fontWeight:700,textAlign:'center',fontSize:12,background:'#F8FAFF'}}>{pi+1}</td>
-                {DAYS.map(day => {
+                {DAYS.map((day, di) => {
+                  const dayMax = cfg.perDay?.[di] || 8;
+                  const isOutOfBounds = (pi + 1) > dayMax;
                   const slot = (gradeTT[day]||{})[pi+1] || {};
                   return (
-                    <td key={day} style={{padding:3,verticalAlign:'top'}}>
-                      <input
-                        placeholder="Subject"
-                        value={slot.subject||''}
-                        onChange={e => setSlot(day,pi+1,'subject',e.target.value)}
-                        style={{width:'100%',fontSize:10,padding:'3px 5px',border:'1px solid #ddd',borderRadius:5,marginBottom:2}}
-                      />
-                      <select
-                        value={slot.teacherId||''}
-                        onChange={e => {
-                          const t = teachers.find(x=>x.id===e.target.value);
-                          setSlot(day,pi+1,'teacherId',e.target.value);
-                          setSlot(day,pi+1,'teacher',t?.name||'');
-                        }}
-                        style={{width:'100%',fontSize:10,padding:'2px',border:'1px solid #ddd',borderRadius:5}}
-                      >
-                        <option value="">— Teacher —</option>
-                        {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                      </select>
+                    <td key={day} style={{padding:3,verticalAlign:'top', background: isOutOfBounds ? '#f1f5f9' : 'transparent'}}>
+                      {isOutOfBounds ? null : (
+                        <>
+                          <input
+                            placeholder="Subject"
+                            value={slot.subject||''}
+                            onChange={e => setSlot(day,pi+1,'subject',e.target.value)}
+                            style={{width:'100%',fontSize:10,padding:'3px 5px',border:'1px solid #ddd',borderRadius:5,marginBottom:2}}
+                          />
+                          <select
+                            value={slot.teacherId||''}
+                            onChange={e => {
+                              const t = teachers.find(x=>x.id===e.target.value);
+                              setSlot(day,pi+1,'teacherId',e.target.value);
+                              setSlot(day,pi+1,'teacher',t?.name||'');
+                            }}
+                            style={{width:'100%',fontSize:10,padding:'2px',border:'1px solid #ddd',borderRadius:5}}
+                          >
+                            <option value="">— Teacher —</option>
+                            {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                          </select>
+                        </>
+                      )}
                     </td>
                   );
                 })}

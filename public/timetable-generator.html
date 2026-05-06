@@ -192,7 +192,7 @@ function generate(seed){
   if(!subjects.length){document.getElementById('statusBox').innerHTML='<div class="clash-warn">⚠️ Add subjects first</div>';return;}
   const lvl=document.getElementById('level').value;
   const cfg=LEVEL_CFG[lvl];
-  const maxPeriods=cfg.perDay[0];
+  const globalMax = Math.max(...(cfg.perDay || [8]));
 
   // Build slot queue: subject repeated by lessons count
   let pool=[];
@@ -221,15 +221,21 @@ function generate(seed){
 
   // Grid: days x periods
   const grid={};
-  DAYS.forEach(d=>{grid[d]={};for(let p=1;p<=maxPeriods;p++) grid[d][p]=null;});
+  DAYS.forEach((d, i) => { 
+    grid[d] = {}; 
+    const dayMax = cfg.perDay[i] || cfg.perDay[0];
+    for(let p=1; p<=dayMax; p++) grid[d][p]=null; 
+  });
 
   const teacherBusy={}; // teacher -> Set of "day-period"
   const usedSlots=[]; // track placed items
 
   function canPlace(day,period,item){
-    if(period>maxPeriods) return false;
+    const dayIdx = DAYS.indexOf(day);
+    const dayMax = cfg.perDay[dayIdx] || cfg.perDay[0];
+    if(period>dayMax) return false;
     if(grid[day][period]!==null) return false;
-    if(item.double&&(period>=maxPeriods||grid[day][period+1]!==null)) return false;
+    if(item.double&&(period>=dayMax||grid[day][period+1]!==null)) return false;
     // Teacher clash
     if(item.teacher){
       const key=item.teacher;
@@ -249,8 +255,8 @@ function generate(seed){
       if(sciDoubles>=2) return false;
     }
     // Morning priority
-    if(item.priority==='morning'&&period>Math.ceil(maxPeriods/2)) return false;
-    if(item.priority==='afternoon'&&period<=Math.ceil(maxPeriods/2)) return false;
+    if(item.priority==='morning'&&period>Math.ceil(dayMax/2)) return false;
+    if(item.priority==='afternoon'&&period<=Math.ceil(dayMax/2)) return false;
     return true;
   }
 
@@ -269,8 +275,8 @@ function generate(seed){
   // PPI: place in same period across all days (block 1 period on Monday)
   const ppi=pool.find(x=>x.name==='PPI');
   if(ppi){
-    for(let p=1;p<=maxPeriods;p++){
-      if(DAYS.every(d=>grid[d][p]===null)){
+    for(let p=1;p<=globalMax;p++){
+      if(DAYS.every((d, i)=>(p <= (cfg.perDay[i] || cfg.perDay[0])) && grid[d][p]===null)){
         DAYS.forEach(d=>place(d,p,ppi));
         pool=pool.filter(x=>x.name!=='PPI');
         break;
@@ -283,7 +289,9 @@ function generate(seed){
   pool.forEach(item=>{
     let placed=false;
     for(const day of DAYS){
-      for(let p=1;p<=maxPeriods;p++){
+      const dayIdx = DAYS.indexOf(day);
+      const dayMax = cfg.perDay[dayIdx] || cfg.perDay[0];
+      for(let p=1;p<=dayMax;p++){
         if(canPlace(day,p,item)){place(day,p,item);placed=true;break;}
       }
       if(placed) break;
@@ -296,7 +304,9 @@ function generate(seed){
     if(item.priority==='afternoon'||item.priority==='morning'){
       const relaxed={...item,priority:'any'};
       for(const day of DAYS){
-        for(let p=1;p<=maxPeriods;p++){
+        const dayIdx = DAYS.indexOf(day);
+        const dayMax = cfg.perDay[dayIdx] || cfg.perDay[0];
+        for(let p=1;p<=dayMax;p++){
           const orig=item.priority;item.priority='any';
           if(canPlace(day,p,item)){place(day,p,item);item.priority=orig;return false;}
           item.priority=orig;
@@ -319,13 +329,15 @@ function shuffleGenerate(){generate(Math.floor(Math.random()*99999));}
 
 function renderTimetable(grid,cfg,unplaced){
   const slotTimes=buildSlotTimes(cfg);
-  const maxP=cfg.perDay[0];
+  const globalMax = Math.max(...(cfg.perDay || [8]));
   let html=`<table class="tt-table"><thead><tr><th style="min-width:90px">Period / Time</th>${DAYS.map(d=>`<th>${d}</th>`).join('')}</tr></thead><tbody>`;
 
-  for(let p=1;p<=maxP;p++){
+  for(let p=1;p<=globalMax;p++){
     const t=slotTimes[p-1];
     html+=`<tr><td style="background:#1e293b;font-size:10px;font-weight:700;color:#94a3b8;white-space:nowrap;padding:6px 8px">${t?t.start+' – '+t.end:''}<br/><span style="color:#64748b;font-weight:400">P${p}</span></td>`;
-    DAYS.forEach(day=>{
+    DAYS.forEach((day, i)=>{
+      const dayMax = cfg.perDay[i] || cfg.perDay[0];
+      if (p > dayMax) { html += `<td style="background:#0f172a;opacity:0.3"></td>`; return; }
       const s=grid[day][p];
       if(s&&s.cont){html+=`<td style="background:#1e293b22;border:1px dashed #1e293b"></td>`;return;}
       if(!s){html+=`<td></td>`;return;}
@@ -359,10 +371,15 @@ function printTT(){
 function downloadCSV(){
   if(!generated){alert('Generate a timetable first');return;}
   const {grid,cfg}=generated;
-  const maxP=cfg.perDay[0];
+  const globalMax = Math.max(...(cfg.perDay || [8]));
   let csv='Period,'+DAYS.join(',')+'\n';
-  for(let p=1;p<=maxP;p++){
-    csv+=`P${p},`+DAYS.map(d=>{const s=grid[d][p];return s&&!s.cont?`"${s.name}${s.teacher?' ('+s.teacher+')':''}"`:''}).join(',')+'\n';
+  for(let p=1;p<=globalMax;p++){
+    csv+=`P${p},`+DAYS.map((d, i)=>{
+      const dayMax = cfg.perDay[i] || cfg.perDay[0];
+      if (p > dayMax) return '';
+      const s=grid[d][p];
+      return s&&!s.cont?`"${s.name}${s.teacher?' ('+s.teacher+')':''}"`:''
+    }).join(',')+'\n';
     const brk=cfg.breaks.find(b=>b.after===p);
     if(brk) csv+=`${brk.label}(${brk.dur}min),`+DAYS.map(()=>brk.label).join(',')+'\n';
   }

@@ -459,14 +459,25 @@ async function handleResetPw({ username, newPassword, secA }) {
 }
 
 /* ─── OTP Based Reset ─────────────────────────────────────────────────── */
-async function handleRequestOtp({ username }, request) {
+async function handleRequestOtp(body, request) {
+  const { username } = body;
   if (!username) return err('Username is required');
   const tid = request.headers.get('x-tenant-id') || 'platform-master';
   
   const rows = await query('SELECT name, phone FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase(), tid]);
   const user = rows[0];
   if (!user) return err('Account not found in this institution.');
-  if (!user.phone) return err('No phone number linked to this account. Contact admin.');
+  
+  // If phone is provided in body, verify it matches
+  if (body.phone) {
+    const provided = body.phone.replace(/\D/g, '').slice(-9); // Match last 9 digits to handle +254/07
+    const stored = (user.phone || '').replace(/\D/g, '').slice(-9);
+    if (provided !== stored) {
+      return err('The phone number provided does not match our records for this account.');
+    }
+  } else if (!user.phone) {
+    return err('No phone number linked to this account. Contact admin.');
+  }
 
   const otp = Math.floor(100000 + Math.random() * 899999).toString();
   

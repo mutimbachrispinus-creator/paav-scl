@@ -344,6 +344,10 @@ function LoginContent() {
                     <label>Username</label>
                     <input required value={resetForm.username} onChange={e => RF('username', e.target.value.toLowerCase())} placeholder="your.username" />
                   </div>
+                  <div className="field">
+                    <label>Phone Number (to receive OTP)</label>
+                    <input required value={resetForm.phone} onChange={e => RF('phone', e.target.value)} placeholder="07XXXXXXXX" />
+                  </div>
                 </>
               ) : (
                 <>

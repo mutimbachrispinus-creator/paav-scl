@@ -109,7 +109,7 @@ export default function PortalShell({ children }) {
         const { v: msgs } = JSON.parse(rawMsgs);
         if (u && Array.isArray(msgs)) {
           return msgs.filter(m => 
-            !m.read?.includes(u.username) && (
+            m && !m.read?.includes(u.username) && (
               m.to === 'ALL' || 
               m.to === u.username || 
               (m.to === 'ALL_STAFF' && ['admin','teacher','staff'].includes(u.role)) ||
