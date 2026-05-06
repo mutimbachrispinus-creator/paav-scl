@@ -34,11 +34,14 @@ export default function LearnersPage() {
   const [query,    setQuery]    = useState('');
   const [gradeF,   setGradeF]   = usePersistedState('paav_learners_grade', '');
   const [modal,    setModal]    = useState(null); // 'add' | 'promote' | null
+  const [error,    setError]    = useState(null);
 
   const load = useCallback(async () => {
     try {
+      setLoading(true);
+      setError(null);
       const [u, db] = await Promise.all([
-        getCachedUser(),
+        getCachedUser(), // 5s timeout
         getCachedDBMulti(['paav6_learners', 'paav6_feecfg', 'paav7_streams'])
       ]);
 
@@ -53,6 +56,7 @@ export default function LearnersPage() {
       setStreams( db.paav7_streams  || []);
     } catch (e) {
       console.error('Learners load error:', e);
+      setError('Connection timed out. Please refresh.');
     } finally {
       setLoading(false);
     }
@@ -84,6 +88,12 @@ export default function LearnersPage() {
   }
 
   if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading learners…</div>;
+  if (error) return (
+    <div style={{ padding: 40, textAlign: 'center' }}>
+      <p style={{ color: 'var(--red)', marginBottom: 16 }}>{error}</p>
+      <button className="btn btn-primary" onClick={load}>Retry</button>
+    </div>
+  );
 
   return (
     <>
@@ -167,7 +177,7 @@ export default function LearnersPage() {
                       <td style={{ padding: '6px 8px' }}>
                         <button
                           className="btn-link"
-                          onClick={() => router.push(`/learners/${l.adm}`)}>
+                          onClick={() => router.push(`/learners/${encodeURIComponent(l.adm)}`)}>
                           {l.name}
                         </button>
                       </td>
@@ -189,7 +199,7 @@ export default function LearnersPage() {
                       )}
                       <td style={{ whiteSpace: 'nowrap', padding: '6px 8px' }}>
                         <button className="btn btn-ghost btn-sm"
-                          onClick={() => router.push(`/learners/${l.adm}`)}>
+                          onClick={() => router.push(`/learners/${encodeURIComponent(l.adm)}`)}>
                           👁 View
                         </button>
                         {user?.role === 'admin' && (
@@ -203,7 +213,7 @@ export default function LearnersPage() {
                           <>
                             <button className="btn btn-gold btn-sm"
                               style={{ marginLeft: 4 }}
-                              onClick={() => router.push(`/fees/${l.adm}/receipt`)}>
+                              onClick={() => router.push(`/fees/${encodeURIComponent(l.adm)}/receipt`)}>
                               🧾
                             </button>
                             <button className="btn btn-danger btn-sm"

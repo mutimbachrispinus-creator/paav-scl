@@ -39,40 +39,59 @@ export default function LearnerProfilePage() {
   const [loading, setLoading] = useState(true);
   const [term,    setTerm]    = usePersistedState('paav_profile_term',   'T1');
   const [assess,  setAssess]  = usePersistedState('paav_profile_assess', 'mt1');
+  const [error,   setError]   = useState(null);
 
   useEffect(() => {
     async function load() {
-      const authRes = await fetch('/api/auth');
-      const auth    = await authRes.json();
-      if (!auth.ok) { router.push('/'); return; }
-      setUser(auth.user);
+      try {
+        setError(null);
+        const [u, db] = await Promise.all([
+          getCachedUser(), // 5s timeout internally
+          fetch('/api/db', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requests: [
+              { type: 'get', key: 'paav6_learners' },
+              { type: 'get', key: 'paav6_marks'    },
+              { type: 'get', key: 'paav6_feecfg'   },
+              { type: 'get', key: 'paav8_grad'     },
+            ]}),
+            signal: AbortSignal.timeout(8000)
+          }).then(res => res.json())
+        ]);
 
-      const dbRes = await fetch('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [
-          { type: 'get', key: 'paav6_learners' },
-          { type: 'get', key: 'paav6_marks'    },
-          { type: 'get', key: 'paav6_feecfg'   },
-          { type: 'get', key: 'paav8_grad'      },
-        ]}),
-      });
-      const db = await dbRes.json();
+        if (!u) { router.push('/'); return; }
+        setUser(u);
 
-      const allLearners = db.results[0]?.value || [];
-      const found = allLearners.find(l => l.adm === admNo);
-      if (!found) { router.push('/learners'); return; }
+        const allLearners = db.results[0]?.value || [];
+        const found = allLearners.find(l => l.adm === admNo);
+        if (!found) {
+          setError('Learner not found.');
+          setLoading(false);
+          return;
+        }
 
-      setLearner(found);
-      setMarks(  db.results[1]?.value || {});
-      setFeeCfg( db.results[2]?.value || {});
-      setGradCfg(db.results[3]?.value || null);
-      setLoading(false);
+        setLearner(found);
+        setMarks(  db.results[1]?.value || {});
+        setFeeCfg( db.results[2]?.value || {});
+        setGradCfg(db.results[3]?.value || null);
+        setLoading(false);
+      } catch (e) {
+        console.error('[Profile] Load failed:', e);
+        setError('Connection timed out. Please try again.');
+        setLoading(false);
+      }
     }
-    load();
+    if (admNo) load();
   }, [admNo, router]);
 
   if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading profile…</div>;
+  if (error) return (
+    <div style={{ padding: 40, textAlign: 'center' }}>
+      <p style={{ color: 'var(--red)', marginBottom: 16 }}>{error}</p>
+      <button className="btn btn-primary" onClick={() => window.location.reload()}>Retry</button>
+    </div>
+  );
   if (!learner) return null;
 
   const curr = getCurriculum(profile?.curriculum || 'CBC');
@@ -113,7 +132,7 @@ export default function LearnerProfilePage() {
             ← Back
           </button>
           <button className="btn btn-gold btn-sm"
-            onClick={() => router.push(`/grades/report-card/${admNo}`)}>
+            onClick={() => router.push(`/grades/report-card/${encodeURIComponent(admNo)}`)}>
             📋 Report Card
           </button>
           <button className="btn btn-ghost btn-sm no-print" onClick={() => window.print()}>
@@ -157,7 +176,7 @@ export default function LearnerProfilePage() {
               <h3>💰 Fee Statement</h3>
               {user?.role === 'admin' && (
                 <button className="btn btn-success btn-sm"
-                  onClick={() => router.push(`/fees/${admNo}/receipt`)}>
+                  onClick={() => router.push(`/fees/${encodeURIComponent(admNo)}/receipt`)}>
                   🧾 Receipt
                 </button>
               )}

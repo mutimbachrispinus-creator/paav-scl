@@ -33,8 +33,12 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
   const nav = ALL_NAV.filter(n => n.roles.some(r => activeRoles.includes(r)));
 
   function isActive(key) {
-    if (key === 'dashboard') return pathname === '/dashboard';
-    return pathname.startsWith('/' + key);
+    const p = pathname.split('?')[0];
+    if (key === 'dashboard') return p === '/dashboard';
+    // Remove leading/trailing slashes for comparison
+    const normalizedPath = p.replace(/^\/|\/$/g, '');
+    const normalizedKey  = key.replace(/^\/|\/$/g, '');
+    return normalizedPath === normalizedKey || normalizedPath.startsWith(normalizedKey + '/');
   }
 
   function getBadge(key) {

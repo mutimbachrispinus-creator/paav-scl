@@ -38,6 +38,7 @@ export default function MeritListPage() {
   const [learners, setLearners] = useState([]);
   const [marks,    setMarks]    = useState({});
   const [gradCfg,  setGradCfg]  = useState(null);
+  const [error,    setError]    = useState(null);
   const [loading,  setLoading]  = useState(true);
   const [mounted,  setMounted]  = useState(false);
 
@@ -62,6 +63,8 @@ export default function MeritListPage() {
 
   const load = useCallback(async () => {
     try {
+      setLoading(true);
+      setError(null);
       const [u, db] = await Promise.all([
         getCachedUser(),
         getCachedDBMulti([
@@ -80,6 +83,7 @@ export default function MeritListPage() {
       setGradCfg(db.paav8_grad || null);
     } catch (e) {
       console.error('Merit list load error:', e);
+      setError('Connection timed out. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -148,6 +152,12 @@ export default function MeritListPage() {
 
 
   if (!mounted || loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading merit list…</div>;
+  if (error) return (
+    <div style={{ padding: 40, textAlign: 'center' }}>
+      <p style={{ color: 'var(--red)', marginBottom: 16 }}>{error}</p>
+      <button className="btn btn-primary" onClick={load}>Retry</button>
+    </div>
+  );
 
   return (
     <div className="page on">
@@ -309,7 +319,7 @@ export default function MeritListPage() {
                             </span>
                             <button className="btn btn-ghost btn-sm no-print" title="View Profile"
                               style={{ padding: '1px 4px', fontSize: 12 }}
-                              onClick={() => router.push(`/learners/${l.adm}`)}>
+                              onClick={() => router.push(`/learners/${encodeURIComponent(l.adm)}`)}>
                               👁
                             </button>
                           </div>
