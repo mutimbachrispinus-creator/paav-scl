@@ -550,10 +550,11 @@ export default function BulkLearnersPage() {
                 onClick={async () => {
                   setLoading(true);
                   try {
+                    const tid = user?.tenantId || 'platform-master';
                     const res = await fetch('/api/saas/maintenance', { 
                       method: 'POST', 
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ tenantId: 'platform-master' }) 
+                      body: JSON.stringify({ tenantId: tid }) 
                     });
                     const json = await res.json();
                     if (json.error) throw new Error(json.error);
@@ -572,7 +573,24 @@ export default function BulkLearnersPage() {
             <div style={{ padding: 15, border: '1px solid var(--border)', borderRadius: 12, background: '#fff' }}>
               <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 5 }}>🧪 Diagnostic Scan</div>
               <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 15 }}>Checks if there are any marks in the database that are currently "unowned" by any student.</p>
-              <button className="btn btn-ghost btn-sm w-full" onClick={() => alert('Diagnostic: Identified 42 orphaned mark records in the cloud database. Click "Deep Link" to restore them.')}>
+              <button 
+                className="btn btn-ghost btn-sm w-full" 
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    const tid = user?.tenantId || 'platform-master';
+                    const res = await fetch(`/api/saas/maintenance?tenantId=${tid}`);
+                    const json = await res.json();
+                    if (json.error) throw new Error(json.error);
+                    const { marksCount, paylogCount } = json;
+                    alert(`🔍 Diagnostic Results:\n\n• Orphaned Marks: ${marksCount || 0}\n• Orphaned Payments: ${paylogCount || 0}\n\nClick "Run Deep Recovery" to attempt re-linking these records.`);
+                  } catch (e) {
+                    alert('Scan failed: ' + e.message);
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
                 🔍 Scan for Orphans
               </button>
             </div>
