@@ -368,8 +368,8 @@ export default function BulkLearnersPage() {
     <div className="page on">
       <div className="page-hdr">
         <div>
-          <h2>🎓 Bulk Add Learners {loading && <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--muted)', marginLeft: 10 }}>Syncing...</span>}</h2>
-          <p>Fill the grid below to register multiple students at once</p>
+          <h2>🎓 Bulk Learner Sync & Registry {loading && <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--muted)', marginLeft: 10 }}>Syncing...</span>}</h2>
+          <p>Add new students or sync existing details (Name/ADM) in bulk</p>
         </div>
         <div className="page-hdr-acts">
           <button className="btn btn-ghost btn-sm" onClick={downloadTemplate}>📥 Download Template</button>
@@ -416,7 +416,7 @@ export default function BulkLearnersPage() {
             ✏️ Load Class for Editing
           </button>
           <button className="btn btn-gold btn-sm" onClick={deduplicateRows} title="Instantly find and merge students with the same name in this list">
-            🪄 Deduplicate & Merge
+            🪄 Deduplicate & Merge (Safety Check)
           </button>
           <button className="btn btn-ghost btn-sm" onClick={applyGradeToAll} title="Apply this grade and stream to all existing rows">
             🪄 Apply Grade/Stream to All
