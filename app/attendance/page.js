@@ -399,7 +399,7 @@ export default function AttendancePage() {
             </div>
 
             {/* Absenteeism Alert */}
-            {classList.filter(l=>learnerStats(l.adm,days).pct<75).length>0 && (
+            {classList.filter(l=>learnerStats(l.adm,days).pct<75).length > 0 &&
               <div className="panel" style={{border:'2px solid #DC2626',marginTop:12}}>
                 <div className="panel-hdr" style={{background:'#FEF2F2'}}>
                   <h3 style={{color:'#DC2626'}}>⚠️ High Absenteeism Alert — Action Required</h3>
@@ -407,15 +407,41 @@ export default function AttendancePage() {
                 <div className="panel-body">
                   <p style={{fontSize:13,color:'#7F1D1D',marginBottom:12}}>The following learners have attendance below 75%. Contact parents immediately.</p>
                   {classList.filter(l=>learnerStats(l.adm,days).pct<75).map(l=>{
-                    const s=learnerStats(l.adm,days);
-                    return <div key={l.adm} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #FCA5A5'}}>
-                      <span style={{fontWeight:600}}>{l.name}</span>
-                      <span style={{color:'#DC2626',fontWeight:700}}>{s.pct}% ({s.A} absences)</span>
+                    const s = learnerStats(l.adm,days);
+                    return <div key={l.adm} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #FCA5A5'}}>
+                      <div>
+                        <div style={{fontWeight:600}}>{l.name}</div>
+                        <div style={{fontSize:11,color:'#991B1B'}}>ADM: {l.adm} • {s.pct}% ({s.A} absences)</div>
+                      </div>
+                      <button 
+                        className="btn btn-danger btn-xs"
+                        onClick={async () => {
+                          if (!confirm(`Send absenteeism SMS alert to parent of ${l.name}?`)) return;
+                          setBusy(true);
+                          try {
+                            const res = await fetch('/api/comms/push', {
+                              method:'POST', headers:{'Content-Type':'application/json'},
+                              body: JSON.stringify({
+                                type: 'absenteeism',
+                                channel: 'sms',
+                                targets: [{ adm: l.adm, pct: s.pct, absences: s.A }]
+                              })
+                            });
+                            const data = await res.json();
+                            if (data.ok) alert('✅ Alert sent!');
+                            else alert('❌ ' + (data.error || 'Failed to send'));
+                          } catch (e) { alert('❌ ' + e.message); }
+                          finally { setBusy(false); }
+                        }}
+                        disabled={busy}
+                      >
+                        📲 Notify Parent
+                      </button>
                     </div>;
                   })}
                 </div>
               </div>
-            )}
+            }
           </div>
         );
       })()}

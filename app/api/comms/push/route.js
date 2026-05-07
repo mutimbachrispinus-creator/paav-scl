@@ -1,4 +1,5 @@
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { kvGet, execute, query } from '@/lib/db';
@@ -130,6 +131,19 @@ export async function POST(request) {
             html
           });
           results.push({ adm: learner.adm, channel: 'email', ...res });
+        }
+      }
+    }
+
+    if (type === 'absenteeism') {
+      const { pct, absences } = target; // Passed from UI
+      if (channel === 'sms' || channel === 'both') {
+        if (parentPhone) {
+          const { getAbsenteeismAlertMessage } = await import('@/lib/sms-client');
+          const message = getAbsenteeismAlertMessage(learner.name, pct, absences);
+          const res = await sendSMS({ to: parentPhone, message, ...creds });
+          results.push({ adm: learner.adm, channel: 'sms', ...res });
+          await logComms({ to: parentPhone, message, type: 'attendance_alert', status: res.success ? 'sent' : 'failed', sentBy: session.username });
         }
       }
     }

@@ -1,4 +1,5 @@
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { kvGet } from '@/lib/db';
 import { PAAV_KEYS } from '@/lib/constants';

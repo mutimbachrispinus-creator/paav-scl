@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 
 const M = '#4F46E5', SLATE = '#64748B', NAVY = '#0F172A', EMERALD = '#10B981';
 
-import { useEffect, useState } from 'react';
-
 function PaymentPromptModal({ plan, payments, studentCount, onClose }) {
   const total = plan.billingModel === 'per-learner' ? plan.price * studentCount : plan.price;
   
