@@ -151,7 +151,7 @@ export default function BulkLearnersPage() {
       invalidateDB('paav6_learners');
       window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav6_learners'] } }));
       
-      alert(`✅ Successfully saved ${validRows.length} learners!`);
+      alert(`✅ Successfully saved ${validRows.length} learners! Existing duplicates in this grade were merged automatically.`);
       router.push('/learners');
     } catch (e) {
       alert('❌ Error: ' + e.message);
