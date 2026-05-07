@@ -131,6 +131,34 @@ async function handleRequest(req, auth, impTenant = null) {
       if (systemKeys.includes(req.key) && !['admin', 'super-admin'].includes(auth.role)) return { type: 'set', error: 'Forbidden' };
 
       await kvSet(req.key, req.value, tenantId);
+
+      // When the learner list is saved, silently track overages for renewal billing.
+      // Schools are NEVER blocked — any learners above the registered count are noted
+      // and factored in when the subscription is next renewed.
+      if (req.key === 'paav6_learners' && Array.isArray(req.value)) {
+        try {
+          const { query: dbQuery, execute: dbExec } = await import('@/lib/db');
+          const subRows = await dbQuery(
+            'SELECT registered_learners FROM subscriptions WHERE tenant_id = ?',
+            [tenantId]
+          );
+          const registeredCount = subRows[0]?.registered_learners || 0;
+          const currentCount = req.value.length;
+          if (registeredCount > 0 && currentCount > registeredCount) {
+            // Store current count so renewal billing can compute the delta
+            await dbExec(
+              `INSERT INTO kv (key, tenant_id, value, updated_at)
+               VALUES ('paav_pending_learner_count', ?, ?, strftime('%s','now'))
+               ON CONFLICT(key, tenant_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+              [tenantId, String(currentCount)]
+            );
+          }
+        } catch (e) {
+          // Non-blocking — tracking failure must never affect the save
+          console.warn('[api/db] Learner overage tracking failed (non-blocking):', e.message);
+        }
+      }
+
       return { type: 'set', key: req.key, ok: true };
     }
 

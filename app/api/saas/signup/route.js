@@ -70,10 +70,11 @@ export async function POST(request) {
 
     // Atomic setup of the new tenant
     await batch([
-      // 1. Create Subscription (Trial)
+      // 1. Create Subscription — learner_limit is NULL (unlimited).
+      // registered_learners records initial headcount for renewal billing purposes.
       {
-        sql: 'INSERT INTO subscriptions (tenant_id, plan, status, expires_at, learner_limit, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-        args: [tenantId, selectedPlan, 'active', expiresAt.toISOString(), parseInt(estimatedStudents) || 50, now]
+        sql: 'INSERT INTO subscriptions (tenant_id, plan, status, expires_at, learner_limit, registered_learners, updated_at) VALUES (?, ?, ?, ?, NULL, ?, ?)',
+        args: [tenantId, selectedPlan, 'active', expiresAt.toISOString(), parseInt(estimatedStudents) || 0, now]
       },
       // 2. Create first Admin user
       {

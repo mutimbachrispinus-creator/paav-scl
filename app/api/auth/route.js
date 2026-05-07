@@ -137,15 +137,20 @@ async function handleLogin({ username, password }, request) {
   if (user.status === 'inactive') return err('Your account is deactivated. Contact admin.');
   if (user.status === 'suspended') return err('Your account is suspended.');
 
-  // Check Subscription Status for the tenant (unless it's platform-master)
+  // Soft subscription check — never block existing schools from logging in.
+  // Instead, flag expired status so the UI can surface a renewal notice.
+  let subscriptionWarning = null;
   if (tenantId !== 'platform-master') {
-    const subRows = await query('SELECT * FROM subscriptions WHERE tenant_id = ?', [tenantId]);
-    const sub = subRows[0];
-    if (!sub || sub.status !== 'active') {
-      return err('Your school subscription is inactive or has expired. Contact your principal.');
-    }
-    if (sub.expires_at && new Date(sub.expires_at) < new Date()) {
-      return err('Your school subscription has expired. Please contact EduVantage support.');
+    try {
+      const subRows = await query('SELECT * FROM subscriptions WHERE tenant_id = ?', [tenantId]);
+      const sub = subRows[0];
+      if (!sub || sub.status !== 'active') {
+        subscriptionWarning = 'Your school subscription is inactive. Please contact EduVantage support to renew.';
+      } else if (sub.expires_at && new Date(sub.expires_at) < new Date()) {
+        subscriptionWarning = 'Your school subscription has expired. Please renew to continue enjoying all features.';
+      }
+    } catch (e) {
+      console.warn('[api/auth] Subscription check failed (non-blocking):', e.message);
     }
   }
 
@@ -176,6 +181,7 @@ async function handleLogin({ username, password }, request) {
   const response = NextResponse.json({
     ok: true,
     user: publicUser(user),
+    subscriptionWarning,
     redirect: user.tenant_id === 'platform-master' ? '/super-admin' : (user.role === 'parent' ? '/parent-home' : '/dashboard'),
     initialData: {
       db_paav_announcement: ann,
