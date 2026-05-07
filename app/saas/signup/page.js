@@ -40,8 +40,26 @@ export default function EduVantageSignup() {
     curriculum: 'CBC'
   });
 
+  const [showPayment, setShowPayment] = useState(false);
+  const [payPhone, setPayPhone] = useState('');
+  const [payLoading, setPayLoading] = useState(false);
+
+  useEffect(() => {
+    if (form.phone) setPayPhone(form.phone);
+  }, [form.phone]);
+
+  const selectedPlanData = plans.find(p => p.id === form.plan) || { price: form.plan === 'premium' ? 10000 : 0 };
+  const isPaid = selectedPlanData.price > 0;
+
   const onSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    
+    // If it's a paid plan and payment hasn't been confirmed yet, show prompt
+    if (isPaid && !showPayment) {
+      setShowPayment(true);
+      return;
+    }
+
     setLoading(true);
     setError('');
     
@@ -60,8 +78,36 @@ export default function EduVantageSignup() {
       }, 1000);
     } catch (e) {
       setError(e.message);
+      setShowPayment(false); // Go back if error
     } finally {
       setLoading(false);
+    }
+  };
+
+  const initiatePayment = async () => {
+    setPayLoading(true);
+    try {
+      const res = await fetch('/api/mpesa/stk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: payPhone,
+          amount: selectedPlanData.price,
+          reference: `REG-${form.adminUsername || 'SCHOOL'}`,
+          desc: `Subscription for ${form.schoolName}`
+        })
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      
+      // For now, we assume if STK is sent, they will pay. 
+      // In production, we should poll for status.
+      alert('Payment prompt sent to your phone. Please enter your PIN to complete registration.');
+      onSubmit(); // Proceed with signup
+    } catch (e) {
+      alert('Payment failed: ' + e.message);
+    } finally {
+      setPayLoading(false);
     }
   };
 
@@ -80,6 +126,46 @@ export default function EduVantageSignup() {
         {error && (
           <div style={{ padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 12, color: '#DC2626', fontSize: 13, marginBottom: 20, fontWeight: 600 }}>
             ⚠️ {error}
+          </div>
+        )}
+
+        {showPayment && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
+            <div style={{ background: '#fff', padding: 35, borderRadius: 24, maxWidth: 400, width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.2)' }}>
+              <div style={{ fontSize: 40, marginBottom: 15 }}>💳</div>
+              <h2 style={{ margin: 0, fontSize: 20, color: '#0F172A' }}>Activate {selectedPlanData.name}</h2>
+              <p style={{ color: '#64748B', fontSize: 14, marginTop: 8 }}>To complete your registration, please pay <b>KES {selectedPlanData.price.toLocaleString()}</b> via M-Pesa.</p>
+              
+              <div style={{ marginTop: 25, textAlign: 'left' }}>
+                <label style={{ fontSize: 11, fontWeight: 800, color: '#64748B', display: 'block', marginBottom: 8, textTransform: 'uppercase' }}>M-Pesa Number</label>
+                <input 
+                  type="text" 
+                  value={payPhone} 
+                  onChange={e => setPayPhone(e.target.value)}
+                  style={{ width: '100%', padding: '12px 16px', border: '2.5px solid #E2E8F0', borderRadius: 12, outline: 'none', fontSize: 16, fontWeight: 600 }}
+                  placeholder="07XXXXXXXX"
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 25 }}>
+                <button 
+                  className="btn" 
+                  onClick={() => setShowPayment(false)}
+                  style={{ flex: 1, padding: 14, background: '#F1F5F9', color: '#64748B', fontWeight: 600, border: 'none', borderRadius: 12, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn" 
+                  disabled={payLoading}
+                  onClick={initiatePayment}
+                  style={{ flex: 2, padding: 14, background: '#2563EB', color: '#fff', fontWeight: 700, border: 'none', borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                >
+                  {payLoading ? 'Sending STK...' : 'Pay with M-Pesa'}
+                </button>
+              </div>
+              <p style={{ fontSize: 10, color: '#94A3B8', marginTop: 15 }}>You will receive an STK prompt on your phone shortly.</p>
+            </div>
           </div>
         )}
 
