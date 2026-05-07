@@ -48,8 +48,6 @@ const nextConfig = {
       repl: false,
       vm: false,
       'util/types': false,
-      util: false,
-      process: false,
       buffer: false,
       querystring: false,
       url: false,

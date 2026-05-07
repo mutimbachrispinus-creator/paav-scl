@@ -67,9 +67,14 @@ export async function POST(request) {
 }
 
 export async function GET(request) {
-  const response = await handleWhoami(request);
-  response.headers.set('Cache-Control', 'no-store, max-age=0');
-  return response;
+  try {
+    const response = await handleWhoami(request);
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
+    return response;
+  } catch (e) {
+    console.error('[api/auth] GET Error:', e);
+    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+  }
 }
 
 /* ─── login ─────────────────────────────────────────────────────────────── */

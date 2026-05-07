@@ -9,7 +9,8 @@
     "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start",
     "lint": "next lint",
-    "preview": "wrangler pages dev"
+    "preview": "wrangler pages dev",
+    "git-push": "git add . && git commit -m \"Fix login 500 error and finalize per-learner billing\" && git push"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
