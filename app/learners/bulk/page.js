@@ -152,6 +152,61 @@ export default function BulkLearnersPage() {
     }
   }
 
+  function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target.result;
+      const lines = text.split('\n');
+      const newRows = [];
+      
+      // Skip header if it exists (check for ADM keyword)
+      let startIdx = 0;
+      if (lines[0].toLowerCase().includes('adm')) startIdx = 1;
+
+      for (let i = startIdx; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+        if (cols.length < 2) continue;
+        
+        newRows.push({
+          ...EMPTY_ROW,
+          adm: cols[0] || '',
+          name: cols[1]?.toUpperCase() || '',
+          dob: cols[2] || '',
+          grade: cols[3]?.toUpperCase() || bulkGrade || ALL_GRADES[0],
+          stream: cols[4]?.toUpperCase() || bulkStream || '',
+          sex: cols[5]?.toUpperCase().startsWith('M') ? 'M' : 'F',
+          parent: cols[6]?.toUpperCase() || '',
+          phone: cols[7] || '',
+          arrears: Number(cols[8]) || 0
+        });
+      }
+      
+      if (newRows.length > 0) {
+        if (confirm(`Detected ${newRows.length} learners. Overwrite current grid?`)) {
+          setRows([...newRows, ...Array(5).fill(null).map(() => ({...EMPTY_ROW}))]);
+        }
+      }
+      e.target.value = null; // reset
+    };
+    reader.readAsText(file);
+  }
+
+  function downloadTemplate() {
+    const headers = "ADM,Name,DOB (YYYY-MM-DD),Grade,Stream,Sex (M/F),Parent Name,Phone,Arrears\n";
+    const example = "101,JOHN DOE,2015-05-20,GRADE 1,WEST,M,PETER DOE,0711223344,0\n";
+    const blob = new Blob([headers + example], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'learners_template.csv';
+    a.click();
+  }
+
   // Removed: if (loading) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading bulk registration...</div>;
 
   return (
@@ -162,6 +217,11 @@ export default function BulkLearnersPage() {
           <p>Fill the grid below to register multiple students at once</p>
         </div>
         <div className="page-hdr-acts">
+          <button className="btn btn-ghost btn-sm" onClick={downloadTemplate}>📥 Download Template</button>
+          <label className="btn btn-gold btn-sm" style={{ cursor: 'pointer' }}>
+            📁 Upload CSV
+            <input type="file" accept=".csv" onChange={handleFileUpload} style={{ display: 'none' }} />
+          </label>
           <button className="btn btn-ghost btn-sm" onClick={() => setRows([...rows, ...Array(10).fill(null).map(() => ({...EMPTY_ROW}))])}>➕ Add 10 Rows</button>
           <button className="btn btn-primary" onClick={handleSave} disabled={busy}>
             {busy ? 'Saving...' : '💾 Save All Learners'}
