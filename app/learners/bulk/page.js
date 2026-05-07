@@ -260,6 +260,72 @@ export default function BulkLearnersPage() {
     reader.readAsText(file);
   }
 
+  function handleUpdateDetails(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!bulkGrade) { alert('⚠️ Please select a Grade first to match learners accurately.'); return; }
+    
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target.result;
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+      if (lines.length < 2) return;
+
+      const headers = lines[0].split(',').map(c => c.trim().toLowerCase());
+      const map = {
+        adm: headers.findIndex(h => h.includes('adm')),
+        name: headers.findIndex(h => h.includes('name')),
+        dob: headers.findIndex(h => h.includes('dob') || h.includes('birth')),
+        stream: headers.findIndex(h => h.includes('stream')),
+        phone: headers.findIndex(h => h.includes('phone') || h.includes('contact'))
+      };
+
+      // Fallbacks
+      if (map.adm === -1) map.adm = 0;
+      if (map.name === -1) map.name = 1;
+      if (map.dob === -1) map.dob = 2;
+      if (map.stream === -1) map.stream = 4;
+      if (map.phone === -1) map.phone = 7;
+
+      const matchedRows = [];
+      const gradeLearners = learners.filter(l => l.grade === bulkGrade);
+
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+        const csvName = cols[map.name]?.toUpperCase() || '';
+        if (!csvName) continue;
+
+        // Match by Name (Fuzzy: exact or contains)
+        const match = gradeLearners.find(l => {
+          const lName = l.name.toUpperCase();
+          return lName === csvName || lName.includes(csvName) || csvName.includes(lName);
+        });
+
+        if (match) {
+          matchedRows.push({
+            ...EMPTY_ROW,
+            ...match,
+            name: csvName, // Update name (e.g. adding extra name)
+            adm: cols[map.adm] || match.adm,
+            dob: cols[map.dob] || match.dob,
+            stream: cols[map.stream]?.toUpperCase() || match.stream,
+            phone: cols[map.phone] || match.phone
+          });
+        }
+      }
+
+      if (matchedRows.length > 0) {
+        if (confirm(`🔍 Found ${matchedRows.length} matching learners in ${bulkGrade}. Load them into the grid to review and update?`)) {
+          setRows([...matchedRows, ...Array(10).fill(null).map(() => ({...EMPTY_ROW}))]);
+        }
+      } else {
+        alert('❌ No matching learners found in ' + bulkGrade + '. Check if names in CSV match your existing records.');
+      }
+      e.target.value = null;
+    };
+    reader.readAsText(file);
+  }
+
   function downloadTemplate() {
     const headers = "ADM,Name,DOB (YYYY-MM-DD),Grade,Stream,Sex (M/F),Parent Name,Phone,Arrears\n";
     const example = "101,JOHN DOE,2015-05-20,GRADE 1,WEST,M,PETER DOE,0711223344,0\n";
@@ -323,6 +389,10 @@ export default function BulkLearnersPage() {
           <button className="btn btn-ghost btn-sm" onClick={applyGradeToAll} title="Apply this grade and stream to all existing rows">
             🪄 Apply Grade/Stream to All
           </button>
+          <label className="btn btn-sm btn-gold" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            🔄 Sync/Update via CSV
+            <input type="file" accept=".csv" onChange={handleUpdateDetails} style={{ display: 'none' }} />
+          </label>
 
           <div style={{ borderLeft: '1px solid var(--border)', height: 30, margin: '0 8px' }}></div>
 
