@@ -121,7 +121,8 @@ export default function TimetablePage() {
 
   async function deleteEvent(i) {
     if (!confirm('Delete this event?')) return;
-    const updated = events.filter((_,idx) => idx!==i);
+    const currentEvents = Array.isArray(events) ? events : [];
+    const updated = currentEvents.filter((_,idx) => idx!==i);
     await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ requests:[{ type:'set', key:'paav_calendar_events', value:updated }] }) });
     invalidateDB('paav_calendar_events');
@@ -136,24 +137,29 @@ export default function TimetablePage() {
   }
 
   // Build slots for a grade
-  const gradeTT = useMemo(() => timetable[selGrade] || {}, [timetable, selGrade]);
+  const gradeTT = useMemo(() => (timetable && selGrade) ? (timetable[selGrade] || {}) : {}, [timetable, selGrade]);
   const gradeLevelStr = gradeLevel(selGrade);
   const cfg = LEVEL_CFG[gradeLevelStr] || LEVEL_CFG.primary13 || { dur: 35, perDay: [7,7,7,7,7] };
-  const maxPeriods = (cfg.perDay && cfg.perDay.length > 0) ? Math.max(...cfg.perDay) : 8;
+  const perDay = Array.isArray(cfg.perDay) ? cfg.perDay : [8,8,8,8,8];
+  const maxPeriods = perDay.length > 0 ? Math.max(...perDay) : 8;
 
   // My timetable: find all slots where this teacher is assigned
   const mySlots = useMemo(() => {
-    if (!user) return [];
+    if (!user || !timetable) return [];
     const out = [];
-    for (const [grade, days] of Object.entries(timetable)) {
-      for (const [day, periods] of Object.entries(days || {})) {
-        for (const [period, slot] of Object.entries(periods || {})) {
-          if (slot?.teacherId === user.id || slot?.teacher === user.name) {
-            out.push({ grade, day, period: Number(period), subject: slot.subject, teacher: slot.teacher });
-          }
-        }
-      }
-    }
+    try {
+      Object.entries(timetable).forEach(([grade, days]) => {
+        if (!days) return;
+        Object.entries(days).forEach(([day, periods]) => {
+          if (!periods) return;
+          Object.entries(periods).forEach(([period, slot]) => {
+            if (slot?.teacherId === user.id || slot?.teacher === user.name) {
+              out.push({ grade, day, period: Number(period), subject: slot.subject, teacher: slot.teacher });
+            }
+          });
+        });
+      });
+    } catch(e) { console.error('[Timetable] mySlots failed:', e); }
     return out;
   }, [timetable, user]);
 

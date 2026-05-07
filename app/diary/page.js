@@ -46,11 +46,14 @@ export default function StudentDiaryPage() {
     const events = [];
 
     // 0. Announcements (Global)
-    if (db.paav_announcement) {
-      db.paav_announcement.forEach(a => {
+    const announcements = db.paav_announcement;
+    if (announcements) {
+      const annList = Array.isArray(announcements) ? announcements : [announcements];
+      annList.forEach((a, idx) => {
+        if (!a || (!a.text && !a.content)) return;
         events.push({
-          id: `ann-${a.id}`,
-          date: a.date || new Date(a.createdAt).toLocaleDateString('en-KE'),
+          id: `ann-${a.id || idx}`,
+          date: a.date || (a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-KE') : new Date().toLocaleDateString('en-KE')),
           student: 'All Students',
           type: 'announcement',
           icon: '📢',
@@ -61,98 +64,94 @@ export default function StudentDiaryPage() {
       });
     }
 
+    const learners = Array.isArray(db.paav6_learners) ? db.paav6_learners : [];
     children.forEach(l => {
       // 1. Attendance
-      if (db.paav_student_attendance) {
-        Object.entries(db.paav_student_attendance).forEach(([gda, status]) => {
-          const parts = gda.split('|');
-          if (parts.length >= 3 && parts[parts.length-1] === l.adm) {
-            const date = parts[1];
-            events.push({
-              id: `att-${gda}`,
-              date,
-              student: l.name,
-              type: 'attendance',
-              icon: '📅',
-              title: 'Attendance Marked',
-              desc: `${l.name} was marked ${status} today.`,
-              color: status === 'Present' ? '#059669' : '#DC2626'
-            });
-          }
-        });
-      }
+      const attendance = db.paav_student_attendance || {};
+      Object.entries(attendance).forEach(([gda, status]) => {
+        const parts = gda.split('|');
+        if (parts.length >= 3 && parts[parts.length-1] === l.adm) {
+          const date = parts[1];
+          events.push({
+            id: `att-${gda}`,
+            date,
+            student: l.name,
+            type: 'attendance',
+            icon: '📅',
+            title: 'Attendance Marked',
+            desc: `${l.name} was marked ${status} today.`,
+            color: status === 'Present' ? '#059669' : '#DC2626'
+          });
+        }
+      });
 
       // 2. Payments
-      if (db.paav6_paylog) {
-        db.paav6_paylog.filter(p => p.adm === l.adm).forEach(p => {
-          events.push({
-            id: `pay-${p.id}`,
-            date: p.date,
-            student: l.name,
-            type: 'payment',
-            icon: '💰',
-            title: 'Payment Received',
-            desc: `Fee payment of KSH ${p.amount.toLocaleString()} recorded for ${l.name}.`,
-            color: '#0369A1'
-          });
+      const paylog = Array.isArray(db.paav6_paylog) ? db.paav6_paylog : [];
+      paylog.filter(p => p.adm === l.adm).forEach(p => {
+        events.push({
+          id: `pay-${p.id}`,
+          date: p.date,
+          student: l.name,
+          type: 'payment',
+          icon: '💰',
+          title: 'Payment Received',
+          desc: `Fee payment of KSH ${p.amount?.toLocaleString() || 0} recorded for ${l.name}.`,
+          color: '#0369A1'
         });
-      }
+      });
 
       // 3. Duties
-      if (db.paav_duties) {
-        db.paav_duties.filter(d => d.assignedTo === l.name || d.assignedTo === l.adm).forEach(d => {
-          events.push({
-            id: `duty-${d.id}`,
-            date: d.date,
-            student: l.name,
-            type: 'duty',
-            icon: '📋',
-            title: 'New Duty Assigned',
-            desc: `${l.name} has been assigned to: ${d.title}.`,
-            color: '#D97706'
-          });
+      const duties = Array.isArray(db.paav_duties) ? db.paav_duties : [];
+      duties.filter(d => d.assignedTo === l.name || d.assignedTo === l.adm).forEach(d => {
+        events.push({
+          id: `duty-${d.id}`,
+          date: d.date,
+          student: l.name,
+          type: 'duty',
+          icon: '📋',
+          title: 'New Duty Assigned',
+          desc: `${l.name} has been assigned to: ${d.title}.`,
+          color: '#D97706'
         });
-      }
+      });
 
       // 4. Marks Release
-      if (db.paav6_marks) {
-        Object.keys(db.paav6_marks).forEach(mKey => {
-          if (db.paav6_marks[mKey][l.adm] !== undefined) {
-            const parts = mKey.split('|');
-            if (parts.length >= 3) {
-               const subject = parts[1];
-               const assess = parts[2];
-               events.push({
-                 id: `marks-${mKey}-${l.adm}`,
-                 date: new Date().toLocaleDateString('en-KE'),
-                 student: l.name,
-                 type: 'marks',
-                 icon: '📈',
-                 title: 'New Marks Released',
-                 desc: `${l.name} scored in ${subject} (${assess.toUpperCase()}).`,
-                 color: '#7C3AED'
-               });
-            }
+      const marks = db.paav6_marks || {};
+      Object.keys(marks).forEach(mKey => {
+        if (marks[mKey] && marks[mKey][l.adm] !== undefined) {
+          const parts = mKey.split('|');
+          if (parts.length >= 3) {
+             const subject = parts[1];
+             const assess = parts[2];
+             events.push({
+               id: `marks-${mKey}-${l.adm}`,
+               date: new Date().toLocaleDateString('en-KE'),
+               student: l.name,
+               type: 'marks',
+               icon: '📈',
+               title: 'New Marks Released',
+               desc: `${l.name} scored in ${subject} (${assess.toUpperCase()}).`,
+               color: '#7C3AED'
+             });
           }
-        });
-      }
+        }
+      });
     });
 
     // 5. Messages (filtered by relevance)
-    if (db.paav6_msgs) {
-      db.paav6_msgs.filter(m => m.to === user.username || m.from === user.username).forEach(m => {
-        events.push({
-          id: `msg-${m.id}`,
-          date: m.date || new Date(m.createdAt).toLocaleDateString('en-KE'),
-          student: 'Direct Message',
-          type: 'message',
-          icon: '💬',
-          title: m.from === user.username ? 'Message Sent' : 'Message Received',
-          desc: m.text.length > 50 ? m.text.slice(0, 50) + '...' : m.text,
-          color: '#0D9488'
-        });
+    const msgs = Array.isArray(db.paav6_msgs) ? db.paav6_msgs : [];
+    msgs.filter(m => m.to === user.username || m.from === user.username).forEach(m => {
+      events.push({
+        id: `msg-${m.id}`,
+        date: m.date || (m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-KE') : new Date().toLocaleDateString('en-KE')),
+        student: 'Direct Message',
+        type: 'message',
+        icon: '💬',
+        title: m.from === user.username ? 'Message Sent' : 'Message Received',
+        desc: (m.text || '').length > 50 ? m.text.slice(0, 50) + '...' : (m.text || ''),
+        color: '#0D9488'
       });
-    }
+    });
 
     return events.sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [user, db]);
