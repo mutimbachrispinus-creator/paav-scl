@@ -183,30 +183,70 @@ export default function BulkLearnersPage() {
     const reader = new FileReader();
     reader.onload = (evt) => {
       const text = evt.target.result;
-      const lines = text.split('\n');
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+      if (lines.length === 0) return;
+
       const newRows = [];
       
-      // Skip header if it exists (check for ADM keyword)
-      let startIdx = 0;
-      if (lines[0].toLowerCase().includes('adm')) startIdx = 1;
+      // 1. Analyze header to find indices (Keyword detection)
+      const headerLine = lines[0].toLowerCase();
+      const headers = lines[0].split(',').map(c => c.trim().toLowerCase());
+      
+      // Heuristic: Is the first line a header?
+      const isHeader = headers.some(h => ['adm', 'name', 'dob', 'birth', 'grade', 'level', 'stream', 'sex', 'parent', 'phone', 'arrears'].some(k => h.includes(k)));
+      
+      const map = {
+        adm: headers.findIndex(h => h.includes('adm')),
+        name: headers.findIndex(h => h.includes('name')),
+        dob: headers.findIndex(h => h.includes('dob') || h.includes('birth') || h.includes('date')),
+        grade: headers.findIndex(h => h.includes('grade') || h.includes('level') || h.includes('class')),
+        stream: headers.findIndex(h => h.includes('stream') || h.includes('house')),
+        sex: headers.findIndex(h => h.includes('sex') || h.includes('gender')),
+        parent: headers.findIndex(h => h.includes('parent') || h.includes('guardian')),
+        phone: headers.findIndex(h => h.includes('phone') || h.includes('contact') || h.includes('mobile')),
+        arrears: headers.findIndex(h => h.includes('arrears') || h.includes('balance') || h.includes('debt'))
+      };
+
+      // Fallback to defaults if not found (matching template order)
+      if (map.adm === -1) map.adm = 0;
+      if (map.name === -1) map.name = 1;
+      if (map.dob === -1) map.dob = 2;
+      if (map.grade === -1) map.grade = 3;
+      if (map.stream === -1) map.stream = 4;
+      if (map.sex === -1) map.sex = 5;
+      if (map.parent === -1) map.parent = 6;
+      if (map.phone === -1) map.phone = 7;
+      if (map.arrears === -1) map.arrears = 8;
+
+      let startIdx = isHeader ? 1 : 0;
 
       for (let i = startIdx; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-        if (cols.length < 2) continue;
         
+        // Final sanity check: if DOB looks like a grade and Grade looks like a date, swap them
+        let rowDOB = cols[map.dob] || '';
+        let rowGrade = cols[map.grade] || '';
+        
+        const isDate = (s) => /^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(s) || /^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(s);
+        const isGrade = (s) => /GRADE|PP|CLASS|PRIMARY|KINDER/i.test(s);
+
+        if (isGrade(rowDOB) && isDate(rowGrade)) {
+          [rowDOB, rowGrade] = [rowGrade, rowDOB];
+        }
+
         newRows.push({
           ...EMPTY_ROW,
-          adm: cols[0] || '',
-          name: cols[1]?.toUpperCase() || '',
-          dob: cols[2] || '',
-          grade: matchGrade(cols[3]) || bulkGrade || ALL_GRADES[0],
-          stream: cols[4]?.toUpperCase() || bulkStream || '',
-          sex: cols[5]?.toUpperCase().startsWith('M') ? 'M' : 'F',
-          parent: cols[6]?.toUpperCase() || '',
-          phone: cols[7] || '',
-          arrears: Number(cols[8]) || 0
+          adm: cols[map.adm] || '',
+          name: cols[map.name]?.toUpperCase() || '',
+          dob: rowDOB,
+          grade: matchGrade(rowGrade) || bulkGrade || ALL_GRADES[0],
+          stream: cols[map.stream]?.toUpperCase() || bulkStream || '',
+          sex: cols[map.sex]?.toUpperCase().startsWith('M') ? 'M' : 'F',
+          parent: cols[map.parent]?.toUpperCase() || '',
+          phone: cols[map.phone] || '',
+          arrears: Number(cols[map.arrears]) || 0
         });
       }
       
