@@ -95,7 +95,7 @@ export default function LandingPage() {
           </p>
           
           <div className="hero-actions">
-            <Link href="/saas/signup" className="btn btn-xl btn-primary">Start Your 30-Day Trial</Link>
+            <Link href="/saas/signup" className="btn btn-xl btn-primary">Start Your 1-Term Free Trial</Link>
             <Link href="/login" className="btn btn-xl btn-outline glass-btn">Explore Parent Portal</Link>
           </div>
 
@@ -220,15 +220,15 @@ export default function LandingPage() {
             {/* Communication */}
             <div className="module-card reverse">
               <div className="mod-content">
-                <h3>Community & Parent Engagement</h3>
-                <p>Bridge the gap between your institution and parents. Send instant bulk SMS, automate absence alerts, and give parents a beautiful mobile app to check fees, attendance, and exam results anytime, anywhere.</p>
+                <h3>Parent Portal & Student Diary</h3>
+                <p>Bridge the gap between your institution and parents. Our real-time portal allows parents to track fees, attendance, and academic progress. The new <strong>Student Diary</strong> feature provides a live feed of school activities, assignments, and welfare updates directly to the parent&apos;s pocket.</p>
                 <ul className="mod-features">
-                  <li>Targeted Bulk SMS & Notifications</li>
-                  <li>Automated Daily Attendance Alerts</li>
-                  <li>Beautiful, Fast Parent Portal App</li>
+                  <li>Live Activity Feed & Digital Diary</li>
+                  <li>Instant Automated Absence Alerts</li>
+                  <li>Secure Mobile Fee Statements</li>
                 </ul>
               </div>
-              <div className="mod-icon" style={{ background: '#F5F3FF', color: VIBRANT }}>📲</div>
+              <div className="mod-icon" style={{ background: '#F5F3FF', color: VIBRANT }}>📓</div>
             </div>
           </div>
         </div>
@@ -597,15 +597,17 @@ function SolutionCard({ target, desc, features }) {
 
 function PriceCard({ name, price, desc, features, featured }) {
   return (
-    <div className={`p-card ${featured ? 'featured' : ''}`}>
+    <div className={`p-card ${featured ? 'featured' : ''} ${name.includes('Free') ? 'free-tier' : ''}`}>
       {featured && <div className="feat-badge">MOST POPULAR</div>}
+      {name.includes('Free') && <div className="feat-badge" style={{ background: '#F97316' }}>INTRO OFFER</div>}
       <div style={{ marginBottom: 30 }}>
         <h4 style={{ fontFamily: 'var(--font-sora, sans-serif)', fontSize: 24, fontWeight: 800, marginBottom: 12 }}>{name}</h4>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontSize: 46, fontWeight: 900 }}>{price === 'Custom' ? '' : 'KES '}{price}</span>
-          {price !== 'Custom' && <span style={{ opacity: 0.7, fontSize: 15 }}>/ student</span>}
+          <span style={{ fontSize: 46, fontWeight: 900 }}>{price === 'Custom' || price === 0 ? '' : 'KES '}{price === 0 ? 'FREE' : price}</span>
+          {price !== 'Custom' && price !== 0 && <span style={{ opacity: 0.7, fontSize: 15 }}>/ student</span>}
         </div>
         <p style={{ fontSize: 15, opacity: 0.8, marginTop: 16, lineHeight: 1.6 }}>{desc}</p>
+        {name.includes('Free') && <div style={{ marginTop: 10, fontSize: 10, fontWeight: 900, color: '#F97316' }}>⚠️ ONE-TIME USE • NON-RENEWABLE</div>}
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 40 }}>
         {features.map(f => <div key={f} style={{ display: 'flex', gap: 12, fontSize: 15, fontWeight: 600, opacity: 0.9 }}> <span>✓</span> {f}</div>)}
@@ -616,6 +618,7 @@ function PriceCard({ name, price, desc, features, featured }) {
       <style jsx>{`
         .p-card { padding: 48px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); display: flex; flex-direction: column; position: relative; transition: 0.4s; }
         .p-card.featured { background: rgba(255,255,255,0.08); border-color: ${PRIMARY}; transform: scale(1.05); z-index: 2; box-shadow: 0 40px 100px rgba(0,0,0,0.3); }
+        .p-card.free-tier { border-color: rgba(249, 115, 22, 0.3); }
         .p-card:hover { border-color: ${PRIMARY}; background: rgba(255,255,255,0.1); }
         .feat-badge { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, ${PRIMARY}, ${VIBRANT}); color: #fff; padding: 8px 20px; border-radius: 99px; font-size: 12px; font-weight: 800; letter-spacing: 1px; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3); }
       `}</style>
