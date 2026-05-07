@@ -136,26 +136,35 @@ export default function BulkLearnersPage() {
 
   function deduplicateRows() {
     const valid = rows.filter(r => r.name && r.adm);
-    const seen = new Map();
     const merged = [];
     let count = 0;
     
+    function isFuzzyMatch(n1, n2) {
+      const s1 = String(n1 || '').toUpperCase().trim();
+      const s2 = String(n2 || '').toUpperCase().trim();
+      if (s1 === s2) return true;
+      const w1 = s1.split(/\s+/);
+      const w2 = s2.split(/\s+/);
+      // Match if first two words are identical
+      if (w1.length >= 2 && w2.length >= 2 && w1[0] === w2[0] && w1[1] === w2[1]) return true;
+      return false;
+    }
+
     for (const r of valid) {
-      const key = `${r.name.toUpperCase()?.trim()}|${r.grade}`;
-      if (seen.has(key)) {
+      const isDuplicate = merged.some(m => m.grade === r.grade && isFuzzyMatch(m.name, r.name));
+      if (isDuplicate) {
         count++;
         continue; 
       }
-      seen.set(key, true);
       merged.push(r);
     }
     
     if (count > 0) {
-      if (confirm(`🔍 Found ${count} duplicates in the current list. Merge them into unique records?`)) {
+      if (confirm(`🔍 Found ${count} potential duplicates (including partial name matches like "George Gitau"). Merge them into unique records?`)) {
         setRows([...merged, ...Array(Math.max(5, 20 - merged.length)).fill(null).map(() => ({...EMPTY_ROW, grade: bulkGrade}))]);
       }
     } else {
-      alert('✅ No duplicates found in the current grid.');
+      alert('✅ No potential duplicates found in the current grid.');
     }
   }
 
