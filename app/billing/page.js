@@ -29,6 +29,7 @@ export default function BillingPage() {
   const { subscription, platformPayments } = data;
   const daysLeft = Math.ceil((new Date(subscription.expires_at) - new Date()) / (1000 * 60 * 60 * 24));
   const isExpired = daysLeft <= 0;
+  const isFreeTerm = subscription.plan === 'free-term';
 
   return (
     <div className="page on" style={{ padding: 40, background: '#F8FAFC', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
@@ -51,6 +52,11 @@ export default function BillingPage() {
               <div style={{ fontSize: 16, color: isExpired ? '#EF4444' : EMERALD, fontWeight: 700 }}>
                 {isExpired ? 'Expired — Immediate Renewal Required' : `Active • ${daysLeft} Days Remaining`}
               </div>
+              {isFreeTerm && !isExpired && (
+                <div style={{ marginTop: 12, padding: '8px 12px', background: '#FFF7ED', border: '1px solid #FFEDD5', borderRadius: 8, color: '#9A3412', fontSize: 11, fontWeight: 700 }}>
+                  ⚠️ NON-RENEWABLE PLAN
+                </div>
+              )}
             </div>
           </div>
 
@@ -61,9 +67,17 @@ export default function BillingPage() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: SLATE, fontSize: 13 }}>Billing Cycle</span>
-              <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{subscription.details?.cycle || 'N/A'}</span>
+              <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{isFreeTerm ? 'One-Time Term' : (subscription.details?.cycle || 'N/A')}</span>
             </div>
           </div>
+          
+          {isFreeTerm && !isExpired && (
+            <div style={{ marginTop: 24, padding: 16, background: '#FFF7ED', borderRadius: 16, border: '1.5px solid #FFEDD5' }}>
+              <p style={{ margin: 0, fontSize: 13, color: '#9A3412', lineHeight: 1.5 }}>
+                <strong>Important Notice:</strong> Your school is currently using the <strong>1 Term Free</strong> introductory offer. This plan cannot be renewed. To continue using the platform after this term, please select a subscription tier from the options below.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="panel" style={{ background: '#fff', padding: 40, borderRadius: 32, boxShadow: '0 20px 50px rgba(15,23,42,0.05)', border: '1px solid rgba(0,0,0,0.03)' }}>

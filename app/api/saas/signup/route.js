@@ -35,6 +35,8 @@ export async function POST(request) {
     const expiresAt = new Date();
     if (selectedPlan === 'trial') {
       expiresAt.setDate(expiresAt.getDate() + 30); // 30-day trial
+    } else if (selectedPlan === 'free-term') {
+      expiresAt.setMonth(expiresAt.getMonth() + 4); // 4 months for one term
     } else {
       expiresAt.setFullYear(expiresAt.getFullYear() + 1); // 1-year subscription
     }
@@ -85,7 +87,7 @@ export async function POST(request) {
     return NextResponse.json({ 
       ok: true, 
       tenantId, 
-      message: 'School registered successfully! You have a 30-day free trial.',
+      message: `School registered successfully! You are on the ${selectedPlan === 'free-term' ? '1 Term Free' : '30-day free trial'} plan.`,
       loginUrl: `/login?tenant=${tenantId}`
     });
 

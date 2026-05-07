@@ -20,6 +20,7 @@ export async function GET() {
     pricing: { basic: 25000, premium: 50000 },
     plans: [
       { id: 'trial', name: '30-Day Trial', price: 0, cycle: 'once', features: ['All Modules', 'Support'] },
+      { id: 'free-term', name: '1 Term Free', price: 0, cycle: 'once', features: ['Full Access', 'Curriculum Aware', '1 Term Only'] },
       { id: 'basic', name: 'Basic', price: 150, cycle: 'termly', features: ['Academic Grading', 'SMS alerts'] },
       { id: 'premium', name: 'Premium', price: 300, cycle: 'termly', features: ['Everything in Basic', 'M-Pesa Sync', 'Finance'] }
     ],

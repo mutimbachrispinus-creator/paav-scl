@@ -300,8 +300,10 @@ function LoginContent() {
       
       <div className="auth-right">
         <div className="auth-card">
-          <div style={{ textAlign: 'center', marginBottom: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <button onClick={() => router.push('/')} className="btn-link" style={{ fontSize: 13, color: '#64748B', fontWeight: 600 }}>← Back</button>
             <img src={profile.logo || "/ev-brand-v3.png"} alt="Logo" style={{ width: 70, height: 70, objectFit: 'contain', borderRadius: '50%', boxShadow: `0 4px 16px ${theme?.primary || '#4F46E5'}33` }} />
+            <div style={{ width: 40 }}></div> {/* spacer */}
           </div>
           <div className="auth-card-title">
             {tab === 'login' ? 'Welcome Back' : tab === 'register' ? 'Parent Registration' : 'Reset Password'}

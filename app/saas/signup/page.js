@@ -94,10 +94,13 @@ export default function EduVantageSignup() {
                     <div 
                       key={p.id}
                       onClick={() => setForm({...form, plan: p.id})}
-                      style={{ padding: 16, borderRadius: 12, border: `2px solid ${form.plan === p.id ? '#2563EB' : '#E2E8F0'}`, cursor: 'pointer', background: form.plan === p.id ? '#EFF6FF' : '#fff', transition: '0.2s' }}
+                      style={{ padding: 16, borderRadius: 12, border: `2px solid ${form.plan === p.id ? '#2563EB' : '#E2E8F0'}`, cursor: 'pointer', background: form.plan === p.id ? '#EFF6FF' : '#fff', transition: '0.2s', position: 'relative' }}
                     >
                       <div style={{ fontWeight: 800, fontSize: 13 }}>{p.name}</div>
                       <div style={{ fontSize: 10, opacity: 0.7 }}>{p.price > 0 ? `KES ${p.price} / ${p.cycle}` : 'Free Access'}</div>
+                      {p.id === 'free-term' && (
+                        <div style={{ position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)', background: '#F97316', color: '#fff', fontSize: 7, padding: '2px 6px', borderRadius: 4, fontWeight: 800, whiteSpace: 'nowrap' }}>NON-RENEWABLE</div>
+                      )}
                     </div>
                   ))
                 ) : (
