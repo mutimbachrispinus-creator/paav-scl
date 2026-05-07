@@ -192,20 +192,31 @@ function DashboardContent() {
           <div className="panel module-panel">
             <div className="panel-hdr module-hdr" style={{ '--home-accent': themePrimary }}>
               <h3>🚀 Module Hub — All Platform Features</h3>
-              <span>{ALL_NAV.filter(n => n.roles.includes(user.role)).length} Active Modules</span>
+              <span>{(() => {
+                const activeRoles = [user.role];
+                const isImpersonating = (user.role === 'super-admin' && typeof window !== 'undefined' && localStorage.getItem('paav_impersonate_id'));
+                if (isImpersonating) activeRoles.push('admin');
+                return ALL_NAV.filter(n => n.roles.some(r => activeRoles.includes(r))).length;
+              })()} Active Modules</span>
             </div>
             <div className="panel-body hub-grid">
-              {ALL_NAV.filter(n => n.roles.includes(user.role)).map((t, idx) => (
-                <Link 
-                  key={t.key} 
-                  href={t.key === 'classes' ? '/classes' : `/${t.key}`} 
-                  className="hub-btn"
-                  style={{ animationDelay: `${idx * 40}ms` }}
-                >
-                  <div className="hub-icon">{t.icon}</div>
-                  <div className="hub-label">{t.label}</div>
-                </Link>
-              ))}
+              {(() => {
+                const activeRoles = [user.role];
+                const isImpersonating = (user.role === 'super-admin' && typeof window !== 'undefined' && localStorage.getItem('paav_impersonate_id'));
+                if (isImpersonating) activeRoles.push('admin');
+                
+                return ALL_NAV.filter(n => n.roles.some(r => activeRoles.includes(r))).map((t, idx) => (
+                  <Link 
+                    key={t.key} 
+                    href={t.key === 'classes' ? '/classes' : `/${t.key}`} 
+                    className="hub-btn"
+                    style={{ animationDelay: `${idx * 40}ms` }}
+                  >
+                    <div className="hub-icon">{t.icon}</div>
+                    <div className="hub-label">{t.label}</div>
+                  </Link>
+                ));
+              })()}
             </div>
           </div>
 

@@ -1,8 +1,9 @@
 'use client';
 export const runtime = 'edge';
 import { useState, useEffect, useCallback } from 'react';
-import { invalidateDB } from '@/lib/client-cache';
+import { getCachedUser, getCachedDBMulti, fetchWithRetry, invalidateDB } from '@/lib/client-cache';
 import { useSchoolProfile } from '@/lib/school-profile';
+import { useRouter } from 'next/navigation';
 
 export default function ReportsPage() {
   const [user, setUser] = useState(null);
@@ -12,33 +13,30 @@ export default function ReportsPage() {
   const school = useSchoolProfile();
   const [form, setForm] = useState({ dept: '', title: '', text: '' });
   const [msg, setMsg] = useState({ type: '', text: '' });
-
+  const router = useRouter();
   const load = useCallback(async () => {
     try {
-      const authRes = await fetch('/api/auth');
-      const auth = await authRes.json();
-      if (!auth.ok) { window.location.href = '/'; return; }
-      setUser(auth.user);
+      setLoading(true);
+      const [u, db] = await Promise.all([
+        getCachedUser(),
+        getCachedDBMulti(['paav6_dept_reports'])
+      ]);
 
-      const dbRes = await fetch('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_dept_reports' }] })
-      });
-      const db = await dbRes.json();
-      const allReports = db.results[0]?.value || [];
+      if (!u) { router.push('/'); return; }
+      setUser(u);
 
+      const allReports = db.paav6_dept_reports || [];
 
-      // Admins see all, others see nothing or just a success confirmation
-      if (auth.user.role === 'admin') {
-        setReports(allReports.reverse());
+      // Admins and Super Admins see all reports
+      if (['admin', 'super-admin'].includes(u.role)) {
+        setReports([...allReports].reverse());
       }
     } catch (err) {
-      console.error(err);
+      console.error('[Reports] Load error:', err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -49,13 +47,8 @@ export default function ReportsPage() {
     setMsg({ type: '', text: '' });
 
     try {
-      const dbRes = await fetch('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_dept_reports' }] })
-      });
-      const db = await dbRes.json();
-      const list = db.results[0]?.value || [];
+      const db = await getCachedDBMulti(['paav6_dept_reports']);
+      const list = db.paav6_dept_reports || [];
       
       const newReport = {
         id: Date.now(),
@@ -69,7 +62,7 @@ export default function ReportsPage() {
 
       list.push(newReport);
 
-      await fetch('/api/db', {
+      await fetchWithRetry('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_dept_reports', value: list }] })
@@ -78,7 +71,7 @@ export default function ReportsPage() {
       invalidateDB('paav6_dept_reports');
       setForm({ dept: '', title: '', text: '' });
       setMsg({ type: 'success', text: '✅ Report submitted successfully to administration!' });
-      if (user.role === 'admin') load();
+      if (['admin', 'super-admin'].includes(user.role)) load();
     } catch (err) {
       setMsg({ type: 'error', text: '❌ Failed to submit report: ' + err.message });
     } finally {

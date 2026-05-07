@@ -3,6 +3,7 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { today } from '@/lib/cbe';
+import { getCachedUser, getCachedDBMulti, fetchWithRetry } from '@/lib/client-cache';
 
 export default function MessagesPage() {
   const router = useRouter();
@@ -36,49 +37,25 @@ export default function MessagesPage() {
       setError(null);
       setLoading(true);
       
-      const timeout = setTimeout(() => {
-        if (!user) setError('Taking longer than expected. Please refresh or check connection.');
-      }, 12000);
+      const [u, db] = await Promise.all([
+        getCachedUser(),
+        getCachedDBMulti(['paav6_msgs', 'paav6_staff', 'paav6_learners', 'paav7_sms'])
+      ]);
 
-      const authRes = await fetch('/api/auth');
-      const ctAuth = authRes.headers.get('content-type');
-      if (!ctAuth || !ctAuth.includes('application/json')) throw new Error('Invalid server response');
-      const auth = await authRes.json();
-      
-      if (!auth.ok || !auth.user) { 
-        clearTimeout(timeout);
-        router.push('/'); 
-        return; 
-      }
-      setUser(auth.user);
+      if (!u) { router.push('/'); return; }
+      setUser(u);
 
-      const dbRes = await fetch('/api/db', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          requests: [
-            { type: 'get', key: 'paav6_msgs' },
-            { type: 'get', key: 'paav6_staff' },
-            { type: 'get', key: 'paav6_learners' },
-            { type: 'get', key: 'paav7_sms' },
-          ] 
-        })
-      });
-      const db = await dbRes.json();
-      const msgs = db.results[0]?.value;
-      
-      clearTimeout(timeout);
-      setAllMessages(msgs || []);
-      setStaff(db.results[1]?.value || []);
-      setLearners(db.results[2]?.value || []);
-      setSmsLog(db.results[3]?.value || []);
+      setAllMessages(db.paav6_msgs || []);
+      setStaff(db.paav6_staff || []);
+      setLearners(db.paav6_learners || []);
+      setSmsLog(db.paav7_sms || []);
     } catch (e) {
-      console.error(e);
+      console.error('[Messages] Load error:', e);
       setError('Communication error. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [router, user]);
+  }, [router]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -88,7 +65,7 @@ export default function MessagesPage() {
       const updatedMsg = { ...m, read: [...m.read, user.username] };
       setSaving(true);
       try {
-        await fetch('/api/db', {
+        await fetchWithRetry('/api/db', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ requests: [{ type: 'upsertMessage', message: updatedMsg }] })
@@ -111,7 +88,7 @@ export default function MessagesPage() {
     
     setSaving(true);
     try {
-      await fetch('/api/db', {
+      await fetchWithRetry('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [{ type: 'upsertMessage', message: updatedMsg }] })
@@ -149,7 +126,7 @@ export default function MessagesPage() {
     
     setSaving(true);
     try {
-      await fetch('/api/db', {
+      await fetchWithRetry('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [{ type: 'upsertMessage', message: newMsg }] })
@@ -187,9 +164,15 @@ export default function MessagesPage() {
     if (!smsMessage.trim()) { setSmsResult({ ok: false, error: 'Enter a message' }); return; }
     setSaving(true); setSmsResult(null);
     try {
-      const res = await fetch('/api/sms', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'bulk', phones, message: smsMessage }),
+      const res = await fetchWithRetry('/api/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'bulk',
+          recipients: phones,
+          message: smsMessage,
+          toLabel: smsGroup
+        })
       });
       const data = await res.json();
       setSmsResult(data);

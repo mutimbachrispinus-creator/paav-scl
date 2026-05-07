@@ -9,10 +9,11 @@ export const runtime = 'edge';
  *   • Assign subject teachers per grade
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAllGrades, getDefaultSubjects } from '@/lib/cbe';
 import { useProfile } from '@/app/PortalShell';
+import { getCachedUser, getCachedDBMulti, fetchWithRetry } from '@/lib/client-cache';
 
 const MAROON = '#8B1A1A';
 const MAROON2 = '#6B1212';
@@ -33,59 +34,58 @@ export default function AllocationsPage() {
   const [tab, setTab] = useState('class');  // 'class' | 'subjects' | 'codes'
   const [streams, setStreams] = useState({}); // { "GRADE 7": ["A","B"] } from learners
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [authRes, dbRes] = await Promise.all([
-          fetch('/api/auth'),
-          fetch('/api/db', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ requests: [
-              { type: 'get', key: 'paav6_staff' },
-              { type: 'get', key: 'paav_allocations' },
-              { type: 'get', key: 'paav8_subj' },
-              { type: 'get', key: 'paav_class_teachers' },
-              { type: 'get', key: 'paav_teacher_codes' },
-              { type: 'get', key: 'paav6_learners' },
-            ]})
-          })
-        ]);
-        const auth = await authRes.json();
-        if (!auth.ok || auth.user.role !== 'admin') { router.push('/dashboard'); return; }
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [u, db] = await Promise.all([
+        getCachedUser(),
+        getCachedDBMulti([
+          'paav6_staff', 
+          'paav_allocations', 
+          'paav8_subj', 
+          'paav_class_teachers', 
+          'paav_teacher_codes', 
+          'paav6_learners'
+        ])
+      ]);
 
-        const db = await dbRes.json();
-        const staffList = db.results[0]?.value || [];
-        setStaff(staffList);
-        setAllocs(db.results[1]?.value || {});
-        setSubjCfg(db.results[2]?.value || {});
-        setClassTeachers(db.results[3]?.value || {});
-        setTeacherCodes(db.results[4]?.value || {});
-
-        // Extract unique streams per grade from learners
-        const learners = db.results[5]?.value || [];
-        const streamMap = {};
-        for (const l of learners) {
-          if (!l.grade) continue;
-          if (!streamMap[l.grade]) streamMap[l.grade] = new Set();
-          if (l.stream) streamMap[l.grade].add(l.stream.toUpperCase());
-        }
-        const finalStreams = {};
-        for (const g in streamMap) finalStreams[g] = [...streamMap[g]].sort();
-        setStreams(finalStreams);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
+      if (!u || !['admin', 'super-admin'].includes(u.role)) { 
+        router.push('/dashboard'); 
+        return; 
       }
+
+      setStaff(db.paav6_staff || []);
+      setAllocs(db.paav_allocations || {});
+      setSubjCfg(db.paav8_subj || {});
+      setClassTeachers(db.paav_class_teachers || {});
+      setTeacherCodes(db.paav_teacher_codes || {});
+
+      // Extract unique streams per grade from learners
+      const learners = db.paav6_learners || [];
+      const streamMap = {};
+      for (const l of learners) {
+        if (!l.grade) continue;
+        if (!streamMap[l.grade]) streamMap[l.grade] = new Set();
+        if (l.stream) streamMap[l.grade].add(l.stream.toUpperCase());
+      }
+      const finalStreams = {};
+      for (const g in streamMap) finalStreams[g] = [...streamMap[g]].sort();
+      setStreams(finalStreams);
+    } catch (e) {
+      console.error('[Allocations] Load error:', e);
+    } finally {
+      setLoading(false);
     }
-    load();
   }, [router]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function save() {
     setBusy(true);
     try {
-      await fetch('/api/db', {
+      await fetchWithRetry('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [

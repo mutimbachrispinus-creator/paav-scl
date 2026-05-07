@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
  */
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
+import { getCachedUser, getCachedDBMulti, fetchWithRetry, invalidateDB } from '@/lib/client-cache';
 import { getAllGrades, getCurriculum } from '@/lib/cbe';
 import { getDefaultSubjectConfig, generateTimetableData } from '@/lib/timetable-gen.js';
 import { useProfile } from '@/app/PortalShell';
@@ -102,7 +102,7 @@ export default function TimetablePage() {
     const updated = editEv != null
       ? events.map((e,i) => i===editEv ? {...form} : e)
       : [...events, { ...form, id:'ev'+Date.now() }];
-    await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
+    await fetchWithRetry('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ requests:[{ type:'set', key:'paav_calendar_events', value:updated }] }) });
     invalidateDB('paav_calendar_events');
     setEvents(updated); setShowModal(false); setEditEv(null);
@@ -113,14 +113,14 @@ export default function TimetablePage() {
     if (!confirm('Delete this event?')) return;
     const currentEvents = Array.isArray(events) ? events : [];
     const updated = currentEvents.filter((_,idx) => idx!==i);
-    await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
+    await fetchWithRetry('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ requests:[{ type:'set', key:'paav_calendar_events', value:updated }] }) });
     invalidateDB('paav_calendar_events');
     setEvents(updated);
   }
 
   async function saveTimetable(tt) {
-    await fetch('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
+    await fetchWithRetry('/api/db', { method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ requests:[{ type:'set', key:'paav_timetable', value:tt }] }) });
     invalidateDB('paav_timetable');
     setTimetable(tt);
@@ -446,7 +446,7 @@ function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave, c
     setSaving(true);
     try {
       // Fetch allocations, subjects, codes
-      const dbRes = await fetch('/api/db', {
+      const dbRes = await fetchWithRetry('/api/db', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [
           { type: 'get', key: 'paav_allocations' },
@@ -454,8 +454,6 @@ function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave, c
           { type: 'get', key: 'paav_teacher_codes' }
         ]})
       });
-      const ct = dbRes.headers.get('content-type');
-      if (!ct || !ct.includes('application/json')) throw new Error('Server returned invalid response. Please try again.');
       
       const db = await dbRes.json();
       if (!db.results) throw new Error('Failed to retrieve allocation data.');
