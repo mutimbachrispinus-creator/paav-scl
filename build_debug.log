@@ -1,0 +1,180 @@
+⚡️ @cloudflare/next-on-pages CLI v.1.13.16
+⚡️ Detected Package Manager: npm (10.8.2)
+⚡️ Preparing project...
+⚡️ Project is ready
+⚡️ Building project...
+▲  Vercel CLI 47.0.4
+▲  WARN! Build not running on Vercel. System environment variables will not be available.
+▲  WARNING: You should not upload the `.next` directory.
+▲  Installing dependencies...
+▲  up to date in 3s
+▲  
+▲  214 packages are looking for funding
+▲  run `npm fund` for details
+▲  Detected Next.js version: 15.5.2
+▲  Running "npm run build"
+▲  > eduvantage-school-management-system@2.1.0 build
+▲  > next build
+▲  ▲ Next.js 15.5.2
+▲  - Environments: .env.local
+▲  - Experiments (use with caution):
+▲    ⨯ webpackBuildWorker
+▲  
+▲  Creating an optimized production build ...
+▲  ✓ (pwa) Compiling for server...
+▲  ✓ (pwa) Compiling for server...
+▲  ✓ (pwa) Compiling for client (static)...
+▲  ○ (pwa) Service worker: /home/chrispinus/EduVantage school management system/public/sw.js
+▲  ○ (pwa)   URL: /sw.js
+▲  ○ (pwa)   Scope: /
+▲  ✓ Compiled successfully in 23.3s
+▲  Skipping validation of types
+▲  Skipping linting
+▲  Collecting page data ...
+▲  ⚠ Using edge runtime on a page currently disables static generation for that page
+▲  Generating static pages (0/3) ...
+▲  ✓ Generating static pages (3/3)
+▲  Finalizing page optimization ...
+▲  Collecting build traces ...
+▲  
+▲  Route (app)                                 Size  First Load JS
+▲  ┌ ƒ /                                    15.6 kB         123 kB
+▲  ├ ○ /_not-found                            235 B         105 kB
+▲  ├ ƒ /allocations                         4.45 kB         134 kB
+▲  ├ ƒ /analytics                           10.2 kB         120 kB
+▲  ├ ƒ /analytics/activity                  3.99 kB         111 kB
+▲  ├ ƒ /api/auth                              235 B         105 kB
+▲  ├ ƒ /api/auth/check-username               235 B         105 kB
+▲  ├ ƒ /api/auth/recovery                     235 B         105 kB
+▲  ├ ƒ /api/billing                           235 B         105 kB
+▲  ├ ƒ /api/comms/push                        235 B         105 kB
+▲  ├ ƒ /api/cron/backup                       235 B         105 kB
+▲  ├ ƒ /api/cron/promote                      235 B         105 kB
+▲  ├ ƒ /api/db                                235 B         105 kB
+▲  ├ ƒ /api/debug                             235 B         105 kB
+▲  ├ ƒ /api/email/receipt                     235 B         105 kB
+▲  ├ ƒ /api/email/report-card                 235 B         105 kB
+▲  ├ ƒ /api/finance/expenses                  235 B         105 kB
+▲  ├ ƒ /api/finance/ledger                    235 B         105 kB
+▲  ├ ƒ /api/health                            235 B         105 kB
+▲  ├ ƒ /api/mpesa/callback                    235 B         105 kB
+▲  ├ ƒ /api/mpesa/stk                         235 B         105 kB
+▲  ├ ƒ /api/notifications                     235 B         105 kB
+▲  ├ ƒ /api/ping                              235 B         105 kB
+▲  ├ ƒ /api/saas/config                       235 B         105 kB
+▲  ├ ƒ /api/saas/global-config                235 B         105 kB
+▲  ├ ƒ /api/saas/init                         235 B         105 kB
+▲  ├ ƒ /api/saas/maintenance                  235 B         105 kB
+▲  ├ ƒ /api/saas/manage                       235 B         105 kB
+▲  ├ ƒ /api/saas/schools                      235 B         105 kB
+▲  ├ ƒ /api/saas/schools/delete               235 B         105 kB
+▲  ├ ƒ /api/saas/signup                       235 B         105 kB
+▲  ├ ƒ /api/saas/stats                        235 B         105 kB
+▲  ├ ƒ /api/saas/subscription                 235 B         105 kB
+▲  ├ ƒ /api/seed                              235 B         105 kB
+▲  ├ ƒ /api/sms                               235 B         105 kB
+▲  ├ ƒ /api/stats                             235 B         105 kB
+▲  ├ ƒ /api/stats/dashboard                   235 B         105 kB
+▲  ├ ƒ /api/upload                            235 B         105 kB
+▲  ├ ƒ /api/upload/[id]                       235 B         105 kB
+▲  ├ ƒ /api/v1/payments/stk-callback          235 B         105 kB
+▲  ├ ƒ /api/whatsapp/reminder                 235 B         105 kB
+▲  ├ ƒ /api/whatsapp/report-card              235 B         105 kB
+▲  ├ ƒ /attendance                          6.31 kB         136 kB
+▲  ├ ƒ /audit                               1.36 kB         109 kB
+▲  ├ ƒ /billing                             3.48 kB         108 kB
+▲  ├ ƒ /classes                             1.81 kB         131 kB
+▲  ├ ƒ /classes/[grade]                     4.17 kB         134 kB
+▲  ├ ƒ /comms/push                          6.97 kB         119 kB
+▲  ├ ƒ /dashboard                           5.47 kB         135 kB
+▲  ├ ƒ /database                            2.26 kB         110 kB
+▲  ├ ƒ /demo                                4.99 kB         113 kB
+▲  ├ ƒ /diary                               6.08 kB         113 kB
+▲  ├ ƒ /documents                           4.18 kB         114 kB
+▲  ├ ƒ /duties                              4.98 kB         129 kB
+▲  ├ ƒ /fees                                8.44 kB         138 kB
+▲  ├ ƒ /fees/[adm]/receipt                  2.76 kB         127 kB
+▲  ├ ƒ /fees/pay                            5.72 kB         115 kB
+▲  ├ ƒ /finance                             6.62 kB         114 kB
+▲  ├ ƒ /finance/budgets                     3.55 kB         111 kB
+▲  ├ ƒ /finance/expenses                    5.62 kB         113 kB
+▲  ├ ƒ /finance/invoices                    7.19 kB         120 kB
+▲  ├ ƒ /finance/payroll                     4.86 kB         129 kB
+▲  ├ ƒ /finance/petty-cash                  2.54 kB         110 kB
+▲  ├ ƒ /finance/reconcile                   5.23 kB         112 kB
+▲  ├ ƒ /finance/transactions                2.03 kB         109 kB
+▲  ├ ƒ /grades                              6.89 kB         137 kB
+▲  ├ ƒ /grades/report-card/[id]              7.1 kB         117 kB
+▲  ├ ƒ /grades/report-card/bulk             9.42 kB         119 kB
+▲  ├ ƒ /learners                            7.84 kB         138 kB
+▲  ├ ƒ /learners/[id]                       5.25 kB         135 kB
+▲  ├ ƒ /learners/bulk                       7.05 kB         137 kB
+▲  ├ ƒ /learners/recycle-bin                1.36 kB         109 kB
+▲  ├ ƒ /learning                            6.12 kB         136 kB
+▲  ├ ƒ /login                               6.67 kB         131 kB
+▲  ├ ƒ /merit-list                          7.25 kB         137 kB
+▲  ├ ƒ /messages                            4.88 kB         114 kB
+▲  ├ ƒ /nexed                               6.58 kB         111 kB
+▲  ├ ƒ /parent-home                         12.2 kB         122 kB
+▲  ├ ƒ /parent-marks                        3.38 kB         113 kB
+▲  ├ ƒ /performance                         7.37 kB         137 kB
+▲  ├ ƒ /predictor                           5.28 kB         135 kB
+▲  ├ ƒ /profile                             7.82 kB         117 kB
+▲  ├ ƒ /proposal                             4.7 kB         109 kB
+▲  ├ ƒ /reports                             4.35 kB         112 kB
+▲  ├ ƒ /saas/signup                         6.65 kB         111 kB
+▲  ├ ƒ /settings                            4.63 kB         115 kB
+▲  ├ ƒ /settings/billing                    4.64 kB         112 kB
+▲  ├ ƒ /settings/grading                    1.94 kB         132 kB
+▲  ├ ƒ /settings/profile                    5.88 kB         136 kB
+▲  ├ ƒ /settings/sms                        1.45 kB         106 kB
+▲  ├ ƒ /settings/subjects                   2.69 kB         116 kB
+▲  ├ ƒ /settings/timetable                  1.53 kB         106 kB
+▲  ├ ƒ /sms                                 2.24 kB         109 kB
+▲  ├ ƒ /sms/api/send                          235 B         105 kB
+▲  ├ ƒ /streams                              3.5 kB         133 kB
+▲  ├ ƒ /super-admin                         11.5 kB         119 kB
+▲  ├ ƒ /teachers                            3.53 kB         133 kB
+▲  ├ ƒ /teachers/subjects                   3.06 kB         113 kB
+▲  ├ ƒ /templates                           11.8 kB         141 kB
+▲  ├ ƒ /timetable                           9.02 kB         139 kB
+▲  ├ ƒ /welfare                             3.32 kB         116 kB
+▲  └ ƒ /welfare/portfolio                   6.73 kB         119 kB
+▲  + First Load JS shared by all             104 kB
+▲  ├ chunks/4696-1ecd196612c104e8.js      47.9 kB
+▲  ├ chunks/4bd1b696-100b9d70ed4e49c1.js  54.2 kB
+▲  └ other shared chunks (total)          2.25 kB
+▲  
+▲  
+▲  ƒ Middleware                             34.6 kB
+▲  ○  (Static)   prerendered as static content
+▲  ƒ  (Dynamic)  server-rendered on demand
+▲  Traced Next.js server files in: 606.579ms
+▲  Created all serverless functions in: 309.3ms
+▲  Collected static files (public/, static/, .next/static): 35.587ms
+▲  Build Completed in .vercel/output [1m]
+⚡️ Completed `npx vercel build`.
+▲ [WARNING] Duplicate key "igcse" in object literal [duplicate-object-key]
+
+    <stdin>:4:926:
+      4 │ ...pre",lower_secondary:"junior",igcse:"junior","a-level":"senior"}...
+        ╵                                  ~~~~~
+
+  The original key "igcse" is here:
+
+    <stdin>:4:839:
+      4 │ ...ry",jss:"junior",ks3:"junior",igcse:"junior",myp:"junior",senior...
+        ╵                                  ~~~~~
+
+▲ [WARNING] Duplicate key "background" in object literal [duplicate-object-key]
+
+    <stdin>:5:1689:
+      5 │ ...Height:1,transition:"0.2s",background:b?"#EEF2FF":"transparent"}...
+        ╵                               ~~~~~~~~~~
+
+  The original key "background" is here:
+
+    <stdin>:5:1555:
+      5 │ ...style:{position:"relative",background:"transparent",border:"none...
+        ╵                               ~~~~~~~~~~
+
