@@ -8,7 +8,7 @@ import { execute, query, batch } from '@/lib/db';
  */
 export async function POST(request) {
   try {
-    const { schoolName, adminName, adminUsername, adminPassword, phone, email, curriculum, plan } = await request.json();
+    const { schoolName, adminName, adminUsername, adminPassword, phone, email, curriculum, plan, estimatedStudents } = await request.json();
     const selectedPlan = plan || 'trial';
 
     if (!schoolName || !adminName || !adminUsername || !adminPassword) {
@@ -72,8 +72,8 @@ export async function POST(request) {
     await batch([
       // 1. Create Subscription (Trial)
       {
-        sql: 'INSERT INTO subscriptions (tenant_id, plan, status, expires_at, updated_at) VALUES (?, ?, ?, ?, ?)',
-        args: [tenantId, selectedPlan, 'active', expiresAt.toISOString(), now]
+        sql: 'INSERT INTO subscriptions (tenant_id, plan, status, expires_at, learner_limit, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+        args: [tenantId, selectedPlan, 'active', expiresAt.toISOString(), parseInt(estimatedStudents) || 50, now]
       },
       // 2. Create first Admin user
       {

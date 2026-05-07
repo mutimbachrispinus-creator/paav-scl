@@ -62,6 +62,7 @@ export async function GET() {
         cycle: s.cycle || 'annual',
         expiresAt: s.expires_at,
         students: Number(learnerCount.rows[0]?.count || 0),
+        learnerLimit: Number(s.learner_limit || 50),
         revenue: Number(revenueRes.rows[0]?.total || 0),
         lastSync: s.updated_at ? new Date(s.updated_at * 1000).toLocaleString() : 'Never'
       };
