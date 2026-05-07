@@ -542,11 +542,8 @@ export default function PortalShell({ children }) {
           </button>
         )}
         <ErrorBoundary>
-          {profile.learnerCount >= profile.learnerLimit && !profile.skipLimit && user?.role !== 'super-admin' && !NO_NAV_PATHS.includes(pathname) && pathname !== '/billing' ? (
-            <SystemLockout profile={profile} />
-          ) : (
-            children
-          )}
+          {/* Institutional lockout disabled for now per user request */}
+          {children}
         </ErrorBoundary>
       </div>
 
