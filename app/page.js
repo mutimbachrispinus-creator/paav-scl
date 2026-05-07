@@ -12,16 +12,16 @@ const SLATE   = 'var(--lp-slate,   #64748B)';
 const VIBRANT = 'var(--lp-vibrant, #8B5CF6)';
 
 const ALL_FEATURES = [
-  { icon: '📊', title: 'CBC / Cambridge / IB Grading', desc: 'Auto-compute grades, levels & report cards for any curriculum.' },
+  { icon: '🚀', title: 'Unified Communication Hub', desc: 'Merge SMS, bulk alerts & internal messaging in one flow.' },
+  { icon: '📈', title: 'Performance & Insights', desc: 'Deep analytics + rankings for CBC, Cambridge & IB.' },
   { icon: '💰', title: 'M-Pesa Auto-Reconciliation', desc: 'Real-time Paybill/Till sync — zero manual entry.' },
   { icon: '📅', title: 'AI Timetabling', desc: 'Conflict-free master timetables generated in minutes.' },
-  { icon: '📲', title: 'Parent Portal & SMS', desc: 'Live fee balances, marks & instant absence alerts.' },
+  { icon: '🤖', title: 'Recovery Engine', desc: 'Optimised database operations for lightning-fast loading.' },
   { icon: '🎥', title: 'Live Classes', desc: 'Built-in video conferencing for remote & hybrid teaching.' },
-  { icon: '🤖', title: 'AI Grade Predictor', desc: 'Forecast end-term performance from early assessments.' },
-  { icon: '🏆', title: 'Merit Lists & Rankings', desc: 'Auto-generated class & school-wide merit tables.' },
+  { icon: '📲', title: 'Parent Portal', desc: 'Live fee balances, marks & instant digital diary.' },
   { icon: '🛡️', title: 'Welfare & Portfolio', desc: 'Track student wellness, incidents & digital portfolios.' },
-  { icon: '📋', title: 'Staff Duties & Scheduling', desc: 'Assign, track & approve duty rosters digitally.' },
-  { icon: '🔔', title: 'Push Notifications', desc: 'Web push & bulk SMS to any stakeholder group.' },
+  { icon: '📋', title: 'Staff Duties', desc: 'Assign, track & approve duty rosters digitally.' },
+  { icon: '🏆', title: 'Merit Lists', desc: 'Auto-generated class & school-wide merit tables.' },
   { icon: '📈', title: 'Finance & Payroll', desc: 'Expenses, invoicing, payslips & budget management.' },
   { icon: '🌐', title: 'Multi-Tenant SaaS', desc: 'One platform powering unlimited school instances.' },
 ];
@@ -179,12 +179,12 @@ export default function LandingPage() {
             <div className="module-card">
               <div className="mod-icon" style={{ background: '#EEF2FF', color: PRIMARY }}>📊</div>
               <div className="mod-content">
-                <h3>Multi-Curriculum Academic Analytics</h3>
-                <p>Don&apos;t wait weeks for report cards. Our grading engine instantly processes marks, generates beautiful termly reports, and ranks students perfectly—fully optimized for <strong>Kenya CBC</strong>, the <strong>Cambridge International</strong> system, <strong>British IGCSE/A-Level</strong>, and <strong>IB</strong> structures.</p>
+                <h3>Unified Performance & Insights</h3>
+                <p>Gain total institutional clarity. Our merged analytics engine provides both high-level trend visualizations and granular academic rankings—fully optimized for <strong>Kenya CBC</strong>, <strong>Cambridge International</strong>, <strong>British IGCSE</strong>, and <strong>IB</strong> structures.</p>
                 <ul className="mod-features">
-                  <li>Automated Dynamic Merit Lists</li>
-                  <li>Subject-Level Trend Graphs for Parents</li>
-                  <li>Instant Teacher Markbook Sync</li>
+                  <li>Visual Subject Mastery Heatmaps</li>
+                  <li>Instant Class-Wide Merit Rankings</li>
+                  <li>Gender & Stream Parity Analytics</li>
                 </ul>
               </div>
             </div>
@@ -220,15 +220,15 @@ export default function LandingPage() {
             {/* Communication */}
             <div className="module-card reverse">
               <div className="mod-content">
-                <h3>Parent Portal & Student Diary</h3>
-                <p>Bridge the gap between your institution and parents. Our real-time portal allows parents to track fees, attendance, and academic progress. The new <strong>Student Diary</strong> feature provides a live feed of school activities, assignments, and welfare updates directly to the parent&apos;s pocket.</p>
+                <h3>Unified Communication Hub</h3>
+                <p>Bridge the gap between your institution and stakeholders. Our new consolidated center brings internal messaging and bulk SMS together. Send instant absence alerts, fee reminders, or school-wide announcements from a single, intuitive interface.</p>
                 <ul className="mod-features">
-                  <li>Live Activity Feed & Digital Diary</li>
+                  <li>One-Click Bulk SMS Blast Engine</li>
                   <li>Instant Automated Absence Alerts</li>
-                  <li>Secure Mobile Fee Statements</li>
+                  <li>Real-time Parent-Teacher Messaging</li>
                 </ul>
               </div>
-              <div className="mod-icon" style={{ background: '#F5F3FF', color: VIBRANT }}>📓</div>
+              <div className="mod-icon" style={{ background: '#F5F3FF', color: VIBRANT }}>💬</div>
             </div>
           </div>
         </div>

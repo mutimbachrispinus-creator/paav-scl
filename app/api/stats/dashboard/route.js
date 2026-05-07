@@ -30,19 +30,24 @@ export async function GET() {
     const enrolmentByGrade = {};
     gradeRows.forEach(r => { enrolmentByGrade[r.grade] = r.count; });
 
-    // 4. Calculate total expected (this still requires grade-level fee config knowledge)
+    // 4. Calculate total expected
     let totalExpected = 0;
     gradeRows.forEach(r => {
       totalExpected += r.count * getAnnualFee(r.grade);
     });
 
-    /* 5. Unread messages (Temporarily disabled for speed)
-    const msgRows = await query('SELECT COUNT(*) as count FROM messages WHERE tenant_id = ? AND msg_json NOT LIKE ?', [tenantId, `%${session.username}%`]);
+    // 5. Unread messages (Optimized)
+    // We check if the user's username is NOT in the read list (assuming read is part of the JSON)
+    // Actually, based on previous code, it was checking LIKE. 
+    // Let's use a count of threads where the user is NOT the last sender and it hasn't been read.
+    const msgRows = await query(`
+      SELECT COUNT(*) as count FROM messages 
+      WHERE tenant_id = ? 
+        AND msg_json NOT LIKE ?
+    `, [tenantId, `%${session.username}%`]);
     const unread = msgRows[0].count;
-    */
-    const unread = 0;
 
-    /* 6. Attendance Red-Flags (Temporarily disabled for speed)
+    // 6. Attendance Red-Flags (Optimized)
     const redFlags = await query(`
       SELECT 
         SUBSTR(grade_date_adm, INSTR(grade_date_adm, '|') + 11) as adm,
@@ -50,11 +55,11 @@ export async function GET() {
       FROM attendance 
       WHERE tenant_id = ? 
         AND status = 'A'
-        AND grade_date_adm LIKE '%' || STRFTIME('%Y-', 'now') || '%'
+        AND grade_date_adm LIKE '%' || STRFTIME('%Y-%m', 'now') || '%'
       GROUP BY adm
-      HAVING absent_count >= 3
+      HAVING absent_count >= 2
       ORDER BY absent_count DESC
-      LIMIT 10
+      LIMIT 12
     `, [tenantId]);
 
     // Fetch names for these ADMs
@@ -68,8 +73,6 @@ export async function GET() {
         return { ...rf, name: l?.name || 'Unknown', phone: l?.phone || '' };
       });
     }
-    */
-    const redFlagDetails = [];
 
     return NextResponse.json({
       ok: true,

@@ -35,6 +35,7 @@ function DashboardContent() {
   const [announcement, setAnnouncement] = useState(null);
 
   const load = useCallback(async () => {
+    setLoading(true); // Ensure loading is true when starting
     try {
       // 1. Get user first to determine tenant context
       const u = await getCachedUser();
@@ -46,9 +47,7 @@ function DashboardContent() {
 
       // 2. Fetch data in parallel
       const [db, glob, statRes] = await Promise.all([
-        getCachedDBMulti([
-          'paav_theme'
-        ]),
+        getCachedDBMulti(['paav_theme', 'paav_school_profile']),
         isSuper 
           ? fetch('/api/saas/global-config').then(r => r.json()).catch(() => ({}))
           : Promise.resolve({}),
@@ -59,11 +58,11 @@ function DashboardContent() {
       if (glob.announcement?.active) setAnnouncement(glob.announcement);
 
       const s = statRes.stats || {};
-      setStats(s); // We need a new stats state
+      setStats(s);
       setUnread(s.unread || 0);
       
       // Warm up other common keys
-      prefetchKeys(['paav_school_profile', 'paav_hero_img', 'paav6_fin_config']);
+      prefetchKeys(['paav_hero_img', 'paav6_fin_config']);
 
     } catch (e) {
       console.error('Dashboard load error:', e);
@@ -71,6 +70,10 @@ function DashboardContent() {
       setLoading(false);
     }
   }, [router]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function notifyParents() {
     if (!stats.redFlags?.length) return;
@@ -189,14 +192,22 @@ function DashboardContent() {
 
       {!isSuper && (
         <>
-          <div className="panel" style={{ marginBottom: 18 }}>
-            <div className="panel-hdr" style={{ background: `linear-gradient(135deg, ${themePrimary}, #1E3A8A)` }}>
-              <h3 style={{ color: '#fff' }}>⚡ Quick Access</h3>
+          <div className="panel" style={{ marginBottom: 22 }}>
+            <div className="panel-hdr" style={{ background: `linear-gradient(135deg, ${themePrimary}, #0F172A)`, border: 'none' }}>
+              <h3 style={{ color: '#fff' }}>🚀 Module Hub — All Platform Features</h3>
+              <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.15)', padding: '3px 10px', borderRadius: 20, color: '#fff' }}>{ALL_NAV.filter(n => n.roles.includes(user.role)).length} Active Modules</span>
             </div>
-            <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
+            <div className="panel-body" style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', 
+              gap: 12,
+              background: '#F1F5F9',
+              padding: 16
+            }}>
               {ALL_NAV.filter(n => n.roles.includes(user.role)).map(t => (
-                <Link key={t.key} href={t.key === 'classes' ? '/classes' : `/${t.key}`} className="quick-access-btn">
-                  <span className="qa-icon">{t.icon}</span> {t.label}
+                <Link key={t.key} href={t.key === 'classes' ? '/classes' : `/${t.key}`} className="hub-btn">
+                  <div className="hub-icon">{t.icon}</div>
+                  <div className="hub-label">{t.label}</div>
                 </Link>
               ))}
             </div>
@@ -269,9 +280,31 @@ function DashboardContent() {
       )}
 
       <style jsx>{`
-        .quick-access-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 15px 10px; background: #F8FAFC; border-radius: 12px; text-decoration: none; color: var(--navy); font-size: 11px; font-weight: 700; transition: 0.2s; border: 1.5px solid #E2E8F0; text-align: center; }
-        .quick-access-btn:hover { background: #EEF2FF; border-color: #2563EB; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37,99,235,0.1); }
-        .qa-icon { font-size: 24px; }
+        .hub-btn { 
+          display: flex; 
+          flex-direction: column; 
+          align-items: center; 
+          justify-content: center;
+          gap: 10px; 
+          padding: 20px 10px; 
+          background: #fff; 
+          border-radius: 16px; 
+          text-decoration: none; 
+          color: var(--navy); 
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+          border: 1px solid #E2E8F0; 
+          text-align: center; 
+          box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .hub-btn:hover { 
+          background: #fff; 
+          border-color: #2563EB; 
+          transform: translateY(-3px); 
+          box-shadow: 0 12px 24px rgba(37,99,235,0.12); 
+        }
+        .hub-icon { font-size: 32px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); transition: transform 0.2s; }
+        .hub-btn:hover .hub-icon { transform: scale(1.1); }
+        .hub-label { font-size: 11.5px; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.3px; }
       `}</style>
     </div>
   );

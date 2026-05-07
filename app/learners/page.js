@@ -303,18 +303,9 @@ function AddLearnerModal({ onClose, isAdmin, streams, curr }) {
   async function save() {
     if (!form.name || !form.grade) { setErr('Name and grade are required'); return; }
     setBusy(true);
-    // Load current learners, add new one, save
-    const res  = await fetch('/api/db', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [{ type: 'get', key: 'paav6_learners' }] }),
-    });
-    const db   = await res.json();
-    const list = db.results[0]?.value || [];
-
+    
     const adm = form.adm.trim() || String(Date.now()).slice(-6);
-    if (list.find(l => l.adm === adm)) { setErr(`Adm no. ${adm} already exists`); setBusy(false); return; }
-
-    list.push({
+    const newLearner = {
       adm, name: form.name.toUpperCase(), grade: form.grade,
       sex: form.sex, age: Number(form.age) || '',
       dob: form.dob, stream: form.stream,
@@ -323,11 +314,11 @@ function AddLearnerModal({ onClose, isAdmin, streams, curr }) {
       t1: 0, t2: 0, t3: 0, arrears: Number(form.arrears) || 0,
       bloodGroup: form.bloodGroup, allergies: form.allergies,
       medicalCondition: form.medicalCondition, emergencyContact: form.emergencyContact,
-    });
+    };
 
     const saveRes = await fetch('/api/db', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_learners', value: list }] }),
+      body: JSON.stringify({ requests: [{ type: 'bulkAddLearners', learners: [newLearner] }] }),
     });
     const saveData = await saveRes.json();
     if (saveData.results?.[0]?.error) {
