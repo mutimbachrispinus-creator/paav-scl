@@ -36,12 +36,13 @@ export async function GET() {
       totalExpected += r.count * getAnnualFee(r.grade);
     });
 
-    // 5. Unread messages
+    /* 5. Unread messages (Temporarily disabled for speed)
     const msgRows = await query('SELECT COUNT(*) as count FROM messages WHERE tenant_id = ? AND msg_json NOT LIKE ?', [tenantId, `%${session.username}%`]);
     const unread = msgRows[0].count;
+    */
+    const unread = 0;
 
-    // 6. Attendance Red-Flags (Students missing 3+ days in the last 14 school days)
-    // We filter for status='A' (Absent)
+    /* 6. Attendance Red-Flags (Temporarily disabled for speed)
     const redFlags = await query(`
       SELECT 
         SUBSTR(grade_date_adm, INSTR(grade_date_adm, '|') + 11) as adm,
@@ -67,6 +68,8 @@ export async function GET() {
         return { ...rf, name: l?.name || 'Unknown', phone: l?.phone || '' };
       });
     }
+    */
+    const redFlagDetails = [];
 
     return NextResponse.json({
       ok: true,
