@@ -5,13 +5,14 @@ export const runtime = 'edge';
  */
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { JSS_SCALE, PRIMARY_SCALE } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
+import { useProfile } from '@/app/PortalShell';
 
 export default function GradingSettingsPage() {
-  const router  = useRouter();
-  const [k6,     setK6]     = useState(PRIMARY_SCALE.map(s => ({ ...s })));
-  const [junior, setJunior] = useState(JSS_SCALE.map(s => ({ ...s })));
-  const [senior, setSenior] = useState(JSS_SCALE.map(s => ({ ...s })));
+  const router = useRouter();
+  const { profile: school } = useProfile();
+  const curr = getCurriculum(school?.curriculum || 'CBC');
+  const [scales, setScales] = useState({}); // { key: [levels] }
   
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -45,19 +46,13 @@ export default function GradingSettingsPage() {
       }
       
       const db  = await dbRes.json();
-      const cfg = db.results?.[0]?.value;
+      const cfg = db.results?.[0]?.value || {};
       
-      if (cfg) {
-        // Backwards compatibility with old pri/jss config
-        if (cfg.k6) setK6(cfg.k6.map(s => ({ ...s })));
-        else if (cfg.pri) setK6(cfg.pri.map(s => ({ ...s })));
-        
-        if (cfg.junior) setJunior(cfg.junior.map(s => ({ ...s })));
-        else if (cfg.jss) setJunior(cfg.jss.map(s => ({ ...s })));
-        
-        if (cfg.senior) setSenior(cfg.senior.map(s => ({ ...s })));
-        else if (cfg.jss) setSenior(cfg.jss.map(s => ({ ...s })));
-      }
+      const nextScales = {};
+      curr.GRADING_CONFIG.forEach(gc => {
+        nextScales[gc.key] = (cfg[gc.key] || gc.scale).map(s => ({ ...s }));
+      });
+      setScales(nextScales);
     } catch (e) {
       console.error('[Grading] Load failed:', e);
       setError(e.message || 'Connection timed out. Please try again.');
@@ -71,7 +66,7 @@ export default function GradingSettingsPage() {
   async function save() {
     await fetch('/api/db', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ requests:[{ type:'set', key:'paav8_grad', value:{ k6, junior, senior } }] }),
+      body: JSON.stringify({ requests:[{ type:'set', key:'paav8_grad', value: scales }] }),
     });
     setSaved(true); setTimeout(() => setSaved(false), 3000);
   }
@@ -87,7 +82,7 @@ export default function GradingSettingsPage() {
   return (
     <div className="page on">
       <div className="page-hdr">
-        <div><h2>⚙ Grading Settings</h2><p>Adjust CBC minimum score thresholds per level</p></div>
+        <div><h2>⚙ Grading Settings</h2><p>Adjust {school?.curriculum || 'CBC'} minimum score thresholds per level</p></div>
         <div className="page-hdr-acts">
           <button className="btn btn-ghost btn-sm" onClick={load}>↺ Reset to DB</button>
           <button className="btn btn-primary btn-sm" onClick={save}>💾 Save Changes</button>
@@ -98,9 +93,15 @@ export default function GradingSettingsPage() {
         Changes apply immediately to all marks entry, report cards, and merit lists.
         Lowering a threshold upgrades learners; raising it downgrades them.
       </div>
-      <ScaleEditor scale={k6} setScale={setK6} title="🟢 K–Grade 6" />
-      <ScaleEditor scale={junior} setScale={setJunior} title="🟡 Junior School (7–9)" />
-      <ScaleEditor scale={senior} setScale={setSenior} title="🔴 Senior School (10–12)" />
+      
+      {curr.GRADING_CONFIG.map(gc => (
+        <ScaleEditor 
+          key={gc.key} 
+          scale={scales[gc.key] || []} 
+          setScale={newScale => setScales(prev => ({ ...prev, [gc.key]: newScale }))} 
+          title={gc.title} 
+        />
+      ))}
     </div>
   );
 }

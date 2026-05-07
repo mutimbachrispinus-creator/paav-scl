@@ -7,6 +7,8 @@ import { readSchoolProfile } from '@/lib/school-profile';
 import { useProfile } from '@/app/PortalShell';
 import { useSearchParams } from 'next/navigation';
 
+import { getCurriculum } from '@/lib/curriculum';
+
 const PRESET_COLORS = [
   { name: 'Maroon (Default)', p: '#8B1A1A', s: '#D4AF37' },
   { name: 'Navy Blue', p: '#1E3A8A', s: '#3B82F6' },
@@ -21,8 +23,10 @@ function SchoolProfileContent() {
   const [user, setUser] = useState(null);
   
   const [profile, setProfile] = useState(() => {
-    if (typeof window === 'undefined') return { name: '', motto: '', phone: '', email: '', address: '', website: '', logo: '', bankAccounts: [] };
-    return readSchoolProfile() || { name: '', motto: '', phone: '', email: '', address: '', website: '', logo: '', bankAccounts: [] };
+    if (typeof window === 'undefined') return { name: '', motto: '', phone: '', email: '', address: '', website: '', logo: '', bankAccounts: [], levels: { pre: true, primary: true, junior: true, senior: true } };
+    const p = readSchoolProfile() || { name: '', motto: '', phone: '', email: '', address: '', website: '', logo: '', bankAccounts: [], levels: { pre: true, primary: true, junior: true, senior: true } };
+    if (!p.levels) p.levels = { pre: true, primary: true, junior: true, senior: true };
+    return p;
   });
   
   const [theme, setTheme] = useState(() => {
@@ -139,6 +143,17 @@ function SchoolProfileContent() {
       setProfile({ ...profile, logo: compressedBase64 });
     } catch (err) {
       alert("Failed to process logo image.");
+    }
+  };
+
+  const handleSignatureUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressedBase64 = await compressImage(file, 600, 200, 0.9);
+      setProfile({ ...profile, principalSignature: compressedBase64 });
+    } catch (err) {
+      alert("Failed to process signature image.");
     }
   };
 
@@ -280,6 +295,30 @@ function SchoolProfileContent() {
                       <strong>Important:</strong> Changing the curriculum is a major system change. It will update the structure of your student records and academic reporting. Please ensure you have backed up any necessary data before switching.
                     </div>
                   </div>
+
+                  <div style={{ marginTop: 30 }}>
+                    <h3 style={{ margin: '0 0 10px 0', fontSize: 16 }}>🏫 Institutional Levels</h3>
+                    <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 15 }}>Uncheck levels that your school DOES NOT offer to hide them from the system UI.</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      {(getCurriculum(profile.curriculum || 'CBC').CATEGORIES || []).map(cat => (
+                        <LevelCheck 
+                          key={cat.title} 
+                          label={cat.title} 
+                          on={profile.levels?.[cat.levelKey || cat.title.toLowerCase().replace(/ /g,'_')] !== false} 
+                          toggle={() => {
+                            const key = cat.levelKey || cat.title.toLowerCase().replace(/ /g,'_');
+                            setProfile({
+                              ...profile, 
+                              levels: {
+                                ...(profile.levels || {}),
+                                [key]: profile.levels?.[key] === false ? true : false
+                              }
+                            });
+                          }} 
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -300,6 +339,19 @@ function SchoolProfileContent() {
                   <label>Physical Address</label>
                   <textarea value={profile.address} onChange={e => setProfile({...profile, address: e.target.value})} placeholder="Street, City, Country" style={{ minHeight: 80 }} />
                 </div>
+                <div className="field">
+                  <label>Principal's Digital Signature</label>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                    <input type="file" accept="image/png" onChange={handleSignatureUpload} style={{ flex: 1, padding: '8px', border: '1px solid var(--border)', borderRadius: 8 }} />
+                    {profile.principalSignature && (
+                      <div style={{ height: 40, padding: '4px', border: '1px solid #ddd', borderRadius: 8, background: '#fff' }}>
+                        <img src={profile.principalSignature} alt="Sig Preview" style={{ height: '100%' }} />
+                      </div>
+                    )}
+                  </div>
+                  <p style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>Used for automatic batch signing of report cards. PNG with transparency preferred.</p>
+                </div>
+
                 <div className="field">
                   <label>Website URL</label>
                   <input value={profile.website} onChange={e => setProfile({...profile, website: e.target.value})} placeholder="https://www.school.com" />
@@ -429,6 +481,15 @@ function SchoolProfileContent() {
           100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb, 37, 99, 235), 0); }
         }
       `}</style>
+    </div>
+  );
+}
+
+function LevelCheck({ label, on, toggle }) {
+  return (
+    <div onClick={toggle} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: on ? '#EFF6FF' : '#F1F5F9', border: `1.5px solid ${on ? '#3B82F6' : '#E2E8F0'}`, borderRadius: 12, cursor: 'pointer', transition: '0.2s' }}>
+      <div style={{ width: 18, height: 18, borderRadius: 4, background: on ? '#3B82F6' : '#fff', border: '2px solid #3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 900 }}>{on ? '✓' : ''}</div>
+      <span style={{ fontSize: 13, fontWeight: 700, color: on ? '#1E3A8A' : '#64748B' }}>{label}</span>
     </div>
   );
 }

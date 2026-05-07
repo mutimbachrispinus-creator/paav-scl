@@ -101,20 +101,7 @@ export default function LearnersPage() {
         <div className="page-hdr">
           <div>
             <h2>🎓 Learners</h2>
-            <p>All enrolled learners — {curr.name} {school.learnerLimit && (
-              <span style={{ 
-                marginLeft: 10, 
-                fontSize: 11, 
-                fontWeight: 800, 
-                padding: '3px 10px', 
-                borderRadius: 20, 
-                background: learners.length >= school.learnerLimit ? '#FEE2E2' : learners.length >= school.learnerLimit * 0.9 ? '#FEF3C7' : '#E2E8F0',
-                color: learners.length >= school.learnerLimit ? '#991B1B' : learners.length >= school.learnerLimit * 0.9 ? '#92400E' : '#475569',
-                border: '1.5px solid currentColor'
-              }}>
-                Usage: {learners.length} / {school.learnerLimit}
-              </span>
-            )}</p>
+            <p>All enrolled learners — {curr.name}</p>
           </div>
           <div className="page-hdr-acts">
             <button className="btn btn-ghost btn-sm" onClick={() => router.push('/learners/bulk')}>
@@ -133,15 +120,9 @@ export default function LearnersPage() {
             <button className="btn btn-ghost btn-sm" onClick={() => router.push('/profile?tab=learner')}>
               🔍 Advanced Directory
             </button>
-            {school.learnerLimit && (learners.length >= school.learnerLimit) ? (
-              <button className="btn btn-gold btn-sm" onClick={() => setModal('upgrade')}>
-                🚀 Request Upgrade
-              </button>
-            ) : (
-              <button className="btn btn-primary btn-sm" onClick={() => setModal('add')}>
-                ➕ Add Learner
-              </button>
-            )}
+            <button className="btn btn-primary btn-sm" onClick={() => setModal('add')}>
+              ➕ Add Learner
+            </button>
           </div>
         </div>
 
@@ -355,6 +336,11 @@ function AddLearnerModal({ onClose, isAdmin, streams, curr }) {
       return;
     }
 
+    // Trigger platform-wide sync
+    const { invalidateDB } = await import('@/lib/client-cache');
+    invalidateDB('paav6_learners');
+    window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav6_learners'] } }));
+
     setBusy(false);
     onClose();
   }
@@ -379,7 +365,14 @@ function AddLearnerModal({ onClose, isAdmin, streams, curr }) {
       {err && <div className="alert alert-err show">{err}</div>}
       <div className="field-row">
         <div className="field"><label>Full Name</label>
-          <input autoComplete="off" value={form.name} onChange={e => F('name', e.target.value)} /></div>
+          <input 
+            autoComplete="new-student-name" 
+            name="new-student-name"
+            id="new-student-name"
+            value={form.name} 
+            onChange={e => F('name', e.target.value)} 
+            placeholder="First Middle Last"
+          /></div>
         <div className="field"><label>Grade</label>
           <select value={form.grade} onChange={e => F('grade', e.target.value)}>
             <option value="">Select</option>
@@ -393,7 +386,7 @@ function AddLearnerModal({ onClose, isAdmin, streams, curr }) {
             setForm(f => ({ ...f, dob, age: calculateAge(dob) }));
           }} /></div>
         <div className="field"><label>Adm No (auto if blank)</label>
-          <input autoComplete="off" value={form.adm} onChange={e => F('adm', e.target.value)} placeholder="e.g. 2026001" /></div>
+          <input autoComplete="new-password" value={form.adm} onChange={e => F('adm', e.target.value)} placeholder="e.g. 2026001" /></div>
       </div>
       <div className="field-row">
         <div className="field"><label>Gender</label>
@@ -414,9 +407,23 @@ function AddLearnerModal({ onClose, isAdmin, streams, curr }) {
       </div>
       <div className="field-row">
         <div className="field"><label>Parent / Guardian</label>
-          <input autoComplete="off" value={form.parent} onChange={e => F('parent', e.target.value)} /></div>
+          <input 
+            autoComplete="new-parent-name" 
+            name="new-parent-name"
+            id="new-parent-name"
+            value={form.parent} 
+            onChange={e => F('parent', e.target.value)} 
+          /></div>
         <div className="field"><label>Phone</label>
-          <input autoComplete="off" value={form.phone} onChange={e => F('phone', e.target.value)} type="tel" placeholder="07XXXXXXXX" /></div>
+          <input 
+            autoComplete="new-parent-phone" 
+            name="new-parent-phone"
+            id="new-parent-phone"
+            value={form.phone} 
+            onChange={e => F('phone', e.target.value)} 
+            type="tel" 
+            placeholder="07XXXXXXXX" 
+          /></div>
       </div>
       <div className="field"><label>Parent Email (for receipts/reports)</label>
         <input autoComplete="off" value={form.parentEmail} onChange={e => F('parentEmail', e.target.value)} type="email" placeholder="parent@example.com" /></div>
@@ -615,6 +622,9 @@ function EditLearnerModal({ onClose, learner, isAdmin, streams, curr }) {
       if (data.results?.[0]?.error) {
         setErr(data.results[0].error);
       } else {
+        const { invalidateDB } = await import('@/lib/client-cache');
+        invalidateDB('paav6_learners');
+        window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav6_learners'] } }));
         onClose();
       }
     } catch (e) {
@@ -631,7 +641,7 @@ function EditLearnerModal({ onClose, learner, isAdmin, streams, curr }) {
       {err && <div className="alert alert-err show">{err}</div>}
       <div className="field-row">
         <div className="field"><label>Full Name</label>
-          <input value={form.name} onChange={e => F('name', e.target.value)} /></div>
+          <input autoComplete="off" value={form.name} onChange={e => F('name', e.target.value)} /></div>
         <div className="field"><label>Grade</label>
           <select value={form.grade} onChange={e => F('grade', e.target.value)}>
             <option value="">Select</option>

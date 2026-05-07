@@ -4,9 +4,63 @@ import { useEffect, useState } from 'react';
 
 const M = '#4F46E5', SLATE = '#64748B', NAVY = '#0F172A', EMERALD = '#10B981';
 
+import { useEffect, useState } from 'react';
+
+function PaymentPromptModal({ plan, payments, studentCount, onClose }) {
+  const total = plan.billingModel === 'per-learner' ? plan.price * studentCount : plan.price;
+  
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div className="panel" style={{ maxWidth: 500, width: '100%', padding: 40, borderRadius: 32, boxShadow: '0 25px 50px rgba(0,0,0,0.3)', position: 'relative' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#64748B' }}>✕</button>
+        
+        <div style={{ textAlign: 'center', marginBottom: 30 }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>💳</div>
+          <h2 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A' }}>Activate {plan.name}</h2>
+          <p style={{ color: '#64748B', fontSize: 14 }}>To upgrade your institutional license, please complete the payment below.</p>
+        </div>
+
+        <div style={{ background: '#F8FAFC', padding: 20, borderRadius: 16, border: '1px solid #E2E8F0', marginBottom: 25, textAlign: 'center' }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>Total Amount Payable</div>
+          <div style={{ fontSize: 32, fontWeight: 900, color: '#4F46E5' }}>KES {total.toLocaleString()}</div>
+          {plan.billingModel === 'per-learner' && (
+            <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 4 }}>({studentCount} Students × KES {plan.price})</div>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {payments.map((p, i) => (
+            <div key={i} style={{ padding: 16, border: '1.5px solid #4F46E515', borderRadius: 16, background: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: '#4F46E5' }}>{p.type.toUpperCase()} • {p.name}</span>
+                <span style={{ fontSize: 10, background: '#EEF2FF', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>VERIFIED</span>
+              </div>
+              <div style={{ display: 'flex', gap: 20 }}>
+                <div>
+                  <div style={{ fontSize: 9, color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>{p.type === 'Bank' ? 'Account Number' : p.type === 'PesaPal' ? 'Consumer Key' : 'Shortcode'}</div>
+                  <div style={{ fontWeight: 900, fontSize: 18, color: '#0F172A' }}>{p.shortcode || p.account || p.consumerKey}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 9, color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>Account / Reference</div>
+                  <div style={{ fontWeight: 900, fontSize: 18, color: '#0F172A' }}>{p.account || 'EDUVANTAGE'}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 25, padding: 15, background: '#EFF6FF', borderRadius: 12, border: '1px solid #DBEAFE', fontSize: 12, color: '#1E40AF', lineHeight: 1.5 }}>
+          <strong>Note:</strong> Once you make the payment, your license will be updated within 5-10 minutes. For instant activation, send your payment screenshot to <b>+254 792 656 579</b>.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BillingPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -134,11 +188,26 @@ export default function BillingPage() {
                   </li>
                 ))}
               </ul>
-              <button className="btn" style={{ width: '100%', padding: 14, borderRadius: 14, background: idx === 1 ? M : NAVY, color: '#fff', fontWeight: 800, border: 'none', cursor: 'pointer' }}>Switch to {p.name}</button>
+              <button 
+                className="btn" 
+                onClick={() => setSelectedPlan(p)}
+                style={{ width: '100%', padding: 14, borderRadius: 14, background: idx === 1 ? M : NAVY, color: '#fff', fontWeight: 800, border: 'none', cursor: 'pointer' }}
+              >
+                Switch to {p.name}
+              </button>
             </div>
           ))}
         </div>
       </div>
+
+      {selectedPlan && (
+        <PaymentPromptModal 
+          plan={selectedPlan} 
+          payments={data.platformPayments} 
+          studentCount={data.studentCount}
+          onClose={() => setSelectedPlan(null)} 
+        />
+      )}
     </div>
   );
 }

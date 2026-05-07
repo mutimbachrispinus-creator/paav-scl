@@ -345,7 +345,7 @@ export default function PortalShell({ children }) {
       }
 
       // Refresh other shell state if relevant keys changed
-      const networkKeys = ['paav_announcement','paav6_msgs','paav_hero_img','paav7_duties','paav_staff_reqs'];
+      const networkKeys = ['paav_announcement','paav6_msgs','paav_hero_img','paav7_duties','paav_staff_reqs','paav6_learners'];
       if (changed.some(k => networkKeys.includes(k))) {
         loadSession();
       }
@@ -542,7 +542,7 @@ export default function PortalShell({ children }) {
           </button>
         )}
         <ErrorBoundary>
-          {profile.learnerCount > profile.learnerLimit && user?.role !== 'super-admin' && !NO_NAV_PATHS.includes(pathname) && pathname !== '/billing' ? (
+          {profile.learnerCount >= profile.learnerLimit && !profile.skipLimit && user?.role !== 'super-admin' && !NO_NAV_PATHS.includes(pathname) && pathname !== '/billing' ? (
             <SystemLockout profile={profile} />
           ) : (
             children

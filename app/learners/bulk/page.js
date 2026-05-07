@@ -23,7 +23,7 @@ export default function BulkLearnersPage() {
   }, [school?.curriculum]);
 
   const EMPTY_ROW = { 
-    adm: '', name: '', dob: '', grade: ALL_GRADES[0] || 'GRADE 1', sex: 'F', age: '', 
+    adm: '', name: '', dob: '', grade: '', sex: 'F', age: '', 
     stream: '', parent: '', phone: '', parentEmail: '', addr: '',
     t1: 0, t2: 0, t3: 0, teacher: '', arrears: 0
   };
@@ -40,7 +40,10 @@ export default function BulkLearnersPage() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!bulkGrade && ALL_GRADES.length > 0) setBulkGrade(ALL_GRADES[0]);
+    if (!bulkGrade && ALL_GRADES.length > 0) {
+      setBulkGrade(ALL_GRADES[0]);
+      setRows(prev => prev.map(r => ({ ...r, grade: ALL_GRADES[0] })));
+    }
   }, [ALL_GRADES, bulkGrade]);
 
   useEffect(() => {
@@ -121,18 +124,7 @@ export default function BulkLearnersPage() {
     setRows([...filled, ...buffer]);
   }
 
-  function addLearnerToGrid(l) {
-    const newRows = [...rows];
-    const emptyIdx = newRows.findIndex(r => !r.adm && !r.name);
-    if (emptyIdx === -1) {
-      newRows.push({ ...EMPTY_ROW, ...l });
-    } else {
-      newRows[emptyIdx] = { ...EMPTY_ROW, ...l };
-    }
-    setRows(newRows);
-    setPickerSearch('');
-    setShowPicker(false);
-  }
+  // Individual learner picker removed to avoid confusion
 
   function deduplicateRows() {
     const valid = rows.filter(r => r.name && r.adm);
@@ -436,37 +428,7 @@ export default function BulkLearnersPage() {
 
           <div style={{ borderLeft: '1px solid var(--border)', height: 30, margin: '0 8px' }}></div>
 
-          <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--navy)', marginBottom: 2 }}>👤 Add Individual Learner</div>
-            <input autoComplete="off" 
-              type="text" 
-              className="sc-inp" 
-              placeholder="Search existing learner name..." 
-              value={pickerSearch} 
-              onFocus={() => setShowPicker(true)}
-              onChange={e => { setPickerSearch(e.target.value); setShowPicker(true); }}
-              style={{ width: '100%', height: 34 }}
-            />
-            {showPicker && pickerSearch.length > 0 && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 100, maxHeight: 200, overflowY: 'auto' }}>
-                {learners
-                  .filter(l => l.name.toLowerCase().includes(pickerSearch.toLowerCase()) || l.adm.includes(pickerSearch))
-                  .slice(0, 10)
-                  .map(l => (
-                    <div key={l.adm} 
-                      onClick={() => addLearnerToGrid(l)}
-                      style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
-                      <strong>{l.name}</strong> <span style={{ color: 'var(--muted)', fontSize: 11 }}>({l.adm} · {l.grade})</span>
-                    </div>
-                  ))
-                }
-                {learners.filter(l => l.name.toLowerCase().includes(pickerSearch.toLowerCase()) || l.adm.includes(pickerSearch)).length === 0 && (
-                  <div style={{ padding: 12, color: 'var(--muted)', fontSize: 12 }}>No matches found</div>
-                )}
-              </div>
-            )}
-            {showPicker && <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setShowPicker(false)}></div>}
-          </div>
+          {/* Individual Learner Picker Removed */}
         </div>
       </div>
 

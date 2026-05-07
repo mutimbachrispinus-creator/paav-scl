@@ -462,7 +462,7 @@ export default function FeesPage() {
 /* ─── Paybill Config Modal ──────────────────────────────────────────────── */
 function PaybillConfigModal({ accounts, onClose }) {
   const [list, setList] = useState(
-    accounts.length ? accounts : [{ id: Date.now(), name: '', shortcode: '', passkey: '', type: 'Paybill' }]
+    accounts.length ? accounts : [{ id: Date.now(), name: '', shortcode: '', passkey: '', type: 'M-Pesa' }]
   );
   const [busy, setBusy] = useState(false);
 
@@ -476,15 +476,15 @@ function PaybillConfigModal({ accounts, onClose }) {
     onClose();
   }
 
-  const add = () => setList([...list, { id: Date.now(), name: '', shortcode: '', passkey: '', type: 'Paybill' }]);
+  const add = () => setList([...list, { id: Date.now(), name: '', shortcode: '', passkey: '', type: 'M-Pesa' }]);
   const del = (id) => setList(list.filter(x => x.id !== id));
   const upd = (id, k, v) => setList(list.map(x => x.id === id ? { ...x, [k]: v } : x));
 
   return (
     <ModalOverlay title="📱 M-Pesa Payment Accounts" onClose={onClose}>
       <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 15 }}>
-        Configure the M-Pesa Paybill or Till numbers parents will use to pay fees.
-        The Passkey is your Lipa na M-Pesa Online passkey (from Safaricom Daraja).
+        Configure the M-Pesa (Daraja), PesaPal (Card), or Bank accounts parents will use to pay fees.
+        School details are managed separately from platform subscription billing.
       </p>
       <div style={{ maxHeight: 420, overflowY: 'auto', paddingRight: 4 }}>
         {list.map((a, i) => (
@@ -507,16 +507,41 @@ function PaybillConfigModal({ accounts, onClose }) {
               <div className="field">
                 <label>Type</label>
                 <select value={a.type} onChange={e => upd(a.id, 'type', e.target.value)}>
-                  <option>Paybill</option>
-                  <option>Till</option>
+                  <option value="M-Pesa">M-Pesa (Daraja STK)</option>
+                  <option value="PesaPal">PesaPal (Card/Mobile)</option>
+                  <option value="Bank">Direct Bank Transfer</option>
                 </select>
               </div>
             </div>
             <div className="field">
-              <label>Online Passkey (Lipa na M-Pesa Online — from Safaricom)</label>
-              <input type="password" value={a.passkey} onChange={e => upd(a.id, 'passkey', e.target.value)} placeholder="bfb279f9aa9bdbcf158e97dd71a467cd..." />
-              <span style={{ fontSize: 11, color: 'var(--muted)' }}>Stored securely. Never exposed to parents or browser.</span>
+              <label>{a.type === 'Bank' ? 'Account Number' : a.type === 'PesaPal' ? 'Consumer Key' : 'Shortcode / Paybill'}</label>
+              <input value={a.shortcode || a.accNo || a.consumerKey} onChange={e => {
+                if (a.type === 'Bank') upd(a.id, 'accNo', e.target.value);
+                else if (a.type === 'PesaPal') upd(a.id, 'consumerKey', e.target.value);
+                else upd(a.id, 'shortcode', e.target.value);
+              }} placeholder={a.type === 'Bank' ? '1234567890' : a.type === 'PesaPal' ? 'Consumer Key' : '400200'} />
             </div>
+
+            {a.type === 'M-Pesa' && (
+              <div className="field">
+                <label>Online Passkey (Lipa na M-Pesa Online)</label>
+                <input type="password" value={a.passkey} onChange={e => upd(a.id, 'passkey', e.target.value)} placeholder="bfb279f..." />
+              </div>
+            )}
+
+            {a.type === 'PesaPal' && (
+              <div className="field">
+                <label>Consumer Secret</label>
+                <input type="password" value={a.consumerSecret} onChange={e => upd(a.id, 'consumerSecret', e.target.value)} placeholder="Consumer Secret..." />
+              </div>
+            )}
+
+            {a.type === 'Bank' && (
+              <div className="field-row">
+                <div className="field"><label>Bank Name</label><input value={a.bank} onChange={e => upd(a.id, 'bank', e.target.value)} placeholder="e.g. KCB" /></div>
+                <div className="field"><label>Branch</label><input value={a.branch} onChange={e => upd(a.id, 'branch', e.target.value)} placeholder="Westlands" /></div>
+              </div>
+            )}
           </div>
         ))}
       </div>

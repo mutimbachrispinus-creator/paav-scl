@@ -3,7 +3,9 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti, invalidateDB } from '@/lib/client-cache';
-import { ALL_GRADES } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
+import { useProfile } from '@/app/PortalShell';
+import { isLevelEnabled } from '@/lib/cbe';
 
 export default function StreamsPage() {
   const router = useRouter();
@@ -11,9 +13,16 @@ export default function StreamsPage() {
   const [streams, setStaffStreams] = useState([]); // Array of { grade, name, teacherId }
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { profile: school } = useProfile();
+  const curr = getCurriculum(school?.curriculum || 'CBC');
+  const ALL_GRADES = (curr.ALL_GRADES || []).filter(g => isLevelEnabled(g, school, school?.curriculum || 'CBC'));
   const [newStream, setNewStream] = useState('');
-  const [selectedGrade, setSelectedGrade] = useState('GRADE 1');
+  const [selectedGrade, setSelectedGrade] = useState('');
   const [selectedTeacher, setSelectedTeacher] = useState('');
+
+  useEffect(() => {
+    if (!selectedGrade && ALL_GRADES.length > 0) setSelectedGrade(ALL_GRADES[0]);
+  }, [ALL_GRADES, selectedGrade]);
 
   const load = useCallback(async () => {
     const u = await getCachedUser();

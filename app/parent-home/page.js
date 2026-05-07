@@ -395,104 +395,126 @@ export default function ParentHome() {
 
       {/* PERFORMANCE TAB */}
       {tab==='perf' && (
-        <div>
-          <div style={{display:'flex',gap:10,marginBottom:14,flexWrap:'wrap'}}>
-            <select value={term} onChange={e=>setTerm(e.target.value)} style={{borderRadius:8,padding:'7px 10px',border:`2px solid ${MB}`,fontSize:12,outline:'none'}}>
-              <option value="T1">Term 1</option><option value="T2">Term 2</option><option value="T3">Term 3</option>
-            </select>
-            <select value={assess} onChange={e=>setAssess(e.target.value)} style={{borderRadius:8,padding:'7px 10px',border:`2px solid ${MB}`,fontSize:12,outline:'none'}}>
-              <option value="op1">Opener</option><option value="mt1">Mid-Term</option><option value="et1">End-Term</option>
-            </select>
+        <div className="animate-in">
+          <div style={{display:'flex',gap:12,marginBottom:18,flexWrap:'wrap',background:MB,padding:10,borderRadius:12}}>
+            <div style={{flex:1}}>
+              <label style={{fontSize:10,fontWeight:800,color:M,textTransform:'uppercase',display:'block',marginBottom:4}}>Academic Period</label>
+              <select value={term} onChange={e=>setTerm(e.target.value)} style={{width:'100%',borderRadius:8,padding:'8px 12px',border:`1.5px solid ${MB}`,fontSize:13,fontWeight:700,outline:'none',background:'#fff'}}>
+                <option value="T1">Term 1</option><option value="T2">Term 2</option><option value="T3">Term 3</option>
+              </select>
+            </div>
+            <div style={{flex:1}}>
+              <label style={{fontSize:10,fontWeight:800,color:M,textTransform:'uppercase',display:'block',marginBottom:4}}>Assessment Type</label>
+              <select value={assess} onChange={e=>setAssess(e.target.value)} style={{width:'100%',borderRadius:8,padding:'8px 12px',border:`1.5px solid ${MB}`,fontSize:13,fontWeight:700,outline:'none',background:'#fff'}}>
+                <option value="op1">Opener Assessment</option><option value="mt1">Mid-Term Assessment</option><option value="et1">Final Assessment</option>
+              </select>
+            </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
-            {/* Subject List */}
-            <div className="panel" style={{border:`1.5px solid ${MB}`}}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+            {/* Subject Mastery List */}
+            <div className="panel" style={{border:`1.5px solid ${MB}`, boxShadow: '0 4px 20px rgba(0,0,0,0.03)'}}>
               <div className="panel-hdr" style={{background:`linear-gradient(135deg,${M},${M2})`,color:'#fff'}}>
-                <h3 style={{color:'#fff'}}>📊 {child?.name} — {term} Performance</h3>
+                <h3 style={{color:'#fff'}}>🎯 {child?.name.split(' ')[0]}'s Mastery</h3>
               </div>
-              <div className="panel-body">
+              <div className="panel-body" style={{padding:'5px 15px'}}>
                 {subjs.map(s => {
                   const key = `${term}:${child?.grade}|${s}|${assess}`;
                   const sc = marks[key]?.[child?.adm];
                   const info = sc!=null ? gInfo(Number(sc),child?.grade) : null;
+                  const isCBC = (child?.grade || '').startsWith('GRADE') || (child?.grade || '').startsWith('PP');
+                  
                   return (
-                    <div key={s} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 0',borderBottom:'1px solid var(--border)'}}>
-                      <div style={{flex:1,fontWeight:600,fontSize:13}}>{s}</div>
+                    <div key={s} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 0',borderBottom:'1px solid #F1F5F9'}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontWeight:800,fontSize:14,color:'var(--navy)'}}>{s}</div>
+                        <div style={{fontSize:10,color:'var(--muted)',fontWeight:700}}>{assess.toUpperCase()} · {term}</div>
+                      </div>
                       {sc!=null ? (
-                        <>
-                          <span style={{fontWeight:800,fontSize:16,color:info.c}}>{sc}</span>
-                          <span style={{padding:'2px 8px',borderRadius:20,fontSize:11,fontWeight:800,background:info.bg,color:info.c}}>{info.lv}</span>
-                        </>
-                      ) : <span style={{color:'var(--muted)',fontSize:12}}>—</span>}
+                        <div style={{textAlign:'right'}}>
+                          <div style={{fontWeight:900,fontSize:18,color:info.c}}>{sc}<span style={{fontSize:10,fontWeight:700}}>%</span></div>
+                          <span style={{padding:'2px 8px',borderRadius:20,fontSize:10,fontWeight:900,background:info.bg,color:info.c,border:`1px solid ${info.c}33`}}>
+                            {isCBC ? info.lv : info.lv}
+                          </span>
+                        </div>
+                      ) : <span style={{color:'#CBD5E1',fontSize:11,fontStyle:'italic'}}>Pending...</span>}
                     </div>
                   );
                 })}
-                {subjs.length===0&&<div style={{color:'var(--muted)',padding:20,textAlign:'center'}}>No subjects found for {child?.grade}</div>}
+                {subjs.length===0&&<div style={{color:'var(--muted)',padding:40,textAlign:'center'}}>No curriculum data found.</div>}
               </div>
             </div>
 
-            {/* Analysis Panel */}
-            <div className="panel" style={{ border: '1.5px solid #BFDBFE' }}>
-              <div className="panel-hdr" style={{ background: 'linear-gradient(135deg, #1D4ED8, #1E3A8A)', color: '#fff' }}>
-                <h3 style={{ color: '#fff' }}>📈 Performance Analysis</h3>
+            {/* Premium Analytics Panel */}
+            <div className="panel" style={{ border: '1.5px solid #BFDBFE', background: '#F8FAFF' }}>
+              <div className="panel-hdr" style={{ background: 'linear-gradient(135deg, #1E3A8A, #1D4ED8)', color: '#fff' }}>
+                <h3 style={{ color: '#fff' }}>🛡️ Competency Analysis</h3>
               </div>
-              <div className="panel-body">
+              <div className="panel-body" style={{ padding: 20 }}>
                 {(() => {
                   const scores = subjs.map(s => {
                     const sc = marks[`${term}:${child?.grade}|${s}|${assess}`]?.[child?.adm];
                     return sc != null ? { s, sc: Number(sc) } : null;
                   }).filter(Boolean);
                   
-                  if (!scores.length) return <p style={{ color: 'var(--muted)', fontSize: 13, textAlign: 'center', padding: 20 }}>Enter marks to see analysis</p>;
+                  if (!scores.length) return (
+                    <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                      <div style={{ fontSize: 48, marginBottom: 15 }}>📝</div>
+                      <div style={{ fontWeight: 800, color: 'var(--navy)' }}>Assessment in Progress</div>
+                      <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>Results for this period haven't been published yet. Please check back later.</p>
+                    </div>
+                  );
 
                   const avg = Math.round(scores.reduce((a, b) => a + b.sc, 0) / scores.length);
+                  const info = gInfo(avg, child?.grade);
                   const best = scores.reduce((a, b) => a.sc > b.sc ? a : b);
                   const worst = scores.reduce((a, b) => a.sc < b.sc ? a : b);
 
                   return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-                      <div style={{ background: '#EFF6FF', padding: 15, borderRadius: 12, textAlign: 'center', border: '1px solid #BFDBFE' }}>
-                        <div style={{ fontSize: 11, color: '#1D4ED8', fontWeight: 800, textTransform: 'uppercase' }}>{term} Average Score</div>
-                        <div style={{ fontSize: 42, fontWeight: 900, color: '#1E3A8A' }}>{avg}%</div>
-                        <div style={{ fontSize: 12, color: 'var(--muted)' }}>Based on {scores.length} subjects</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                      <div style={{ position: 'relative', height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ position: 'absolute', width: 120, height: 120, borderRadius: '50%', border: '8px solid #E2E8F0' }} />
+                        <div style={{ position: 'absolute', width: 120, height: 120, borderRadius: '50%', border: `8px solid ${info.c}`, borderTopColor: 'transparent', transform: `rotate(${avg * 3.6}deg)`, transition: 'transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)' }} />
+                        <div style={{ textAlign: 'center', zIndex: 1 }}>
+                          <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--navy)', lineHeight: 1 }}>{avg}%</div>
+                          <div style={{ fontSize: 10, fontWeight: 800, color: info.c, textTransform: 'uppercase' }}>{info.lv}</div>
+                        </div>
                       </div>
 
-                      {/* Performance Bar Chart */}
-                      <div style={{ marginTop: 10 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 15 }}>📊 Subject Comparison</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                          {scores.sort((a,b)=>b.sc - a.sc).map(s => {
-                            const info = gInfo(s.sc, child?.grade);
+                      <div style={{ background: '#fff', padding: 15, borderRadius: 12, border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', marginBottom: 12, borderBottom: '1px solid #F1F5F9', paddingBottom: 8 }}>📊 Subject Trends</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                          {scores.sort((a,b)=>b.sc - a.sc).slice(0, 5).map(s => {
+                            const si = gInfo(s.sc, child?.grade);
                             return (
-                              <div key={s.s} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <div style={{ width: 85, fontSize: 10.5, fontWeight: 700, color: 'var(--navy)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.s}</div>
-                                <div style={{ flex: 1, background: '#F1F5F9', height: 14, borderRadius: 7, overflow: 'hidden', position: 'relative' }}>
-                                  <div style={{ width: `${s.sc}%`, height: '100%', background: info.c, borderRadius: 7, transition: 'width 1s ease-out' }} />
+                              <div key={s.s}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, marginBottom: 4 }}>
+                                  <span>{s.s}</span>
+                                  <span style={{ color: si.c }}>{s.sc}%</span>
                                 </div>
-                                <div style={{ width: 35, fontSize: 11, fontWeight: 800, color: info.c, textAlign: 'right' }}>{s.sc}%</div>
+                                <div style={{ height: 6, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: `${s.sc}%`, background: si.c, borderRadius: 3 }} />
+                                </div>
                               </div>
                             );
                           })}
                         </div>
                       </div>
                       
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
-                        <div style={{ background: '#ECFDF5', padding: 12, borderRadius: 10, border: '1px solid #A7F3D0' }}>
-                          <div style={{ fontSize: 10, color: '#059669', fontWeight: 700 }}>🌟 Strongest</div>
-                          <div style={{ fontWeight: 800, fontSize: 13 }}>{best.s}</div>
-                          <div style={{ fontSize: 18, fontWeight: 900, color: '#059669' }}>{best.sc}%</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div style={{ background: '#F0FDF4', padding: 12, borderRadius: 12, border: '1px solid #DCFCE7' }}>
+                          <div style={{ fontSize: 9, color: '#166534', fontWeight: 800, textTransform: 'uppercase' }}>🌟 Strongest</div>
+                          <div style={{ fontWeight: 800, fontSize: 13, marginTop: 4 }}>{best.s}</div>
                         </div>
-                        <div style={{ background: '#FFF7ED', padding: 12, borderRadius: 10, border: '1px solid #FED7AA' }}>
-                          <div style={{ fontSize: 10, color: '#92400E', fontWeight: 700 }}>🚀 Needs Focus</div>
-                          <div style={{ fontWeight: 800, fontSize: 13 }}>{worst.s}</div>
-                          <div style={{ fontSize: 18, fontWeight: 900, color: '#DC2626' }}>{worst.sc}%</div>
+                        <div style={{ background: '#FFF7ED', padding: 12, borderRadius: 12, border: '1px solid #FFEDD5' }}>
+                          <div style={{ fontSize: 9, color: '#9A3412', fontWeight: 800, textTransform: 'uppercase' }}>🚀 Growth Area</div>
+                          <div style={{ fontWeight: 800, fontSize: 13, marginTop: 4 }}>{worst.s}</div>
                         </div>
                       </div>
 
-                      <div style={{ fontSize: 12, color: 'var(--muted)', background: '#F8FAFC', padding: 12, borderRadius: 10, fontStyle: 'italic' }}>
-                        💡 <strong>Insight:</strong> {child.name.split(' ')[0]} is performing best in <strong>{best.s}</strong>. 
-                        Consider providing more support in <strong>{worst.s}</strong> to improve overall performance.
+                      <div style={{ background: 'linear-gradient(135deg, #1E3A8A, #1D4ED8)', padding: 15, borderRadius: 12, color: '#fff', textAlign: 'center' }}>
+                         <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.8 }}>PREDICTED COMPETENCY</div>
+                         <div style={{ fontSize: 18, fontWeight: 900 }}>{info.desc}</div>
                       </div>
                     </div>
                   );
@@ -621,31 +643,56 @@ export default function ParentHome() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 15 }}>
                   {/* M-Pesa Accounts */}
                   {payInfo.accounts?.map(acc => (
-                    <div key={acc.id} style={{ background: '#fff', border: '2px solid #A7F3D0', borderRadius: 12, padding: 15, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div key={acc.id} style={{ background: '#fff', border: `2px solid ${acc.type === 'PesaPal' ? '#6366F1' : acc.type === 'Bank' ? '#BFDBFE' : '#A7F3D0'}`, borderRadius: 12, padding: 15, display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase' }}>{acc.type}</div>
-                          <div style={{ fontSize: 24, fontWeight: 900, color: '#065F46' }}>{acc.shortcode}</div>
-                          <div style={{ fontSize: 12, fontWeight: 700 }}>{acc.name}</div>
+                          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase' }}>{acc.type === 'M-Pesa' ? 'Mobile Money' : acc.type === 'PesaPal' ? 'Card / Online' : 'Bank Transfer'}</div>
+                          <div style={{ fontSize: 24, fontWeight: 900, color: acc.type === 'PesaPal' ? '#4F46E5' : acc.type === 'Bank' ? '#1E40AF' : '#065F46' }}>
+                            {acc.shortcode || acc.accNo || acc.consumerKey?.substring(0, 8)}
+                          </div>
+                          <div style={{ fontSize: 12, fontWeight: 700 }}>{acc.name} {acc.bank ? `(${acc.bank})` : ''}</div>
                         </div>
-                        <div style={{ background: '#ECFDF5', padding: '4px 8px', borderRadius: 8, fontSize: 10, color: '#059669', fontWeight: 800 }}>M-PESA</div>
+                        <div style={{ background: acc.type === 'PesaPal' ? '#EEF2FF' : acc.type === 'Bank' ? '#EFF6FF' : '#ECFDF5', padding: '4px 8px', borderRadius: 8, fontSize: 10, color: acc.type === 'PesaPal' ? '#4F46E5' : acc.type === 'Bank' ? '#1D4ED8' : '#059669', fontWeight: 800 }}>
+                          {acc.type.toUpperCase()}
+                        </div>
                       </div>
+                      
                       <div style={{ background: '#F8FAFF', padding: 8, borderRadius: 8, fontSize: 11 }}>
-                        Account: <strong>{child?.adm}</strong>
+                        Reference: <strong>{child?.adm}</strong>
                       </div>
-                      <button 
-                        className="btn btn-success btn-sm" 
-                        style={{ marginTop: 'auto', width: '100%', justifyContent: 'center' }}
-                        onClick={() => initiateMpesa(acc, 'Term ' + term.replace('T', ''))}
-                      >
-                        💚 Pay with STK Push
-                      </button>
+
+                      {acc.type === 'M-Pesa' && (
+                        <button 
+                          className="btn btn-success btn-sm" 
+                          style={{ marginTop: 'auto', width: '100%', justifyContent: 'center' }}
+                          onClick={() => initiateMpesa(acc, 'Term ' + term.replace('T', ''))}
+                        >
+                          💚 Pay with STK Push
+                        </button>
+                      )}
+
+                      {acc.type === 'PesaPal' && (
+                        <button 
+                          className="btn btn-primary btn-sm" 
+                          style={{ marginTop: 'auto', width: '100%', justifyContent: 'center', background: '#4F46E5' }}
+                          onClick={() => alert('PesaPal Card Payment Bridge: Redirecting to secure checkout...')}
+                        >
+                          💳 Pay with Card / Mobile
+                        </button>
+                      )}
+
+                      {acc.type === 'Bank' && (
+                        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 'auto' }}>
+                          Branch: <strong>{acc.branch || 'N/A'}</strong><br/>
+                          Use <strong>{child?.adm}</strong> as payment reference.
+                        </div>
+                      )}
                     </div>
                   ))}
 
-                  {/* Bank Accounts */}
+                  {/* Legacy Bank Accounts (Backward Compatibility) */}
                   {payInfo.profile?.bankAccounts?.map((acc, i) => (
-                    <div key={i} style={{ background: '#fff', border: '2px solid #BFDBFE', borderRadius: 12, padding: 15, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div key={'legacy-'+i} style={{ background: '#fff', border: '2px solid #BFDBFE', borderRadius: 12, padding: 15, display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
                           <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase' }}>Bank Transfer</div>

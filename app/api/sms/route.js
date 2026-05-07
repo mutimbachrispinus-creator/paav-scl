@@ -67,7 +67,7 @@ export async function POST(request) {
 
     /* ── Bulk SMS (admin only) ── */
     case 'bulk': {
-      if (session.role !== 'admin') return err('Only admins can send bulk SMS', 403);
+      if (!['admin', 'super-admin'].includes(session.role)) return err('Only admins can send bulk SMS', 403);
       const { phones, message } = body;
       if (!Array.isArray(phones) || !phones.length) return err('phones array is required');
       if (!message) return err('message is required');
@@ -84,9 +84,10 @@ export async function POST(request) {
 
     /* ── Credential delivery for new staff/parent ── */
     case 'credentials': {
-      if (session.role !== 'admin') return err('Only admins can send credentials', 403);
+      if (!['admin', 'super-admin'].includes(session.role)) return err('Only admins can send credentials', 403);
       const { userId } = body;
-      const staff = (await kvGet('paav6_staff')) || [];
+      const tid = session.tenantId || session.tenant_id;
+      const staff = (await kvGet('paav6_staff', [], tid)) || [];
       const user  = staff.find(s => s.id === userId);
       if (!user) return err(`User ${userId} not found`);
 
@@ -106,15 +107,17 @@ export async function POST(request) {
         return err('Only admins and staff can send fee reminders', 403);
       }
       const { admNo } = body;
-      const learners  = (await kvGet('paav6_learners')) || [];
-      const feeCfg    = (await kvGet('paav6_feecfg'))   || {};
+      const tid = session.tenantId || session.tenant_id;
+      const learners  = (await kvGet('paav6_learners', [], tid)) || [];
+      const feeCfg    = (await kvGet('paav6_feecfg', {}, tid))   || {};
       const learner   = learners.find(l => l.adm === String(admNo));
       if (!learner) return err(`Learner ${admNo} not found`);
 
       const annualFee = feeCfg[learner.grade]?.annual || 5000;
       const paid      = (learner.t1 || 0) + (learner.t2 || 0) + (learner.t3 || 0);
       const balance   = annualFee - paid;
-      const paybill   = (await kvGet('paav_paybill')) || '';
+      const accounts  = (await kvGet('paav_paybill_accounts', [], tid)) || [];
+      const paybill   = accounts[0]?.shortcode || (await kvGet('paav_paybill', '', tid)) || '';
 
       result = await sendFeeReminderSMS({
         parentPhone: learner.phone,
@@ -128,6 +131,37 @@ export async function POST(request) {
         to: learner.phone,
         message: `Fee reminder: ${learner.name}, Balance KSH ${balance}`,
         type: 'fee_reminder',
+        status: result.success ? 'sent' : 'failed',
+        sentBy: session.name,
+      });
+      break;
+    }
+
+    /* ── Bulk Absenteeism Alerts (Personalized) ── */
+    case 'bulk_absenteeism_alert': {
+      if (!['admin', 'super-admin'].includes(session.role)) return err('Unauthorized', 403);
+      const { alerts } = body; // Array of { phone, name, count }
+      if (!Array.isArray(alerts) || !alerts.length) return err('alerts array is required');
+
+      const results = [];
+      for (const a of alerts) {
+        if (!a.phone) continue;
+        const msg = `Attendance Alert: ${a.name} has missed ${a.count} days recently. Please contact the school office.`;
+        const r = await sendSMS({ to: a.phone, message: msg, ...creds });
+        results.push(r);
+      }
+      
+      const totalS = results.filter(r => r.success).length;
+      result = { 
+        success: totalS > 0,
+        totalSent: totalS,
+        totalFailed: results.length - totalS
+      };
+      
+      logEntry = smsLogEntry({
+        to: `${alerts.length} parents`,
+        message: 'Bulk Absenteeism Alert',
+        type: 'event',
         status: result.success ? 'sent' : 'failed',
         sentBy: session.name,
       });

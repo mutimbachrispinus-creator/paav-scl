@@ -190,17 +190,26 @@ async function handleRequest(req, auth, impTenant = null) {
       return { type: req.type, ok: true };
     }
 
-    case 'getDeletedLearners': {
+    case 'getDeletedLearners':
+    case 'get_deleted_learners': {
       if (auth.role !== 'admin') return { type: req.type, error: 'Unauthorized' };
       const { getDeletedLearners } = await import('@/lib/db');
-      const list = await getDeletedLearners(tenantId);
-      return { type: req.type, ok: true, list };
+      const value = await getDeletedLearners(tenantId);
+      return { type: req.type, ok: true, value };
     }
 
-    case 'restoreLearner': {
+    case 'restoreLearner':
+    case 'restore_learner': {
       if (auth.role !== 'admin') return { type: req.type, error: 'Unauthorized' };
       const { restoreLearner } = await import('@/lib/db');
       await restoreLearner(req.adm, tenantId);
+      return { type: req.type, ok: true };
+    }
+
+    case 'hard_delete_learner': {
+      if (auth.role !== 'admin') return { type: req.type, error: 'Unauthorized' };
+      const { hardDeleteLearner } = await import('@/lib/db');
+      await hardDeleteLearner(req.adm, tenantId);
       return { type: req.type, ok: true };
     }
 

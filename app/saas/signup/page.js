@@ -230,26 +230,28 @@ export default function EduVantageSignup() {
               </div>
             </div>
 
-            {selectedPlanData.billingModel === 'per-learner' && (
-              <div className="form-group fade-in" style={{ padding: 20, background: '#F1F5F9', borderRadius: 16 }}>
-                <label>Institutional Population (Students)</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
-                  <input 
-                    type="number" 
-                    required 
-                    min="1"
-                    placeholder="e.g. 250" 
-                    value={form.estimatedStudents} 
-                    onChange={e => setForm({...form, estimatedStudents: parseInt(e.target.value) || 0})} 
-                    style={{ flex: 1 }}
-                  />
+            <div className="form-group fade-in" style={{ padding: 20, background: '#F1F5F9', borderRadius: 16 }}>
+              <label>Institutional Population (Current Students) *</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+                <input 
+                  type="number" 
+                  required 
+                  min="1"
+                  placeholder="e.g. 250" 
+                  value={form.estimatedStudents} 
+                  onChange={e => setForm({...form, estimatedStudents: parseInt(e.target.value) || 0})} 
+                  style={{ flex: 1, border: '2.5px solid #E2E8F0', borderRadius: 12, padding: '10px 14px' }}
+                />
+                {selectedPlanData.billingModel === 'per-learner' && (
                   <div style={{ whiteSpace: 'nowrap', fontSize: 13, color: '#64748B' }}>
                     Total: <b style={{ color: '#0F172A' }}>KES {totalDue.toLocaleString()}</b>
                   </div>
-                </div>
-                <p style={{ fontSize: 10, color: '#94A3B8', marginTop: 8 }}>This estimate will be used to calculate your initial activation fee.</p>
+                )}
               </div>
-            )}
+              <p style={{ fontSize: 10, color: '#94A3B8', marginTop: 8 }}>
+                <b>Important:</b> This number sets your initial system limit. If your actual student count exceeds this number, the portal will lock until you upgrade.
+              </p>
+            </div>
 
             <div className="form-group">
               <label>Education System / Curriculum</label>

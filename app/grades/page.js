@@ -19,6 +19,7 @@ import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti, updateLocalDBCache } from '@/lib/client-cache';
 import { addToOutbox } from '@/lib/idb';
 import { useProfile } from '@/app/PortalShell';
+import { getAllGrades } from '@/lib/cbe';
 
 
 const ASSESSMENTS = [
@@ -51,8 +52,9 @@ export default function GradesPage() {
   const [assess, setAssess] = usePersistedState('paav_grades_assess', 'mt1');
 
   const curr = getCurriculum(school?.curriculum || 'CBC');
+  const ALL_GRADES = getAllGrades(school?.curriculum || 'CBC', school);
   const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
-  const { ALL_GRADES, DEFAULT_SUBJECTS, gInfo, maxPts } = curr;
+  const { DEFAULT_SUBJECTS, gInfo, maxPts } = curr;
   const isJSSGrade = curr.isJSSGrade || curr.isSecondary || (() => false);
 
   useEffect(() => {

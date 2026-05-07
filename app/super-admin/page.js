@@ -341,6 +341,7 @@ export default function SuperAdminPage() {
                           <option value="Paybill">M-Pesa Paybill</option>
                           <option value="Till">M-Pesa Till</option>
                           <option value="Bank">Bank Transfer</option>
+                          <option value="PesaPal">PesaPal (Card/Mobile)</option>
                         </select>
                         <button className="btn btn-sm btn-ghost" style={{ color: '#EF4444' }} onClick={() => {
                           const newPay = globalConfig.platformPayments.filter((_, idx) => idx !== i); setGlobalConfig({...globalConfig, platformPayments: newPay});
@@ -350,12 +351,22 @@ export default function SuperAdminPage() {
                         <div className="field"><label>Label</label><input value={pay.name} onChange={e => {
                           const newPay = [...globalConfig.platformPayments]; newPay[i].name = e.target.value; setGlobalConfig({...globalConfig, platformPayments: newPay});
                         }} /></div>
-                        <div className="field"><label>{pay.type === 'Bank' ? 'Account No' : 'Shortcode'}</label><input value={pay.shortcode || pay.account} onChange={e => {
-                          const newPay = [...globalConfig.platformPayments]; 
-                          if (pay.type === 'Bank') newPay[i].account = e.target.value; else newPay[i].shortcode = e.target.value;
-                          setGlobalConfig({...globalConfig, platformPayments: newPay});
-                        }} /></div>
+                        <div className="field">
+                          <label>{pay.type === 'Bank' ? 'Account No' : pay.type === 'PesaPal' ? 'Consumer Key' : 'Shortcode'}</label>
+                          <input value={pay.shortcode || pay.account || pay.consumerKey} onChange={e => {
+                            const newPay = [...globalConfig.platformPayments]; 
+                            if (pay.type === 'Bank') newPay[i].account = e.target.value; 
+                            else if (pay.type === 'PesaPal') newPay[i].consumerKey = e.target.value;
+                            else newPay[i].shortcode = e.target.value;
+                            setGlobalConfig({...globalConfig, platformPayments: newPay});
+                          }} />
+                        </div>
                       </div>
+                      {pay.type === 'PesaPal' && (
+                        <div className="field"><label>Consumer Secret</label><input type="password" value={pay.consumerSecret} onChange={e => {
+                          const newPay = [...globalConfig.platformPayments]; newPay[i].consumerSecret = e.target.value; setGlobalConfig({...globalConfig, platformPayments: newPay});
+                        }} /></div>
+                      )}
                     </div>
                   ))}
                   <button className="btn btn-ghost" style={{ border: '1px dashed #CBD5E1' }} onClick={() => setGlobalConfig({...globalConfig, platformPayments: [...(globalConfig.platformPayments || []), { type: 'Paybill', name: 'New Method', shortcode: '' }] })}>+ Add Payment Method</button>
@@ -459,7 +470,7 @@ export default function SuperAdminPage() {
       </div>
 
       {showConfig && editSchool && (
-        <div className="modal-overlay open"><div className="modal" style={{ maxWidth: 400 }}><div className="modal-hdr"><h3>⚙️ Billing Config: {editSchool.name}</h3><button className="modal-close" onClick={() => setShowConfig(false)}>✕</button></div><div className="modal-body"><div className="field-row"><div className="field"><label>Service Plan</label><select value={editSchool.plan} onChange={e => setEditSchool({...editSchool, plan: e.target.value})}><option value="trial">Trial</option><option value="Basic">Basic</option><option value="Premium">Premium</option></select></div><div className="field"><label>Education System</label><select value={editSchool.curriculum || 'CBC'} onChange={e => setEditSchool({...editSchool, curriculum: e.target.value})}><option value="CBC">Kenya CBC</option><option value="BRITISH">British Curriculum</option><option value="CAMBRIDGE">Cambridge International</option><option value="IB">International Baccalaureate</option></select></div></div><div className="field-row"><div className="field"><label>Amount (KES)</label><input type="number" value={editSchool.amount} onChange={e => setEditSchool({...editSchool, amount: e.target.value})} /></div><div className="field"><label>Billing Cycle</label><select value={editSchool.cycle} onChange={e => setEditSchool({...editSchool, cycle: e.target.value})}><option value="termly">Termly</option><option value="annual">Annual</option></select></div></div><div className="field-row"><div className="field"><label>Status</label><select value={editSchool.status} onChange={e => setEditSchool({...editSchool, status: e.target.value})}><option value="active">Active</option><option value="expired">Expired</option><option value="suspended">Suspended</option></select></div><div className="field"><label>Learner Limit</label><input type="number" value={editSchool.learnerLimit} onChange={e => setEditSchool({...editSchool, learnerLimit: e.target.value})} /></div></div></div><div className="modal-ftr"><button className="btn btn-ghost" onClick={() => setShowConfig(false)}>Cancel</button><button className="btn btn-primary" onClick={saveConfig} disabled={saving}>{saving ? 'Saving...' : 'Save Configuration'}</button></div></div></div>
+        <div className="modal-overlay open"><div className="modal" style={{ maxWidth: 400 }}><div className="modal-hdr"><h3>⚙️ Billing Config: {editSchool.name}</h3><button className="modal-close" onClick={() => setShowConfig(false)}>✕</button></div><div className="modal-body"><div className="field-row"><div className="field"><label>Service Plan</label><select value={editSchool.plan} onChange={e => setEditSchool({...editSchool, plan: e.target.value})}><option value="trial">Trial</option><option value="Basic">Basic</option><option value="Premium">Premium</option></select></div><div className="field"><label>Education System</label><select value={editSchool.curriculum || 'CBC'} onChange={e => setEditSchool({...editSchool, curriculum: e.target.value})}><option value="CBC">Kenya CBC</option><option value="BRITISH">British Curriculum</option><option value="CAMBRIDGE">Cambridge International</option><option value="IB">International Baccalaureate</option></select></div></div><div className="field-row"><div className="field"><label>Amount (KES)</label><input type="number" value={editSchool.amount} onChange={e => setEditSchool({...editSchool, amount: e.target.value})} /></div><div className="field"><label>Billing Cycle</label><select value={editSchool.cycle} onChange={e => setEditSchool({...editSchool, cycle: e.target.value})}><option value="termly">Termly</option><option value="annual">Annual</option></select></div></div><div className="field-row"><div className="field"><label>Status</label><select value={editSchool.status} onChange={e => setEditSchool({...editSchool, status: e.target.value})}><option value="active">Active</option><option value="expired">Expired</option><option value="suspended">Suspended</option></select></div><div className="field"><label>Learner Limit</label><input type="number" value={editSchool.learnerLimit} onChange={e => setEditSchool({...editSchool, learnerLimit: e.target.value})} /></div></div><div className="field" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}><input type="checkbox" checked={editSchool.skipLimit} onChange={e => setEditSchool({...editSchool, skipLimit: e.target.checked})} /><label style={{ margin: 0, fontWeight: 700, color: '#EF4444' }}>🚨 Skip Learner Limit Check (Bypass Lockout)</label></div></div><div className="modal-ftr"><button className="btn btn-ghost" onClick={() => setShowConfig(false)}>Cancel</button><button className="btn btn-primary" onClick={saveConfig} disabled={saving}>{saving ? 'Saving...' : 'Save Configuration'}</button></div></div></div>
       )}
 
       {paybillSchool && (

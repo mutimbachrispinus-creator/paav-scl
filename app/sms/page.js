@@ -6,6 +6,7 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { normaliseKenyanNumber, smsSegments } from '@/lib/sms-client';
+import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
 const GROUPS = [
   { key: 'parents', label: 'All Parents' },
@@ -30,10 +31,9 @@ export default function SMSPage() {
   const [result, setResult] = useState(null);
 
   const load = useCallback(async () => {
-    const authRes = await fetch('/api/auth');
-    const auth = await authRes.json();
-    if (!auth.ok || auth.user?.role !== 'admin') { router.push('/dashboard'); return; }
-    setUser(auth.user);
+    const u = await getCachedUser();
+    if (!u || !['admin', 'super-admin'].includes(u.role)) { router.push('/dashboard'); return; }
+    setUser(u);
 
     const dbRes = await fetch('/api/db', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },

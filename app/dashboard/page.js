@@ -24,38 +24,13 @@ function DashboardContent() {
   const [stats, setStats] = useState({});
   const [unread, setUnread]     = useState(0);
   const [loading, setLoading]   = useState(true);
+  const [busy, setBusy]         = useState(false);
   const [themePrimary, setThemePrimary] = useState('#1E293B');
 
   const { profile: school } = useProfile() || {};
   const curr = getCurriculum(school?.curriculum || 'CBC');
   const ALL_GRADES = curr.ALL_GRADES || [];
-
-  let GRADE_GROUPS = [];
-  if (school?.curriculum === 'BRITISH') {
-    GRADE_GROUPS = [
-      { label: 'Early Years', color: '#8B5CF6', grades: curr.EYFS || [] },
-      { label: 'Key Stage 1', color: '#10B981', grades: curr.KS1 || [] },
-      { label: 'Key Stage 2', color: '#3B82F6', grades: curr.KS2 || [] },
-      { label: 'Key Stage 3', color: '#F59E0B', grades: curr.KS3 || [] },
-      { label: 'Key Stage 4 (IGCSE)', color: '#EF4444', grades: curr.KS4 || [] },
-      { label: 'Key Stage 5 (A-Level)', color: '#6366F1', grades: curr.KS5 || [] },
-    ].filter(g => g.grades && g.grades.length > 0);
-  } else if (school?.curriculum === 'IB') {
-    GRADE_GROUPS = [
-      { label: 'PYP', color: '#10B981', grades: curr.PYP || [] },
-      { label: 'MYP', color: '#3B82F6', grades: curr.MYP || [] },
-      { label: 'DP', color: '#F59E0B', grades: curr.DP || [] },
-    ].filter(g => g.grades && g.grades.length > 0);
-  } else {
-    // Default CBC
-    GRADE_GROUPS = [
-      { label: 'Pre-School', color: '#8B5CF6', grades: curr.PRE || PRE },
-      { label: 'Lower Primary', color: '#10B981', grades: curr.LOWER || LOWER },
-      { label: 'Upper Primary', color: '#3B82F6', grades: curr.UPPER || UPPER },
-      { label: 'Junior School', color: '#F59E0B', grades: curr.JSS || JSS },
-      { label: 'Senior School', color: '#EF4444', grades: curr.SENIOR || SENIOR },
-    ].filter(g => g.grades && g.grades.length > 0);
-  }
+  const GRADE_GROUPS = curr.CATEGORIES || [];
 
   const [announcement, setAnnouncement] = useState(null);
 
@@ -97,7 +72,27 @@ function DashboardContent() {
     }
   }, [router]);
 
-  useEffect(() => { load(); }, [load]);
+  async function notifyParents() {
+    if (!stats.redFlags?.length) return;
+    if (!confirm(`Send SMS alerts to parents of ${stats.redFlags.length} flagged students?`)) return;
+    
+    setBusy(true);
+    try {
+      const alerts = stats.redFlags.map(rf => ({ phone: rf.phone, name: rf.name, count: rf.absent_count }));
+      const res = await fetch('/api/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'bulk_absenteeism_alert', alerts })
+      });
+      const data = await res.json();
+      if (data.ok) alert(`✅ SMS alerts sent to ${data.totalSent} parents!`);
+      else alert('❌ Failed to send alerts: ' + data.error);
+    } catch (e) {
+      alert('❌ SMS Error: ' + e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   if (loading) return <div className="skeleton" style={{ height: '80vh' }} />;
   if (!user) return null;
@@ -139,6 +134,44 @@ function DashboardContent() {
               <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>{announcement.message}</div>
             </div>
             <button className="btn btn-sm btn-ghost" onClick={() => setAnnouncement(null)}>✕</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Attendance Red-Flags ── */}
+      {stats.redFlags?.length > 0 && (
+        <div className="panel" style={{ 
+          marginBottom: 18, 
+          background: '#FFF1F2', 
+          border: '2px solid #FB7185',
+          borderRadius: 15 
+        }}>
+          <div className="panel-hdr" style={{ background: 'linear-gradient(135deg, #E11D48, #9F1239)', color: '#fff', border: 'none' }}>
+            <h3 style={{ color: '#fff' }}>⚠️ High Absenteeism Red-Flags</h3>
+            <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: 10 }}>Critical Risk</span>
+          </div>
+          <div className="panel-body">
+            <p style={{ fontSize: 12, color: '#881337', marginBottom: 12, fontWeight: 700 }}>The following students have missed 3 or more days recently. Urgent follow-up recommended.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+              {stats.redFlags.map(rf => (
+                <div key={rf.adm} style={{ background: '#fff', padding: '10px 14px', borderRadius: 12, border: '1px solid #FDA4AF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#1E293B' }}>{rf.name}</div>
+                    <div style={{ fontSize: 11, color: '#64748B' }}>ADM: {rf.adm}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: '#E11D48' }}>{rf.absent_count}</div>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: '#FB7185', textTransform: 'uppercase' }}>Absences</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 15, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+               <Link href="/attendance" className="btn btn-sm btn-ghost" style={{ color: '#E11D48', fontWeight: 800 }}>View Full Report →</Link>
+               <button className="btn btn-sm btn-danger" onClick={notifyParents} disabled={busy} style={{ background: '#E11D48' }}>
+                 {busy ? '⏳ Notifying...' : '📱 Notify All Parents via SMS'}
+               </button>
+            </div>
           </div>
         </div>
       )}
@@ -219,7 +252,7 @@ function DashboardContent() {
                     return (
                       <div key={label} style={{ marginBottom: 14 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 5 }}>
-                          <span style={{ fontWeight: 600 }}>{label}</span>
+                          <span style={{ fontWeight: 600 }}>{title || label}</span>
                           <span style={{ color: 'var(--muted)' }}>{fmtK(groupPaid)} / {fmtK(groupExp)}</span>
                         </div>
                         <div style={{ height: 9, background: '#EEF2FF', borderRadius: 5, overflow: 'hidden' }}>

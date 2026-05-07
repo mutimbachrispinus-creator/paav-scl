@@ -29,28 +29,9 @@ const LEVEL_CFG = {
   myp:       { dur: 40, perDay: [8,8,8,8,8], breaks: [{ after: 2, label:'Break', dur: 30 },{ after: 5, label:'Lunch', dur: 60 }] },
 };
 
-function gradeLevel(g) {
-  if (!g || typeof g !== 'string') return 'primary13';
-  const gu = g.toUpperCase();
-  // British
-  if (gu.startsWith('YEAR')) {
-    const y = parseInt(gu.replace('YEAR ', ''));
-    if (y <= 2) return 'ks1';
-    if (y <= 6) return 'ks2';
-    if (y <= 9) return 'ks3';
-    if (y <= 11) return 'igcse';
-    return 'senior';
-  }
-  // IB
-  if (gu.includes('PYP')) return 'pyp';
-  if (gu.includes('MYP')) return 'myp';
-  if (gu.includes('DP')) return 'senior';
-
-  // CBC
-  if (gu.includes('PP') || gu.includes('KINDERGARTEN') || gu.includes('GRADE 1') || gu.includes('GRADE 2') || gu.includes('GRADE 3')) return 'primary13';
-  if (gu.includes('GRADE 4') || gu.includes('GRADE 5') || gu.includes('GRADE 6')) return 'primary46';
-  if (gu.includes('GRADE 7') || gu.includes('GRADE 8') || gu.includes('GRADE 9')) return 'jss';
-  return 'senior';
+function getGradeKey(g, curr) {
+  if (!curr || !curr.gradeGroup) return 'primary13';
+  return curr.gradeGroup(g);
 }
 
 const EVENT_TYPES = ['Academic','Sports','Holiday','Meeting','Examination','Cultural','Trip','Other'];
@@ -65,6 +46,15 @@ const SUBJ_COLORS = {
   Geography:'#0D9488',PPI:'#8B1A1A',Games:'#16A34A',default:'#64748B'
 };
 function subjColor(s) { return SUBJ_COLORS[s] || SUBJ_COLORS.default; }
+
+const gradeLevel = (grade, profile) => {
+  if (!grade) return 'Unknown';
+  if (grade.includes('NURSERY') || grade.includes('PP')) return (profile?.levels?.pre !== false) ? 'Pre-School' : 'Pre-School';
+  if (grade.includes('GRADE 1') || grade.includes('GRADE 2') || grade.includes('GRADE 3')) return (profile?.levels?.primary !== false) ? 'Lower Primary' : 'Lower Primary';
+  if (grade.includes('GRADE 4') || grade.includes('GRADE 5') || grade.includes('GRADE 6')) return (profile?.levels?.primary !== false) ? 'Upper Primary' : 'Upper Primary';
+  if (grade.includes('GRADE 7') || grade.includes('GRADE 8') || grade.includes('GRADE 9')) return (profile?.levels?.junior !== false) ? 'Junior School' : 'Junior School';
+  return (profile?.levels?.senior !== false) ? 'Senior School' : 'Senior School';
+};
 
 export default function TimetablePage() {
   const router = useRouter();
@@ -137,9 +127,10 @@ export default function TimetablePage() {
   }
 
   // Build slots for a grade
+  const curr = getCurriculum(school?.curriculum || 'CBC');
+  const gradeKey = getGradeKey(selGrade, curr);
+  const cfg = LEVEL_CFG[gradeKey] || LEVEL_CFG.primary13 || { dur: 35, perDay: [7,7,7,7,7] };
   const gradeTT = useMemo(() => (timetable && selGrade) ? (timetable[selGrade] || {}) : {}, [timetable, selGrade]);
-  const gradeLevelStr = gradeLevel(selGrade);
-  const cfg = LEVEL_CFG[gradeLevelStr] || LEVEL_CFG.primary13 || { dur: 35, perDay: [7,7,7,7,7] };
   const perDay = Array.isArray(cfg.perDay) ? cfg.perDay : [8,8,8,8,8];
   const maxPeriods = perDay.length > 0 ? Math.max(...perDay) : 8;
 
@@ -163,8 +154,8 @@ export default function TimetablePage() {
     return out;
   }, [timetable, user]);
 
-  const isAdmin = user?.role === 'admin';
-  const isTeacher = ['admin','teacher','jss_teacher','senior_teacher'].includes(user?.role);
+  const isAdmin   = ['admin', 'staff', 'super-admin'].includes(user?.role);
+  const isTeacher = ['admin', 'teacher', 'staff', 'jss_teacher', 'senior_teacher', 'super-admin'].includes(user?.role);
   const sorted = [...events].sort((a,b) => a.date.localeCompare(b.date));
   const today0 = new Date().toISOString().split('T')[0];
   const upcoming = sorted.filter(e => e.date >= today0);
@@ -296,7 +287,7 @@ export default function TimetablePage() {
                   </select>
                 </div>
                 <div style={{fontSize:12,color:'var(--muted)',padding:'4px 10px',background:'#F0F4FF',borderRadius:8}}>
-                  {gradeLevel(selGrade).toUpperCase()} · {cfg.dur} min/lesson · {cfg.perDay.reduce((a,b)=>a+b,0)} lessons/week
+                  {(gradeLevel(selGrade, school) || 'N/A').toUpperCase()} · {cfg.dur} min/lesson · {cfg.perDay.reduce((a,b)=>a+b,0)} lessons/week
                 </div>
               </div>
             </div>
@@ -387,6 +378,7 @@ export default function TimetablePage() {
             selGrade={selGrade}
             setSelGrade={setSelGrade}
             onSave={saveTimetable}
+            curr={curr}
           />
         )}
       </div>
@@ -427,10 +419,11 @@ export default function TimetablePage() {
 }
 
 /* ── Edit Timetable Panel ── */
-function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave }) {
+function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave, curr }) {
   const [localTT, setLocalTT] = useState(timetable);
   const [saving, setSaving] = useState(false);
-  const cfg = LEVEL_CFG[gradeLevel(selGrade)] || LEVEL_CFG.primary13;
+  const gradeKey = getGradeKey(selGrade, curr);
+  const cfg = LEVEL_CFG[gradeKey] || LEVEL_CFG.primary13;
   const maxPeriods = Math.max(...cfg.perDay);
   const gradeTT = localTT[selGrade] || {};
   const teachers = staff.filter(s => s.role==='teacher' || s.role==='admin');

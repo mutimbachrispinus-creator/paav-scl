@@ -3,8 +3,9 @@ export const runtime = 'edge';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ALL_GRADES, gradeGroup } from '@/lib/cbe';
+import { getCurriculum } from '@/lib/curriculum';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+import { useProfile } from '@/app/PortalShell';
 
 export default function ClassesPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function ClassesPage() {
   const [learners, setLearners] = useState([]);
   const [staff, setStaff] = useState([]);
   const [classTeachers, setClassTeachers] = useState({});
+  const { profile: schoolProfile } = useProfile();
   const [selectedGrade, setSelectedGrade] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,13 +47,11 @@ export default function ClassesPage() {
 
   if (loading) return <div className="page on"><div className="skeleton" style={{ height: 200, borderRadius: 12 }} /></div>;
 
-  const groups = [
-    { title: 'Pre-School', grades: ['KINDERGARTEN', 'PP1', 'PP2'], color: '#0D9488' },
-    { title: 'Lower Primary', grades: ['GRADE 1', 'GRADE 2', 'GRADE 3'], color: '#059669' },
-    { title: 'Upper Primary', grades: ['GRADE 4', 'GRADE 5', 'GRADE 6'], color: '#2563EB' },
-    { title: 'Junior Secondary', grades: ['GRADE 7', 'GRADE 8', 'GRADE 9'], color: '#7C3AED' },
-    { title: 'Senior School', grades: ['GRADE 10', 'GRADE 11', 'GRADE 12'], color: '#D97706' },
-  ];
+  const curr = getCurriculum(schoolProfile?.curriculum || 'CBC');
+  const groups = (curr.CATEGORIES || []).filter(cat => {
+    if (!schoolProfile?.levels) return true;
+    return schoolProfile.levels[cat.levelKey] !== false;
+  });
 
   return (
     <div className="page on">

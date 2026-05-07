@@ -9,11 +9,13 @@ export async function POST(req) {
 
     if (!adm) return NextResponse.json({ error: 'Admission number required' }, { status: 400 });
 
-    const [learners, paybill, savedCreds] = await Promise.all([
+    const [learners, accounts, savedCreds] = await Promise.all([
       kvGet('paav6_learners'),
-      kvGet('paav_paybill'),
-      kvGet('paav_at_creds')
+      kvGet('paav_paybill_accounts'),
+      kvGet('paav_at_creds', {}, 'platform-master')
     ]);
+
+    const paybill = accounts?.[0]?.shortcode || (await kvGet('paav_paybill')) || '';
 
     const learner = (learners || []).find(l => l.adm === adm);
 

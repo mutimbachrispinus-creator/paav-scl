@@ -40,6 +40,34 @@ export async function GET() {
     const msgRows = await query('SELECT COUNT(*) as count FROM messages WHERE tenant_id = ? AND msg_json NOT LIKE ?', [tenantId, `%${session.username}%`]);
     const unread = msgRows[0].count;
 
+    // 6. Attendance Red-Flags (Students missing 3+ days in the last 14 school days)
+    // We filter for status='A' (Absent)
+    const redFlags = await query(`
+      SELECT 
+        SUBSTR(grade_date_adm, INSTR(grade_date_adm, '|') + 11) as adm,
+        COUNT(*) as absent_count
+      FROM attendance 
+      WHERE tenant_id = ? 
+        AND status = 'A'
+        AND grade_date_adm LIKE '%' || STRFTIME('%Y-', 'now') || '%'
+      GROUP BY adm
+      HAVING absent_count >= 3
+      ORDER BY absent_count DESC
+      LIMIT 10
+    `, [tenantId]);
+
+    // Fetch names for these ADMs
+    let redFlagDetails = [];
+    if (redFlags.length > 0) {
+      const adms = redFlags.map(r => r.adm);
+      const placeholders = adms.map(() => '?').join(',');
+      const learnerNames = await query(`SELECT adm, name, phone FROM learners WHERE tenant_id = ? AND adm IN (${placeholders})`, [tenantId, ...adms]);
+      redFlagDetails = redFlags.map(rf => {
+        const l = learnerNames.find(n => n.adm === rf.adm);
+        return { ...rf, name: l?.name || 'Unknown', phone: l?.phone || '' };
+      });
+    }
+
     return NextResponse.json({
       ok: true,
       stats: {
@@ -49,6 +77,7 @@ export async function GET() {
         totalExpected,
         enrolmentByGrade,
         unread,
+        redFlags: redFlagDetails,
         collectionPct: totalExpected ? Math.round((totalPaid / totalExpected) * 100) : 0
       }
     });

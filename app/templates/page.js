@@ -16,7 +16,7 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
-import { getAllGrades, gInfo, getDefaultSubjects, maxPts, calcLearnerReportData, getMark, isJSSGrade, getDistributionBuckets, getGradeColors, shouldRankByMarks } from '@/lib/cbe';
+import { getAllGrades, gInfo, getDefaultSubjects, maxPts, calcLearnerReportData, getMark, isJSSGrade, getDistributionBuckets, getGradeColors, shouldRankByMarks, isLevelEnabled } from '@/lib/cbe';
 import { useSchoolProfile } from '@/lib/school-profile';
 import { useProfile } from '@/app/PortalShell';
 
@@ -29,7 +29,7 @@ export default function TemplatesPage() {
   const { profile: ctxProfile } = useProfile() || {};
   const localProfile = useSchoolProfile();
   const profile = ctxProfile && Object.keys(ctxProfile).length > 0 ? ctxProfile : localProfile;
-  const ALL_GRADES = getAllGrades(profile?.curriculum || 'CBC');
+  const ALL_GRADES = (getAllGrades(profile?.curriculum || 'CBC') || []).filter(g => isLevelEnabled(g, profile, profile?.curriculum));
 
   const [loading, setLoading] = useState(true);
   const [learners, setLearners] = useState([]);
@@ -210,7 +210,7 @@ export default function TemplatesPage() {
           <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} gradCfg={gradCfg} profile={profile} />
         </div>
         <div style={{ display: tab === 'report'  ? 'block' : 'none' }}>
-          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} profile={profile} />
+          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} profile={profile} att={att} />
         </div>
         <div style={{ display: tab === 'class'   ? 'block' : 'none' }}>
           <ClassListTemplate learners={filteredLearners} grade={grade} profile={profile} />
@@ -235,15 +235,17 @@ export default function TemplatesPage() {
 /* ── SUB-COMPONENTS ── */
 
 function PrintHeader({ title, grade, profile = {} }) {
+  const curr = profile.curriculum || 'CBC';
+  const themeColor = curr === 'BRITISH' ? '#1E3A8A' : curr === 'CAMBRIDGE' ? '#065F46' : curr === 'IB' ? '#4338CA' : '#8B1A1A';
+  
   return (
-    <div style={{ textAlign: 'center', borderBottom: '3px double #8B1A1A', paddingBottom: 12, marginBottom: 16 }}>
-      {/* School logo */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={profile.logo || "/ev-brand-v3.png"} alt="School Logo" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'contain', margin: '0 auto 8px', border: '2px solid #D97706', background: '#fff', padding: 4 }} />
-      <h1 style={{ fontFamily: 'Sora', fontSize: 17, fontWeight: 800, color: '#8B1A1A', margin: 0 }}>{profile.name?.toUpperCase() || 'SCHOOL PORTAL'}</h1>
-      <p style={{ fontSize: 10, margin: '2px 0', color: '#555' }}>{profile.address || '—'} | {profile.phone || '—'} | {profile.email || '—'}</p>
-      <p style={{ fontSize: 10, fontStyle: 'italic', color: '#D97706', fontWeight: 700, margin: '2px 0' }}>{profile.motto || '—'}</p>
-      <div style={{ background: '#8B1A1A', color: '#fff', display: 'inline-block', padding: '3px 16px', borderRadius: 4, marginTop: 6, fontWeight: 700, fontSize: 12 }}>
+    <div style={{ textAlign: 'center', borderBottom: `3.5px double ${themeColor}`, paddingBottom: 12, marginBottom: 16, position: 'relative' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, fontSize: 8, color: '#94A3B8', fontWeight: 800 }}>{curr} SYSTEM</div>
+      <img src={profile.logo || "/ev-brand-v3.png"} alt="School Logo" style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'contain', margin: '0 auto 8px', border: `2.5px solid ${themeColor}`, background: '#fff', padding: 5, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+      <h1 style={{ fontFamily: 'Sora', fontSize: 20, fontWeight: 900, color: themeColor, margin: 0, letterSpacing: -0.5 }}>{profile.name?.toUpperCase() || 'EDU-VANTAGE SCHOOL'}</h1>
+      <p style={{ fontSize: 11, margin: '2px 0', color: '#475569', fontWeight: 600 }}>{profile.address || '—'} | {profile.phone || '—'}</p>
+      <p style={{ fontSize: 10, fontStyle: 'italic', color: '#64748B', fontWeight: 700, margin: '2px 0' }}>"{profile.motto || 'Excellence in Every Step'}"</p>
+      <div style={{ background: themeColor, color: '#fff', display: 'inline-block', padding: '5px 24px', borderRadius: 25, marginTop: 8, fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }}>
         {title} — {grade}
       </div>
     </div>
@@ -506,9 +508,11 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
   );
 }
 
-function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, profile }) {
+function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, profile, att }) {
   const curr = profile?.curriculum || 'CBC';
-  // Pre-calculate ranks based on average marks or points
+  const themeColor = curr === 'BRITISH' ? '#1E3A8A' : curr === 'CAMBRIDGE' ? '#065F46' : curr === 'IB' ? '#4338CA' : '#8B1A1A';
+  
+  // Pre-calculate ranks
   const rankedData = learners.map(l => {
     const report = calcLearnerReportData(marks, l.adm, grade, term, subjects, gradCfg, curr);
     return { ...l, report };
@@ -521,7 +525,6 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, p
   for (let i = 0; i < rankedData.length; i++) {
     const val = shouldRankByMarks(grade, curr) ? rankedData[i].report.totalAvgScore : rankedData[i].report.totalAvgPts;
     const prevVal = i > 0 ? (shouldRankByMarks(grade, curr) ? rankedData[i - 1].report.totalAvgScore : rankedData[i - 1].report.totalAvgPts) : null;
-    
     if (i > 0 && val < prevVal) r = i + 1;
     rankedData[i].rank = r;
   }
@@ -529,113 +532,191 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, p
   return (
     <div className="rc-batch">
       {rankedData.map(l => (
-        <div key={l.adm} className="rc-page" style={{ background: '#FFFDF9', position: 'relative', overflow: 'hidden' }}>
-          {/* Subtle watermark or texture could go here */}
-          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-45deg)', fontSize: 150, color: 'rgba(139, 26, 26, 0.03)', fontWeight: 900, pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: 0 }}>
-            {profile.name?.split(' ')[0] || 'SCHOOL'}
-          </div>
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <PrintHeader title="STUDENT PROGRESS REPORT" grade={grade} profile={profile} />
+        <div key={l.adm} className="rc-page" style={{ background: '#FFFDF9', position: 'relative', overflow: 'hidden', padding: '15mm', border: `8px double ${themeColor}22` }}>
+          {/* Elite Watermark */}
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-45deg)', fontSize: 130, color: `${themeColor}08`, fontWeight: 900, pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: 0, textTransform: 'uppercase' }}>
+            {profile.name?.split(' ')[0] || 'OFFICIAL'}
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 15, marginBottom: 25, border: '1.5px solid #8B1A1A', padding: 15, borderRadius: 8 }}>
-            <div><strong>NAME:</strong> {l.name}</div>
-            <div><strong>ADM NO:</strong> {l.adm}</div>
-            <div><strong>SEX:</strong> {l.sex || '—'}</div>
-            <div><strong>GRADE:</strong> {grade}</div>
-            <div><strong>TERM:</strong> {term}</div>
-            <div><strong>YEAR:</strong> {new Date().getFullYear()}</div>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ position: 'absolute', top: 10, right: 10, textAlign: 'center' }}>
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://eduvantage.app/verify/${profile.tenantId}/${l.adm}`} alt="QR Verification" style={{ width: 60, height: 60, border: '1px solid #ddd', padding: 2, background: '#fff' }} />
+              <div style={{ fontSize: 7, fontWeight: 800, color: '#94A3B8', marginTop: 2 }}>SCAN TO VERIFY</div>
+            </div>
+            <PrintHeader title="OFFICIAL PROGRESS REPORT" grade={grade} profile={profile} />
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 0.8fr', gap: 0, marginBottom: 20, border: `2px solid ${themeColor}`, borderRadius: 10, overflow: 'hidden', fontSize: 11, background: '#fff' }}>
+            <div style={{ padding: 12, borderRight: `1px solid ${themeColor}33` }}>
+              <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Learner Identification</div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: themeColor }}>{l.name}</div>
+              <div style={{ fontSize: 11, color: '#475569' }}>ADM: <strong>{l.adm}</strong> · Sex: <strong>{l.sex || '—'}</strong></div>
+            </div>
+            <div style={{ padding: 12, borderRight: `1px solid ${themeColor}33`, background: `${themeColor}05` }}>
+              <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Academic Period</div>
+              <div style={{ fontSize: 14, fontWeight: 800 }}>Term {term.replace('T','')} — {new Date().getFullYear()}</div>
+              <div style={{ fontSize: 11, color: '#475569' }}>Curriculum: <strong>{curr}</strong></div>
+            </div>
+            <div style={{ padding: 12, textAlign: 'center', background: themeColor, color: '#fff' }}>
+              <div style={{ fontSize: 9, opacity: 0.8, fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Institutional Rank</div>
+              <div style={{ fontSize: 24, fontWeight: 900 }}>{l.rank}</div>
+              <div style={{ fontSize: 10, opacity: 0.9 }}>Out of {learners.length} students</div>
+            </div>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 25 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, fontSize: 10.5, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
             <thead>
-              <tr style={{ background: '#8B1A1A', color: '#fff' }}>
-                <th style={{ border: '1px solid #333', padding: 6, textAlign: 'left' }}>Subject</th>
-                <th style={{ border: '1px solid #333', padding: 6 }}>Opener</th>
-                <th style={{ border: '1px solid #333', padding: 6 }}>Mid-Term</th>
-                <th style={{ border: '1px solid #333', padding: 6 }}>End-Term</th>
-                <th style={{ border: '1px solid #333', padding: 6 }}>Average</th>
-                <th style={{ border: '1px solid #333', padding: 6 }}>Level</th>
-                <th style={{ border: '1px solid #333', padding: 6 }}>Points</th>
+              <tr style={{ background: themeColor, color: '#fff' }}>
+                <th style={{ padding: 8, textAlign: 'left', borderRadius: '8px 0 0 0' }}>Learning Area / Subject</th>
+                <th style={{ padding: 8 }}>Opener</th>
+                <th style={{ padding: 8 }}>Mid-Term</th>
+                <th style={{ padding: 8 }}>End-Term</th>
+                <th style={{ padding: 8, background: 'rgba(255,255,255,0.1)' }}>Avg %</th>
+                <th style={{ padding: 8, borderRadius: '0 8px 0 0' }}>Performance Level</th>
               </tr>
             </thead>
             <tbody>
-              {l.report.subjects.map(s => (
-                <tr key={s.subj}>
-                  <td style={{ border: '1px solid #333', padding: 4, fontWeight: 600 }}>{s.subj}</td>
-                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center' }}>{s.op || '—'} <small className={`grade-pill-${s.opLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.opLv}</small></td>
-                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center' }}>{s.mt || '—'} <small className={`grade-pill-${s.mtLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.mtLv}</small></td>
-                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center' }}>{s.et || '—'} <small className={`grade-pill-${s.etLv}`} style={{ display: 'inline-block', fontSize: 8, padding: '1px 4px', borderRadius: 3, marginTop: 1 }}>{s.etLv}</small></td>
-                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center', background: '#f9f9f9', fontWeight: 700 }}>{s.avg}</td>
-                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center' }}>
-                    <span className={`grade-pill-${s.avgLv}`} style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 800, display:'inline-block' }}>{s.avgLv}</span>
-                  </td>
-                  <td style={{ border: '1px solid #333', padding: 4, textAlign: 'center' }}>{s.pts}</td>
-                </tr>
-              ))}
+              {l.report.subjects.map((s, idx) => {
+                const colors = getGradeColors(curr);
+                return (
+                  <tr key={s.subj} style={{ background: idx % 2 === 0 ? '#fff' : '#F8FAFF' }}>
+                    <td style={{ borderBottom: '1px solid #E2E8F0', padding: 7, fontWeight: 700, color: '#1E293B' }}>{s.subj}</td>
+                    <td style={{ borderBottom: '1px solid #E2E8F0', padding: 7, textAlign: 'center' }}>
+                      {s.op || '—'} <span style={{ fontSize: 8, color: colors[s.opLv] || '#94A3B8', fontWeight: 800 }}>{s.opLv}</span>
+                    </td>
+                    <td style={{ borderBottom: '1px solid #E2E8F0', padding: 7, textAlign: 'center' }}>
+                      {s.mt || '—'} <span style={{ fontSize: 8, color: colors[s.mtLv] || '#94A3B8', fontWeight: 800 }}>{s.mtLv}</span>
+                    </td>
+                    <td style={{ borderBottom: '1px solid #E2E8F0', padding: 7, textAlign: 'center' }}>
+                      {s.et || '—'} <span style={{ fontSize: 8, color: colors[s.etLv] || '#94A3B8', fontWeight: 800 }}>{s.etLv}</span>
+                    </td>
+                    <td style={{ borderBottom: '1px solid #E2E8F0', padding: 7, textAlign: 'center', fontWeight: 800, background: 'rgba(0,0,0,0.02)' }}>{s.avg}</td>
+                    <td style={{ borderBottom: '1px solid #E2E8F0', padding: 7, textAlign: 'center' }}>
+                      <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 900, background: (colors[s.avgLv] || '#333') + '22', color: colors[s.avgLv] || '#333', border: `1px solid ${colors[s.avgLv] || '#333'}` }}>
+                        {s.avgLv}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
-          {/* Performance Graphs */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 15, marginBottom: 20 }}>
-            <div style={{ border: '1px solid #eee', padding: 10, borderRadius: 8 }}>
-              <div style={{ fontSize: 8, fontWeight: 800, color: '#666', marginBottom: 8 }}>ASSESSMENT TRENDS</div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 60, padding: '0 10px' }}>
-                {[
-                  { l: 'OP', v: l.report.subjects.reduce((a, s) => a + (s.op || 0), 0) / (subjects.length || 1) },
-                  { l: 'MT', v: l.report.subjects.reduce((a, s) => a + (s.mt || 0), 0) / (subjects.length || 1) },
-                  { l: 'ET', v: l.report.subjects.reduce((a, s) => a + (s.et || 0), 0) / (subjects.length || 1) },
-                  { l: 'AVG', v: l.report.totalAvgPts / (subjects.length || 1) * 25 } // Normalized
-                ].map((d, idx) => (
-                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ width: '100%', height: `${d.v}%`, background: idx === 3 ? 'var(--maroon)' : '#cbd5e1', borderRadius: '2px 2px 0 0' }}></div>
-                    <div style={{ fontSize: 7, fontWeight: 800, marginTop: 4 }}>{d.l}</div>
+          {/* Competency Badge Summary */}
+          <div style={{ display: 'flex', gap: 10, marginBottom: 20, justifyContent: 'center', background: '#fff', padding: 10, borderRadius: 12, border: '1px solid #eee' }}>
+             {Object.entries(l.report.subjects.reduce((acc, s) => {
+               acc[s.avgLv] = (acc[s.avgLv] || 0) + 1;
+               return acc;
+             }, {})).map(([lv, count]) => (
+               <div key={lv} style={{ padding: '5px 15px', borderRadius: 10, background: `${getGradeColors(curr)[lv]}11`, border: `1.5px solid ${getGradeColors(curr)[lv]}33`, textAlign: 'center' }}>
+                 <div style={{ fontSize: 12, fontWeight: 900, color: getGradeColors(curr)[lv] }}>{count}</div>
+                 <div style={{ fontSize: 8, fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>{lv}</div>
+               </div>
+             ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, marginBottom: 20 }}>
+            <div style={{ padding: 15, borderRadius: 12, border: `2.5px solid ${themeColor}22`, background: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <h4 style={{ margin: 0, color: themeColor, fontSize: 12, fontWeight: 800, textTransform: 'uppercase' }}>Performance Summary</h4>
+                <div style={{ fontSize: 10, color: '#64748B' }}>Total Points: <strong>{l.report.totalAvgPts}</strong></div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
+                <div style={{ background: `${themeColor}08`, padding: 10, borderRadius: 8 }}>
+                  <div style={{ fontSize: 8, color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase' }}>Overall Proficiency</div>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: themeColor }}>{l.report.overallInfo.lv}</div>
+                  <div style={{ fontSize: 9, color: '#475569', fontStyle: 'italic' }}>{l.report.overallInfo.desc}</div>
+                </div>
+                <div style={{ background: '#F0FDF4', padding: 10, borderRadius: 8 }}>
+                  <div style={{ fontSize: 8, color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase' }}>Aggregate Score</div>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: '#166534' }}>{l.report.totalAvgScore.toFixed(1)}%</div>
+                  <div style={{ fontSize: 9, color: '#166534' }}>Across {l.report.totalEntered} areas</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dashed #E2E8F0' }}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', marginBottom: 5 }}>PROFESSIONAL REMARKS</div>
+                <div style={{ fontSize: 11, color: '#1E293B', lineHeight: 1.4, padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <strong>Class Teacher:</strong> {
+                    l.report.totalAvgScore >= 80 ? 'An exceptional performance! Maintain this standard.' : 
+                    l.report.totalAvgScore >= 70 ? 'Very good work. Focus on consistency in all areas.' :
+                    l.report.totalAvgScore >= 60 ? 'A good performance. There is room for improvement in weaker subjects.' : 
+                    l.report.totalAvgScore >= 50 ? 'Fair performance. More effort is needed in the coming term.' :
+                    'Needs significant improvement. Please schedule a parent-teacher meeting.'
+                  }
+                </div>
+                <div style={{ fontSize: 11, color: '#1E293B', lineHeight: 1.4, padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <strong>Principal:</strong> {
+                    l.report.totalAvgScore >= 75 ? 'Excellent work. The school is proud of your progress.' : 
+                    l.report.totalAvgScore >= 50 ? 'Steady progress. Keep working hard towards your goals.' :
+                    'Concerned about these results. Urgent intervention required.'
+                  }
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+                  <div style={{ background: '#F8FAFF', padding: 10, borderRadius: 8, border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: 8, color: '#94A3B8', fontWeight: 800 }}>ATTENDANCE SUMMARY</div>
+                    {(() => {
+                      const days = Object.keys(att || {}).filter(k => k.startsWith(`${grade}|`));
+                      const total = days.length / (learners.length || 1) || 0;
+                      const present = Object.entries(att || {}).filter(([k, v]) => k.endsWith(`|${l.adm}`) && v === 'P').length;
+                      return <div style={{ fontSize: 13, fontWeight: 900, color: themeColor }}>{present} / {Math.max(present, Math.round(total))} <span style={{ fontSize: 9, color: '#64748B' }}>Days Present</span></div>;
+                    })()}
                   </div>
-                ))}
+                  <div style={{ background: '#FFFBEB', padding: 10, borderRadius: 8, border: '1px solid #FEF3C7' }}>
+                    <div style={{ fontSize: 8, color: '#D97706', fontWeight: 800 }}>NEXT TERM BEGINS</div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: '#92400E' }}>05 May 2026</div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div style={{ border: '1px solid #eee', padding: 10, borderRadius: 8 }}>
-              <div style={{ fontSize: 8, fontWeight: 800, color: '#666', marginBottom: 8 }}>SUBJECT PROFICIENCY</div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 60 }}>
-                {l.report.subjects.map((s, idx) => (
-                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ width: '100%', height: `${s.avg}%`, background: '#8B1A1A', borderRadius: '1px 1px 0 0' }}></div>
-                  </div>
-                ))}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ padding: 12, borderRadius: 12, border: '1.5px solid #E2E8F0', background: '#F8FAFF' }}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', marginBottom: 8, textTransform: 'uppercase' }}>Assessment Trend (Avg)</div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 60, padding: '0 5px' }}>
+                  {[
+                    { label: 'OP', val: l.report.subjects.reduce((a, s) => a + (s.op || 0), 0) / (subjects.length || 1) },
+                    { label: 'MT', val: l.report.subjects.reduce((a, s) => a + (s.mt || 0), 0) / (subjects.length || 1) },
+                    { label: 'ET', val: l.report.subjects.reduce((a, s) => a + (s.et || 0), 0) / (subjects.length || 1) },
+                    { label: 'Final', val: l.report.totalAvgScore }
+                  ].map((d, i) => (
+                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div style={{ width: '100%', height: `${Math.min(d.val, 100)}%`, background: i === 3 ? themeColor : `${themeColor}44`, borderRadius: '3px 3px 0 0' }}></div>
+                      <div style={{ fontSize: 7, fontWeight: 800, marginTop: 4 }}>{d.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ padding: 12, borderRadius: 12, border: '1.5px solid #E2E8F0', background: '#fff', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                 <div style={{ fontSize: 32, marginBottom: 5 }}>{l.report.totalAvgScore >= 80 ? '🥇' : l.report.totalAvgScore >= 60 ? '🌟' : '📚'}</div>
+                 <div style={{ fontSize: 10, fontWeight: 800, color: themeColor }}>Termly Competency Status</div>
+                 <div style={{ fontSize: 14, fontWeight: 900 }}>{l.report.overallInfo.lv}</div>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30, marginTop: 10 }}>
-            <div style={{ border: '1.5px solid #333', padding: 15, borderRadius: 8 }}>
-              <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #eee' }}>SUMMARY</h4>
-              <p><strong>Total Points:</strong> {l.report.totalAvgPts} / {maxPts(grade, subjects, profile?.curriculum || 'CBC')}</p>
-              <p><strong>Overall Level:</strong> <span style={{ background: '#8B1A1A', color: '#fff', padding: '2px 8px', borderRadius: 4 }}>{l.report.overallInfo.lv}</span></p>
-              <p><strong>Class Rank:</strong> {l.rank} out of {learners.length}</p>
-              <p><strong>Performance:</strong> {l.report.overallInfo.desc}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 30, marginTop: 10 }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ height: 40, borderBottom: '1px solid #94A3B8', marginBottom: 5 }}></div>
+              <div style={{ fontSize: 9, color: '#64748B', fontWeight: 700 }}>Class Teacher's Signature</div>
             </div>
-            <div style={{ border: '1.5px solid #333', padding: 15, borderRadius: 8 }}>
-              <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #eee' }}>EXAM TOTALS (MARKS)</h4>
-              <div style={{ fontSize: 11, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
-                <div>Opener: <strong>{l.report.subjects.reduce((acc, s) => acc + (s.op || 0), 0)}</strong></div>
-                <div>Mid-Term: <strong>{l.report.subjects.reduce((acc, s) => acc + (s.mt || 0), 0)}</strong></div>
-                <div>End-Term: <strong>{l.report.subjects.reduce((acc, s) => acc + (s.et || 0), 0)}</strong></div>
-                <div>Average: <strong>{l.report.subjects.reduce((acc, s) => acc + (s.avg || 0), 0)}</strong></div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ height: 40, borderBottom: '1px solid #94A3B8', marginBottom: 5, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {profile.principalSignature && <img src={profile.principalSignature} alt="Principal Sig" style={{ maxHeight: 35, objectFit: 'contain' }} />}
               </div>
-              <div style={{ marginTop: 10, borderTop: '1px dotted #ccc', paddingTop: 10 }}>
-                <div style={{ fontSize: 11, marginBottom: 5 }}>Class Teacher's Remarks: _________________</div>
-                <div style={{ fontSize: 11, marginBottom: 5 }}>Headteacher's Remarks: _________________</div>
-                <div style={{ fontSize: 11 }}>Parent's Remarks: ______________________</div>
-              </div>
+              <div style={{ fontSize: 9, color: '#64748B', fontWeight: 700 }}>Principal's Stamp & Signature</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ height: 40, borderBottom: '1px solid #94A3B8', marginBottom: 5 }}></div>
+              <div style={{ fontSize: 9, color: '#64748B', fontWeight: 700 }}>Parent / Guardian's Signature</div>
             </div>
           </div>
 
-          <div style={{ marginTop: 40, textAlign: 'center', fontSize: 11, color: '#666' }}>
-            <p>This is an official document of {profile.name || 'the institution'}. Any alterations make it invalid.</p>
-            <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-around' }}>
-              <div>Stamp: [ ________________ ]</div>
-              <div>Date: {new Date().toLocaleDateString()}</div>
-            </div>
+          <div style={{ marginTop: 25, paddingTop: 10, borderTop: `2px solid ${themeColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 9, color: '#94A3B8' }}>
+            <div>System Generated by <strong>EduVantage SaaS</strong></div>
+            <div>{new Date().toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+            <div style={{ fontWeight: 800 }}>Page {rankedData.indexOf(l) + 1} of {rankedData.length}</div>
           </div>
         </div>
       ))}

@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { buildMeritList, fmtK, JSS, SENIOR, gInfo, getCurriculum, getDistributionBuckets, getGradeColors, shouldRankByMarks } from '@/lib/cbe';
+import { buildMeritList, fmtK, JSS, SENIOR, gInfo, getCurriculum, getDistributionBuckets, getGradeColors, shouldRankByMarks, isLevelEnabled } from '@/lib/cbe';
 import { usePersistedState } from '@/components/TabState';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { useSchoolProfile } from '@/lib/school-profile';
@@ -53,7 +53,7 @@ export default function MeritListPage() {
 
   const curr = getCurriculum(school?.curriculum || 'CBC');
   const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
-  const { ALL_GRADES = [] } = curr;
+  const ALL_GRADES = (curr.ALL_GRADES || []).filter(g => isLevelEnabled(g, school, school?.curriculum));
 
   useEffect(() => {
     if (!grade && ALL_GRADES.length > 0) {
