@@ -39,6 +39,7 @@ export default function TemplatesPage() {
   const [att, setAtt] = useState({});
   const [feeCfg, setFeeCfg] = useState({});
   const [gradCfg, setGradCfg] = useState(null);
+  const [weights, setWeights] = useState(null);
   const [grade, setGrade] = useState('');
   const [term, setTerm] = useState('T1');
   const [assess, setAssess] = useState('et1');
@@ -57,7 +58,7 @@ export default function TemplatesPage() {
         setUser(auth);
         
         const db = await getCachedDBMulti([
-          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog', 'paav6_feecfg', 'paav_student_attendance', 'paav_school_profile'
+          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog', 'paav6_feecfg', 'paav_student_attendance', 'paav_school_profile', 'paav_grading_weights'
         ]);
         
         setLearners(db.paav6_learners || []);
@@ -65,6 +66,7 @@ export default function TemplatesPage() {
         setSubjCfg(db.paav8_subj || {});
         setGradCfg(db.paav8_grad || null);
         setFeeCfg(db.paav6_feecfg || {});
+        setWeights(db.paav_grading_weights || null);
         
         const feeList = db.paav6_fees || [];
         const paylogList = db.paav6_paylog || [];
@@ -210,7 +212,7 @@ export default function TemplatesPage() {
           <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} gradCfg={gradCfg} profile={profile} />
         </div>
         <div style={{ display: tab === 'report'  ? 'block' : 'none' }}>
-          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} profile={profile} att={att} />
+          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} profile={profile} att={att} weights={weights} />
         </div>
         <div style={{ display: tab === 'class'   ? 'block' : 'none' }}>
           <ClassListTemplate learners={filteredLearners} grade={grade} profile={profile} />
@@ -508,13 +510,13 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
   );
 }
 
-function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, profile, att }) {
+function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, profile, att, weights }) {
   const curr = profile?.curriculum || 'CBC';
   const themeColor = curr === 'BRITISH' ? '#1E3A8A' : curr === 'CAMBRIDGE' ? '#065F46' : curr === 'IB' ? '#4338CA' : '#8B1A1A';
   
   // Pre-calculate ranks
   const rankedData = learners.map(l => {
-    const report = calcLearnerReportData(marks, l.adm, grade, term, subjects, gradCfg, curr);
+    const report = calcLearnerReportData(marks, l.adm, grade, term, subjects, gradCfg, curr, weights);
     return { ...l, report };
   }).sort((a, b) => {
     if (shouldRankByMarks(grade, curr)) return b.report.totalAvgScore - a.report.totalAvgScore;

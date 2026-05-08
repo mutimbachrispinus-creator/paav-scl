@@ -19,11 +19,12 @@ export async function POST(request) {
     return NextResponse.json({ ok: false, error: 'No targets specified' });
   }
 
-  const [learners, marks, feecfg, paybill, savedCreds] = await Promise.all([
+  const [learners, marks, feecfg, paybill, weights, savedCreds] = await Promise.all([
     kvGet('paav6_learners'),
     kvGet('paav6_marks'),
     kvGet('paav6_feecfg'),
     kvGet('paav_paybill_accounts'),
+    kvGet('paav_grading_weights'),
     kvGet('paav_at_creds', {}, 'platform-master') // Centralized SMS control
   ]);
 
@@ -96,7 +97,7 @@ export async function POST(request) {
       
       if (!gradeSubjects.length) continue;
       
-      const report = calcLearnerReportData(marks, learner.adm, learner.grade, term, gradeSubjects);
+      const report = calcLearnerReportData(marks, learner.adm, learner.grade, term, gradeSubjects, null, 'CBC', weights);
       const totalPts = report.totalAvgPts;
       const maxPts = gradeSubjects.length * (['GRADE 7', 'GRADE 8', 'GRADE 9'].includes(learner.grade) ? 8 : 4);
       const pct = maxPts > 0 ? Math.round((totalPts / maxPts) * 100) : 0;
