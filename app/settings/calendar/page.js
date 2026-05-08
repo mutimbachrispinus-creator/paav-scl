@@ -71,7 +71,12 @@ export default function CalendarSettingsPage() {
   const addTerm = () => {
     const lastEnd = terms.length > 0 ? terms[terms.length - 1].end_date : null;
     const nextStart = lastEnd ? new Date(new Date(lastEnd).getTime() + 86400000).toISOString().split('T')[0] : '';
-    setTerms([...terms, { name: `Term ${terms.length + 1}`, start_date: nextStart, end_date: '' }]);
+    setTerms([...terms, { 
+      id: `new_${Date.now()}_${terms.length}`,
+      name: `Term ${terms.length + 1}`, 
+      start_date: nextStart, 
+      end_date: '' 
+    }]);
   };
 
   const updateTerm = (idx, key, val) => {
