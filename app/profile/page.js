@@ -12,6 +12,7 @@ import { ALL_GRADES } from '@/lib/cbe';
 
 const M = '#8B1A1A', ML = '#FDF2F2';
 const PROFILE_ROLES = ['admin', 'teacher', 'jss_teacher', 'senior_teacher', 'staff', 'parent', 'super-admin'];
+const PEOPLE_DIRECTORY_ROLES = ['admin', 'super-admin'];
 const LEARNER_LOOKUP_ROLES = ['admin', 'teacher', 'jss_teacher', 'senior_teacher', 'staff'];
 const BULK_ENROLL_ROLES = ['admin'];
 
@@ -286,12 +287,25 @@ export default function ProfilePage() {
     }
   }, [tab, allLearners.length, user, handleTabChange]);
 
+  useEffect(() => {
+    if (!user) return;
+    const canViewPeople = PEOPLE_DIRECTORY_ROLES.includes(user.role);
+    const canBulkEnroll = BULK_ENROLL_ROLES.includes(user.role);
+    const canLookupLearners = LEARNER_LOOKUP_ROLES.includes(user.role);
+
+    if ((tab === 'staff' && !canViewPeople) || (tab === 'bulk' && !canBulkEnroll) || (tab === 'learner' && !canLookupLearners)) {
+      setTab('me');
+      setSelectedStaff(null);
+      setSelectedLearner(null);
+    }
+  }, [tab, user]);
+
   if (loading || !user) return <div className="page on"><p style={{ padding: 30 }}>Loading profile…</p></div>;
 
   const TABS = [
     { key: 'me', label: '👤 My Profile' },
     { key: 'pw', label: '🔒 Password' },
-    { key: 'staff', label: '👥 People Directory' },
+    ...(PEOPLE_DIRECTORY_ROLES.includes(user?.role) ? [{ key: 'staff', label: '👥 People Directory' }] : []),
     ...(LEARNER_LOOKUP_ROLES.includes(user?.role) ? [{ key: 'learner', label: '🎓 Learner Lookup' }] : []),
     ...(BULK_ENROLL_ROLES.includes(user?.role) ? [{ key: 'bulk', label: '📥 Bulk Enroll' }] : []),
   ];
