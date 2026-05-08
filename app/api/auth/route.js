@@ -42,8 +42,18 @@ export async function POST(request) {
   catch { return err('Invalid JSON body'); }
 
   const { action } = body;
+  console.log(`[api/auth] Action: ${action} | Runtime: ${process.env.NEXT_RUNTIME || 'node'}`);
+  
   try {
-    await ensureSchema();
+    // 1. Initialize Schema (Batched & Optimized)
+    try {
+      await ensureSchema();
+    } catch (dbErr) {
+      console.error('[api/auth] DB Initialization Failed:', dbErr);
+      return err(`Database Initialization Error: ${dbErr.message}`, 500);
+    }
+
+    // 2. Route Action
     switch (action) {
       case 'login':      return handleLogin(body, request);
       case 'logout':     return handleLogout(request);
@@ -62,7 +72,7 @@ export async function POST(request) {
     }
   } catch (e) {
     console.error('[api/auth] Server Error:', e);
-    return err(`Internal Server Error: ${e.message}${e.stack ? ' at ' + e.stack.split('\n')[1] : ''}`, 500);
+    return err(`Internal Server Error: ${e.message}`, 500);
   }
 }
 

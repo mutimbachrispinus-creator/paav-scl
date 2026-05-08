@@ -47,13 +47,25 @@ const SUBJ_COLORS = {
 };
 function subjColor(s) { return SUBJ_COLORS[s] || SUBJ_COLORS.default; }
 
-const gradeLevel = (grade, profile) => {
-  if (!grade) return 'Unknown';
-  if (grade.includes('NURSERY') || grade.includes('PP')) return (profile?.levels?.pre !== false) ? 'Pre-School' : 'Pre-School';
-  if (grade.includes('GRADE 1') || grade.includes('GRADE 2') || grade.includes('GRADE 3')) return (profile?.levels?.primary !== false) ? 'Lower Primary' : 'Lower Primary';
-  if (grade.includes('GRADE 4') || grade.includes('GRADE 5') || grade.includes('GRADE 6')) return (profile?.levels?.primary !== false) ? 'Upper Primary' : 'Upper Primary';
-  if (grade.includes('GRADE 7') || grade.includes('GRADE 8') || grade.includes('GRADE 9')) return (profile?.levels?.junior !== false) ? 'Junior School' : 'Junior School';
-  return (profile?.levels?.senior !== false) ? 'Senior School' : 'Senior School';
+const gradeLevel = (grade, curr) => {
+  if (!grade || !curr) return 'Unknown';
+  const group = curr.gradeGroup(grade);
+  const mapping = {
+    'pre': 'Pre-School',
+    'primary13': 'Lower Primary',
+    'primary46': 'Upper Primary',
+    'pyp': 'PYP (Primary)',
+    'ks1': 'Key Stage 1',
+    'ks2': 'Key Stage 2',
+    'jss': 'Junior Secondary',
+    'myp': 'MYP (Middle)',
+    'ks3': 'Key Stage 3',
+    'igcse': 'IGCSE',
+    'senior': 'Senior School',
+    'a-level': 'A-Level',
+    'dp': 'DP (Diploma)'
+  };
+  return mapping[group] || 'Academic';
 };
 
 export default function TimetablePage() {
@@ -71,6 +83,7 @@ export default function TimetablePage() {
   useEffect(() => setMounted(true), []);
   const [selGrade, setSelGrade] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [customCfg, setCustomCfg] = useState(null);
 
   useEffect(() => {
     if (!selGrade && ALL_GRADES.length > 0) {
@@ -87,10 +100,13 @@ export default function TimetablePage() {
       const u = await getCachedUser();
       if (!u) { router.push('/login'); return; }
       setUser(u);
-      const data = await getCachedDBMulti(['paav_calendar_events','paav_timetable','paav6_staff']);
+      const data = await getCachedDBMulti(['paav_calendar_events','paav_timetable','paav6_staff', 'paav7_timetable_cfg']);
       setEvents(data['paav_calendar_events'] || []);
       setTimetable(data['paav_timetable'] || {});
       setStaff(data['paav6_staff'] || []);
+      if (data['paav7_timetable_cfg']) {
+        setCustomCfg(data['paav7_timetable_cfg']);
+      }
     } catch(e){ console.error(e); } finally { setLoading(false); }
   }, [router]);
 
@@ -129,7 +145,28 @@ export default function TimetablePage() {
   // Build slots for a grade
   const curr = getCurriculum(school?.curriculum || 'CBC');
   const gradeKey = getGradeKey(selGrade, curr);
-  const cfg = LEVEL_CFG[gradeKey] || LEVEL_CFG.primary13 || { dur: 35, perDay: [7,7,7,7,7] };
+  
+  // MERGE hardcoded CFG with school-specific customCfg
+  const cfg = useMemo(() => {
+    const base = LEVEL_CFG[gradeKey] || LEVEL_CFG.primary13 || { dur: 35, perDay: [7,7,7,7,7] };
+    if (!customCfg) return base;
+    
+    // Map gradeKey to setting level (primary, junior, senior)
+    let setLevel = 'primary';
+    if (['jss','ks3','igcse','myp'].includes(gradeKey)) setLevel = 'junior';
+    if (['senior','a-level','dp', 'grade 10', 'grade 11', 'grade 12'].includes(gradeKey.toLowerCase())) setLevel = 'senior';
+    
+    const levelCfg = customCfg[setLevel];
+    if (!levelCfg) return base;
+
+    return {
+      ...base,
+      dur: levelCfg.lessonDuration || base.dur,
+      perDay: levelCfg.lessonsPerDay ? Array(5).fill(levelCfg.lessonsPerDay) : base.perDay,
+      breaks: levelCfg.breaks || base.breaks
+    };
+  }, [gradeKey, customCfg]);
+
   const gradeTT = useMemo(() => (timetable && selGrade) ? (timetable[selGrade] || {}) : {}, [timetable, selGrade]);
   const perDay = Array.isArray(cfg.perDay) ? cfg.perDay : [8,8,8,8,8];
   const maxPeriods = perDay.length > 0 ? Math.max(...perDay) : 8;
@@ -287,7 +324,7 @@ export default function TimetablePage() {
                   </select>
                 </div>
                 <div style={{fontSize:12,color:'var(--muted)',padding:'4px 10px',background:'#F0F4FF',borderRadius:8}}>
-                  {(gradeLevel(selGrade, school) || 'N/A').toUpperCase()} · {cfg.dur} min/lesson · {cfg.perDay.reduce((a,b)=>a+b,0)} lessons/week
+                  {(gradeLevel(selGrade, curr) || 'N/A').toUpperCase()} · {cfg.dur} min/lesson · {cfg.perDay.reduce((a,b)=>a+b,0)} lessons/week
                 </div>
               </div>
             </div>
@@ -379,6 +416,7 @@ export default function TimetablePage() {
             setSelGrade={setSelGrade}
             onSave={saveTimetable}
             curr={curr}
+            ALL_GRADES={ALL_GRADES}
           />
         )}
       </div>
@@ -419,7 +457,7 @@ export default function TimetablePage() {
 }
 
 /* ── Edit Timetable Panel ── */
-function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave, curr }) {
+function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave, curr, ALL_GRADES }) {
   const [localTT, setLocalTT] = useState(timetable);
   const [saving, setSaving] = useState(false);
   const gradeKey = getGradeKey(selGrade, curr);
@@ -462,7 +500,7 @@ function EditTimetablePanel({ timetable, staff, selGrade, setSelGrade, onSave, c
       const subjCfg = db.results[1]?.value || {};
       const codes = db.results[2]?.value || {};
 
-      const lvl = gradeLevel(selGrade);
+      const lvl = gradeLevel(selGrade, curr);
       const gradeSubjects = subjCfg[selGrade] || []; // usually empty unless customized, fallback handled
       
       // Build subjects array for generator
