@@ -3,10 +3,10 @@
 export const runtime = 'edge';
 
 import React, { useState, useEffect, useTransition } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from '@/components/DynamicCharts';
-import { TrendingUp, Users, BookOpen, AlertCircle, Loader2, Filter, ChevronRight } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, LineChart, Line } from '@/components/DynamicCharts';
+import { TrendingUp, Users, BookOpen, AlertCircle, Loader2, ShieldAlert, Target, Award, Activity, ClipboardList, Gauge, Search } from 'lucide-react';
 import { getAcademicStats } from '@/lib/actions/analytics';
-import { getAllGrades } from '@/lib/cbe';
+import { buildMeritList, getAllGrades, getDefaultSubjects } from '@/lib/cbe';
 import { useSchoolProfile } from '@/lib/school-profile';
 
 const COLORS = ['#8B1A1A', '#2563EB', '#059669', '#D97706', '#7C3AED', '#DB2777'];
@@ -29,6 +29,7 @@ export default function AnalyticsPage() {
   const [pAssess, setPAssess] = useState('et1');
   const [pGrade, setPGrade] = useState('GRADE 1');
   const [pStream, setPStream] = useState('');
+  const [pQuery, setPQuery] = useState('');
 
   const grades = getAllGrades(profile?.curriculum || 'CBC');
 
@@ -38,7 +39,7 @@ export default function AnalyticsPage() {
       setError(null);
       
       const timeout = setTimeout(() => {
-        if (!stats) setError('Analysis is taking longer than expected. Please try again.');
+        setError('Analysis is taking longer than expected. Please try again.');
       }, 12000);
 
       startTransition(async () => {
@@ -152,6 +153,7 @@ export default function AnalyticsPage() {
               <select value={pAssess} onChange={(e) => setPAssess(e.target.value)} style={{ borderRadius: 8 }}>
                 <option value="op1">Opener</option><option value="mt1">Mid-Term</option><option value="et1">End-Term</option>
               </select>
+              <input value={pQuery} onChange={e => setPQuery(e.target.value)} placeholder="Search learner..." style={{ borderRadius: 8, border: '1.5px solid var(--border)', padding: '8px 12px', minWidth: 180 }} />
             </div>
           </div>
           {/* Performance UI ... */}
@@ -162,6 +164,17 @@ export default function AnalyticsPage() {
         <>
           {/* Insight Cards */}
           <div className="sg sg3">
+            <div className="stat-card" style={{ borderLeft: '4px solid #2563eb' }}>
+              <div className="sc-inner">
+                <div className="sc-icon" style={{ background: '#eff6ff', color: '#2563eb' }}><Gauge size={20} /></div>
+                <div>
+                  <div className="sc-l" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800 }}>Class Average</div>
+                  <div className="sc-n" style={{ fontSize: 24 }}>{stats.classAverage || 0}%</div>
+                  <div className="sc-sub" style={{ background: '#eff6ff', color: '#2563eb' }}>{stats.enteredLearners || 0}/{stats.studentCount || 0} learners with marks</div>
+                </div>
+              </div>
+            </div>
+
             <div className="stat-card" style={{ borderLeft: '4px solid #059669' }}>
               <div className="sc-inner">
                 <div className="sc-icon" style={{ background: '#ecfdf5', color: '#059669' }}><BookOpen size={20} /></div>
@@ -202,6 +215,41 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
+          <div className="sg sg3">
+            <div className="stat-card" style={{ borderLeft: '4px solid #7c3aed' }}>
+              <div className="sc-inner">
+                <div className="sc-icon" style={{ background: '#f5f3ff', color: '#7c3aed' }}><ClipboardList size={20} /></div>
+                <div>
+                  <div className="sc-l" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800 }}>Marks Coverage</div>
+                  <div className="sc-n" style={{ fontSize: 24 }}>{stats.completionRate || 0}%</div>
+                  <div className="sc-sub" style={{ background: '#f5f3ff', color: '#7c3aed' }}>{stats.totalEntries || 0} captured entries</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="stat-card" style={{ borderLeft: '4px solid #dc2626' }}>
+              <div className="sc-inner">
+                <div className="sc-icon" style={{ background: '#fef2f2', color: '#dc2626' }}><ShieldAlert size={20} /></div>
+                <div>
+                  <div className="sc-l" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800 }}>Academic Risk</div>
+                  <div className="sc-n" style={{ fontSize: 24 }}>{stats.riskCount || 0}</div>
+                  <div className="sc-sub" style={{ background: '#fef2f2', color: '#dc2626' }}>Below 40% average</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="stat-card" style={{ borderLeft: '4px solid #d97706' }}>
+              <div className="sc-inner">
+                <div className="sc-icon" style={{ background: '#fffbeb', color: '#d97706' }}><Award size={20} /></div>
+                <div>
+                  <div className="sc-l" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800 }}>Excellence Pool</div>
+                  <div className="sc-n" style={{ fontSize: 24 }}>{stats.excellenceCount || 0}</div>
+                  <div className="sc-sub" style={{ background: '#fffbeb', color: '#d97706' }}>At or above 80%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="panel">
               <div className="panel-hdr">
@@ -223,6 +271,21 @@ export default function AnalyticsPage() {
               </div>
             </div>
             <div className="space-y-8">
+              <div className="panel">
+                <div className="panel-hdr"><h3 style={{ fontSize: 16, fontWeight: 900 }}>Assessment Progression</h3></div>
+                <div className="panel-body">
+                  <ResponsiveContainer width="100%" height={210}>
+                    <LineChart data={stats.assessmentComparison || []}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" />
+                      <YAxis domain={[0, 100]} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="average" stroke="#8B1A1A" strokeWidth={3} dot={{ r: 4 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
               <div className="panel">
                 <div className="panel-hdr"><h3 style={{ fontSize: 16, fontWeight: 900 }}>Gender Parity Analysis</h3></div>
                 <div className="panel-body">
@@ -247,6 +310,20 @@ export default function AnalyticsPage() {
                   </ResponsiveContainer>
                 </div>
               </div>
+              <div className="panel">
+                <div className="panel-hdr"><h3 style={{ fontSize: 16, fontWeight: 900 }}>Action Recommendations</h3></div>
+                <div className="panel-body" style={{ display: 'grid', gap: 10 }}>
+                  {buildInsightActions(stats).map((a, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 10, padding: 12, border: '1px solid var(--border)', borderRadius: 12, background: a.bg }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', color: a.color, flexShrink: 0 }}>{a.icon}</div>
+                      <div>
+                        <div style={{ fontWeight: 900, color: '#172033', fontSize: 13 }}>{a.title}</div>
+                        <div style={{ color: 'var(--muted)', fontSize: 12, lineHeight: 1.5 }}>{a.text}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </>
@@ -256,7 +333,7 @@ export default function AnalyticsPage() {
           <PerformanceDetail 
             learners={learners} marks={marks} grade={pGrade} 
             term={pTerm} assess={pAssess} subjCfg={subjCfg} gradCfg={gradCfg} 
-            curriculum={profile?.curriculum || 'CBC'}
+            curriculum={profile?.curriculum || 'CBC'} stream={pStream} setStream={setPStream} query={pQuery}
           />
         </div>
       )}
@@ -264,47 +341,284 @@ export default function AnalyticsPage() {
   );
 }
 
-function PerformanceDetail({ learners, marks, grade, term, assess, subjCfg, gradCfg, curriculum }) {
-  const [data, setData] = React.useState([]);
-  
-  React.useEffect(() => {
-    async function calc() {
-      const { buildMeritList } = await import('@/lib/cbe');
-      const list = buildMeritList(learners, marks, grade, term, assess, gradCfg, curriculum);
-      setData(list);
+function buildInsightActions(stats) {
+  const weakest = stats.subjectMastery?.[stats.subjectMastery.length - 1];
+  const strongest = stats.subjectMastery?.[0];
+  return [
+    {
+      icon: <ShieldAlert size={17} />,
+      color: '#dc2626',
+      bg: '#FEF2F2',
+      title: 'Intervention List',
+      text: `${stats.riskCount || 0} learners are below 40%. Create a small-group remediation list and assign weekly evidence checks.`
+    },
+    {
+      icon: <Target size={17} />,
+      color: '#d97706',
+      bg: '#FFFBEB',
+      title: weakest ? `Subject Recovery: ${weakest.name}` : 'Subject Recovery',
+      text: weakest ? `${weakest.name} is averaging ${weakest.average}%. Audit strand coverage, teacher workload, and item difficulty before the next assessment.` : 'No subject marks have been captured for this view yet.'
+    },
+    {
+      icon: <Award size={17} />,
+      color: '#059669',
+      bg: '#ECFDF5',
+      title: strongest ? `Scale What Works: ${strongest.name}` : 'Scale What Works',
+      text: strongest ? `${strongest.name} is the current strength. Reuse the teaching approach, revision rhythm, and assessment design in weaker subjects.` : 'Capture marks to identify reusable teaching strengths.'
+    },
+    {
+      icon: <ClipboardList size={17} />,
+      color: '#2563eb',
+      bg: '#EFF6FF',
+      title: 'Data Completeness',
+      text: `Marks coverage is ${stats.completionRate || 0}%. Missing entries weaken ranking accuracy, parent reports, and trend analysis.`
     }
-    calc();
-  }, [learners, marks, grade, term, assess, gradCfg, curriculum]);
+  ];
+}
 
-  const subjects = (subjCfg[grade]?.length > 0) ? subjCfg[grade] : [];
+function pct(n) {
+  if (!Number.isFinite(Number(n))) return 0;
+  return Math.round(Number(n));
+}
+
+function PerformanceDetail({ learners, marks, grade, term, assess, subjCfg, gradCfg, curriculum, stream, setStream, query }) {
+  const subjects = (subjCfg[grade]?.length > 0) ? subjCfg[grade] : getDefaultSubjects(grade, curriculum);
+  const streams = React.useMemo(() => {
+    return [...new Set(learners.filter(l => l.grade === grade && l.stream).map(l => l.stream))].sort();
+  }, [learners, grade]);
+
+  const data = React.useMemo(() => {
+    return buildMeritList(learners, marks, grade, term, assess, gradCfg, curriculum)
+      .filter(l => !stream || l.stream === stream)
+      .filter(l => {
+        const q = String(query || '').trim().toLowerCase();
+        if (!q) return true;
+        return String(l.name || '').toLowerCase().includes(q) || String(l.adm || '').toLowerCase().includes(q);
+      });
+  }, [learners, marks, grade, term, assess, gradCfg, curriculum, stream, query]);
+
+  const analysis = React.useMemo(() => {
+    const classLearners = learners.filter(l => l.grade === grade && (!stream || l.stream === stream));
+    const subjectRows = subjects.map(subj => {
+      const scores = data
+        .map(l => l.detail.find(d => d.subj === subj)?.score)
+        .filter(s => s !== null && s !== undefined);
+      const avg = scores.length ? scores.reduce((a, b) => a + Number(b), 0) / scores.length : 0;
+      const high = scores.length ? Math.max(...scores) : 0;
+      const low = scores.length ? Math.min(...scores) : 0;
+      const pass = scores.filter(s => Number(s) >= 50).length;
+      return {
+        name: subj,
+        avg: Number(avg.toFixed(1)),
+        high,
+        low,
+        entries: scores.length,
+        missing: Math.max(0, classLearners.length - scores.length),
+        passRate: scores.length ? Number(((pass / scores.length) * 100).toFixed(1)) : 0
+      };
+    }).sort((a, b) => b.avg - a.avg);
+
+    const averages = data.map(l => l.enteredCount ? l.totalMarks / l.enteredCount : 0);
+    const avg = averages.length ? averages.reduce((a, b) => a + b, 0) / averages.length : 0;
+    const top = data[0];
+    const bottom = data[data.length - 1];
+    const risk = data.filter(l => (l.totalMarks / (l.enteredCount || 1)) < 40);
+    const excellence = data.filter(l => (l.totalMarks / (l.enteredCount || 1)) >= 80);
+    const missingCount = subjectRows.reduce((sum, s) => sum + s.missing, 0);
+    const entries = subjectRows.reduce((sum, s) => sum + s.entries, 0);
+    const expected = Math.max(1, classLearners.length * subjects.length);
+    const distribution = [
+      { name: '80-100', count: averages.filter(a => a >= 80).length, color: '#059669' },
+      { name: '60-79', count: averages.filter(a => a >= 60 && a < 80).length, color: '#2563EB' },
+      { name: '40-59', count: averages.filter(a => a >= 40 && a < 60).length, color: '#D97706' },
+      { name: '0-39', count: averages.filter(a => a < 40).length, color: '#DC2626' }
+    ];
+
+    return {
+      classLearners,
+      subjectRows,
+      avg: Number(avg.toFixed(1)),
+      top,
+      bottom,
+      risk,
+      excellence,
+      entries,
+      missingCount,
+      coverage: Number(((entries / expected) * 100).toFixed(1)),
+      distribution
+    };
+  }, [learners, grade, stream, subjects, data]);
 
   return (
-    <div className="panel">
-      <div className="panel-hdr">
-        <h3>🏆 Class Rankings — {grade} ({data.length} learners)</h3>
+    <>
+      <div className="panel" style={{ marginBottom: 18 }}>
+        <div className="panel-hdr">
+          <div>
+            <h3>Command Summary — {grade}</h3>
+            <div style={{ color: 'var(--muted)', fontSize: 12, marginTop: 3 }}>
+              {term} · {assess.toUpperCase()} · {analysis.classLearners.length} enrolled learners · {data.length} ranked learners
+            </div>
+          </div>
+          <select value={stream} onChange={e => setStream(e.target.value)} style={{ borderRadius: 8, border: '1.5px solid var(--border)', padding: '8px 12px' }}>
+            <option value="">All streams</option>
+            {streams.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+        <div className="panel-body">
+          <div className="sg sg4" style={{ marginBottom: 0 }}>
+            <Metric title="Class Avg" value={`${analysis.avg}%`} icon={<Gauge size={19} />} color="#2563EB" sub="Mean learner performance" />
+            <Metric title="Coverage" value={`${analysis.coverage}%`} icon={<ClipboardList size={19} />} color="#7C3AED" sub={`${analysis.entries} entries, ${analysis.missingCount} missing`} />
+            <Metric title="At Risk" value={analysis.risk.length} icon={<ShieldAlert size={19} />} color="#DC2626" sub="Learners below 40%" />
+            <Metric title="Excellence" value={analysis.excellence.length} icon={<Award size={19} />} color="#059669" sub="Learners at 80%+" />
+          </div>
+        </div>
       </div>
-      <div className="tbl-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Rank</th><th>Adm</th><th>Name</th>
-              {subjects.map(s => <th key={s} style={{ fontSize: 9 }}>{s.slice(0, 5)}</th>)}
-              <th>Total Pts</th><th>Avg %</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map(l => (
-              <tr key={l.adm}>
-                <td style={{ fontWeight: 800 }}>#{l.rank}</td>
-                <td>{l.adm}</td>
-                <td style={{ fontWeight: 600 }}>{l.name}</td>
-                {l.detail.map((d, i) => <td key={i} style={{ textAlign: 'center' }}>{d.lv || '—'}</td>)}
-                <td style={{ fontWeight: 800, color: 'var(--lp-primary)' }}>{l.totalPts}</td>
-                <td style={{ fontWeight: 700 }}>{Math.round(l.totalMarks / (l.enteredCount || 1))}%</td>
+
+      <div className="sg sg2" style={{ alignItems: 'stretch' }}>
+        <div className="panel">
+          <div className="panel-hdr"><h3>Subject Diagnostic Matrix</h3></div>
+          <div className="tbl-wrap">
+            <table>
+              <thead><tr><th>Subject</th><th>Avg</th><th>High</th><th>Low</th><th>Pass Rate</th><th>Missing</th><th>Signal</th></tr></thead>
+              <tbody>
+                {analysis.subjectRows.map(s => (
+                  <tr key={s.name}>
+                    <td style={{ fontWeight: 800 }}>{s.name}</td>
+                    <td>{s.avg}%</td>
+                    <td>{s.high}</td>
+                    <td>{s.low}</td>
+                    <td><Progress value={s.passRate} color={s.passRate >= 70 ? '#059669' : s.passRate >= 45 ? '#D97706' : '#DC2626'} /></td>
+                    <td>{s.missing}</td>
+                    <td><span className={`badge ${s.avg >= 70 ? 'bg-green' : s.avg >= 50 ? 'bg-amber' : 'bg-red'}`}>{s.avg >= 70 ? 'Strong' : s.avg >= 50 ? 'Watch' : 'Intervene'}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-hdr"><h3>Performance Bands</h3></div>
+          <div className="panel-body">
+            <ResponsiveContainer width="100%" height={230}>
+              <PieChart>
+                <Pie data={analysis.distribution} innerRadius={58} outerRadius={86} dataKey="count" nameKey="name">
+                  {analysis.distribution.map((d, i) => <Cell key={i} fill={d.color} />)}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+            <div style={{ display: 'grid', gap: 8 }}>
+              {analysis.distribution.map(d => (
+                <div key={d.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><i style={{ width: 10, height: 10, borderRadius: 3, background: d.color }} />{d.name}% band</span>
+                  <strong>{d.count} learners</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="sg sg2">
+        <LearnerList title="Immediate Intervention" learners={analysis.risk.slice(0, 12)} tone="danger" />
+        <LearnerList title="Top Performers" learners={analysis.excellence.slice(0, 12)} tone="success" />
+      </div>
+
+      <div className="panel">
+        <div className="panel-hdr">
+          <div>
+            <h3>Class Rankings & Markbook — {grade}</h3>
+            <div style={{ color: 'var(--muted)', fontSize: 12, marginTop: 3 }}><Search size={13} style={{ display: 'inline', marginRight: 4 }} />Filtered by current stream/search controls</div>
+          </div>
+        </div>
+        <div className="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th><th>Adm</th><th>Name</th><th>Stream</th>
+                {subjects.map(s => <th key={s} style={{ fontSize: 9 }}>{s.slice(0, 6)}</th>)}
+                <th>Total Pts</th><th>Total Marks</th><th>Avg %</th><th>VAP</th><th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.map(l => {
+                const average = l.enteredCount ? l.totalMarks / l.enteredCount : 0;
+                return (
+                  <tr key={l.adm}>
+                    <td style={{ fontWeight: 900 }}>#{l.rank}</td>
+                    <td>{l.adm}</td>
+                    <td style={{ fontWeight: 700 }}>{l.name}</td>
+                    <td>{l.stream || '—'}</td>
+                    {l.detail.map((d, i) => (
+                      <td key={i} style={{ textAlign: 'center' }}>
+                        <div style={{ fontWeight: 800 }}>{d.score ?? '—'}</div>
+                        <div style={{ fontSize: 10, color: d.c || 'var(--muted)' }}>{d.lv || '—'}{d.sRank ? ` #${d.sRank}` : ''}</div>
+                      </td>
+                    ))}
+                    <td style={{ fontWeight: 900, color: '#8B1A1A' }}>{l.totalPts}</td>
+                    <td style={{ fontWeight: 800 }}>{l.totalMarks}</td>
+                    <td style={{ fontWeight: 800 }}>{pct(average)}%</td>
+                    <td style={{ fontWeight: 800, color: l.vap >= 0 ? '#059669' : '#DC2626' }}>{l.vap > 0 ? '+' : ''}{l.vap || 0}</td>
+                    <td><span className={`badge ${average >= 80 ? 'bg-green' : average >= 50 ? 'bg-blue' : average >= 40 ? 'bg-amber' : 'bg-red'}`}>{average >= 80 ? 'Excellent' : average >= 50 ? 'Secure' : average >= 40 ? 'Watch' : 'Urgent'}</span></td>
+                  </tr>
+                );
+              })}
+              {data.length === 0 && <tr><td colSpan={subjects.length + 9} style={{ textAlign: 'center', color: 'var(--muted)', padding: 30 }}>No marks found for this selection.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Metric({ title, value, sub, icon, color }) {
+  return (
+    <div className="stat-card" style={{ boxShadow: 'none', borderColor: `${color}33` }}>
+      <div className="sc-inner">
+        <div className="sc-icon" style={{ background: `${color}14`, color }}>{icon}</div>
+        <div>
+          <div className="sc-l">{title}</div>
+          <div className="sc-n">{value}</div>
+          <div style={{ color: 'var(--muted)', fontSize: 11, marginTop: 5 }}>{sub}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Progress({ value, color }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 120 }}>
+      <div style={{ flex: 1, height: 7, background: '#E2E8F0', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ width: `${Math.min(100, Math.max(0, value))}%`, height: '100%', background: color }} />
+      </div>
+      <strong style={{ fontSize: 11 }}>{value}%</strong>
+    </div>
+  );
+}
+
+function LearnerList({ title, learners, tone }) {
+  const color = tone === 'danger' ? '#DC2626' : '#059669';
+  const bg = tone === 'danger' ? '#FEF2F2' : '#ECFDF5';
+  return (
+    <div className="panel">
+      <div className="panel-hdr"><h3 style={{ color }}>{title}</h3></div>
+      <div className="panel-body" style={{ display: 'grid', gap: 8 }}>
+        {learners.map(l => {
+          const avg = l.enteredCount ? l.totalMarks / l.enteredCount : 0;
+          return (
+            <div key={l.adm} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: 11, borderRadius: 12, background: bg, border: `1px solid ${color}22` }}>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 13 }}>{l.name}</div>
+                <div style={{ color: 'var(--muted)', fontSize: 11 }}>Adm {l.adm} · Rank #{l.rank} · {l.stream || 'No stream'}</div>
+              </div>
+              <strong style={{ color }}>{pct(avg)}%</strong>
+            </div>
+          );
+        })}
+        {learners.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13 }}>No learners in this band for the current selection.</div>}
       </div>
     </div>
   );
