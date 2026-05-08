@@ -634,6 +634,24 @@ export default function SuperAdminPage() {
                         </button>
                         <button 
                           className="btn btn-ghost btn-sm" 
+                          style={{ marginLeft: 5, color: '#10B981' }}
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/api/saas/manage`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'sync_learner_kv', tenantId: s.id })
+                              });
+                              const json = await res.json();
+                              if (json.ok) alert(`Learner sync complete! ${json.synced} students updated in KV.`);
+                              else alert(json.error);
+                            } catch (e) { alert(e.message); }
+                          }}
+                        >
+                          👥 Sync Learners
+                        </button>
+                        <button 
+                          className="btn btn-ghost btn-sm" 
                           style={{ marginLeft: 5, color: '#0EA5E9' }}
                           onClick={async () => {
                             try {

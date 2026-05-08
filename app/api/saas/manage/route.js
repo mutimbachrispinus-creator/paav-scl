@@ -104,6 +104,12 @@ export async function POST(request) {
       return NextResponse.json({ ok: true, synced });
     }
 
+    if (action === 'sync_learner_kv') {
+      const { syncLearnerKV } = await import('@/lib/db');
+      const synced = await syncLearnerKV(tenantId);
+      return NextResponse.json({ ok: true, synced });
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
 
   } catch (err) {
