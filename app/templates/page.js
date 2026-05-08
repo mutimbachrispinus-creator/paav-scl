@@ -339,7 +339,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                           <span style={{ fontWeight: 600 }}>{d.score}</span>
                           <span style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                             <span style={{ fontSize: 7.5, color: d.c || '#333', fontWeight: 800 }}>{d.lv || '—'}</span>
-                            {d.sRank && <span style={{ fontSize: 6.5, color: '#666', fontWeight: 700 }}>pos:{d.sRank}</span>}
+                            {d.sRank && <span style={{ fontSize: 6.5, color: '#666', fontWeight: 700 }}>No.{d.sRank}</span>}
                           </span>
                         </div>
                       ) : '—'}

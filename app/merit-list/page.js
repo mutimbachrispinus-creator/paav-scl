@@ -337,7 +337,7 @@ export default function MeritListPage() {
                                     {d.lv}
                                   </span>
                                   {d.sRank && (
-                                    <span style={{ fontSize: 7.5, fontWeight: 800, color: '#64748B' }}>pos:{d.sRank}</span>
+                                    <span style={{ fontSize: 7.5, fontWeight: 800, color: '#64748B' }}>No.{d.sRank}</span>
                                   )}
                                 </span>
                               </div>
