@@ -23,6 +23,18 @@ import {
 import { kvGet, kvSet, ensureSchema, query, kvDeleteStaff, logAction } from '@/lib/db';
 import { sendCredentialsSMS } from '@/lib/sms-client';
 
+const SCHEMA_REQUIRED_ACTIONS = new Set([
+  'register',
+  'add_child',
+  'edit_user',
+  'google',
+  'request_otp',
+  'verify_otp_reset',
+  'resetpw',
+  'change_password',
+  'delete_user',
+]);
+
 /* ─── Helpers ───────────────────────────────────────────────────────────── */
 function ok(data, response) {
   return NextResponse.json({ ok: true, ...data }, { status: 200, ...response });
@@ -45,15 +57,17 @@ export async function POST(request) {
   console.log(`[api/auth] Action: ${action} | Runtime: ${process.env.NEXT_RUNTIME || 'node'}`);
   
   try {
-    // 1. Initialize Schema (Batched & Optimized)
-    try {
-      await ensureSchema();
-    } catch (dbErr) {
-      console.error('[api/auth] DB Initialization Failed:', dbErr);
-      return err(`Database Initialization Error: ${dbErr.message}`, 500);
+    // Avoid running DDL/migration checks on hot read paths such as login/logout.
+    // On Cloudflare Workers those checks can consume enough CPU to hit resource limits.
+    if (SCHEMA_REQUIRED_ACTIONS.has(action)) {
+      try {
+        await ensureSchema();
+      } catch (dbErr) {
+        console.error('[api/auth] DB Initialization Failed:', dbErr);
+        return err(`Database Initialization Error: ${dbErr.message}`, 500);
+      }
     }
 
-    // 2. Route Action
     switch (action) {
       case 'login':      return handleLogin(body, request);
       case 'logout':     return handleLogout(request);

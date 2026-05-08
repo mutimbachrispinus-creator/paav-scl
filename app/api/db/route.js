@@ -282,18 +282,21 @@ async function handleRequest(req, auth, impTenant = null) {
 
     case 'getAll': {
       const keys = Array.isArray(req.keys) ? req.keys : [];
-      const { kvGetWithMeta } = await import('@/lib/db');
-      
-      const results = await Promise.all(keys.map(async (k) => {
-        let { value, updatedAt } = await kvGetWithMeta(k, tenantId);
-        
+      const { kvGetManyWithMeta } = await import('@/lib/db');
+
+      const rawResults = await kvGetManyWithMeta(keys, tenantId);
+
+      const results = rawResults.map(r => {
+        let value = r.value;
+        const k = r.key;
+
         // Security: Only super-admin can read AT credentials
         if (k === 'paav_at_creds' && auth.role !== 'super-admin') {
           value = null;
         }
 
         if (k === 'paav_staff_reqs' && auth.role !== 'admin' && auth.id) {
-          if (Array.isArray(value)) value = value.filter(r => r.userId === auth.id);
+          if (Array.isArray(value)) value = value.filter(row => row.userId === auth.id);
         }
         
         if (!['admin','parent','super-admin'].includes(auth.role)) {
@@ -301,8 +304,8 @@ async function handleRequest(req, auth, impTenant = null) {
           if (k === 'paav6_learners' && Array.isArray(value)) value = value.map(l => ({ ...l, t1: 0, t2: 0, t3: 0, arrears: 0 }));
         }
         
-        return { key: k, value, updatedAt };
-      }));
+        return { key: k, value, updatedAt: r.updatedAt };
+      });
 
       const data = {}; const meta = {};
       results.forEach(r => {
@@ -376,4 +379,3 @@ async function handleRequest(req, auth, impTenant = null) {
       return { error: `Unknown request type: ${req.type}` };
   }
 }
-
