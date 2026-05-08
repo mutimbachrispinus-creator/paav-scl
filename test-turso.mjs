@@ -1,4 +1,4 @@
-import { createClient } from '@libsql/client/web.js';
+import { createClient } from '@libsql/client/web';
 import fs from 'fs';
 
 const envContent = fs.existsSync('.env.local') ? fs.readFileSync('.env.local', 'utf8') : fs.readFileSync('.dev.vars', 'utf8');

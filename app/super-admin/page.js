@@ -33,6 +33,8 @@ export default function SuperAdminPage() {
   const [announcement, setAnnouncement] = useState({ message: '', priority: 'normal', active: false });
   const [terms, setTerms] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [healthReport, setHealthReport] = useState([]);
+  const [runningDiag, setRunningDiag] = useState(false);
 
   const load = useCallback(async () => {
     const u = await getCachedUser();
@@ -200,6 +202,7 @@ export default function SuperAdminPage() {
         <TabBtn icon="⚙️" label="Global Settings" on={tab === 'settings'} onClick={() => setTab('settings')} />
         <TabBtn icon="📢" label="Broadcasts" on={tab === 'broadcast'} onClick={() => setTab('broadcast')} />
         <TabBtn icon="🕵️" label="Audit Logs" on={tab === 'audit'} onClick={() => setTab('audit')} />
+        <TabBtn icon="🩺" label="System Health" on={tab === 'health'} onClick={() => setTab('health')} />
       </div>
 
       <div style={{ padding: '0 40px 40px' }}>
@@ -542,6 +545,93 @@ export default function SuperAdminPage() {
                       <td>{log.user_name} <span style={{ fontSize: 10, color: SLATE }}>({log.user_id})</span></td>
                       <td><span className={`badge ${log.action.includes('Delete') ? 'bg-red' : log.action.includes('Impersonate') ? 'bg-amber' : 'bg-blue'}`}>{log.action}</span></td>
                       <td style={{ fontSize: 12 }}>{log.details}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {tab === 'health' && (
+          <div className="panel">
+            <div className="panel-hdr" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3>🩺 Institutional Health & Integrity Audit</h3>
+                <p style={{ fontSize: 12, color: SLATE, margin: 0 }}>Cross-check multi-tenant data consistency and configuration status</p>
+              </div>
+              <button 
+                className="btn btn-primary btn-sm" 
+                onClick={async () => {
+                  setRunningDiag(true);
+                  try {
+                    const res = await fetch('/api/saas/diagnostics');
+                    const json = await res.json();
+                    if (json.ok) setHealthReport(json.report);
+                  } catch (e) { alert(e.message); }
+                  finally { setRunningDiag(false); }
+                }}
+                disabled={runningDiag}
+              >
+                {runningDiag ? '🩺 Running Scan...' : '🚀 Run Full System Audit'}
+              </button>
+            </div>
+            <div className="tbl-wrap">
+              <table>
+                <thead>
+                  <tr style={{ background: '#F8FAFC' }}>
+                    <th>Institution</th><th>Status</th><th>Configuration</th><th>Integrity Check</th><th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {healthReport.length === 0 ? (
+                    <tr><td colSpan={5} style={{ textAlign: 'center', padding: 60 }}>
+                      <div style={{ fontSize: 40, marginBottom: 15 }}>🔍</div>
+                      <div style={{ fontWeight: 700, color: NAVY }}>No Audit Data</div>
+                      <p style={{ fontSize: 12, color: SLATE }}>Click the button above to perform a comprehensive platform-wide integrity scan.</p>
+                    </td></tr>
+                  ) : healthReport.map(s => (
+                    <tr key={s.id}>
+                      <td><div style={{ fontWeight: 800 }}>{s.name}</div><div style={{ fontSize: 10, color: SLATE }}>{s.id}</div></td>
+                      <td>
+                        <span className={`badge ${s.health.hasLearners ? 'bg-green' : 'bg-amber'}`}>
+                          {s.health.hasLearners ? 'DATA FOUND' : 'NO LEARNERS'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`badge ${s.health.hasProfile ? 'bg-green' : 'bg-red'}`}>
+                          {s.health.hasProfile ? 'PROFILE OK' : 'MISSING KV'}
+                        </span>
+                      </td>
+                      <td>
+                        {s.count > 0 ? (
+                          <div style={{ color: '#EF4444', fontWeight: 800 }}>
+                            ⚠️ {s.count} Orphaned Records Found
+                            <div style={{ fontSize: 9, fontWeight: 400 }}>Marks: {s.marksCount} | Payments: {s.paylogCount}</div>
+                          </div>
+                        ) : (
+                          <div style={{ color: EMERALD, fontWeight: 800 }}>✅ All Data Linked</div>
+                        )}
+                      </td>
+                      <td>
+                        <button 
+                          className="btn btn-ghost btn-sm" 
+                          onClick={async () => {
+                            if (!confirm(`Run deep recovery for ${s.name}?`)) return;
+                            try {
+                              const res = await fetch('/api/saas/maintenance', { 
+                                method: 'POST', 
+                                headers: { 'Content-Type': 'application/json' }, 
+                                body: JSON.stringify({ tenantId: s.id }) 
+                              });
+                              const json = await res.json();
+                              alert(`Recovered ${json.recovered || 0} records.`);
+                            } catch (e) { alert(e.message); }
+                          }}
+                        >
+                          🔧 Repair
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
