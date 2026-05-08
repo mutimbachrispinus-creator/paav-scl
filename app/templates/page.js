@@ -272,6 +272,17 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
     const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg, curr) : null;
     return { avgScore, avgInfo };
   });
+  
+  const subjectPerformanceRanks = colStats
+    .map((s, i) => ({ index: i, avgScore: s.avgScore }))
+    .filter(s => s.avgScore !== null)
+    .sort((a, b) => b.avgScore - a.avgScore);
+  const subjectRanks = new Array(colStats.length).fill(null);
+  let spr = 1;
+  for (let i = 0; i < subjectPerformanceRanks.length; i++) {
+    if (i > 0 && subjectPerformanceRanks[i].avgScore < subjectPerformanceRanks[i-1].avgScore) spr = i + 1;
+    subjectRanks[subjectPerformanceRanks[i].index] = spr;
+  }
 
   const totalPtsSum = data.reduce((acc, l) => acc + l.totalPts, 0);
   const totalAvgPts = data.length > 0 ? Number((totalPtsSum / data.length).toFixed(2)) : 0;
@@ -426,6 +437,15 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                     <span style={{ fontWeight: 800 }}>{gInfo(parseFloat(avgPct), grade, gradCfg, curr).pts}</span>
                   ) : '—'}
                 </td>
+              </tr>
+              <tr style={{ background: '#f0f9ff' }}>
+                <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>SUBJECT RANK</td>
+                {colStats.map((stat, i) => (
+                  <td key={i} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800, color: '#0369A1' }}>
+                    {subjectRanks[i] ? `No. ${subjectRanks[i]}` : '—'}
+                  </td>
+                ))}
+                <td colSpan={4} style={{ border: '1px solid #ddd' }}></td>
               </tr>
             </>
           )}

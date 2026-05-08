@@ -113,6 +113,20 @@ export default function MeritListPage() {
     });
   }, [ranked, subjects, grade, gradCfg, school?.curriculum]);
 
+  const subjectPerformanceRanks = useMemo(() => {
+    const valid = colStats
+      .map((s, i) => ({ index: i, avgScore: s.avgScore }))
+      .filter(s => s.avgScore !== null)
+      .sort((a, b) => b.avgScore - a.avgScore);
+    const ranks = new Array(colStats.length).fill(null);
+    let r = 1;
+    for (let i = 0; i < valid.length; i++) {
+      if (i > 0 && valid[i].avgScore < valid[i-1].avgScore) r = i + 1;
+      ranks[valid[i].index] = r;
+    }
+    return ranks;
+  }, [colStats]);
+
   const totalPtsSum = ranked.reduce((acc, l) => acc + l.totalPts, 0);
   const totalAvgPts = ranked.length > 0 ? Number((totalPtsSum / ranked.length).toFixed(2)) : 0;
   const avgPct = ranked.length > 0 && max > 0 ? Number(((totalAvgPts / max) * 100).toFixed(2)) : 0;
@@ -437,6 +451,15 @@ export default function MeritListPage() {
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#000', border: '1px solid #000' }}>{totalAvgPts}</td>
                         <td style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: '#000', border: '1px solid #000' }}>{(totalAvgPts / (subjects.length || 1)).toFixed(2)}</td>
                         <td colSpan={3} style={{ border: '1px solid #000' }}></td>
+                      </tr>
+                      <tr style={{ background: '#f0f9ff' }}>
+                        <td colSpan={3} style={{ padding: 6, textAlign: 'right', fontWeight: 800, border: '1px solid #000' }}>SUBJECT RANK</td>
+                        {colStats.map((stat, i) => (
+                          <td key={i} style={{ padding: 6, textAlign: 'center', fontWeight: 800, color: 'var(--blue)', border: '1px solid #000' }}>
+                            {subjectPerformanceRanks[i] ? `No. ${subjectPerformanceRanks[i]}` : '—'}
+                          </td>
+                        ))}
+                        <td colSpan={6} style={{ border: '1px solid #000' }}></td>
                       </tr>
                     </>
                   )}
