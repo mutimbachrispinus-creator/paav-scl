@@ -17,7 +17,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized. Super-Admin access required.' }, { status: 403 });
     }
 
-    const db = getClient();
+    const db = await getClient();
     
     // 1. Fetch all schools from subscriptions (excluding the platform owner)
     const schoolsRes = await db.execute("SELECT * FROM subscriptions WHERE tenant_id != 'platform-master' ORDER BY updated_at DESC");

@@ -62,7 +62,7 @@ export async function POST(request) {
 
       if (curriculum) {
         // Also update the curriculum in the school profile KV
-        const client = getClient();
+        const client = await getClient();
         const res = await client.execute({ sql: `SELECT value FROM kv WHERE tenant_id = ? AND key = 'paav_school_profile'`, args: [tenantId] });
         let profile = res.rows[0]?.value ? JSON.parse(res.rows[0].value) : {};
         profile.curriculum = curriculum;
@@ -77,7 +77,7 @@ export async function POST(request) {
     }
 
     if (action === 'get_paybills') {
-      const client = getClient();
+      const client = await getClient();
       const res = await client.execute({ sql: `SELECT value FROM kv WHERE tenant_id = ? AND key = 'paav_paybill_accounts'`, args: [tenantId] });
       const val = res.rows[0]?.value;
       const paybills = val ? JSON.parse(val) : [];

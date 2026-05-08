@@ -15,7 +15,7 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const db = getClient();
+    const db = await getClient();
     const hp = await hashPassword(newPassword);
 
     // Verify user exists with that phone number for extra security

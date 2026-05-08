@@ -17,7 +17,7 @@ export async function GET(req) {
       return NextResponse.json({ error: 'Tenant ID required' }, { status: 400 });
     }
 
-    const db = getClient();
+    const db = await getClient();
     const res = await db.execute({
       sql: 'SELECT * FROM subscriptions WHERE tenant_id = ?',
       args: [tenantId]

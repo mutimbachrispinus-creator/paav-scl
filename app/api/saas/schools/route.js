@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET() {
   try {
-    const db = getClient();
+    const db = await getClient();
     
     // Fetch active schools
     const res = await db.execute("SELECT tenant_id FROM subscriptions WHERE status = 'active' AND tenant_id != 'platform-master'");
