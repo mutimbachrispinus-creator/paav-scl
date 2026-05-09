@@ -46,6 +46,7 @@ export default function GradesPage() {
   const [stream, setStream] = usePersistedState('paav_grades_stream', '');
   const [term,   setTerm]   = usePersistedState('paav_grades_term',   'T1');
   const [assess, setAssess] = usePersistedState('paav_grades_assess', 'mt1');
+  const [selectedSubj, setSelectedSubj] = usePersistedState('paav_grades_subject', '');
 
   const curr = getCurriculum(school?.curriculum || 'CBC');
   const ALL_GRADES = getAllGrades(school?.curriculum || 'CBC', school);
@@ -529,6 +530,13 @@ export default function GradesPage() {
               {(curr.ASSESSMENT_TYPES || []).map(a => <option key={a.key} value={a.key}>{a.label}</option>)}
             </select>
           </div>
+          <div className="field" style={{ marginBottom: 0, minWidth: 200 }}>
+            <label style={{ color: 'var(--primary)', fontWeight: 800 }}>Subject to Enter</label>
+            <select value={selectedSubj} onChange={e => setSelectedSubj(e.target.value)} style={{ borderColor: 'var(--primary)', borderWidth: 2 }}>
+              <option value="">-- Select Subject --</option>
+              {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
 
           {isLocked && (
             <div style={{ padding: '8px 14px',
@@ -588,98 +596,83 @@ export default function GradesPage() {
             </button>
           </div>
         </div>
+      ) : !selectedSubj ? (
+        <div className="panel animate-in" style={{ textAlign: 'center', padding: '60px 20px', background: 'linear-gradient(to bottom, #fff, #f8fafc)' }}>
+           <div style={{ fontSize: 48, marginBottom: 16 }}>📚</div>
+           <h3 style={{ color: 'var(--navy)', marginBottom: 8 }}>Ready to enter marks?</h3>
+           <p style={{ color: 'var(--muted)', fontSize: 14 }}>Please select a subject from the dropdown above to start entering scores for {grade}.</p>
+           <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', gap: 12 }}>
+              {subjects.slice(0, 5).map(s => (
+                <button key={s} className="btn btn-ghost btn-sm" onClick={() => setSelectedSubj(s)} style={{ border: '1px solid var(--border)' }}>{s}</button>
+              ))}
+           </div>
+        </div>
       ) : (
-        <div className="panel">
+        <div className="panel animate-in">
           <div className="tbl-wrap">
-            <table>
+            <table className="subject-entry-table">
               <thead>
                 <tr>
-                  <th style={{ minWidth: 32 }}>#</th>
-                  <th style={{ minWidth: 60 }}>Adm</th>
-                  <th style={{ minWidth: 140 }}>Name</th>
-                  {subjects.map(s => (
-                    <th key={s} style={{ minWidth: 68, textAlign: 'center', fontSize: 9 }}
-                      title={s}>
-                      {s.length > 8 ? s.slice(0, 8) + '…' : s}
-                    </th>
-                  ))}
-                  <th style={{ minWidth: 60, textAlign: 'center' }}>Pts</th>
-                  <th style={{ minWidth: 52, textAlign: 'center' }}>Max</th>
-                  <th style={{ minWidth: 52, textAlign: 'center' }}>%</th>
-                  <th style={{ minWidth: 40 }} className="no-print"></th>
+                  <th style={{ width: 40 }}>#</th>
+                  <th style={{ width: 80 }}>Adm</th>
+                  <th>Learner Name</th>
+                  <th style={{ textAlign: 'center', background: 'rgba(79, 70, 229, 0.05)', color: 'var(--primary)' }}>
+                    {selectedSubj} Score
+                  </th>
+                  <th style={{ textAlign: 'center', width: 100 }}>Level</th>
+                  <th style={{ textAlign: 'center', width: 100 }}>Total Pts</th>
+                  <th style={{ width: 40 }} className="no-print"></th>
                 </tr>
               </thead>
               <tbody>
                 {classLearners.map((l, i) => {
-                  let totalPts  = 0;
-                  let entered   = 0;
-                  const maxTotal = maxPts(grade, subjects);
+                  const sc = getScore(l.adm, selectedSubj);
+                  const inf = sc !== undefined ? gInfo(Number(sc), grade, gradCfg) : null;
+                  
+                  // Compute overall for this learner across ALL subjects (for the summary columns)
+                  let totalPts = 0;
+                  let entered = 0;
+                  subjects.forEach(s => {
+                    const sScore = getScore(l.adm, s);
+                    const sInf = sScore !== undefined ? gInfo(Number(sScore), grade, gradCfg) : null;
+                    if (sInf) { totalPts += sInf.pts; entered++; }
+                  });
 
                   return (
-                    <tr key={l.adm}>
+                    <tr key={l.adm} className="row-hover">
                       <td style={{ color: 'var(--muted)', fontSize: 11 }}>{i + 1}</td>
-                      <td style={{ fontWeight: 700, fontSize: 11.5 }}>{l.adm}</td>
-                      <td style={{ fontWeight: 600, fontSize: 12, whiteSpace: 'nowrap' }}>{l.name}</td>
-
-                      {subjects.map(subj => {
-                        const sc  = getScore(l.adm, subj);
-                        const inf = sc !== undefined ? gInfo(Number(sc), grade, gradCfg) : null;
-                        if (inf) { totalPts += inf.pts; entered++; }
-                        return (
-                          <td key={subj} style={{ padding: '4px 5px', textAlign: 'center' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column',
-                              alignItems: 'center', gap: 2 }}>
-                              <input
-                                type="number"
-                                min="0" max="100"
-                                value={sc ?? ''}
-                                onChange={e => setScore(l.adm, subj, e.target.value)}
-                                onBlur={() => save(true)}
-                                disabled={isSubjLocked(subj) && user?.role !== 'admin'}
-                                title={isSubjLocked(subj) && user?.role === 'admin' ? 'Admin override — you can edit' : ''}
-                                style={{
-                                  width: 48, textAlign: 'center',
-                                  border: `1.5px solid ${
-                                    isSubjLocked(subj) && user?.role === 'admin' ? '#059669'  // green = admin override
-                                    : inf ? inf.c
-                                    : 'var(--border)'
-                                  }`,
-                                  borderRadius: 6, padding: '3px 4px', fontSize: 11.5, outline: 'none',
-                                  background: isSubjLocked(subj) && user?.role !== 'admin'
-                                    ? '#F1F5F9'                          // grey = locked for teacher
-                                    : isSubjLocked(subj) ? '#ECFDF5'              // light green = admin override
-                                    : '#fff',
-                                  cursor: isSubjLocked(subj) && user?.role !== 'admin' ? 'not-allowed' : 'text',
-                                }}
-                              />
-                              {inf && (
-                                <span style={{ fontSize: 9, fontWeight: 700, color: inf.c,
-                                  background: inf.bg, borderRadius: 4, padding: '1px 5px' }}>
-                                  {inf.lv}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                        );
-                      })}
-
-                      <td style={{ textAlign: 'center', fontWeight: 800, fontSize: 13,
-                        color: entered > 0 ? 'var(--navy)' : 'var(--muted)' }}>
+                      <td style={{ fontWeight: 700, fontSize: 12 }}>{l.adm}</td>
+                      <td style={{ fontWeight: 600 }}>{l.name}</td>
+                      <td style={{ textAlign: 'center', background: 'rgba(79, 70, 229, 0.02)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                          <input
+                            type="number"
+                            min="0" max="100"
+                            value={sc ?? ''}
+                            onChange={e => setScore(l.adm, selectedSubj, e.target.value)}
+                            onBlur={() => save(true)}
+                            disabled={isSubjLocked(selectedSubj) && user?.role !== 'admin'}
+                            className="score-input-large"
+                            style={{
+                              borderColor: inf ? inf.c : 'var(--border)',
+                              background: isSubjLocked(selectedSubj) && user?.role !== 'admin' ? '#f1f5f9' : '#fff'
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {inf ? (
+                          <span className="level-badge" style={{ background: inf.bg, color: inf.c }}>
+                            {inf.lv}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td style={{ textAlign: 'center', fontWeight: 800, color: 'var(--navy)' }}>
                         {entered > 0 ? totalPts : '—'}
-                      </td>
-                      <td style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 11 }}>
-                        {maxTotal}
-                      </td>
-                      <td style={{ textAlign: 'center', fontWeight: 700, fontSize: 11.5,
-                        color: entered > 0
-                          ? totalPts / maxTotal >= 0.5 ? 'var(--green)' : 'var(--red)'
-                          : 'var(--muted)' }}>
-                        {entered > 0 ? Number(((totalPts / maxTotal) * 100).toFixed(2)) + '%' : '—'}
                       </td>
                       <td className="no-print">
                         <button className="btn btn-ghost btn-xs" 
-                          style={{ color: 'var(--red)', padding: '2px 4px' }}
-                          title="Clear marks for this learner"
+                          style={{ color: 'var(--red)' }}
                           onClick={() => clearLearnerMarks(l)}>
                           🗑️
                         </button>
@@ -690,15 +683,22 @@ export default function GradesPage() {
               </tbody>
             </table>
           </div>
-          <div className="panel-footer no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '12px 20px', background: '#f8fafc', borderTop: '1.5px solid var(--border)', borderRadius: '0 0 12px 12px' }}>
-            {user?.role === 'admin' && (
-              <button className="btn btn-danger" onClick={clearAllInView} disabled={saving}>
-                🗑️ Clear This Assessment
-              </button>
-            )}
-            <button className={`btn ${justSaved ? 'btn-success' : 'btn-primary'}`} onClick={() => save()} disabled={saving} style={{ padding: '10px 24px', fontSize: 14 }}>
-              {saving ? '⏳ Saving…' : justSaved ? '✅ Marks Saved Successfully' : '💾 Save All Marks Now'}
-            </button>
+          <div className="panel-footer no-print">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                Tip: Use <b>Tab</b> to move quickly between learners.
+              </div>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+                {user?.role === 'admin' && (
+                  <button className="btn btn-danger" onClick={clearAllInView} disabled={saving}>
+                    🗑️ Clear {selectedSubj}
+                  </button>
+                )}
+                <button className={`btn ${justSaved ? 'btn-success' : 'btn-primary'}`} onClick={() => save()} disabled={saving} style={{ padding: '10px 32px' }}>
+                  {saving ? '⏳ Syncing…' : justSaved ? '✅ Marks Saved' : `💾 Save ${selectedSubj} Marks`}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
