@@ -96,7 +96,10 @@ export default function TemplatesPage() {
 
   function triggerPrint(landscape) {
     const style = document.createElement('style');
-    style.innerHTML = landscape ? '@page { size: A4 landscape; margin: 8mm; }' : '@page { size: A4 portrait; margin: 8mm; }';
+    style.id = 'paav-print-style';
+    style.innerHTML = landscape 
+      ? '@page { size: A4 landscape; margin: 8mm; }' 
+      : '@page { size: A4 portrait; margin: 10mm 12mm; }';
     document.head.appendChild(style);
     
     if (landscape) document.body.classList.add('print-landscape');
@@ -104,9 +107,12 @@ export default function TemplatesPage() {
     
     setTimeout(() => {
       window.print();
-      document.body.classList.remove('print-landscape');
-      style.remove();
-    }, 150);
+      setTimeout(() => {
+        document.body.classList.remove('print-landscape');
+        const s = document.getElementById('paav-print-style');
+        if (s) s.remove();
+      }, 1000);
+    }, 800);
   }
 
   function printGrade() {

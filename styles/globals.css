@@ -507,21 +507,30 @@ tr:hover td{background:#F8FAFF}
   /* Hide ALL portal chrome — navbar, sidebar, announcements, bottom nav, modals */
   #topbar, .no-print, .no-print-bg,
   nav, .announcement-bar-live, .mobile-bottom-nav,
-  .inactivity-banner, .modal-overlay { display:none!important }
+  .inactivity-banner, .modal-overlay { display:none!important; visibility:hidden!important; }
 
-  body { background:#fff!important; margin:0!important; padding:0!important; }
-  #main { padding:0!important; max-width:none!important; }
+  body { background:#fff!important; margin:0!important; padding:0!important; height: auto !important; overflow: visible !important; }
+  html { height: auto !important; overflow: visible !important; }
+  #main { padding:0!important; max-width:none!important; height: auto !important; overflow: visible !important; }
+
+  * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
 
   /* Default portrait */
   @page { size: A4 portrait; margin: 10mm 12mm; }
 
   .rc-a4 { box-shadow:none!important; border:none!important; margin:0!important; width:100%!important; padding:0!important; page-break-after:always; }
 
-  /* Landscape pages (merit list, class list) */
-  .print-landscape { }
-  .print-landscape @page { size: A4 landscape; margin: 8mm 10mm; }
-  body.merit-print, body.classlist-print { }
-  @page merit-print { size: A4 landscape; margin: 8mm; }
+  /* Ensure all content is rendered for print — disable performance optimizations */
+  .page, .page.on, .print-container, .rc-page, .rc-batch {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    content-visibility: visible !important;
+    contain: none !important;
+    transform: none !important;
+    backface-visibility: visible !important;
+    padding-bottom: 0 !important;
+  }
 
   .merit-list-container { max-height:none!important; overflow:visible!important; }
   .rc-page { page-break-after:always; width:100%; min-height:270mm; box-sizing:border-box; padding:12mm; border:none!important; box-shadow:none!important; }
