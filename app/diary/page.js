@@ -3,6 +3,9 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+import { Search, X, Filter } from 'lucide-react';
+import { getAllGrades } from '@/lib/cbe';
+import { useProfile } from '@/app/PortalShell';
 
 export default function StudentDiaryPage() {
   const router = useRouter();
@@ -22,7 +25,8 @@ export default function StudentDiaryPage() {
       'paav6_paylog', 
       'paav_duties',
       'paav6_msgs',
-      'paav_announcement'
+      'paav_announcement',
+      'paav_school_profile'
     ];
     const data = await getCachedDBMulti(keys);
     setDb(data);
@@ -34,38 +38,51 @@ export default function StudentDiaryPage() {
   const [showAI, setShowAI] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [insights, setInsights] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState('');
 
   const feed = useMemo(() => {
     if (!user || !db.paav6_learners) return [];
 
-    // If parent, find their children
-    const children = user.role === 'parent' 
+    // Filter learners by parent or role
+    let targetLearners = user.role === 'parent' 
       ? db.paav6_learners.filter(l => l.phone === user.phone || l.adm === user.adm) 
       : db.paav6_learners;
 
-    const events = [];
-
-    // 0. Announcements (Global)
-    const announcements = db.paav_announcement;
-    if (announcements) {
-      const annList = Array.isArray(announcements) ? announcements : [announcements];
-      annList.forEach((a, idx) => {
-        if (!a || (!a.text && !a.content)) return;
-        events.push({
-          id: `ann-${a.id || idx}`,
-          date: a.date || (a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-KE') : new Date().toLocaleDateString('en-KE')),
-          student: 'All Students',
-          type: 'announcement',
-          icon: '📢',
-          title: 'School Announcement',
-          desc: a.text || a.content,
-          color: '#8B1A1A'
-        });
+    // Apply Search Filter (Name, Adm, Grade)
+    if (searchQuery || selectedGrade) {
+      targetLearners = targetLearners.filter(l => {
+        const q = searchQuery.toLowerCase();
+        const matchesQuery = !q || l.name?.toLowerCase().includes(q) || l.adm?.toLowerCase().includes(q);
+        const matchesGrade = !selectedGrade || l.grade === selectedGrade;
+        return matchesQuery && matchesGrade;
       });
     }
 
-    const learners = Array.isArray(db.paav6_learners) ? db.paav6_learners : [];
-    children.forEach(l => {
+    const events = [];
+
+    // 0. Announcements (Global - only show if no specific student is filtered, or if it matches the general context)
+    if (!searchQuery && !selectedGrade) {
+      const announcements = db.paav_announcement;
+      if (announcements) {
+        const annList = Array.isArray(announcements) ? announcements : [announcements];
+        annList.forEach((a, idx) => {
+          if (!a || (!a.text && !a.content)) return;
+          events.push({
+            id: `ann-${a.id || idx}`,
+            date: a.date || (a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-KE') : new Date().toLocaleDateString('en-KE')),
+            student: 'All Students',
+            type: 'announcement',
+            icon: '📢',
+            title: 'School Announcement',
+            desc: a.text || a.content,
+            color: '#8B1A1A'
+          });
+        });
+      }
+    }
+
+    targetLearners.forEach(l => {
       // 1. Attendance
       const attendance = db.paav_student_attendance || {};
       Object.entries(attendance).forEach(([gda, status]) => {
@@ -139,22 +156,24 @@ export default function StudentDiaryPage() {
     });
 
     // 5. Messages (filtered by relevance)
-    const msgs = Array.isArray(db.paav6_msgs) ? db.paav6_msgs : [];
-    msgs.filter(m => m.to === user.username || m.from === user.username).forEach(m => {
-      events.push({
-        id: `msg-${m.id}`,
-        date: m.date || (m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-KE') : new Date().toLocaleDateString('en-KE')),
-        student: 'Direct Message',
-        type: 'message',
-        icon: '💬',
-        title: m.from === user.username ? 'Message Sent' : 'Message Received',
-        desc: (m.text || '').length > 50 ? m.text.slice(0, 50) + '...' : (m.text || ''),
-        color: '#0D9488'
+    if (!searchQuery && !selectedGrade) {
+      const msgs = Array.isArray(db.paav6_msgs) ? db.paav6_msgs : [];
+      msgs.filter(m => m.to === user.username || m.from === user.username).forEach(m => {
+        events.push({
+          id: `msg-${m.id}`,
+          date: m.date || (m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-KE') : new Date().toLocaleDateString('en-KE')),
+          student: 'Direct Message',
+          type: 'message',
+          icon: '💬',
+          title: m.from === user.username ? 'Message Sent' : 'Message Received',
+          desc: (m.text || '').length > 50 ? m.text.slice(0, 50) + '...' : (m.text || ''),
+          color: '#0D9488'
+        });
       });
-    });
+    }
 
     return events.sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [user, db]);
+  }, [user, db, searchQuery, selectedGrade]);
 
   const runAIPredictor = async () => {
     setAnalyzing(true);
@@ -196,8 +215,53 @@ export default function StudentDiaryPage() {
 
       <div className="sg-responsive" style={{ maxWidth: 800, margin: '0 auto' }}>
         <div className="panel">
-          <div className="panel-hdr">
-            <h3>🕒 Activity Feed</h3>
+          <div className="panel-hdr" style={{ display: 'flex', flexDirection: 'column', gap: 15, padding: '20px 24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <h3 style={{ margin: 0 }}>🕒 Activity Feed</h3>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <span className="badge bg-blue" style={{ fontSize: 10 }}>{feed.length} EVENTS</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)' }} />
+                <input 
+                  placeholder="Search by name or admission..." 
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{ 
+                    width: '100%', padding: '10px 12px 10px 38px', borderRadius: 10, border: '1px solid #e2e8f0', 
+                    fontSize: 13, background: '#f8fafc', outline: 'none', transition: '0.2s'
+                  }}
+                  onFocus={e => e.target.style.borderColor = 'var(--primary)'}
+                  onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                />
+                {searchQuery && (
+                  <X size={16} 
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', cursor: 'pointer' }} 
+                    onClick={() => setSearchQuery('')}
+                  />
+                )}
+              </div>
+              
+              <div style={{ position: 'relative', minWidth: 140 }}>
+                <Filter size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)' }} />
+                <select 
+                  value={selectedGrade}
+                  onChange={e => setSelectedGrade(e.target.value)}
+                  style={{ 
+                    width: '100%', padding: '10px 10px 10px 30px', borderRadius: 10, border: '1px solid #e2e8f0', 
+                    fontSize: 13, background: '#f8fafc', outline: 'none', cursor: 'pointer', appearance: 'none'
+                  }}
+                >
+                  <option value="">All Grades</option>
+                  {getAllGrades(db.paav_school_profile?.curriculum || 'CBC').map(g => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
           <div className="panel-body">
             {feed.length === 0 ? (
