@@ -272,8 +272,15 @@ export default function BulkLearnersPage() {
       // We check the first data row (usually row 1) to see if content matches the mapped header
       const testRow = lines[1] ? lines[1].split(',').map(c => c.trim().replace(/^"|"$/g, '')) : [];
       
-      const isDate = (s) => /^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(s) || /^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(s);
-      const isGrade = (s) => /GRADE|PP|CLASS|PRIMARY|JSS|KINDER/i.test(s);
+      const isDate = (s) => {
+        if (!s || s.length < 6) return false;
+        return /^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(s) || /^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(s) || /^\d{1,2}(ST|ND|RD|TH)?\s+[A-Z]+\s+\d{4}$/i.test(s);
+      };
+      const isGrade = (s) => {
+        if (!s) return false;
+        const clean = s.toUpperCase();
+        return /GRADE|PP|CLASS|PRIMARY|JSS|KINDER|FORM|YEAR/i.test(clean) || /^(G|P|Y)\d+$/i.test(clean) || /^\d{1,2}$/.test(clean);
+      };
       const isSex = (s) => /^(M|F|MALE|FEMALE)$/i.test(s);
       const isPhone = (s) => /^(\+254|0)?[17]\d{8}$/.test(s.replace(/\s/g, ''));
 
@@ -311,8 +318,8 @@ export default function BulkLearnersPage() {
         let rowGrade = cols[map.grade] || '';
         let rowDOB = cols[map.dob] || '';
         
-        // Swap if they look reversed
-        if (isGrade(rowDOB) && !isGrade(rowGrade)) {
+        // Smarter swap if they look reversed or if one is clearly a date
+        if ((isGrade(rowDOB) && !isGrade(rowGrade)) || (isDate(rowGrade) && !isDate(rowDOB))) {
           [rowGrade, rowDOB] = [rowDOB, rowGrade];
         }
 
