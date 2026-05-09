@@ -135,7 +135,10 @@ export default function GradesPage() {
       // Reload on external data changes — but NOT paav6_marks (those come from our own setScore calls)
       const networkKeys = ['paav_announcement', 'paav7_streams', 'paav8_grad', 'paav8_subj', 'paav_marks_locked', 'paav_marks_pending'];
       if (changed.some(k => networkKeys.includes(k))) {
-        load();
+        // Only reload if we don't have unsaved changes to prevent overwriting active typing
+        if (dirtyMarksRef.current.length === 0) {
+          load();
+        }
       }
     };
     window.addEventListener('paav:sync', handler);
@@ -233,12 +236,16 @@ export default function GradesPage() {
 
       if (data.error) throw new Error(data.error);
 
-      // Clear dirty marks that were successfully synced (deep check)
-      const remainingDirty = dirtyMarksRef.current.filter(m => !marksToSync.some(ms => ms.gsa === m.gsa && ms.adm === m.adm));
+      // FIX: Only clear dirty marks if they haven't been updated again since the save started.
+      // Previously, we only checked gsa/adm, causing new keystrokes to be lost if a save completed.
+      const remainingDirty = dirtyMarksRef.current.filter(m => 
+        !marksToSync.some(ms => ms.gsa === m.gsa && ms.adm === m.adm && ms.score === m.score)
+      );
       dirtyMarksRef.current = remainingDirty;
       setDirtyMarks(remainingDirty);
 
-      // CRITICAL: Update local cache with confirmed state to ensure load() gets fresh data
+      // CRITICAL: Update local cache with confirmed state. 
+      // We set a short bypass to prevent the resulting 'paav:sync' from triggering a redundant/stale load().
       setMarks(current => {
         updateLocalDBCache('paav6_marks', current);
         return current;
