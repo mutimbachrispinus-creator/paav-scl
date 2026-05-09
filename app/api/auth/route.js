@@ -544,25 +544,30 @@ async function handleRequestOtp(body, request) {
   await logAction({ id: user.id, tenantId: user.tenant_id, username: username.toLowerCase(), name: user.name, role: 'none' }, 'OTP Request', `OTP requested for password reset by ${username}`);
 
   // Send SMS
-  const { sendSMS } = await import('@/lib/sms-client');
-  // Use user's specific tenant credentials for SMS if available, fallback to platform-master
-  const atCreds = (await kvGet('paav_at_creds', null, user.tenant_id)) || (await kvGet('paav_at_creds', null, 'platform-master'));
-  
-  const smsRes = await sendSMS({
-    to: user.phone,
-    message: `EduVantage Password Reset\nHello ${user.name},\nYour reset OTP is: ${otp}.\nValid for 10 minutes.`,
-    ...(atCreds || {})
-  });
+  let smsRes = { success: false, error: 'Not attempted' };
+  try {
+    const { sendSMS } = await import('@/lib/sms-client');
+    // Use user's specific tenant credentials for SMS if available, fallback to platform-master
+    const atCreds = (await kvGet('paav_at_creds', null, user.tenant_id)) || (await kvGet('paav_at_creds', null, 'platform-master'));
+    
+    smsRes = await sendSMS({
+      to: user.phone,
+      message: `EduVantage Password Reset\nHello ${user.name},\nYour reset OTP is: ${otp}.\nValid for 10 minutes.`,
+      ...(atCreds || {})
+    });
+  } catch (smsErr) {
+    console.error('[OTP] SMS Fetch/Library Error:', smsErr.message);
+    smsRes = { success: false, error: smsErr.message };
+  }
 
   if (!smsRes.success) {
-    console.error('[OTP] SMS Failed:', smsRes.error);
-    // For sandbox/dev, we might want to return the OTP in the response, 
-    // but for production this is a security risk.
-    // However, if it's sandbox, we can show it.
-    if (process.env.NODE_ENV === 'development') {
-      return ok({ message: `(Dev) OTP sent to ${user.phone}: ${otp}`, sent: true });
+    console.warn(`[OTP] SMS Failed for ${username}: ${smsRes.error}. OTP is: ${otp} (Logged for recovery)`);
+    
+    // In dev/sandbox or if explicitly requested, we could return a more helpful error
+    if (smsRes.error?.includes('API key not configured')) {
+      return err('SMS Gateway not configured. Please contact your school administrator to set up Africa\'s Talking credentials.');
     }
-    return err('Failed to send SMS. Please try again or contact support.');
+    return err(`Failed to send SMS code: ${smsRes.error}. Please try again later.`);
   }
 
   return ok({ message: `OTP sent to your phone ending in ${user.phone.slice(-3)}`, sent: true });
