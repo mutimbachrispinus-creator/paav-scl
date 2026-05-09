@@ -38,6 +38,7 @@ export default function MeritListPage() {
   const [learners, setLearners] = useState([]);
   const [marks,    setMarks]    = useState({});
   const [gradCfg,  setGradCfg]  = useState(null);
+  const [subjCfg,  setSubjCfg]  = useState({});
   const [error,    setError]    = useState(null);
   const [loading,  setLoading]  = useState(true);
   const [mounted,  setMounted]  = useState(false);
@@ -71,6 +72,7 @@ export default function MeritListPage() {
           'paav6_learners',
           'paav6_marks',
           'paav8_grad',
+          'paav8_subj',
           'paav_school_profile'
         ])
       ]);
@@ -81,6 +83,7 @@ export default function MeritListPage() {
       setLearners(db.paav6_learners || []);
       setMarks(db.paav6_marks || {});
       setGradCfg(db.paav8_grad || null);
+      setSubjCfg(db.paav8_subj || {});
     } catch (e) {
       console.error('Merit list load error:', e);
       setError('Connection timed out. Please try again.');
@@ -91,9 +94,16 @@ export default function MeritListPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  const subjects = useMemo(() => {
+    if (subjCfg && subjCfg[grade] && subjCfg[grade].length > 0) {
+      return subjCfg[grade];
+    }
+    return curr.DEFAULT_SUBJECTS?.[grade] || [];
+  }, [subjCfg, grade, curr]);
+
   /* ── Build ranked list (memoized so dropdowns trigger re-render) ── */
-  const ranked = useMemo(() => loading ? [] : buildMeritList(learners, marks, grade, term, assess, gradCfg, school?.curriculum || 'CBC'), [learners, marks, grade, term, assess, gradCfg, loading, school?.curriculum]);
-  const subjects = curr.DEFAULT_SUBJECTS?.[grade] || [];
+  const ranked = useMemo(() => loading ? [] : buildMeritList(learners, marks, grade, term, assess, gradCfg, school?.curriculum || 'CBC', subjects), [learners, marks, grade, term, assess, gradCfg, loading, school?.curriculum, subjects]);
+  
   const max = curr.maxPts ? curr.maxPts(grade, subjects) : 0;
 
   const colStats = useMemo(() => {
