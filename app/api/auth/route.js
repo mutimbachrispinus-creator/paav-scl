@@ -536,12 +536,12 @@ async function handleRequestOtp(body, request) {
 
   const otp = Math.floor(100000 + Math.random() * 899999).toString();
   
-  // Store OTP in global platform-master KV with 10 min expiry, including the user's real tenant_id
-  const otpData = { otp, expires: Date.now() + 10 * 60 * 1000, tenantId: user.tenant_id };
+  // Store OTP in global platform-master KV with 10 min expiry, including the user's real tenant_id and ID
+  const otpData = { otp, expires: Date.now() + 10 * 60 * 1000, tenantId: user.tenant_id, userId: user.id };
   await kvSet(`otp_reset_${username.toLowerCase()}`, otpData, 'platform-master');
   
-  // Log the OTP request
-  await logAction({ tenant_id: user.tenant_id, username: username.toLowerCase(), name: user.name, role: 'none' }, 'OTP Request', `OTP requested for password reset by ${username}`);
+  // Log the OTP request - fix: pass 'id' and use 'tenantId' (camelCase) to avoid 500 error in logAction
+  await logAction({ id: user.id, tenantId: user.tenant_id, username: username.toLowerCase(), name: user.name, role: 'none' }, 'OTP Request', `OTP requested for password reset by ${username}`);
 
   // Send SMS
   const { sendSMS } = await import('@/lib/sms-client');
@@ -589,7 +589,7 @@ async function handleVerifyOtpReset({ username, otp, newPassword }, request) {
   await kvSetInternal(`otp_reset_${username.toLowerCase()}`, null, 'platform-master');
 
   // Log success
-  await logActionInternal({ tenant_id: targetTid, username: username.toLowerCase(), name: username, role: 'none' }, 'Password Reset', 'Password reset successful via OTP verification');
+  await logActionInternal({ id: stored.userId || 'none', tenantId: targetTid, username: username.toLowerCase(), name: username, role: 'none' }, 'Password Reset', 'Password reset successful via OTP verification');
 
   return ok({ message: 'Password reset successful. You can now login.' });
 }
