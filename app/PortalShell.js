@@ -127,7 +127,9 @@ export default function PortalShell({ children }) {
   const [announcement, setAnnouncement] = useState(() => {
     if (typeof window === 'undefined') return '';
     try {
-      const raw = localStorage.getItem('paav_cache_db_paav_announcement');
+      // Use tenant-isolated key to prevent cross-school data bleed
+      const tid = localStorage.getItem('paav_last_tenant') || 'platform-master';
+      const raw = localStorage.getItem(`paav_cache_${tid}_db_paav_announcement`);
       if (raw) {
         const { v } = JSON.parse(raw);
         if (v?.text && v?.active) return v.text;
@@ -139,8 +141,10 @@ export default function PortalShell({ children }) {
   const [unreadCount, setUnreadCount] = useState(() => {
     if (typeof window === 'undefined') return 0;
     try {
+      // Use tenant-isolated keys to prevent cross-school unread count bleed
+      const tid = localStorage.getItem('paav_last_tenant') || 'platform-master';
       const rawUser = localStorage.getItem('paav_cache_user');
-      const rawMsgs = localStorage.getItem('paav_cache_db_paav6_msgs');
+      const rawMsgs = localStorage.getItem(`paav_cache_${tid}_db_paav6_msgs`);
       if (rawUser && rawMsgs) {
         const { v: u } = JSON.parse(rawUser);
         const { v: msgs } = JSON.parse(rawMsgs);
@@ -387,8 +391,8 @@ export default function PortalShell({ children }) {
   }
 
   async function doLogout() {
-    // 1. Clear local state immediately
-    localStorage.clear();
+    // 1. Clear only app-specific cache (not all browser localStorage)
+    clearAllCache();
     sessionStorage.clear();
     document.cookie = 'paav_session=; Max-Age=0; path=/; SameSite=Lax';
     
@@ -458,8 +462,12 @@ export default function PortalShell({ children }) {
   // saveAnnouncement — single canonical definition below
 
   function playSuccessSound() {
-    const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
-    audio.play().catch(() => {});
+    try {
+      // Use a local audio asset to avoid external dependency failures
+      const audio = new Audio('/sounds/success.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(() => {});
+    } catch {}
   }
 
   async function saveAnnouncement() {

@@ -477,17 +477,22 @@ async function handleResetPw({ username, newPassword, secA }) {
   if (!username || !newPassword) return err('username and newPassword are required');
   if (newPassword.length < 8)    return err('Password must be at least 8 characters');
 
-  const staff = await getStaffList();
-  const idx   = staff.findIndex(s => s.username?.toLowerCase() === username.toLowerCase());
-  if (idx === -1) return err('User not found');
+  // Fix: Use direct SQL query instead of loading/mutating the entire KV staff list
+  const { query: dbQuery, execute: dbExecute } = await import('@/lib/db');
+  const rows = await dbQuery('SELECT * FROM staff WHERE LOWER(username) = ?', [username.toLowerCase()]);
+  if (rows.length === 0) return err('User not found');
 
-  const user = staff[idx];
+  const user = rows[0];
   if (secA && user.secA?.toLowerCase() !== secA.toLowerCase()) {
     return err('Security answer is incorrect');
   }
 
-  staff[idx].password = await hashPassword(newPassword);
-  await kvSet('paav6_staff', staff);
+  const hashed = await hashPassword(newPassword);
+  // Update directly in the relational table — safe, atomic, and scalable
+  await dbExecute(
+    'UPDATE staff SET password = ? WHERE LOWER(username) = ?',
+    [hashed, username.toLowerCase()]
+  );
   return NextResponse.json({ ok: true });
 }
 

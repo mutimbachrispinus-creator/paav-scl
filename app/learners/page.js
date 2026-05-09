@@ -497,20 +497,26 @@ function PromoteLearnersModal({ onClose, learners, curr }) {
     if (!confirm(`Promote ${targets.length} learners to ${toGrade}? This resets their fee balances.`)) return;
     
     setBusy(true);
-    const updatedList = learners.map(l => {
-      const isTarget = mode === 'grade' ? (l.grade === fromGrade) : selAdms.includes(l.adm);
-      if (isTarget) {
-        return { ...l, grade: toGrade, t1: 0, t2: 0, t3: 0 };
-      }
-      return l;
-    });
-
-    await fetch('/api/db', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_learners', value: updatedList }] }),
-    });
-    setBusy(false);
-    setDone(true);
+    try {
+      // Fix: Only send the list of ADMs and target grade — not the entire learner array
+      // This avoids sending hundreds of KB and triggering a full-table upsert
+      const adms = targets.map(l => l.adm);
+      const res = await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'bulkPromote', adms, toGrade }] }),
+      });
+      const data = await res.json();
+      if (data.results?.[0]?.error) throw new Error(data.results[0].error);
+      
+      const { invalidateDB } = await import('@/lib/client-cache');
+      invalidateDB('paav6_learners');
+      window.dispatchEvent(new CustomEvent('paav:sync', { detail: { changed: ['paav6_learners'] } }));
+      setBusy(false);
+      setDone(true);
+    } catch (e) {
+      alert('Promotion failed: ' + e.message);
+      setBusy(false);
+    }
   }
 
   const toggleAdm = adm => {

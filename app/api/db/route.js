@@ -349,6 +349,24 @@ async function handleRequest(req, auth, impTenant = null) {
       }
     }
 
+    case 'bulkPromote': {
+      // Efficient promote: only receives ADMs + target grade, no full learner payload
+      if (auth.role !== 'admin') return { type: req.type, error: 'Unauthorized' };
+      if (!Array.isArray(req.adms) || !req.toGrade) return { type: req.type, error: 'adms[] and toGrade are required' };
+      try {
+        const { batch, syncLearnerKV } = await import('@/lib/db');
+        const stmts = req.adms.map(adm => ({
+          sql: 'UPDATE learners SET grade = ?, t1 = 0, t2 = 0, t3 = 0 WHERE adm = ? AND tenant_id = ?',
+          args: [req.toGrade, adm, tenantId]
+        }));
+        if (stmts.length > 0) await batch(stmts);
+        await syncLearnerKV(tenantId);
+        return { type: req.type, ok: true, promoted: req.adms.length };
+      } catch (e) {
+        return { type: req.type, ok: false, error: e.message };
+      }
+    }
+
     case 'storageUsage': {
       const { getStorageUsage } = await import('@/lib/db');
       const usage = await getStorageUsage();
