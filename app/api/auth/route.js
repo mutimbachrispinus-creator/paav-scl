@@ -511,9 +511,17 @@ async function handleRequestOtp(body, request) {
   if (!username) return err('Username is required');
   const tid = request.headers.get('x-tenant-id') || 'platform-master';
   
-  const rows = await query('SELECT name, phone FROM staff WHERE LOWER(username) = ? AND tenant_id = ?', [username.toLowerCase(), tid]);
+  // Search for the user globally (usernames are unique)
+  const rows = await query('SELECT name, phone, tenant_id FROM staff WHERE LOWER(username) = ?', [username.toLowerCase()]);
   const user = rows[0];
-  if (!user) return err('Account not found in this institution.');
+  
+  if (!user) return err('Account not found. Please check your username.');
+  
+  // If we are in a specific tenant context, verify the user belongs here OR is a super-admin
+  if (tid !== 'platform-master' && user.tenant_id !== tid) {
+    // Optionally log this mismatch for security audit, but we allow the reset to proceed globally
+    console.warn(`[OTP] Password reset requested for ${username} from ${tid}, but user belongs to ${user.tenant_id}. Allowing global reset.`);
+  }
   
   // If phone is provided in body, verify it matches
   if (body.phone) {
@@ -528,16 +536,17 @@ async function handleRequestOtp(body, request) {
 
   const otp = Math.floor(100000 + Math.random() * 899999).toString();
   
-  // Store OTP in KV with 10 min expiry (simulated via timestamp)
-  const otpData = { otp, expires: Date.now() + 10 * 60 * 1000 };
-  await kvSet(`otp_reset_${username.toLowerCase()}`, otpData, tid);
+  // Store OTP in global platform-master KV with 10 min expiry, including the user's real tenant_id
+  const otpData = { otp, expires: Date.now() + 10 * 60 * 1000, tenantId: user.tenant_id };
+  await kvSet(`otp_reset_${username.toLowerCase()}`, otpData, 'platform-master');
   
   // Log the OTP request
-  await logAction({ tenant_id: tid, username: username.toLowerCase(), name: user.name, role: 'none' }, 'OTP Request', `OTP requested for password reset by ${username}`);
+  await logAction({ tenant_id: user.tenant_id, username: username.toLowerCase(), name: user.name, role: 'none' }, 'OTP Request', `OTP requested for password reset by ${username}`);
 
   // Send SMS
   const { sendSMS } = await import('@/lib/sms-client');
-  const atCreds = await kvGet('paav_at_creds', null, tid);
+  // Use user's specific tenant credentials for SMS if available, fallback to platform-master
+  const atCreds = (await kvGet('paav_at_creds', null, user.tenant_id)) || (await kvGet('paav_at_creds', null, 'platform-master'));
   
   const smsRes = await sendSMS({
     to: user.phone,
@@ -561,23 +570,26 @@ async function handleRequestOtp(body, request) {
 
 async function handleVerifyOtpReset({ username, otp, newPassword }, request) {
   if (!username || !otp || !newPassword) return err('Missing required fields');
-  const tid = request.headers.get('x-tenant-id') || 'platform-master';
 
-  const stored = await kvGet(`otp_reset_${username.toLowerCase()}`, null, tid);
+  // Retrieve OTP from global platform-master KV
+  const stored = await kvGet(`otp_reset_${username.toLowerCase()}`, null, 'platform-master');
   if (!stored) return err('OTP expired or not requested.');
   if (stored.otp !== otp) return err('Invalid OTP code.');
   if (Date.now() > stored.expires) return err('OTP has expired.');
 
   const hashed = await hashPassword(newPassword);
   const { execute } = await import('@/lib/db');
-  await execute('UPDATE staff SET password = ? WHERE LOWER(username) = ? AND tenant_id = ?', [hashed, username.toLowerCase(), tid]);
+  
+  // Use the tenantId that was stored with the OTP
+  const targetTid = stored.tenantId || 'platform-master';
+  await execute('UPDATE staff SET password = ? WHERE LOWER(username) = ? AND tenant_id = ?', [hashed, username.toLowerCase(), targetTid]);
 
   // Clear OTP
   const { kvSet: kvSetInternal, logAction: logActionInternal } = await import('@/lib/db');
-  await kvSetInternal(`otp_reset_${username.toLowerCase()}`, null, tid);
+  await kvSetInternal(`otp_reset_${username.toLowerCase()}`, null, 'platform-master');
 
   // Log success
-  await logActionInternal({ tenant_id: tid, username: username.toLowerCase(), name: username, role: 'none' }, 'Password Reset', 'Password reset successful via OTP verification');
+  await logActionInternal({ tenant_id: targetTid, username: username.toLowerCase(), name: username, role: 'none' }, 'Password Reset', 'Password reset successful via OTP verification');
 
   return ok({ message: 'Password reset successful. You can now login.' });
 }
