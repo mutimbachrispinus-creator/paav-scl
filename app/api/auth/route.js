@@ -127,6 +127,11 @@ async function handleLogin({ username, password }, request) {
     }
     
     if (!user) return err(`Account not found in this school portal. Please confirm you are at the correct institutional URL.`);
+    
+    // Verify password here on the tenant path — mark it so we don't run expensive PBKDF2 twice
+    const match = await verifyPassword(password, user.password);
+    if (!match) return err('Incorrect password (Check your credentials)');
+    user = { ...user, passwordChecked: true };
   } else {
     // Global Portal Login: Only for users who didn't specify a school
     const rows = await query('SELECT id, tenant_id, name, username, role, password, status FROM staff WHERE LOWER(username) = ?', [username.toLowerCase().trim()]);
@@ -136,7 +141,8 @@ async function handleLogin({ username, password }, request) {
     const matches = [];
     for (const row of rows) {
       if (await verifyPassword(password, row.password)) {
-        matches.push(row);
+        // Mark as already verified to skip redundant PBKDF2 re-hash below
+        matches.push({ ...row, passwordChecked: true });
       }
     }
 
@@ -199,11 +205,13 @@ async function handleLogin({ username, password }, request) {
   }
 
   console.log(`[api/auth] Login successful: ${user.username} (tenant: ${tenantId})`);
+  // Use tenantId variable (not user.tenant_id) since it may have been updated for super-admin bypass
+  const redirect = tenantId === 'platform-master' ? '/super-admin' : (user.role === 'parent' ? '/parent-home' : '/dashboard');
   const response = NextResponse.json({
     ok: true,
     user: publicUser(user),
     subscriptionWarning,
-    redirect: user.tenant_id === 'platform-master' ? '/super-admin' : (user.role === 'parent' ? '/parent-home' : '/dashboard'),
+    redirect,
     initialData: {
       db_paav_announcement: ann,
       db_paav_hero_img: hero,
