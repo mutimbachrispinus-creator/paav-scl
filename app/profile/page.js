@@ -205,12 +205,12 @@ export default function ProfilePage() {
   }
 
   async function saveBulkLearners() {
-    // Validate
     const validRows = bulkRows.filter(r => r.adm && r.name);
     if (!validRows.length) { alert('Please fill in at least Admission No and Name for one row'); return; }
 
     setBusy(true);
     try {
+      // 1. Fetch current data to merge (to avoid overwriting other tenants/data if keys were shared, though they are isolated)
       const dbRes = await fetch('/api/db', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [
@@ -222,37 +222,48 @@ export default function ProfilePage() {
       const currentLearners = db.results[0]?.value || [];
       const currentProfiles = db.results[1]?.value || {};
 
+      const logs = [];
       for (const r of validRows) {
-        // Base learner data
         const lData = {
           adm: r.adm, name: r.name, grade: bulkGrade, stream: '',
-          gender: r.gender, dob: r.dob, parent: r.parent, phone: r.phone
+          sex: r.gender === 'Female' ? 'F' : 'M', dob: r.dob, parent: r.parent, phone: r.phone
         };
-        const idx = currentLearners.findIndex(l => l.adm === r.adm);
+        const idx = currentLearners.findIndex(l => String(l.adm) === String(r.adm));
         if (idx >= 0) currentLearners[idx] = { ...currentLearners[idx], ...lData };
         else currentLearners.push(lData);
 
-        // Extended profile data
         currentProfiles[r.adm] = {
           ...currentProfiles[r.adm],
           address: r.address, medical: r.medical, blood: r.blood,
           father: r.father, mother: r.mother, transport: r.transport
         };
+        logs.push(`Enrolled ${r.name} (${r.adm})`);
       }
 
-      await fetch('/api/db', {
+      const res = await fetch('/api/db', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requests: [
           { type: 'set', key: 'paav6_learners', value: currentLearners },
-          { type: 'set', key: 'paav_profiles', value: currentProfiles }
+          { type: 'set', key: 'paav_profiles', value: currentProfiles },
+          { type: 'audit', action: 'BULK_ENROLL', details: logs.join(', ') }
         ]})
       });
-      alert(`✅ Successfully saved ${validRows.length} learners!`);
+
+      if (!res.ok) throw new Error('Failed to save to database');
+      
+      // CRITICAL: Invalidate cache so other tabs see the new data
+      const { invalidateDB } = await import('@/lib/client-cache');
+      invalidateDB(['paav6_learners', 'paav_profiles']);
+
+      alert(`✅ Success! ${validRows.length} learners have been enrolled and synchronized with the institutional database.`);
       setBulkRows([createEmptyRow()]);
       setAllLearners(currentLearners);
       setAllProfiles(currentProfiles);
-    } catch(e) { alert('Failed: '+e.message); }
-    finally { setBusy(false); }
+    } catch(e) { 
+      alert('Sync Error: ' + e.message); 
+    } finally { 
+      setBusy(false); 
+    }
   }
 
   const handleTabChange = useCallback(async (newTab) => {

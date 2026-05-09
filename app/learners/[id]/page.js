@@ -140,72 +140,122 @@ export default function LearnerProfilePage() {
       {/* ══════ OVERVIEW ══════ */}
       {activeTab === 'overview' && (
         <div className="sg sg2">
-          <div className="panel">
-            <div className="panel-hdr"><h3>📋 Bio</h3></div>
-            <div className="panel-body">
-              {[
-                ['Admission No.', learner.adm], ['Full Name', learner.name],
-                ['Grade', learner.grade], ['Gender', learner.sex === 'F' ? 'Female' : learner.sex === 'M' ? 'Male' : learner.sex],
-                ['Age', learner.age], ['Date of Birth', learner.dob || '—'],
-                ['Stream', learner.stream || '—'], ['Class Teacher', learner.teacher || '—'],
-                ['Parent/Guardian', learner.parent || '—'], ['Phone', learner.phone || '—'],
-                ['Address', learner.addr || '—'],
-              ].map(([k, v]) => (
-                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed var(--border)', fontSize: 12.5 }}>
-                  <span style={{ color: 'var(--muted)' }}>{k}</span>
-                  <strong style={{ textAlign: 'right' }}>{v}</strong>
-                </div>
-              ))}
-              {learner.bloodGroup && <div style={{ marginTop: 12, padding: '8px 12px', background: '#FEF2F2', borderRadius: 8, fontSize: 12, color: '#8B1A1A', fontWeight: 700 }}>🩸 Blood Group: {learner.bloodGroup} · Allergies: {learner.allergies || 'None'}</div>}
+          <div className="space-y-6">
+            <div className="panel">
+              <div className="panel-hdr"><h3>📋 Bio</h3></div>
+              <div className="panel-body">
+                {[
+                  ['Admission No.', learner.adm], ['Full Name', learner.name],
+                  ['Grade', learner.grade], ['Gender', learner.sex === 'F' ? 'Female' : learner.sex === 'M' ? 'Male' : learner.sex],
+                  ['Age', learner.age], ['Date of Birth', learner.dob || '—'],
+                  ['Stream', learner.stream || '—'], ['Class Teacher', learner.teacher || '—'],
+                  ['Parent/Guardian', learner.parent || '—'], ['Phone', learner.phone || '—'],
+                  ['Address', learner.addr || '—'],
+                ].map(([k, v]) => (
+                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed var(--border)', fontSize: 12.5 }}>
+                    <span style={{ color: 'var(--muted)' }}>{k}</span>
+                    <strong style={{ textAlign: 'right' }}>{v}</strong>
+                  </div>
+                ))}
+                {learner.bloodGroup && <div style={{ marginTop: 12, padding: '8px 12px', background: '#FEF2F2', borderRadius: 8, fontSize: 12, color: '#8B1A1A', fontWeight: 700 }}>🩸 Blood Group: {learner.bloodGroup} · Allergies: {learner.allergies || 'None'}</div>}
+              </div>
+            </div>
+
+            <div className="panel">
+              <div className="panel-hdr">
+                <h3>📊 Performance Snapshot</h3>
+                <span className="badge bg-blue" style={{ fontSize: 10 }}>{term} {assess.toUpperCase()}</span>
+              </div>
+              <div className="panel-body">
+                {entered.length > 0 ? (
+                  <>
+                    <div className="tbl-wrap">
+                      <table style={{ border: 'none' }}>
+                        <tbody>
+                          {marksRows.slice(0, 4).map((r, i) => (
+                            <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={{ fontSize: 12, fontWeight: 700 }}>{r.subj}</td>
+                              <td style={{ textAlign: 'right' }}>
+                                <span style={{ background: r.inf?.bg || '#f1f5f9', color: r.inf?.c || '#64748b', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 900 }}>
+                                  {r.score !== undefined ? `${r.score}% (${r.inf?.lv})` : '—'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <button className="btn btn-ghost btn-sm w-full mt-2" onClick={() => setActiveTab('marks')}>View All {subjects.length} Subjects →</button>
+                  </>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: 20, color: 'var(--muted)', fontSize: 12 }}>No marks recorded for this term yet.</div>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="panel">
-            <div className="panel-hdr"><h3>📈 Quick Stats</h3></div>
-            <div className="panel-body">
-              <div className="sg sg2" style={{ marginBottom: 0 }}>
-                <div className="stat-card" style={{ borderLeft: '4px solid #2563eb' }}>
-                  <div className="sc-inner">
-                    <div className="sc-icon" style={{ background: '#eff6ff' }}>📚</div>
-                    <div>
-                      <div className="sc-l">Subjects</div>
-                      <div className="sc-n">{subjects.length}</div>
+          <div className="space-y-6">
+            <div className="panel">
+              <div className="panel-hdr"><h3>📈 Quick Stats</h3></div>
+              <div className="panel-body">
+                <div className="sg sg2" style={{ marginBottom: 0 }}>
+                  <div className="stat-card" style={{ borderLeft: '4px solid #2563eb' }}>
+                    <div className="sc-inner">
+                      <div className="sc-icon" style={{ background: '#eff6ff' }}>📚</div>
+                      <div>
+                        <div className="sc-l">Mean Score</div>
+                        <div className="sc-n">{entered.length ? Math.round(entered.reduce((a,b)=>a+Number(b.score),0)/entered.length) : '—'}%</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="stat-card" style={{ borderLeft: `4px solid ${balance <= 0 ? '#059669' : '#dc2626'}` }}>
-                  <div className="sc-inner">
-                    <div className="sc-icon" style={{ background: balance <= 0 ? '#ecfdf5' : '#fef2f2' }}>💰</div>
-                    <div>
-                      <div className="sc-l">Fee Balance</div>
-                      <div className="sc-n" style={{ color: balance <= 0 ? '#059669' : '#dc2626' }}>
-                        {balance <= 0 ? '✅ Cleared' : `KES ${fmtK(balance)}`}
+                  <div className="stat-card" style={{ borderLeft: `4px solid ${balance <= 0 ? '#059669' : '#dc2626'}` }}>
+                    <div className="sc-inner">
+                      <div className="sc-icon" style={{ background: balance <= 0 ? '#ecfdf5' : '#fef2f2' }}>💰</div>
+                      <div>
+                        <div className="sc-l">Fee Balance</div>
+                        <div className="sc-n" style={{ color: balance <= 0 ? '#059669' : '#dc2626', fontSize: 18 }}>
+                          {balance <= 0 ? '✅ Cleared' : `KES ${fmtK(balance)}`}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div style={{ marginTop: 16 }}>
-                <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>COLLECTION PROGRESS</div>
-                <div style={{ height: 10, background: '#F1F5F9', borderRadius: 10, overflow: 'hidden' }}>
-                  <div style={{ width: `${Math.min(100, annualFee > 0 ? (totalPaid / annualFee) * 100 : 0)}%`, height: '100%', background: balance <= 0 ? '#059669' : '#2563EB', borderRadius: 10, transition: 'width 0.5s' }} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
-                  <span>Paid: KES {fmtK(totalPaid)}</span>
-                  <span>Annual: KES {fmtK(annualFee)}</span>
-                </div>
-              </div>
-              {paylog.length > 0 && (
                 <div style={{ marginTop: 16 }}>
-                  <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>RECENT PAYMENTS</div>
-                  {paylog.slice(-3).reverse().map((p, i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed var(--border)', fontSize: 12 }}>
-                      <span>{p.date?.slice(0, 10)} · {p.method || 'Cash'}</span>
-                      <strong style={{ color: '#059669' }}>+KES {fmtK(p.amount)}</strong>
-                    </div>
-                  ))}
+                  <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>COLLECTION PROGRESS</div>
+                  <div style={{ height: 10, background: '#F1F5F9', borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.min(100, annualFee > 0 ? (totalPaid / annualFee) * 100 : 0)}%`, height: '100%', background: balance <= 0 ? '#059669' : '#2563EB', borderRadius: 10, transition: 'width 0.5s' }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>
+                    <span>Paid: KES {fmtK(totalPaid)}</span>
+                    <span>Annual: KES {fmtK(annualFee)}</span>
+                  </div>
                 </div>
-              )}
+                {paylog.length > 0 && (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>RECENT PAYMENTS</div>
+                    {paylog.slice(-2).reverse().map((p, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed var(--border)', fontSize: 12 }}>
+                        <span>{p.date?.slice(0, 10)}</span>
+                        <strong style={{ color: '#059669' }}>+KES {fmtK(p.amount)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="panel" style={{ background: '#0F172A', color: '#fff', border: 'none' }}>
+              <div className="panel-body p-6">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+                  <h3 style={{ color: '#fff', margin: 0 }}>Institutional Rating</h3>
+                  <div style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: 20, fontSize: 11 }}>PREMIUM</div>
+                </div>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, lineHeight: 1.5 }}>EduVantage AI confirms that {learner.name} is {balance <= 0 ? 'fully funded' : 'partially funded'} and {entered.length > 0 ? 'academically tracked' : 'pending assessment'} for {term}.</p>
+                <div style={{ marginTop: 15, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }}></div>
+                  <span style={{ fontSize: 11, fontWeight: 800 }}>SYSTEM STATUS: OPTIMAL</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

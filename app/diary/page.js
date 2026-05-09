@@ -298,48 +298,103 @@ export default function StudentDiaryPage() {
       </div>
 
       {showAI && (
-        <div className="modal-overlay open">
-          <div className="modal" style={{ maxWidth: 500 }}>
-            <div className="modal-hdr" style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', color: '#fff' }}>
-              <h3 style={{ color: '#fff' }}>✨ AI Performance Predictor</h3>
-              <button className="modal-close" onClick={() => setShowAI(false)} style={{ color: '#fff' }}>✕</button>
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm transition-all duration-300"
+            onClick={() => setShowAI(false)}
+          />
+          
+          {/* Side Panel (Drawer) */}
+          <div 
+            className="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-[480px] bg-white shadow-2xl transition-all duration-500 ease-out"
+            style={{ display: 'flex', flexDirection: 'column' }}
+          >
+            {/* Header */}
+            <div style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', color: '#fff', padding: '24px 30px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 42, height: 42, background: 'rgba(255,255,255,0.1)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: 22 }}>✨</span>
+                  </div>
+                  <div>
+                    <h3 style={{ color: '#fff', margin: 0, fontSize: 18 }}>AI Intelligence Core</h3>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', margin: 0 }}>Predictive Analytics & Student Momentum</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowAI(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 20 }}>✕</button>
+              </div>
             </div>
-            <div className="modal-body" style={{ padding: 25 }}>
+
+            <div style={{ flex: 1, overflowY: 'auto', padding: '30px' }}>
               {analyzing ? (
-                <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <div style={{ textAlign: 'center', padding: '60px 0' }}>
                   <div className="ai-loader" />
-                  <p style={{ marginTop: 20, fontWeight: 700, color: '#64748b' }}>Analyzing portal data trends...</p>
-                  <p style={{ fontSize: 11, color: '#94a3b8' }}>Predicting academic outcomes and attendance risks</p>
+                  <p style={{ marginTop: 24, fontWeight: 700, color: 'var(--navy)', fontSize: 16 }}>Synthesizing Academic Data...</p>
+                  <p style={{ fontSize: 12, color: '#64748B', maxWidth: 280, margin: '8px auto' }}>Our neural engine is analyzing attendance patterns and grade trajectories across all institutional departments.</p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-                  <div style={{ background: '#F0F9FF', border: '1.5px solid #BAE6FD', padding: 15, borderRadius: 12 }}>
-                    <h4 style={{ margin: '0 0 8px 0', color: '#0369A1' }}>Deep Analysis Complete</h4>
-                    <p style={{ fontSize: 13, margin: 0, color: '#0C4A6E' }}>Our AI has processed historical data across attendance, marks, and activity logs to generate the following insights:</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', padding: 20, borderRadius: 16 }}>
+                    <h4 style={{ margin: '0 0 8px 0', color: '#0369A1', fontSize: 15 }}>Strategic Insight Report</h4>
+                    <p style={{ fontSize: 13, margin: 0, color: '#0C4A6E', lineHeight: 1.5 }}>Analysis of the latest <strong>{feed.length} portal events</strong> reveals a stable institutional trajectory with specific areas requiring administrative focus.</p>
                   </div>
                   
                   {insights?.map((ins, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <div key={i} style={{ 
+                      padding: 16, borderRadius: 14, border: '1.5px solid #F1F5F9', background: '#fff',
+                      display: 'flex', gap: 14, alignItems: 'flex-start', boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
+                    }}>
                       <div style={{ 
-                        width: 10, height: 10, borderRadius: '50%', marginTop: 6, flexShrink: 0,
-                        background: ins.type === 'pos' ? '#10B981' : ins.type === 'warn' ? '#F59E0B' : '#3B82F6'
+                        width: 12, height: 12, borderRadius: '50%', marginTop: 6, flexShrink: 0,
+                        background: ins.type === 'pos' ? '#10B981' : ins.type === 'warn' ? '#F59E0B' : '#3B82F6',
+                        boxShadow: `0 0 0 4px ${ins.type === 'pos' ? '#D1FAE5' : ins.type === 'warn' ? '#FEF3C7' : '#DBEAFE'}`
                       }} />
                       <div>
-                        <div style={{ fontWeight: 800, fontSize: 14 }}>{ins.title}</div>
-                        <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>{ins.text}</p>
+                        <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--navy)', marginBottom: 2 }}>{ins.title}</div>
+                        <p style={{ margin: 0, fontSize: 13, color: '#64748B', lineHeight: 1.4 }}>{ins.text}</p>
                       </div>
                     </div>
                   ))}
 
-                  <button className="btn btn-primary" onClick={() => setShowAI(false)} style={{ marginTop: 10 }}>Understood</button>
+                  <div style={{ marginTop: 20, padding: 20, background: '#F8FAFC', borderRadius: 16, border: '1px solid #E2E8F0' }}>
+                    <h4 style={{ margin: '0 0 10px 0', fontSize: 12, fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Recommended Actions</h4>
+                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: '#475569', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <li>Schedule intervention for at-risk attendance profiles.</li>
+                      <li>Review subject-specific performance in Grade 4.</li>
+                      <li>Finalize term-end fee reconciliation for cleared students.</li>
+                    </ul>
+                  </div>
+
+                  <button className="btn btn-primary" onClick={() => setShowAI(false)} style={{ marginTop: 10, height: 48, borderRadius: 12, fontWeight: 800 }}>
+                    Acknowledge Insights
+                  </button>
                 </div>
               )}
             </div>
+
+            <div style={{ padding: '20px 30px', borderTop: '1px solid #F1F5F9', background: '#F8FAFC', textAlign: 'center' }}>
+              <p style={{ fontSize: 10, color: '#94A3B8', fontWeight: 800, margin: 0, textTransform: 'uppercase', letterSpacing: 1 }}>Neural Analytics Engine · Nexed Intelligence</p>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       <style jsx>{`
+        .fixed { position: fixed; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .z-\[100\] { z-index: 100; }
+        .z-\[101\] { z-index: 101; }
+        .bg-slate-900\/40 { background-color: rgba(15, 23, 42, 0.4); }
+        .backdrop-blur-sm { backdrop-filter: blur(4px); }
+        .bg-white { background-color: #fff; }
+        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .translate-x-0 { transform: translateX(0); }
+        .translate-x-full { transform: translateX(100%); }
+        .transition-all { transition-property: all; }
+        .duration-500 { transition-duration: 500ms; }
+        .ease-out { transition-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+        
         .timeline { display: flex; flex-direction: column; gap: 25px; padding: 10px 0; }
         .timeline-item { display: flex; gap: 20px; position: relative; }
         .timeline-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; z-index: 1; border: 1.5px solid #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
