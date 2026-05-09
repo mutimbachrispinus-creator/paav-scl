@@ -225,6 +225,77 @@ export default function LearnerProfilePage() {
               </select>
             </div>
           </div>
+          {/* ── AI Performance Predictor Card ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 20, marginBottom: 20 }}>
+            <div className="panel" style={{ borderLeft: '4px solid #2563eb' }}>
+              <div className="panel-hdr"><h3>🧠 AI Trajectory</h3></div>
+              <div className="panel-body" style={{ textAlign: 'center', padding: '20px 10px' }}>
+                {(() => {
+                  const assessKeys = ['op1', 'mt1', 'et1'];
+                  const termAverages = assessKeys.map(a => {
+                    const scs = subjects.map(s => marks[`${term}:${learner.grade}|${s}|${a}`]?.[admNo]).filter(s => s !== undefined);
+                    return scs.length ? scs.reduce((sum, s) => sum + Number(s), 0) / scs.length : null;
+                  }).filter(a => a !== null);
+
+                  if (termAverages.length < 2) {
+                    return <div style={{ color: 'var(--muted)', fontSize: 12, padding: '20px 0' }}>Capture at least 2 assessments to see trajectory.</div>;
+                  }
+
+                  const latest = termAverages[termAverages.length - 1];
+                  const prev = termAverages[termAverages.length - 2];
+                  const diff = latest - prev;
+                  const trajectory = diff > 2 ? 'Improving' : diff < -2 ? 'Declining' : 'Stable';
+                  const color = trajectory === 'Improving' ? '#059669' : trajectory === 'Declining' ? '#dc2626' : '#2563eb';
+                  const icon = trajectory === 'Improving' ? '📈' : trajectory === 'Declining' ? '📉' : '➡️';
+                  const prediction = Math.min(100, Math.max(0, latest + diff));
+
+                  return (
+                    <>
+                      <div style={{ fontSize: 32, marginBottom: 5 }}>{icon}</div>
+                      <div style={{ fontWeight: 900, fontSize: 18, color }}>{trajectory}</div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>{Math.abs(diff).toFixed(1)}% {diff >= 0 ? 'gain' : 'drop'} since last assessment</div>
+                      <div style={{ marginTop: 20, paddingTop: 15, borderTop: '1px solid var(--border)' }}>
+                        <div style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 800, textTransform: 'uppercase' }}>Next Term Prediction</div>
+                        <div style={{ fontSize: 24, fontWeight: 900, color: '#1e293b' }}>{Math.round(prediction)}%</div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
+            <div className="panel">
+              <div className="panel-hdr"><h3>📊 Trend Analysis</h3></div>
+              <div className="panel-body">
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', height: 100, padding: '10px 0', borderBottom: '2px solid var(--border)' }}>
+                  {['op1', 'mt1', 'et1'].map(a => {
+                    const labelMap = { op1: 'Opener', mt1: 'Mid', et1: 'End' };
+                    const scs = subjects.map(s => marks[`${term}:${learner.grade}|${s}|${a}`]?.[admNo]).filter(s => s !== undefined);
+                    const avg = scs.length ? scs.reduce((sum, s) => sum + Number(s), 0) / scs.length : 0;
+                    return (
+                      <div key={a} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: '100%', maxWidth: 30, background: avg >= 70 ? '#059669' : avg >= 50 ? '#2563eb' : '#dc2626', height: `${avg || 5}%`, borderRadius: '4px 4px 0 0', minHeight: 4, transition: 'height 0.5s ease' }} />
+                        <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--muted)' }}>{labelMap[a]}</div>
+                        <div style={{ fontSize: 10, fontWeight: 900 }}>{avg ? Math.round(avg) + '%' : '—'}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ marginTop: 12, padding: 10, background: '#F8FAFC', borderRadius: 8, border: '1px solid var(--border)' }}>
+                  <div style={{ fontWeight: 800, fontSize: 11, color: '#1e293b' }}>💡 AI Strategy</div>
+                  <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, lineHeight: 1.4 }}>
+                    {(() => {
+                      const latestMarks = marksRows.filter(m => m.score !== undefined);
+                      const weakest = [...latestMarks].sort((a,b) => Number(a.score) - Number(b.score))[0];
+                      if (!weakest) return "Capture marks to receive personalized improvement strategies.";
+                      return `Performance in ${weakest.subj} (${weakest.score}%) is a bottleneck. We recommend 15min daily targeted review in this area.`;
+                    })()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="tbl-wrap">
             <table>
               <thead>
