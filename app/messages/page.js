@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { today } from '@/lib/cbe';
 import { getCachedUser, getCachedDBMulti, fetchWithRetry } from '@/lib/client-cache';
-import { Search, X, Filter, Send, User, Users, CheckCircle2, AlertCircle, Inbox, Send as SendIcon, Smartphone } from 'lucide-react';
+import { Search, Send, User, Users, CheckCircle, Inbox, Smartphone } from 'lucide-react';
 
 export default function MessagesPage() {
   const router = useRouter();
@@ -255,7 +255,7 @@ export default function MessagesPage() {
           <Inbox size={14} /> Inbox
         </button>
         <button className={`btn btn-sm ${activeTab === 'sent' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setActiveTab('sent'); setActiveThread(null); }}>
-          <SendIcon size={14} /> Sent
+          <Send size={14} /> Sent
         </button>
         {['admin', 'super-admin'].includes(user.role) && (
           <button className={`btn btn-sm ${activeTab === 'sms' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => { setActiveTab('sms'); setActiveThread(null); }}>
@@ -484,7 +484,7 @@ export default function MessagesPage() {
                               <div key={c.id || c.adm} onClick={() => { setCmpTo(c.username || c.adm); setCmpSearch(c.name); setCmpSearch(''); }}
                                 style={{ padding: '10px 15px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', fontSize: 13, background: cmpTo === (c.username || c.adm) ? '#f0f9ff' : 'transparent' }}>
                                 <strong>{c.name}</strong> <span style={{ color: 'var(--muted)', fontSize: 11 }}>({c.role || 'Student'})</span>
-                                {cmpTo === (c.username || c.adm) && <CheckCircle2 size={14} style={{ float: 'right', color: 'var(--blue)' }} />}
+                                {cmpTo === (c.username || c.adm) && <CheckCircle size={14} style={{ float: 'right', color: 'var(--blue)' }} />}
                               </div>
                             ))}
                           </div>

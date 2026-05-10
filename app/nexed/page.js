@@ -9,7 +9,7 @@ import { fmtK } from '@/lib/cbe';
 import QuickReceipt from '@/components/nexed/QuickReceipt';
 import ExpenseVoucher from '@/components/nexed/ExpenseVoucher';
 import { addSupplier, getSuppliers } from '@/lib/actions/ledger';
-import { Search, Plus, User, Phone, Mail, Tag, Truck } from 'lucide-react';
+import { Search, Plus, User, Tag, Truck } from 'lucide-react';
 
 export default function NexedPage() {
   const router = useRouter();
