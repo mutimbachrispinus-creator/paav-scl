@@ -22,37 +22,6 @@ import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
 const METHODS = ['Cash','M-Pesa','Bank','Cheque','Bursary'];
 
-function SMSReminderButton({ adm, balance, phone }) {
-  const [busy, setBusy] = useState(false);
-  if (!balance || balance <= 0) return null;
-  return (
-    <button 
-      className="btn btn-ghost btn-sm" 
-      style={{ marginLeft: 4, color: 'var(--blue)' }}
-      disabled={busy}
-      onClick={async () => {
-        if (!phone) { alert('No phone number found for this learner.'); return; }
-        setBusy(true);
-        try {
-          const res = await fetch('/api/sms', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              to: phone, 
-              message: `Reminder: Learner ${adm} has an outstanding fee balance of KES ${balance}. Please settle soon. Thank you.` 
-            })
-          });
-          const data = await res.json();
-          if (data.success) alert('Reminder sent!');
-          else alert('Failed to send: ' + data.error);
-        } catch (e) { alert(e.message); }
-        finally { setBusy(false); }
-      }}
-    >
-      {busy ? '⏳' : '📱'}
-    </button>
-  );
-}
 
 export default function FeesPage() {
   const router = useRouter();
@@ -406,95 +375,8 @@ function StatCard({ icon, label, value, color, bg }) {
   );
 }
 
-function ModalOverlay({ title, onClose, children }) {
-  return (
-    <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal premium-shadow" style={{ maxWidth: 550, borderRadius: 20 }}>
-        <div className="modal-hdr" style={{ border: 'none', padding: '24px 30px 10px' }}>
-          <h3 style={{ fontSize: 18, fontWeight: 900 }}>{title}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
-        </div>
-        <div className="modal-body" style={{ padding: '10px 30px 30px' }}>{children}</div>
-      </div>
-    </div>
-  );
-}
 
 
-function PayModal({ learner, feeCfg, onClose, recordedBy, TERMS }) {
-  const getAnnualFee = g => feeCfg[g]?.annual || 5000;
-  const [term,   setTerm]   = useState('T1');
-  const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState('Cash');
-  const [ref,    setRef]    = useState('');
-  const [busy,   setBusy]   = useState(false);
-  const [err,    setErr]    = useState('');
-  const annualFee = getAnnualFee(learner.grade);
-  const totalPaid = (learner.t1||0)+(learner.t2||0)+(learner.t3||0);
-  const balance   = annualFee + (learner.arrears || 0) - totalPaid;
-
-  async function pay() {
-    if (!amount || Number(amount) <= 0) { setErr('Enter a valid amount'); return; }
-    setBusy(true);
-    try {
-      await fetch('/api/db', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: [{ type: 'recordPayment', payment: { adm: learner.adm, term, amount: Number(amount), method, ref, by: recordedBy || 'Staff', status: 'approved' } }] }),
-      });
-      onClose();
-    } catch (e) { setErr(e.message); setBusy(false); }
-  }
-
-  return (
-    <ModalOverlay title={`Record Payment: ${learner.name}`} onClose={onClose}>
-      <div style={{ padding: 15, background: '#F8FAFF', borderRadius: 12, marginBottom: 15, fontSize: 13 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Annual Fee</span><strong>{fmtK(annualFee)}</strong></div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Balance</span><strong style={{ color: balance > 0 ? '#dc2626' : '#059669' }}>{fmtK(balance)}</strong></div>
-      </div>
-      <div className="field-row">
-        <div className="field"><label>Term</label><select value={term} onChange={e => setTerm(e.target.value)}>{TERMS.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
-        <div className="field"><label>Method</label><select value={method} onChange={e => setMethod(e.target.value)}>{METHODS.map(m=><option key={m}>{m}</option>)}</select></div>
-      </div>
-      <div className="field"><label>Amount (KSH)</label><input type="number" value={amount} onChange={e => setAmount(e.target.value)} /></div>
-      <div className="field"><label>Reference</label><input value={ref} onChange={e => setRef(e.target.value)} placeholder="M-Pesa code etc." /></div>
-      <button className="btn btn-primary w-full mt-4 premium-shadow" onClick={pay} disabled={busy}>{busy ? 'Processing...' : 'Confirm Payment'}</button>
-    </ModalOverlay>
-  );
-}
-
-function FeeConfigModal({ feeCfg, onClose, TERMS }) {
-  const [cfg, setCfg] = useState({ ...feeCfg });
-  const [busy, setBusy] = useState(false);
-  async function save() {
-    setBusy(true);
-    await fetch('/api/db', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_feecfg', value: cfg }] }),
-    });
-    setBusy(false);
-    onClose();
-  }
-  return (
-    <ModalOverlay title="Global Fee Configuration" onClose={onClose}>
-      <div style={{ maxHeight: 400, overflowY: 'auto' }}>
-        {ALL_GRADES.map(g => (
-          <div key={g} style={{ padding: 12, border: '1.5px solid var(--border)', borderRadius: 10, marginBottom: 8 }}>
-            <div style={{ fontWeight: 800, fontSize: 11, marginBottom: 8 }}>{g}</div>
-            <div className="field-row3">
-              {TERMS.map((t, idx) => (
-                <div key={t.id} className="field">
-                  <label style={{ fontSize: 9 }}>{t.name}</label>
-                  <input type="number" value={cfg[g]?.[`t${idx+1}`] || ''} onChange={e => setCfg(prev => ({ ...prev, [g]: { ...(prev[g]||{}), [`t${idx+1}`]: Number(e.target.value) } }))} />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-      <button className="btn btn-primary w-full mt-4 premium-shadow" onClick={save} disabled={busy}>Save Configuration</button>
-    </ModalOverlay>
-  );
-}
 
 /* ─── Settlement Config Modal ──────────────────────────────────────────────── */
 function PaybillConfigModal({ accounts, onClose }) {
