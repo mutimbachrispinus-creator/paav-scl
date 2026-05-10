@@ -274,7 +274,8 @@ export default function ParentHome() {
     );
   }
 
-  const exp = feeCfg[child?.grade]?.annual || 5000;
+  const cfg = feeCfg[child?.grade] || {};
+  const exp = (cfg.t1 || 0) + (cfg.t2 || 0) + (cfg.t3 || 0) || cfg.annual || 5000;
   const paid = (child?.t1||0)+(child?.t2||0)+(child?.t3||0);
   const bal = exp + (child?.arrears || 0) - paid;
   const subjs = DEFAULT_SUBJECTS[child?.grade] || [];
@@ -651,10 +652,12 @@ export default function ParentHome() {
                 {(() => {
                   const cfg = feeCfg[child?.grade] || {};
                   const items = [
-                    { label: 'Tuition & Basic', val: cfg.annual || 0 },
-                    { label: 'Transport / Bus', val: cfg.transport || 0 },
-                    { label: 'Lunch / Boarding', val: cfg.lunch || 0 },
-                    { label: 'Activities / Uniform', val: cfg.other || 0 },
+                    { label: 'Term 1 Expected', val: cfg.t1 || 0 },
+                    { label: 'Term 2 Expected', val: cfg.t2 || 0 },
+                    { label: 'Term 3 Expected', val: cfg.t3 || 0 },
+                    { label: 'Annual Base Fee', val: (!cfg.t1 && !cfg.t2 && !cfg.t3) ? (cfg.annual || 0) : 0 },
+                    { label: 'Transport / Meals', val: (cfg.transport || 0) + (cfg.lunch || 0) },
+                    { label: 'Activities / Other', val: cfg.other || 0 },
                     { label: 'Previous Arrears', val: child?.arrears || 0, isRed: true },
                   ].filter(i => i.val > 0);
 
@@ -687,7 +690,8 @@ export default function ParentHome() {
               </div>
               <div className="panel-body" style={{ padding: 25 }}>
                 {[['Term 1',child?.t1||0],['Term 2',child?.t2||0],['Term 3',child?.t3||0]].map(([l,p], i)=>{
-                  const due = feeCfg[child?.grade]?.[l.toLowerCase().replace(' ','')]||Math.round(exp/3);
+                  const termKey = l.toLowerCase().replace('erm ', ''); // "Term 1" -> "t1"
+                  const due = cfg[termKey] || Math.round(exp/3);
                   const termPct = Math.min(100, Math.round((p/due)*100));
                   return (
                     <div key={l} style={{ marginBottom: 20 }}>
