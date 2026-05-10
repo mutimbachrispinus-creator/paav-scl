@@ -110,10 +110,11 @@ export async function POST(request) {
       const tid = session.tenantId || session.tenant_id;
       const learners  = (await kvGet('paav6_learners', [], tid)) || [];
       const feeCfg    = (await kvGet('paav6_feecfg', {}, tid))   || {};
-      const learner   = learners.find(l => l.adm === String(admNo));
+      const learner   = learners.find(l => String(l.adm) === String(admNo));
       if (!learner) return err(`Learner ${admNo} not found`);
 
-      const annualFee = feeCfg[learner.grade]?.annual || 5000;
+      const cfg       = feeCfg[learner.grade] || {};
+      const annualFee = (cfg.t1||0) + (cfg.t2||0) + (cfg.t3||0) || cfg.annual || 5000;
       const paid      = (learner.t1 || 0) + (learner.t2 || 0) + (learner.t3 || 0);
       const balance   = annualFee - paid;
       const accounts  = (await kvGet('paav_paybill_accounts', [], tid)) || [];

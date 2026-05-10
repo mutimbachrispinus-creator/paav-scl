@@ -37,14 +37,15 @@ export async function POST(request) {
   const results = [];
 
   for (const target of targets) {
-    const learner = learners.find(l => l.adm === target.adm);
+    const learner = learners.find(l => String(l.adm) === String(target.adm));
     if (!learner) continue;
 
     const parentPhone = learner.phone;
     const parentEmail = learner.parentEmail;
 
     if (type === 'balance') {
-      const annual = feecfg[learner.grade]?.annual || 5000;
+      const cfg = feecfg[learner.grade] || {};
+      const annual = (cfg.t1||0) + (cfg.t2||0) + (cfg.t3||0) || cfg.annual || 5000;
       const paid = (learner.t1||0) + (learner.t2||0) + (learner.t3||0);
       const arrears = learner.arrears || 0;
       const balance = annual + arrears - paid;

@@ -61,7 +61,10 @@ export default function NexedPage() {
     return () => window.removeEventListener('paav:sync', handler);
   }, [router]);
 
-  function getAnnualFee(grade) { return feeCfg[grade]?.annual || 0; }
+  function getAnnualFee(grade) { 
+    const cfg = feeCfg[grade] || {};
+    return (cfg.t1||0) + (cfg.t2||0) + (cfg.t3||0) || cfg.annual || 5000;
+  }
   function getBalance(l) {
     return getAnnualFee(l.grade) + (l.arrears || 0) - (l.t1 || 0) - (l.t2 || 0) - (l.t3 || 0);
   }
@@ -103,86 +106,125 @@ export default function NexedPage() {
 
   return (
     <div className="page on">
-      <div className="page-hdr">
+      <div className="page-hdr" style={{ marginBottom: 30 }}>
         <div>
-          <h2>💳 Nexed Financial Core</h2>
-          <p>Institutional Ledger & Fee Management — {learners.length} enrolled learners</p>
+          <h2 className="gradient-text" style={{ fontSize: 32, fontWeight: 900 }}>Financial Dashboard</h2>
+          <p style={{ fontWeight: 600, color: 'var(--muted)', marginTop: 4 }}>
+            <Tag size={14} className="inline mr-1" /> Institutional Ledger & Cash Flow Monitor
+          </p>
         </div>
         <div className="page-hdr-acts">
-          <button className="btn btn-ghost btn-sm" onClick={() => setShowExpense(true)}>
-            💸 New Expense
+          <button className="btn btn-ghost btn-sm hover-glow" onClick={() => setShowExpense(true)}>
+            <Plus size={16} /> New Expense
           </button>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowReceipt(true)}>
-            🖨️ Quick Receipt
+          <button className="btn btn-primary btn-sm premium-shadow" onClick={() => setShowReceipt(true)}>
+            <Search size={16} /> Quick Receipt Search
           </button>
         </div>
       </div>
 
       <ExpenseVoucher inline isOpen={showExpense} onClose={() => setShowExpense(false)} />
 
-      <div className="sg sg4" style={{ marginBottom: 24 }}>
-        <div className="stat-card" style={{ borderLeft: '4px solid #059669' }}>
+      <div className="sg sg4" style={{ marginBottom: 32 }}>
+        <div className="stat-card glass-card animate-float" style={{ borderLeft: '4px solid #059669', animationDelay: '0s' }}>
           <div className="sc-inner">
-            <div className="sc-icon" style={{ background: '#ecfdf5' }}>💰</div>
+            <div className="sc-icon" style={{ background: 'rgba(5, 150, 105, 0.1)', color: '#059669' }}><Tag size={20} /></div>
             <div>
-              <div className="sc-l">Today's Collections</div>
-              <div className="sc-n">KES {fmtK(stats.todayTotal)}</div>
+              <div className="sc-l" style={{ fontSize: 10, letterSpacing: 1 }}>Today's Revenue</div>
+              <div className="sc-n" style={{ fontSize: 24 }}>KES {fmtK(stats.todayTotal)}</div>
               <div className="sc-sub" style={{ background: '#ecfdf5', color: '#059669' }}>
-                {stats.todayCount} transaction{stats.todayCount !== 1 ? 's' : ''}
+                {stats.todayCount} record{stats.todayCount !== 1 ? 's' : ''}
               </div>
             </div>
           </div>
         </div>
-        <div className="stat-card" style={{ borderLeft: '4px solid #2563eb' }}>
+        <div className="stat-card glass-card animate-float" style={{ borderLeft: '4px solid #2563eb', animationDelay: '0.2s' }}>
           <div className="sc-inner">
-            <div className="sc-icon" style={{ background: '#eff6ff' }}>📊</div>
+            <div className="sc-icon" style={{ background: 'rgba(37, 99, 235, 0.1)', color: '#2563eb' }}><User size={20} /></div>
             <div>
-              <div className="sc-l">Collection Rate</div>
-              <div className="sc-n">{stats.collectionRate}%</div>
+              <div className="sc-l" style={{ fontSize: 10, letterSpacing: 1 }}>Collection Rate</div>
+              <div className="sc-n" style={{ fontSize: 24 }}>{stats.collectionRate}%</div>
               <div className="sc-sub" style={{ background: '#eff6ff', color: '#2563eb' }}>
                 KES {fmtK(stats.totalCollected)}
               </div>
             </div>
           </div>
         </div>
-        <div className="stat-card" style={{ borderLeft: '4px solid #dc2626' }}>
+        <div className="stat-card glass-card animate-float" style={{ borderLeft: '4px solid #dc2626', animationDelay: '0.4s' }}>
           <div className="sc-inner">
-            <div className="sc-icon" style={{ background: '#fef2f2' }}>⚠️</div>
+            <div className="sc-icon" style={{ background: 'rgba(220, 38, 38, 0.1)', color: '#dc2626' }}><Truck size={20} /></div>
             <div>
-              <div className="sc-l">Total Outstanding</div>
-              <div className="sc-n" style={{ color: '#dc2626' }}>KES {fmtK(stats.totalOwing)}</div>
+              <div className="sc-l" style={{ fontSize: 10, letterSpacing: 1 }}>Receivables</div>
+              <div className="sc-n" style={{ fontSize: 24, color: '#dc2626' }}>KES {fmtK(stats.totalOwing)}</div>
               <div className="sc-sub" style={{ background: '#fef2f2', color: '#dc2626' }}>
-                {stats.owing} owing
+                {stats.owing} learners owing
               </div>
             </div>
           </div>
         </div>
-        <div className="stat-card" style={{ borderLeft: '4px solid #7c3aed' }}>
+        <div className="stat-card glass-card animate-float" style={{ borderLeft: '4px solid #7c3aed', animationDelay: '0.6s' }}>
           <div className="sc-inner">
-            <div className="sc-icon" style={{ background: '#f5f3ff' }}>✅</div>
+            <div className="sc-icon" style={{ background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed' }}><Plus size={20} /></div>
             <div>
-              <div className="sc-l">Cleared</div>
-              <div className="sc-n" style={{ color: '#7c3aed' }}>{stats.cleared}</div>
+              <div className="sc-l" style={{ fontSize: 10, letterSpacing: 1 }}>Cleared Status</div>
+              <div className="sc-n" style={{ fontSize: 24, color: '#7c3aed' }}>{stats.cleared}</div>
               <div className="sc-sub" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
-                learners
+                {learners.length} total enrolled
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-        <button className={`btn btn-sm ${activeView === 'ledger' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveView('ledger')}>🏛️ Fee Ledger</button>
-        <button className={`btn btn-sm ${activeView === 'suppliers' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setActiveView('suppliers')}>🤝 Suppliers</button>
+      <div className="panel premium-shadow" style={{ marginBottom: 32, border: 'none', background: 'linear-gradient(135deg, #0F172A, #1E293B)', color: '#fff' }}>
+        <div className="panel-body p-8 flex items-center gap-12">
+          <div style={{ flex: 1 }}>
+            <h3 style={{ fontSize: 22, fontWeight: 900, marginBottom: 8, color: '#fff' }}>Collection Health Index</h3>
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>Global progress of institutional fee acquisition for the current academic cycle.</p>
+          </div>
+          <div style={{ width: 400, textAlign: 'right' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontWeight: 800 }}>
+              <span style={{ color: 'rgba(255,255,255,0.5)' }}>Progress</span>
+              <span style={{ fontSize: 24, color: '#10B981' }}>{stats.collectionRate}%</span>
+            </div>
+            <div style={{ height: 12, background: 'rgba(255,255,255,0.1)', borderRadius: 20, overflow: 'hidden' }}>
+              <div style={{ width: `${stats.collectionRate}%`, height: '100%', background: 'linear-gradient(90deg, #10B981, #34D399)', boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, background: 'var(--border)', padding: 4, borderRadius: 12, width: 'fit-content', marginBottom: 24 }}>
+        <button 
+          className={`btn btn-sm ${activeView === 'ledger' ? 'btn-primary premium-shadow' : 'btn-ghost'}`} 
+          style={{ border: 'none', borderRadius: 9 }}
+          onClick={() => setActiveView('ledger')}
+        >
+          🏛️ Fee Ledger
+        </button>
+        <button 
+          className={`btn btn-sm ${activeView === 'suppliers' ? 'btn-primary premium-shadow' : 'btn-ghost'}`} 
+          style={{ border: 'none', borderRadius: 9 }}
+          onClick={() => setActiveView('suppliers')}
+        >
+          🤝 Suppliers
+        </button>
       </div>
 
       {activeView === 'ledger' ? (
-        <div className="panel">
-          <div className="panel-hdr">
-            <h3>🏛️ Learner Fee Ledger</h3>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input placeholder="🔍 Search…" value={searchQ} onChange={e => setSearchQ(e.target.value)} style={{ padding: '6px 10px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 12, width: 150 }} />
-              <select value={filterGrade} onChange={e => setFilterGrade(e.target.value)} style={{ padding: '6px 10px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 12 }}>
+        <div className="panel premium-shadow" style={{ border: 'none' }}>
+          <div className="panel-hdr" style={{ padding: '20px 24px' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 800 }}>🏛️ Institutional Fee Ledger</h3>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ position: 'relative' }}>
+                <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)' }} />
+                <input 
+                  placeholder="Filter by adm/name..." 
+                  value={searchQ} onChange={e => setSearchQ(e.target.value)} 
+                  style={{ padding: '8px 12px 8px 32px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 12, width: 220, outline: 'none' }} 
+                />
+              </div>
+              <select value={filterGrade} onChange={e => setFilterGrade(e.target.value)} style={{ padding: '8px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 12, outline: 'none' }}>
                 <option value="">All Grades</option>
                 {grades.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
@@ -192,17 +234,35 @@ export default function NexedPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Adm</th><th>Name</th><th>Grade</th><th>Balance</th><th>Status</th>
+                  <th style={{ paddingLeft: 24 }}>Admission</th>
+                  <th>Learner Name</th>
+                  <th>Grade Level</th>
+                  <th>Outstanding Balance</th>
+                  <th style={{ paddingRight: 24 }}>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(l => (
                   <tr key={l.adm}>
-                    <td>{l.adm}</td>
-                    <td><button className="btn-link" onClick={() => router.push(`/learners/${l.adm}`)}>{l.name}</button></td>
-                    <td>{l.grade}</td>
-                    <td style={{ fontWeight: 800 }}>KES {fmtK(l.balance)}</td>
-                    <td><span className={`badge ${l.balance <= 0 ? 'bg-green' : 'bg-red'}`}>{l.balance <= 0 ? 'Cleared' : 'Owing'}</span></td>
+                    <td style={{ paddingLeft: 24, fontWeight: 700 }}>{l.adm}</td>
+                    <td>
+                      <button 
+                        className="btn-link" 
+                        style={{ fontWeight: 800, textDecoration: 'none' }}
+                        onClick={() => router.push(`/learners/${l.adm}`)}
+                      >
+                        {l.name}
+                      </button>
+                    </td>
+                    <td><span className="badge bg-blue">{l.grade}</span></td>
+                    <td style={{ fontWeight: 900, color: l.balance > 0 ? '#dc2626' : '#059669' }}>
+                      KES {fmtK(l.balance)}
+                    </td>
+                    <td style={{ paddingRight: 24 }}>
+                      <span className={`badge ${l.balance <= 0 ? 'bg-green' : 'bg-red'}`} style={{ padding: '4px 12px' }}>
+                        {l.balance <= 0 ? 'CLEARED' : 'OWING'}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -210,28 +270,39 @@ export default function NexedPage() {
           </div>
         </div>
       ) : (
-        <div className="panel">
-          <div className="panel-hdr">
-            <h3>🤝 Suppliers Registry</h3>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowAddSupplier(true)}>+ Add Supplier</button>
+        <div className="panel premium-shadow" style={{ border: 'none' }}>
+          <div className="panel-hdr" style={{ padding: '20px 24px' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 800 }}>🤝 Suppliers Registry</h3>
+            <button className="btn btn-primary btn-sm premium-shadow" onClick={() => setShowAddSupplier(true)}>
+              <Plus size={16} /> Add Supplier
+            </button>
           </div>
           <div className="tbl-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Name</th><th>Category</th><th>Contact</th><th>Phone</th><th>Actions</th>
+                  <th style={{ paddingLeft: 24 }}>Supplier Name</th>
+                  <th>Category</th>
+                  <th>Contact Person</th>
+                  <th>Phone Number</th>
+                  <th style={{ paddingRight: 24, textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {suppliers.length === 0 ? (
-                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 40, color: 'var(--muted)' }}>No suppliers registered.</td></tr>
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 60, color: 'var(--muted)' }}>
+                    <Truck size={48} style={{ margin: '0 auto 15px', opacity: 0.2 }} />
+                    <p>No registered suppliers found in the registry.</p>
+                  </td></tr>
                 ) : suppliers.map(s => (
                   <tr key={s.id}>
-                    <td style={{ fontWeight: 700 }}>{s.name}</td>
+                    <td style={{ paddingLeft: 24, fontWeight: 800 }}>{s.name}</td>
                     <td><span className="badge bg-blue">{s.category || 'General'}</span></td>
                     <td>{s.contactPerson || '—'}</td>
-                    <td>{s.phone || '—'}</td>
-                    <td><button className="btn btn-ghost btn-sm">✏️</button></td>
+                    <td style={{ fontWeight: 600 }}>{s.phone || '—'}</td>
+                    <td style={{ paddingRight: 24, textAlign: 'right' }}>
+                      <button className="btn btn-ghost btn-sm">Edit</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -242,9 +313,9 @@ export default function NexedPage() {
 
       {showAddSupplier && (
         <div className="modal-overlay open">
-          <div className="modal" style={{ maxWidth: 400 }}>
-            <div className="modal-hdr">
-              <h3>➕ Add New Supplier</h3>
+          <div className="modal premium-shadow" style={{ maxWidth: 450, borderRadius: 20 }}>
+            <div className="modal-hdr" style={{ border: 'none', padding: '24px 30px 10px' }}>
+              <h3 style={{ fontSize: 20, fontWeight: 900 }}>New Supplier</h3>
               <button className="modal-close" onClick={() => setShowAddSupplier(false)}>✕</button>
             </div>
             <form onSubmit={async (e) => {
@@ -263,13 +334,15 @@ export default function NexedPage() {
                 setShowAddSupplier(false);
               } else alert(res.error);
             }}>
-              <div className="modal-body">
-                <div className="field"><label>Supplier Name *</label><input name="name" required /></div>
-                <div className="field"><label>Category</label><input name="category" placeholder="e.g. Food, Stationery" /></div>
-                <div className="field"><label>Contact Person</label><input name="contact" /></div>
-                <div className="field"><label>Phone</label><input name="phone" /></div>
-                <div className="field"><label>Email</label><input name="email" type="email" /></div>
-                <button className="btn btn-primary w-full mt-4" type="submit">Save Supplier</button>
+              <div className="modal-body" style={{ padding: '10px 30px 30px' }}>
+                <div className="field"><label>Supplier Name *</label><input name="name" required placeholder="e.g. Acme Stationery" /></div>
+                <div className="field"><label>Category</label><input name="category" placeholder="e.g. Food, Stationery, Maintenance" /></div>
+                <div className="field-row">
+                  <div className="field"><label>Contact Person</label><input name="contact" placeholder="John Doe" /></div>
+                  <div className="field"><label>Phone</label><input name="phone" placeholder="0712..." /></div>
+                </div>
+                <div className="field"><label>Email Address</label><input name="email" type="email" placeholder="contact@acme.com" /></div>
+                <button className="btn btn-primary w-full mt-6 premium-shadow" type="submit" style={{ height: 48, fontSize: 15 }}>Save Registry Entry</button>
               </div>
             </form>
           </div>

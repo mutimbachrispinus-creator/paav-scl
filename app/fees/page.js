@@ -17,11 +17,42 @@ import { ALL_GRADES, fmtK } from '@/lib/cbe';
 import { getCurriculum } from '@/lib/curriculum';
 import { usePersistedState } from '@/components/TabState';
 import { useProfile } from '@/app/PortalShell';
-
+import { Search, Plus, Settings, CreditCard, Clock, CheckCircle, XCircle, Printer, AlertCircle } from 'lucide-react';
+import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 
 const METHODS = ['Cash','M-Pesa','Bank','Cheque','Bursary'];
 
-import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
+function SMSReminderButton({ adm, balance, phone }) {
+  const [busy, setBusy] = useState(false);
+  if (!balance || balance <= 0) return null;
+  return (
+    <button 
+      className="btn btn-ghost btn-sm" 
+      style={{ marginLeft: 4, color: 'var(--blue)' }}
+      disabled={busy}
+      onClick={async () => {
+        if (!phone) { alert('No phone number found for this learner.'); return; }
+        setBusy(true);
+        try {
+          const res = await fetch('/api/sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              to: phone, 
+              message: `Reminder: Learner ${adm} has an outstanding fee balance of KES ${balance}. Please settle soon. Thank you.` 
+            })
+          });
+          const data = await res.json();
+          if (data.success) alert('Reminder sent!');
+          else alert('Failed to send: ' + data.error);
+        } catch (e) { alert(e.message); }
+        finally { setBusy(false); }
+      }}
+    >
+      {busy ? '⏳' : '📱'}
+    </button>
+  );
+}
 
 export default function FeesPage() {
   const router = useRouter();
@@ -54,18 +85,9 @@ export default function FeesPage() {
       ]);
 
       if (!u) { router.push('/login'); return; }
-      
-      // Strict Redirection for Parents
-      if (u.role === 'parent') {
-        router.push('/dashboard?tab=fees');
-        return;
-      }
-
-      if (!['admin','staff'].includes(u.role)) {
-        router.push('/dashboard'); return;
-      }
+      if (u.role === 'parent') { router.push('/dashboard?tab=fees'); return; }
+      if (!['admin','staff'].includes(u.role)) { router.push('/dashboard'); return; }
       setUser(u);
-
       setLearners(db.paav6_learners || []);
       setFeeCfg(  db.paav6_feecfg   || {});
       setPaylog(  db.paav6_paylog   || []);
@@ -156,84 +178,71 @@ export default function FeesPage() {
   const totalBalance = totalExp + (termF ? 0 : totalAccumulated) - totalPaid;
   const cleared = learners.filter(l => getBal(l, termF) <= 0).length;
 
-  if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading fees…</div>;
+  if (loading || !user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading collections hub…</div>;
+
+  const pendingCount = paylog.filter(p => p.status === 'pending').length;
 
   return (
     <>
       <div className="page on">
-        <div className="page-hdr no-print">
+        <div className="page-hdr no-print" style={{ marginBottom: 25 }}>
           <div>
-            <h2>💰 Fees</h2>
-            <p style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              Manage school fee payments and receipts
-              
-              {user?.role === 'admin' && (
-                <span style={{ background: '#FDF2F2', color: '#8B1A1A', fontWeight: 700,
-                  fontSize: 11, padding: '2px 9px', borderRadius: 20, border: '1.5px solid #FECACA' }}>
-                  Admin — full access incl. fee config
-                </span>
-              )}
+            <h2 className="gradient-text" style={{ fontSize: 28, fontWeight: 900 }}>Collections Hub</h2>
+            <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+              <CreditCard size={14} /> Operational Payment Processing
             </p>
           </div>
           <div className="page-hdr-acts">
             {user?.role === 'admin' && (
               <>
-                <button className="btn btn-ghost btn-sm" onClick={() => setModal('config')}>
-                  ⚙ Fee Config
+                <button className="btn btn-ghost btn-sm hover-glow" onClick={() => setModal('config')}>
+                  <Settings size={16} /> Fee Config
                 </button>
-                <button className="btn btn-ghost btn-sm" onClick={() => setModal('paybills')}>
+                <button className="btn btn-ghost btn-sm hover-glow" onClick={() => setModal('paybills')}>
                   📱 M-Pesa Accounts
                 </button>
               </>
             )}
-            <button className="btn btn-ghost btn-sm no-print" onClick={() => window.print()}>
-              🖨️ Print
+            <button className="btn btn-primary btn-sm premium-shadow" onClick={() => window.print()}>
+              <Printer size={16} /> Bulk Print Balances
             </button>
           </div>
         </div>
 
-        {/* ── Summary cards (Admin Only) ── */}
-        {user?.role === 'admin' && (
-          <div className="sg sg4 no-print" style={{ marginBottom: 18 }}>
-            <SCard icon="🎯" label={termF ? `${termF} Expected` : "Expected"} value={fmtK(totalExp)}    bg="#EFF6FF" />
-            <SCard icon="✅" label={termF ? `${termF} Collected` : "Collected"} value={fmtK(totalPaid)}  bg="#ECFDF5" />
-            <SCard icon="⚠" label={termF ? `${termF} Balance` : "Balance"}   value={fmtK(totalBalance)} bg="#FEF2F2" />
-            <SCard icon="🟢" label="Cleared"  value={`${cleared} / ${learners.length}`} bg="#F5F3FF" />
-          </div>
-        )}
+        <div className="sg sg4 no-print" style={{ marginBottom: 25 }}>
+          <StatCard icon={<Clock size={20} />} label={termF ? `${termF} Expected` : "Total Expected"} value={fmtK(totalExp)} color="#2563eb" bg="rgba(37, 99, 235, 0.1)" />
+          <StatCard icon={<CheckCircle size={20} />} label="Total Collected" value={fmtK(totalPaid)} color="#059669" bg="rgba(5, 150, 105, 0.1)" />
+          <StatCard icon={<AlertCircle size={20} />} label="Outstanding" value={fmtK(totalBalance)} color="#dc2626" bg="rgba(220, 38, 38, 0.1)" />
+          <StatCard icon={<CheckCircle size={20} />} label="Cleared" value={`${cleared} / ${learners.length}`} color="#7c3aed" bg="rgba(124, 58, 237, 0.1)" />
+        </div>
 
-        {/* ── Pending Approvals ── */}
-        {user?.role === 'admin' && paylog.some(p => p.status === 'pending') && (
-          <div className="panel no-print" style={{ marginBottom: 18, border: '2px solid var(--amber)' }}>
-            <div className="panel-hdr" style={{ background: '#FFF7ED' }}>
-              <h3 style={{ color: '#92400E' }}>⏳ Pending Approvals</h3>
-              <span className="badge bg-amber">{paylog.filter(p => p.status === 'pending').length}</span>
+        {user?.role === 'admin' && pendingCount > 0 && (
+          <div className="panel premium-shadow no-print" style={{ marginBottom: 25, border: 'none', background: '#FFF7ED' }}>
+            <div className="panel-hdr" style={{ background: 'transparent', border: 'none', padding: '15px 20px' }}>
+              <h3 style={{ color: '#92400E', fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Clock size={18} /> ACTION REQUIRED: Pending Approvals
+              </h3>
+              <span className="badge bg-amber" style={{ borderRadius: 10 }}>{pendingCount} new</span>
             </div>
             <div className="tbl-wrap">
-              <table>
+              <table style={{ background: 'transparent' }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '6px 8px' }}>Date</th>
-                    <th style={{ padding: '6px 8px' }}>Adm</th>
-                    <th style={{ padding: '6px 8px' }}>Name</th>
-                    <th style={{ padding: '6px 8px' }}>Amount</th>
-                    <th style={{ padding: '6px 8px' }}>Method</th>
-                    <th style={{ padding: '6px 8px' }}>Ref</th>
-                    <th style={{ padding: '6px 8px' }}>Actions</th>
+                    <th>Date</th><th>Adm</th><th>Name</th><th>Amount</th><th>Method</th><th>Ref</th><th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paylog.filter(p => p.status === 'pending').map((p, i) => (
-                    <tr key={i}>
-                      <td style={{ padding: '6px 8px' }}>{p.date}</td>
-                      <td style={{ padding: '6px 8px' }}><strong>{p.adm}</strong></td>
-                      <td style={{ padding: '6px 8px' }}>{p.name}</td>
-                      <td style={{ fontWeight: 800, padding: '6px 8px' }}>{fmtK(p.amount)}</td>
-                      <td style={{ padding: '6px 8px' }}>{p.method}</td>
-                      <td style={{ fontSize: 11, padding: '6px 8px' }}>{p.ref}</td>
-                      <td style={{ padding: '6px 8px' }}>
-                        <button className="btn btn-sm btn-success" onClick={() => approvePayment(p)}>Approve</button>
-                        <button className="btn btn-sm btn-ghost" style={{ marginLeft: 5, color: 'var(--red)' }} onClick={() => rejectPayment(p)}>Reject</button>
+                    <tr key={i} style={{ background: 'rgba(255,255,255,0.4)' }}>
+                      <td>{p.date}</td>
+                      <td><strong>{p.adm}</strong></td>
+                      <td>{p.name}</td>
+                      <td style={{ fontWeight: 900 }}>{fmtK(p.amount)}</td>
+                      <td><span className="badge bg-blue" style={{ fontSize: 10 }}>{p.method}</span></td>
+                      <td style={{ fontSize: 11 }}>{p.ref}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button className="btn btn-sm btn-success premium-shadow" onClick={() => approvePayment(p)}>Approve</button>
+                        <button className="btn btn-sm btn-ghost" style={{ marginLeft: 5, color: 'var(--red)', border: 'none' }} onClick={() => rejectPayment(p)}>Reject</button>
                       </td>
                     </tr>
                   ))}
@@ -243,102 +252,24 @@ export default function FeesPage() {
           </div>
         )}
 
-        {/* ── Payment log ── */}
-        <div className="panel no-print" style={{ marginBottom: 18 }}>
-          <div className="panel-hdr">
-            <h3>📥 Recent Payments</h3>
-          </div>
-          <div className="tbl-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th style={{ padding: '6px 8px' }}>Date</th>
-                  <th style={{ padding: '6px 8px' }}>Adm</th>
-                  <th style={{ padding: '6px 8px' }}>Name</th>
-                  <th style={{ padding: '6px 8px' }}>Term</th>
-                  <th style={{ padding: '6px 8px' }}>Amount</th>
-                  <th style={{ padding: '6px 8px' }}>Method</th>
-                  <th style={{ padding: '6px 8px' }}>Ref</th>
-                  <th style={{ padding: '6px 8px' }}>By</th>
-                  <th style={{ padding: '4px 6px' }}>Date</th>
-                  <th style={{ padding: '4px 6px' }}>Adm</th>
-                  <th style={{ padding: '4px 6px' }}>Name</th>
-                  <th style={{ padding: '4px 6px' }}>Term</th>
-                  <th style={{ padding: '4px 6px' }}>Amount</th>
-                  <th style={{ padding: '4px 6px' }}>Method</th>
-                  <th style={{ padding: '4px 6px' }}>Ref</th>
-                  <th style={{ padding: '4px 6px' }}>By</th>
-                  <th style={{ padding: '4px 6px' }}>Status</th>
-                  <th className="no-print" style={{ padding: '4px 6px' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paylog.filter(p => p.status !== 'pending').slice(-50).reverse().map((p, i) => (
-                  <tr key={i}>
-                    <td style={{ fontSize: 11, padding: '4px 6px' }}>{p.date}</td>
-                    <td style={{ fontWeight: 700, fontSize: 11.5, padding: '4px 6px' }}>{p.adm}</td>
-                    <td style={{ padding: '4px 6px' }}>{p.name}</td>
-                    <td style={{ padding: '4px 6px' }}><span className="badge bg-blue" style={{ fontSize: 10 }}>{p.term}</span></td>
-                    <td style={{ fontWeight: 800, color: 'var(--green)', padding: '4px 6px' }}>{fmtK(p.amount)}</td>
-                    <td style={{ padding: '4px 6px' }}><span className="badge bg-teal" style={{ fontSize: 10 }}>{p.method}</span></td>
-                    <td style={{ fontSize: 11, color: 'var(--muted)', padding: '4px 6px' }}>{p.ref || '—'}</td>
-                    <td style={{ fontSize: 11, color: 'var(--muted)', padding: '4px 6px' }}>{p.by || '—'}</td>
-                    <td style={{ padding: '4px 6px' }}>
-                      <span className={`badge bg-${p.status === 'approved' ? 'green' : 'amber'}`} style={{ fontSize: 9 }}>
-                        {(p.status || 'approved').toUpperCase()}
-                      </span>
-                    </td>
-                    <td style={{ padding: '4px 6px' }}>
-                      <button className="btn btn-ghost btn-sm"
-                        onClick={() => router.push(`/fees/${encodeURIComponent(p.adm)}/receipt`)}>
-                        🧾
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {paylog.length === 0 && (
-                  <tr>
-                    <td colSpan="9" style={{ textAlign: 'center', padding: 24, color: 'var(--muted)' }}>
-                      No payments recorded yet
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* ── Learner fee balances ── */}
-        <div className="panel">
-          <div className="panel-hdr">
-            <h3>📋 Learner Fee Balances</h3>
-            <div className="print-only" style={{ display: 'none' }}>EduVantage - Fee Balances Report</div>
-            <div className="no-print" style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-maroon btn-sm"
-                onClick={() => {
-                  const arrearsOnly = learners.filter(l => getBal(l) > 0);
-                  if (arrearsOnly.length === 0) { alert('No learners with fee balances found.'); return; }
-                  window.print();
-                }}>
-                🖨️ Print Balances
-              </button>
-              <input
-                placeholder="🔍 Search…"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                style={{ padding: '7px 11px', border: '2px solid var(--border)',
-                  borderRadius: 8, fontSize: 12, width: 200, outline: 'none' }}
-              />
-              <select value={gradeF} onChange={e => setGradeF(e.target.value)}
-                style={{ padding: '7px 11px', border: '2px solid var(--border)',
-                  borderRadius: 8, fontSize: 12, outline: 'none' }}>
+        <div className="panel premium-shadow" style={{ border: 'none', marginBottom: 25 }}>
+          <div className="panel-hdr" style={{ padding: '20px 24px' }}>
+            <h3 style={{ fontWeight: 800 }}>📋 Learner Collections Status</h3>
+            <div className="no-print" style={{ display: 'flex', gap: 10 }}>
+              <div style={{ position: 'relative' }}>
+                <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)' }} />
+                <input 
+                  placeholder="Quick search..." 
+                  value={query} onChange={e => setQuery(e.target.value)} 
+                  style={{ padding: '8px 12px 8px 32px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 12, width: 200, outline: 'none' }} 
+                />
+              </div>
+              <select value={gradeF} onChange={e => setGradeF(e.target.value)} style={{ padding: '8px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 12, outline: 'none' }}>
                 <option value="">All Grades</option>
                 {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
               </select>
-              <select value={termF} onChange={e => setTermF(e.target.value)}
-                style={{ padding: '7px 11px', border: '2px solid var(--border)',
-                  borderRadius: 8, fontSize: 12, outline: 'none' }}>
-                <option value="">Full Year</option>
+              <select value={termF} onChange={e => setTermF(e.target.value)} style={{ padding: '8px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 12, outline: 'none' }}>
+                <option value="">Full Year View</option>
                 {TERMS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
@@ -347,25 +278,24 @@ export default function FeesPage() {
             <table>
               <thead>
                 <tr>
-                  <th style={{ padding: '6px 8px' }}>Adm</th>
-                  <th style={{ padding: '6px 8px' }}>Name</th>
-                  <th style={{ padding: '6px 8px' }}>Grade</th>
+                  <th style={{ paddingLeft: 24 }}>Adm</th>
+                  <th>Learner Name</th>
+                  <th>Grade</th>
                   {termF ? (
                     <>
-                      <th style={{ padding: '6px 8px' }}>{termF} Expected</th>
-                      <th style={{ padding: '6px 8px' }}>{termF} Paid</th>
+                      <th>Expected</th>
+                      <th>Paid</th>
                     </>
                   ) : (
                     <>
-                      <th style={{ padding: '6px 8px' }}>Annual Total</th>
-                      <th style={{ padding: '6px 8px' }}>Term 1 (Exp/Paid)</th>
-                      <th style={{ padding: '6px 8px' }}>Term 2 (Exp/Paid)</th>
-                      <th style={{ padding: '6px 8px' }}>Term 3 (Exp/Paid)</th>
+                      <th>Term 1 (P)</th>
+                      <th>Term 2 (P)</th>
+                      <th>Term 3 (P)</th>
                     </>
                   )}
-                  <th style={{ padding: '6px 8px' }}>Total Paid</th>
-                  <th style={{ padding: '6px 8px' }}>Balance</th>
-                  <th className="no-print" style={{ padding: '6px 8px' }}>Actions</th>
+                  <th>Total Paid</th>
+                  <th>Balance</th>
+                  <th className="no-print" style={{ paddingRight: 24, textAlign: 'right' }}>Process</th>
                 </tr>
               </thead>
               <tbody>
@@ -373,48 +303,36 @@ export default function FeesPage() {
                   const cfg = feeCfg[l.grade] || {};
                   const fee = termF ? (cfg[termF.toLowerCase()] || 0) : getAnnualFee(l.grade);
                   const tp  = termF ? (l[termF.toLowerCase()] || 0) : (l.t1||0)+(l.t2||0)+(l.t3||0);
-                  const bal = fee - tp;
+                  const bal = termF ? (fee - tp) : getBal(l);
                   return (
-                    <tr key={l.adm}>
-                      <td style={{ fontWeight: 700, padding: '6px 8px' }}>{l.adm}</td>
-                      <td style={{ padding: '6px 8px' }}>{l.name}</td>
-                      <td style={{ padding: '6px 8px' }}><span className="badge bg-blue" style={{ fontSize: 10 }}>{l.grade}</span></td>
+                    <tr key={l.adm} className="hover-row">
+                      <td style={{ paddingLeft: 24, fontWeight: 700 }}>{l.adm}</td>
+                      <td style={{ fontWeight: 600 }}>{l.name}</td>
+                      <td><span className="badge bg-blue" style={{ fontSize: 10 }}>{l.grade}</span></td>
                       {termF ? (
                         <>
-                          <td style={{ fontWeight: 800, padding: '6px 8px' }}>{fmtK(cfg[termF.toLowerCase()] || 0)}</td>
-                          <td style={{ color: 'var(--green)', fontWeight: 700, padding: '6px 8px' }}>{fmtK(l[termF.toLowerCase()] || 0)}</td>
+                          <td style={{ fontWeight: 700 }}>{fmtK(fee)}</td>
+                          <td style={{ color: 'var(--green)', fontWeight: 800 }}>{fmtK(tp)}</td>
                         </>
                       ) : (
                         <>
-                          <td style={{ fontWeight: 800, padding: '6px 8px' }}>{fmtK(fee)}</td>
-                          <td style={{ padding: '6px 8px' }}>
-                            <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t1||0)}</div>
-                            <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t1||0)}</div>
-                          </td>
-                          <td style={{ padding: '6px 8px' }}>
-                            <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t2||0)}</div>
-                            <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t2||0)}</div>
-                          </td>
-                          <td style={{ padding: '6px 8px' }}>
-                            <div style={{ fontSize: 10, color: 'var(--muted)' }}>Exp: {fmtK(cfg.t3||0)}</div>
-                            <div style={{ color: 'var(--green)', fontWeight: 700 }}>Paid: {fmtK(l.t3||0)}</div>
-                          </td>
+                          <td><div style={{ fontSize: 10, color: 'var(--muted)' }}>{fmtK(cfg.t1||0)}</div><div style={{ fontWeight: 700 }}>{fmtK(l.t1||0)}</div></td>
+                          <td><div style={{ fontSize: 10, color: 'var(--muted)' }}>{fmtK(cfg.t2||0)}</div><div style={{ fontWeight: 700 }}>{fmtK(l.t2||0)}</div></td>
+                          <td><div style={{ fontSize: 10, color: 'var(--muted)' }}>{fmtK(cfg.t3||0)}</div><div style={{ fontWeight: 700 }}>{fmtK(l.t3||0)}</div></td>
                         </>
                       )}
-                      <td style={{ fontWeight: 800, padding: '6px 8px' }}>{fmtK(tp)}</td>
-                      <td style={{ padding: '6px 8px' }}>
+                      <td style={{ fontWeight: 900 }}>{fmtK(tp)}</td>
+                      <td>
                         {bal <= 0
-                          ? <span className="badge bg-green">Cleared</span>
-                          : <span className="badge bg-amber">{fmtK(bal)}</span>}
+                          ? <span className="badge bg-green" style={{ fontSize: 9 }}>CLEARED</span>
+                          : <span className="badge bg-amber" style={{ fontSize: 9 }}>{fmtK(bal)} OWING</span>}
                       </td>
-                      <td className="no-print" style={{ whiteSpace: 'nowrap', padding: '6px 8px' }}>
-                        <button className="btn btn-success btn-sm"
-                          onClick={() => { setSelLearner(l); setModal('pay'); }}>
-                          + Pay
+                      <td className="no-print" style={{ paddingRight: 24, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <button className="btn btn-primary btn-sm premium-shadow" onClick={() => { setSelLearner(l); setModal('pay'); }}>
+                          <Plus size={12} /> Pay
                         </button>
                         <SMSReminderButton adm={l.adm} balance={bal} phone={l.phone} />
-                        <button className="btn btn-ghost btn-sm" style={{ marginLeft: 4 }}
-                          onClick={() => router.push(`/fees/${encodeURIComponent(l.adm)}/receipt`)}>
+                        <button className="btn btn-ghost btn-sm" style={{ marginLeft: 4, border: 'none' }} onClick={() => router.push(`/fees/${encodeURIComponent(l.adm)}/receipt`)}>
                           🧾
                         </button>
                       </td>
@@ -425,38 +343,200 @@ export default function FeesPage() {
             </table>
           </div>
         </div>
+
+        <div className="panel premium-shadow no-print" style={{ border: 'none' }}>
+          <div className="panel-hdr" style={{ padding: '20px 24px' }}>
+            <h3 style={{ fontWeight: 800 }}>📥 Payment Journal (Recent Activity)</h3>
+          </div>
+          <div className="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ paddingLeft: 24 }}>Date</th><th>Adm</th><th>Name</th><th>Term</th><th>Amount</th><th>Method</th><th>Ref</th><th>Status</th><th style={{ paddingRight: 24, textAlign: 'right' }}>Receipt</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paylog.filter(p => p.status !== 'pending').slice(-20).reverse().map((p, i) => (
+                  <tr key={i}>
+                    <td style={{ paddingLeft: 24, fontSize: 11 }}>{p.date}</td>
+                    <td style={{ fontWeight: 700 }}>{p.adm}</td>
+                    <td>{p.name}</td>
+                    <td><span className="badge bg-blue" style={{ fontSize: 9 }}>{p.term}</span></td>
+                    <td style={{ fontWeight: 900, color: 'var(--green)' }}>{fmtK(p.amount)}</td>
+                    <td><span className="badge bg-teal" style={{ fontSize: 9 }}>{p.method}</span></td>
+                    <td style={{ fontSize: 11, color: 'var(--muted)' }}>{p.ref || '—'}</td>
+                    <td>
+                      <span className={`badge ${p.status === 'approved' ? 'bg-green' : 'bg-amber'}`} style={{ fontSize: 9 }}>
+                        {(p.status || 'approved').toUpperCase()}
+                      </span>
+                    </td>
+                    <td style={{ paddingRight: 24, textAlign: 'right' }}>
+                      <button className="btn btn-ghost btn-sm" style={{ border: 'none' }} onClick={() => router.push(`/fees/${encodeURIComponent(p.adm)}/receipt`)}>
+                        🧾
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {/* ── Pay Modal ── */}
       {modal === 'pay' && selLearner && (
-        <PayModal
-          learner={selLearner}
-          feeCfg={feeCfg}
-          onClose={() => { setModal(null); setSelLearner(null); load(); }}
-          recordedBy={user?.name}
-          TERMS={TERMS}
-        />
+        <PayModal learner={selLearner} feeCfg={feeCfg} onClose={() => { setModal(null); setSelLearner(null); load(); }} recordedBy={user?.name} TERMS={TERMS} />
       )}
-
-      {/* ── Fee Config Modal ── */}
-      {modal === 'config' && (
-        <FeeConfigModal
-          feeCfg={feeCfg}
-          onClose={() => { setModal(null); load(); }}
-          TERMS={TERMS}
-        />
-      )}
-
-      {/* ── Paybill Config Modal ── */}
-      {modal === 'paybills' && (
-        <PaybillConfigModal
-          accounts={paybillAccounts}
-          onClose={() => { setModal(null); load(); }}
-        />
-      )}
-
+      {modal === 'config' && <FeeConfigModal feeCfg={feeCfg} onClose={() => { setModal(null); load(); }} TERMS={TERMS} />}
+      {modal === 'paybills' && <PaybillConfigModal accounts={paybillAccounts} onClose={() => { setModal(null); load(); }} />}
     </>
   );
+}
+
+function StatCard({ icon, label, value, color, bg }) {
+  return (
+    <div className="stat-card glass-card hover-glow" style={{ border: 'none' }}>
+      <div className="sc-inner">
+        <div className="sc-icon" style={{ background: bg, color: color }}>{icon}</div>
+        <div>
+          <div className="sc-l" style={{ fontSize: 9, letterSpacing: 1 }}>{label}</div>
+          <div className="sc-n" style={{ fontSize: 20, fontWeight: 900, color: color }}>{value}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModalOverlay({ title, onClose, children }) {
+  return (
+    <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal premium-shadow" style={{ maxWidth: 550, borderRadius: 20 }}>
+        <div className="modal-hdr" style={{ border: 'none', padding: '24px 30px 10px' }}>
+          <h3 style={{ fontSize: 18, fontWeight: 900 }}>{title}</h3>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body" style={{ padding: '10px 30px 30px' }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function PaybillConfigModal({ accounts, onClose }) {
+  const [list, setList] = useState(accounts.length ? accounts : [{ id: Date.now(), name: '', shortcode: '', passkey: '', type: 'M-Pesa' }]);
+  const [busy, setBusy] = useState(false);
+  async function save() {
+    setBusy(true);
+    await fetch('/api/db', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav_paybill_accounts', value: list }] }),
+    });
+    setBusy(false);
+    onClose();
+  }
+  const add = () => setList([...list, { id: Date.now(), name: '', shortcode: '', passkey: '', type: 'M-Pesa' }]);
+  const del = (id) => setList(list.filter(x => x.id !== id));
+  const upd = (id, k, v) => setList(list.map(x => x.id === id ? { ...x, [k]: v } : x));
+
+  return (
+    <ModalOverlay title="📱 M-Pesa Accounts" onClose={onClose}>
+      <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 15 }}>Configure payment endpoints for parents.</p>
+      <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+        {list.map((a, i) => (
+          <div key={a.id} style={{ padding: 15, border: '1.5px solid var(--border)', borderRadius: 12, marginBottom: 10, background: '#FAFBFF' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontWeight: 800, fontSize: 10 }}>ACCOUNT #{i + 1}</span>
+              {list.length > 1 && <button className="btn-link" style={{ color: 'var(--red)' }} onClick={() => del(a.id)}>Remove</button>}
+            </div>
+            <div className="field"><label>Label</label><input value={a.name} onChange={e => upd(a.id, 'name', e.target.value)} /></div>
+            <div className="field-row">
+              <div className="field"><label>Shortcode</label><input value={a.shortcode} onChange={e => upd(a.id, 'shortcode', e.target.value)} /></div>
+              <div className="field">
+                <label>Type</label>
+                <select value={a.type} onChange={e => upd(a.id, 'type', e.target.value)}>
+                  <option value="M-Pesa">M-Pesa</option><option value="Bank">Bank</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button className="btn btn-ghost btn-sm w-full mt-2" onClick={add}>+ Add Account</button>
+      <button className="btn btn-primary btn-sm w-full mt-4 premium-shadow" onClick={save} disabled={busy}>{busy ? 'Saving...' : 'Save Settings'}</button>
+    </ModalOverlay>
+  );
+}
+
+function PayModal({ learner, feeCfg, onClose, recordedBy, TERMS }) {
+  const getAnnualFee = g => feeCfg[g]?.annual || 5000;
+  const [term,   setTerm]   = useState('T1');
+  const [amount, setAmount] = useState('');
+  const [method, setMethod] = useState('Cash');
+  const [ref,    setRef]    = useState('');
+  const [busy,   setBusy]   = useState(false);
+  const [err,    setErr]    = useState('');
+  const annualFee = getAnnualFee(learner.grade);
+  const totalPaid = (learner.t1||0)+(learner.t2||0)+(learner.t3||0);
+  const balance   = annualFee + (learner.arrears || 0) - totalPaid;
+
+  async function pay() {
+    if (!amount || Number(amount) <= 0) { setErr('Enter a valid amount'); return; }
+    setBusy(true);
+    try {
+      await fetch('/api/db', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ type: 'recordPayment', payment: { adm: learner.adm, term, amount: Number(amount), method, ref, by: recordedBy || 'Staff', status: 'approved' } }] }),
+      });
+      onClose();
+    } catch (e) { setErr(e.message); setBusy(false); }
+  }
+
+  return (
+    <ModalOverlay title={`Record Payment: ${learner.name}`} onClose={onClose}>
+      <div style={{ padding: 15, background: '#F8FAFF', borderRadius: 12, marginBottom: 15, fontSize: 13 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Annual Fee</span><strong>{fmtK(annualFee)}</strong></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Balance</span><strong style={{ color: balance > 0 ? '#dc2626' : '#059669' }}>{fmtK(balance)}</strong></div>
+      </div>
+      <div className="field-row">
+        <div className="field"><label>Term</label><select value={term} onChange={e => setTerm(e.target.value)}>{TERMS.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
+        <div className="field"><label>Method</label><select value={method} onChange={e => setMethod(e.target.value)}>{METHODS.map(m=><option key={m}>{m}</option>)}</select></div>
+      </div>
+      <div className="field"><label>Amount (KSH)</label><input type="number" value={amount} onChange={e => setAmount(e.target.value)} /></div>
+      <div className="field"><label>Reference</label><input value={ref} onChange={e => setRef(e.target.value)} placeholder="M-Pesa code etc." /></div>
+      <button className="btn btn-primary w-full mt-4 premium-shadow" onClick={pay} disabled={busy}>{busy ? 'Processing...' : 'Confirm Payment'}</button>
+    </ModalOverlay>
+  );
+}
+
+function FeeConfigModal({ feeCfg, onClose, TERMS }) {
+  const [cfg, setCfg] = useState({ ...feeCfg });
+  const [busy, setBusy] = useState(false);
+  async function save() {
+    setBusy(true);
+    await fetch('/api/db', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_feecfg', value: cfg }] }),
+    });
+    setBusy(false);
+    onClose();
+  }
+  return (
+    <ModalOverlay title="Global Fee Configuration" onClose={onClose}>
+      <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+        {ALL_GRADES.map(g => (
+          <div key={g} style={{ padding: 12, border: '1.5px solid var(--border)', borderRadius: 10, marginBottom: 8 }}>
+            <div style={{ fontWeight: 800, fontSize: 11, marginBottom: 8 }}>{g}</div>
+            <div className="field-row3">
+              {TERMS.map((t, idx) => (
+                <div key={t.id} className="field">
+                  <label style={{ fontSize: 9 }}>{t.name}</label>
+                  <input type="number" value={cfg[g]?.[`t${idx+1}`] || ''} onChange={e => setCfg(prev => ({ ...prev, [g]: { ...(prev[g]||{}), [`t${idx+1}`]: Number(e.target.value) } }))} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <button className="btn btn-primary w-full mt-4 premium-shadow" onClick={save} disabled={busy}>Save Configuration</button>
+    </ModalOverlay>
 }
 
 /* ─── Paybill Config Modal ──────────────────────────────────────────────── */

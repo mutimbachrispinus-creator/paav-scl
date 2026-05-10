@@ -3,7 +3,7 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
-import { Search, X, Filter } from 'lucide-react';
+import { Search, X, Filter, AlertCircle } from 'lucide-react';
 import { getAllGrades } from '@/lib/cbe';
 import { useProfile } from '@/app/PortalShell';
 
@@ -333,80 +333,116 @@ export default function StudentDiaryPage() {
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm transition-all duration-300"
+            className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md transition-all duration-300"
             onClick={() => setShowAI(false)}
           />
           
-          {/* Side Panel (Drawer) */}
+          {/* Top-Aligned Modal Panel */}
           <div 
-            className="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-[480px] bg-white shadow-2xl transition-all duration-500 ease-out"
-            style={{ display: 'flex', flexDirection: 'column' }}
+            className="fixed left-1/2 top-10 -translate-x-1/2 z-[101] w-[calc(100%-32px)] max-w-[700px] bg-white shadow-[0_32px_64px_-12px_rgba(0,0,0,0.3)] rounded-3xl overflow-hidden transition-all duration-500 ease-out border border-slate-200"
+            style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              maxHeight: 'calc(100vh - 80px)',
+              animation: 'slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
           >
             {/* Header */}
-            <div style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', color: '#fff', padding: '24px 30px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 42, height: 42, background: 'rgba(255,255,255,0.1)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 22 }}>✨</span>
+            <div style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', color: '#fff', padding: '24px 30px', position: 'relative' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ 
+                    width: 48, height: 48, background: 'rgba(255,255,255,0.15)', 
+                    borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.2)'
+                  }}>
+                    <span style={{ fontSize: 24 }}>✨</span>
                   </div>
                   <div>
-                    <h3 style={{ color: '#fff', margin: 0, fontSize: 18 }}>AI Intelligence Core</h3>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', margin: 0 }}>Predictive Analytics & Student Momentum</p>
+                    <h3 style={{ color: '#fff', margin: 0, fontSize: 20, fontWeight: 800 }}>AI Intelligence Core</h3>
+                    <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', margin: 0, letterSpacing: 0.5, fontWeight: 600 }}>Predictive Analytics & Student Momentum</p>
                   </div>
                 </div>
-                <button onClick={() => setShowAI(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 20 }}>✕</button>
+                <button 
+                  onClick={() => setShowAI(false)} 
+                  style={{ 
+                    background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', 
+                    cursor: 'pointer', fontSize: 18, width: 32, height: 32, borderRadius: 8,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.2s'
+                  }}
+                  onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                  onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                >✕</button>
               </div>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '30px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '35px' }}>
               {analyzing ? (
                 <div style={{ textAlign: 'center', padding: '60px 0' }}>
                   <div className="ai-loader" />
-                  <p style={{ marginTop: 24, fontWeight: 700, color: 'var(--navy)', fontSize: 16 }}>Synthesizing Academic Data...</p>
-                  <p style={{ fontSize: 12, color: '#64748B', maxWidth: 280, margin: '8px auto' }}>Our neural engine is analyzing attendance patterns and grade trajectories across all institutional departments.</p>
+                  <p style={{ marginTop: 24, fontWeight: 800, color: 'var(--navy)', fontSize: 18 }}>Synthesizing Academic Data...</p>
+                  <p style={{ fontSize: 13, color: '#64748B', maxWidth: 320, margin: '10px auto', lineHeight: 1.6 }}>Our neural engine is analyzing attendance patterns and grade trajectories across all institutional departments.</p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                  <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', padding: 20, borderRadius: 16 }}>
-                    <h4 style={{ margin: '0 0 8px 0', color: '#0369A1', fontSize: 15 }}>Strategic Insight Report</h4>
-                    <p style={{ fontSize: 13, margin: 0, color: '#0C4A6E', lineHeight: 1.5 }}>Analysis of the latest <strong>{feed.length} portal events</strong> reveals a stable institutional trajectory with specific areas requiring administrative focus.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  <div style={{ background: '#F0F9FF', border: '1.5px solid #BAE6FD', padding: 20, borderRadius: 20, boxShadow: '0 4px 12px rgba(186, 230, 253, 0.2)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                      <AlertCircle size={18} color="#0369A1" />
+                      <h4 style={{ margin: 0, color: '#0369A1', fontSize: 16, fontWeight: 800 }}>Strategic Insight Report</h4>
+                    </div>
+                    <p style={{ fontSize: 14, margin: 0, color: '#0C4A6E', lineHeight: 1.6 }}>Analysis of the latest <strong>{feed.length} portal events</strong> reveals a stable institutional trajectory with specific areas requiring administrative focus.</p>
                   </div>
                   
-                  {insights?.map((ins, i) => (
-                    <div key={i} style={{ 
-                      padding: 16, borderRadius: 14, border: '1.5px solid #F1F5F9', background: '#fff',
-                      display: 'flex', gap: 14, alignItems: 'flex-start', boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
-                    }}>
-                      <div style={{ 
-                        width: 12, height: 12, borderRadius: '50%', marginTop: 6, flexShrink: 0,
-                        background: ins.type === 'pos' ? '#10B981' : ins.type === 'warn' ? '#F59E0B' : '#3B82F6',
-                        boxShadow: `0 0 0 4px ${ins.type === 'pos' ? '#D1FAE5' : ins.type === 'warn' ? '#FEF3C7' : '#DBEAFE'}`
-                      }} />
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--navy)', marginBottom: 2 }}>{ins.title}</div>
-                        <p style={{ margin: 0, fontSize: 13, color: '#64748B', lineHeight: 1.4 }}>{ins.text}</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+                    {insights?.map((ins, i) => (
+                      <div key={i} style={{ 
+                        padding: 20, borderRadius: 18, border: '1.5px solid #F1F5F9', background: '#fff',
+                        display: 'flex', gap: 16, alignItems: 'flex-start', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                        transition: '0.3s'
+                      }} className="hover:border-blue-200">
+                        <div style={{ 
+                          width: 14, height: 14, borderRadius: '50%', marginTop: 4, flexShrink: 0,
+                          background: ins.type === 'pos' ? '#10B981' : ins.type === 'warn' ? '#F59E0B' : '#3B82F6',
+                          boxShadow: `0 0 0 5px ${ins.type === 'pos' ? '#D1FAE5' : ins.type === 'warn' ? '#FEF3C7' : '#DBEAFE'}`
+                        }} />
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--navy)', marginBottom: 4 }}>{ins.title}</div>
+                          <p style={{ margin: 0, fontSize: 13.5, color: '#64748B', lineHeight: 1.5 }}>{ins.text}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
 
-                  <div style={{ marginTop: 20, padding: 20, background: '#F8FAFC', borderRadius: 16, border: '1px solid #E2E8F0' }}>
-                    <h4 style={{ margin: '0 0 10px 0', fontSize: 12, fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Recommended Actions</h4>
-                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: '#475569', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <li>Schedule intervention for at-risk attendance profiles.</li>
-                      <li>Review subject-specific performance in Grade 4.</li>
-                      <li>Finalize term-end fee reconciliation for cleared students.</li>
+                  <div style={{ marginTop: 10, padding: 24, background: '#F8FAFC', borderRadius: 20, border: '1.5px solid #E2E8F0' }}>
+                    <h4 style={{ margin: '0 0 12px 0', fontSize: 13, fontWeight: 900, color: '#64748B', textTransform: 'uppercase', letterSpacing: 1 }}>Recommended Actions</h4>
+                    <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {[
+                        'Schedule intervention for at-risk attendance profiles.',
+                        'Review subject-specific performance in Grade 4.',
+                        'Finalize term-end fee reconciliation for cleared students.'
+                      ].map((item, idx) => (
+                        <li key={idx} style={{ display: 'flex', gap: 10, fontSize: 14, color: '#475569', alignItems: 'center' }}>
+                          <div style={{ width: 6, height: 6, background: '#94A3B8', borderRadius: '50%' }} />
+                          {item}
+                        </li>
+                      ))}
                     </ul>
                   </div>
 
-                  <button className="btn btn-primary" onClick={() => setShowAI(false)} style={{ marginTop: 10, height: 48, borderRadius: 12, fontWeight: 800 }}>
-                    Acknowledge Insights
-                  </button>
+                  <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                    <button className="btn btn-ghost" onClick={() => setShowAI(false)} style={{ flex: 1, height: 52, borderRadius: 14, fontWeight: 800 }}>
+                      Close Panel
+                    </button>
+                    <button className="btn btn-primary" onClick={() => setShowAI(false)} style={{ flex: 2, height: 52, borderRadius: 14, fontWeight: 800, background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: 'none' }}>
+                      Acknowledge Insights
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
 
-            <div style={{ padding: '20px 30px', borderTop: '1px solid #F1F5F9', background: '#F8FAFC', textAlign: 'center' }}>
-              <p style={{ fontSize: 10, color: '#94A3B8', fontWeight: 800, margin: 0, textTransform: 'uppercase', letterSpacing: 1 }}>Neural Analytics Engine · Nexed Intelligence</p>
+            <div style={{ padding: '20px 35px', borderTop: '1px solid #F1F5F9', background: '#F8FAFC', textAlign: 'center' }}>
+              <p style={{ fontSize: 10, color: '#94A3B8', fontWeight: 900, margin: 0, textTransform: 'uppercase', letterSpacing: 1.5 }}>Neural Analytics Engine · Nexed Intelligence v4.0</p>
             </div>
           </div>
         </>
@@ -417,13 +453,12 @@ export default function StudentDiaryPage() {
         .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
         .z-\[100\] { z-index: 100; }
         .z-\[101\] { z-index: 101; }
-        .bg-slate-900\/40 { background-color: rgba(15, 23, 42, 0.4); }
-        .backdrop-blur-sm { backdrop-filter: blur(4px); }
         .bg-white { background-color: #fff; }
-        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-        .translate-x-0 { transform: translateX(0); }
-        .translate-x-full { transform: translateX(100%); }
+        .bg-slate-900\/60 { background-color: rgba(15, 23, 42, 0.6); }
+        .backdrop-blur-md { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .rounded-3xl { border-radius: 24px; }
         .transition-all { transition-property: all; }
+        .duration-300 { transition-duration: 300ms; }
         .duration-500 { transition-duration: 500ms; }
         .ease-out { transition-timing-function: cubic-bezier(0, 0, 0.2, 1); }
         
@@ -440,6 +475,10 @@ export default function StudentDiaryPage() {
           border-radius: 50%; animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes slideDown { 
+          from { opacity: 0; transform: translate(-50%, -20px); } 
+          to { opacity: 1; transform: translate(-50%, 0); } 
+        }
       `}</style>
     </div>
   );

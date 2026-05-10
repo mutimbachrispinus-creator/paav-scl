@@ -122,12 +122,12 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {activeTab === 'insights' ? (
+      {activeTab === 'insights' || activeTab === 'outreach' ? (
         <>
           <div className="page-hdr" style={{ marginTop: 20, border: 'none' }}>
             <div>
-              <h3 style={{ fontSize: 20, fontWeight: 800 }}>Global Analytics</h3>
-              <p style={{ color: 'var(--muted)', fontSize: 13 }}><Users size={14} className="inline mr-1" /> Analyzing {stats.studentCount} students in {grade}</p>
+              <h3 style={{ fontSize: 20, fontWeight: 800 }}>{activeTab === 'outreach' ? 'Parent Communications' : 'Global Analytics'}</h3>
+              <p style={{ color: 'var(--muted)', fontSize: 13 }}><Users size={14} className="inline mr-1" /> {activeTab === 'outreach' ? `Broadcasting to ${grade}` : `Analyzing ${stats.studentCount} students in ${grade}`}</p>
             </div>
             <div className="page-hdr-acts">
               <select value={grade} onChange={(e) => setGrade(e.target.value)} style={{ background: 'var(--slate-50)', fontWeight: 700 }}>
@@ -140,7 +140,7 @@ export default function AnalyticsPage() {
           </div>
           {/* Insight Cards ... */}
         </>
-      ) : (
+      ) : activeTab === 'performance' || activeTab === 'staff' ? (
         <>
           <div className="page-hdr" style={{ marginTop: 20, border: 'none' }}>
             <div>
@@ -349,8 +349,8 @@ export default function AnalyticsPage() {
         />
       ) : (
         <OutreachTab 
-          learners={learners} marks={marks} grade={pGrade} 
-          term={pTerm} assess={pAssess} stats={stats} 
+          learners={learners} marks={marks} grade={grade} 
+          term={term.replace('TERM ', 'T')} assess={pAssess} stats={stats} 
           schoolName={profile?.name}
         />
       )}
@@ -361,68 +361,182 @@ export default function AnalyticsPage() {
 function OutreachTab({ learners, marks, grade, term, assess, stats, schoolName }) {
   const [sending, setSending] = useState(false);
   const [sentCount, setSentCount] = useState(0);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
+
+  const gradeLearners = React.useMemo(() => {
+    return learners.filter(l => l.grade === grade).sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  }, [learners, grade]);
+
+  const atRiskLearners = React.useMemo(() => {
+    return gradeLearners.filter(l => {
+      // Very basic risk check for listing: if they have any marks, check average
+      const lMarks = Object.entries(marks)
+        .filter(([k]) => k.startsWith(`${term}:${grade}`))
+        .map(([_, v]) => v[l.adm])
+        .filter(v => v !== undefined);
+      if (!lMarks.length) return false;
+      const avg = lMarks.reduce((a,b) => a+Number(b), 0) / lMarks.length;
+      return avg < 40;
+    });
+  }, [gradeLearners, marks, term, grade]);
 
   const outreachItems = [
     {
       id: 'results',
+      type: 'report',
       title: 'Bulk Result Notifications',
-      desc: `Send ${term} ${assess.toUpperCase()} results to all ${stats.studentCount} parents in ${grade}.`,
+      desc: `Send ${term} ${assess.toUpperCase()} results to all ${gradeLearners.length} parents in ${grade}.`,
       icon: <Award className="text-blue-600" />,
       color: '#2563eb',
-      bg: '#eff6ff'
+      bg: '#eff6ff',
+      count: gradeLearners.length
     },
     {
       id: 'risk',
+      type: 'report', // Use report type for at-risk too, but logic filtered in API if we had it, 
+                     // for now we'll target specific learners
       title: 'At-Risk Interventions',
-      desc: `Send personalized alerts to the ${stats.riskCount} parents of learners below 40% average.`,
+      desc: `Send personalized alerts to the ${atRiskLearners.length} parents of learners below 40% average.`,
       icon: <AlertCircle className="text-red-600" />,
       color: '#dc2626',
-      bg: '#fef2f2'
+      bg: '#fef2f2',
+      count: atRiskLearners.length
     },
     {
       id: 'fees',
+      type: 'balance',
       title: 'Fee Balance Reminders',
-      desc: `Send fee reminders to parents with outstanding balances.`,
+      desc: `Send fee reminders to parents with outstanding balances in ${grade}.`,
       icon: <ShieldAlert className="text-amber-600" />,
       color: '#d97706',
-      bg: '#fffbeb'
+      bg: '#fffbeb',
+      count: gradeLearners.length // Typically all get a reminder if they have balance
     }
   ];
 
-  async function handleSend(type) {
-    if (!confirm(`Are you sure you want to send automated SMS alerts to parents of ${grade}?`)) return;
+  async function handleSend(item) {
+    const targets = item.id === 'risk' ? atRiskLearners : gradeLearners;
+    if (!targets.length) { alert('No recipients found.'); return; }
+    
+    if (!confirm(`Are you sure you want to send ${item.title} to ${targets.length} parents of ${grade}?`)) return;
+    
     setSending(true);
-    // Simulation for now
-    await new Promise(r => setTimeout(r, 2000));
-    setSentCount(type === 'risk' ? stats.riskCount : stats.studentCount);
-    setSending(false);
-    alert('SMS alerts have been queued for delivery.');
+    setProgress({ current: 0, total: targets.length });
+
+    try {
+      // Process in batches
+      const BATCH_SIZE = 5;
+      let successful = 0;
+
+      for (let i = 0; i < targets.length; i += BATCH_SIZE) {
+        const batch = targets.slice(i, i + BATCH_SIZE);
+        const res = await fetch('/api/comms/push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: item.type,
+            channel: 'sms',
+            term: term,
+            targets: batch.map(l => ({ adm: l.adm, grade: l.grade }))
+          })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          successful += data.results.filter(r => r.success).length;
+        }
+        setProgress(p => ({ ...p, current: Math.min(p.total, i + BATCH_SIZE) }));
+      }
+
+      setSentCount(prev => prev + successful);
+      alert(`Successfully queued ${successful} SMS notifications.`);
+    } catch (e) {
+      console.error('Outreach error:', e);
+      alert('A communication error occurred.');
+    } finally {
+      setSending(false);
+      setProgress({ current: 0, total: 0 });
+    }
   }
 
   return (
     <div className="space-y-6">
-      <div className="page-hdr" style={{ border: 'none', marginTop: 20 }}>
-        <div>
-          <h3 style={{ fontSize: 20, fontWeight: 800 }}>Parent Outreach Engine</h3>
-          <p style={{ color: 'var(--muted)', fontSize: 13 }}>Automated SMS & communication tools</p>
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {outreachItems.map(item => (
-          <div key={item.id} className="panel hover:border-slate-300 transition-colors cursor-pointer" onClick={() => !sending && handleSend(item.id)}>
+          <div key={item.id} className="panel hover:border-slate-300 transition-colors" style={{ opacity: sending ? 0.6 : 1 }}>
             <div className="panel-body flex flex-col items-center text-center p-8">
               <div style={{ width: 64, height: 64, borderRadius: 16, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                 {item.icon}
               </div>
               <h4 style={{ fontWeight: 900, fontSize: 16, marginBottom: 8 }}>{item.title}</h4>
               <p style={{ color: 'var(--muted)', fontSize: 13, lineHeight: 1.5, minHeight: 60 }}>{item.desc}</p>
-              <button className="btn btn-sm w-full mt-6" style={{ background: item.color, color: '#fff', border: 'none' }} disabled={sending}>
-                {sending ? 'Sending...' : `Send to ${item.id === 'risk' ? stats.riskCount : stats.studentCount} Parents`}
+              <button 
+                className="btn btn-sm w-full mt-6" 
+                style={{ background: item.color, color: '#fff', border: 'none' }} 
+                disabled={sending || item.count === 0}
+                onClick={() => handleSend(item)}
+              >
+                {sending ? 'Sending...' : `Send to ${item.count} Parents`}
               </button>
             </div>
           </div>
         ))}
+      </div>
+
+      {sending && (
+        <div className="panel" style={{ background: '#F8FAFC', border: '1.5px solid var(--border)' }}>
+          <div className="panel-body p-6">
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: 13, fontWeight: 700 }}>
+              <span>🚀 Processing Broadcast...</span>
+              <span>{progress.current} / {progress.total}</span>
+            </div>
+            <div style={{ height: 8, background: '#E2E8F0', borderRadius: 10, overflow: 'hidden' }}>
+              <div style={{ width: `${(progress.current / progress.total) * 100}%`, height: '100%', background: '#2563EB', transition: 'width 0.3s ease' }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="panel">
+        <div className="panel-hdr">
+          <h3>👥 Target Recipients in {grade}</h3>
+          <span className="badge bg-blue">{gradeLearners.length} Learners</span>
+        </div>
+        <div className="tbl-wrap" style={{ maxHeight: 400, overflowY: 'auto' }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Adm</th>
+                <th>Name</th>
+                <th>Stream</th>
+                <th>Parent Phone</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gradeLearners.map(l => (
+                <tr key={l.adm}>
+                  <td style={{ fontWeight: 700 }}>{l.adm}</td>
+                  <td style={{ fontWeight: 800 }}>{l.name}</td>
+                  <td>{l.stream || '—'}</td>
+                  <td style={{ fontSize: 12 }}>{l.phone || <span style={{ color: '#DC2626' }}>Missing Phone</span>}</td>
+                  <td>
+                    <span className={`badge ${l.phone ? 'bg-green' : 'bg-red'}`}>
+                      {l.phone ? 'Ready' : 'Incomplete'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {gradeLearners.length === 0 && (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: 40, color: 'var(--muted)' }}>
+                    No learners found in {grade}.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="panel" style={{ background: '#0F172A', border: 'none' }}>
