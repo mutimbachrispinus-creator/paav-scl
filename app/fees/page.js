@@ -493,6 +493,7 @@ function FeeConfigModal({ feeCfg, onClose, TERMS }) {
       </div>
       <button className="btn btn-primary w-full mt-4 premium-shadow" onClick={save} disabled={busy}>Save Configuration</button>
     </ModalOverlay>
+  );
 }
 
 /* ─── Settlement Config Modal ──────────────────────────────────────────────── */
