@@ -14,15 +14,19 @@ const ALL_FEATURES = [
   { icon: '⚖️', title: 'Curriculum-Aware Grading', desc: 'Auto-calculates weighted averages for CBC, Cambridge, British & IB.' },
   { icon: '🗓️', title: 'Dynamic School Calendars', desc: 'Define your own institutional terms and 14-week cycles with ease.' },
   { icon: '🚀', title: 'Unified Comms Hub', desc: 'Consolidated SMS, bulk alerts & internal messaging in one premium flow.' },
-  { icon: '📊', title: 'Institutional Insights', desc: 'Deep analytics, gender parity reports & class rankings at a glance.' },
-  { icon: '💰', title: 'M-Pesa Auto-Reconciliation', desc: 'Real-time Paybill/Till sync — zero manual ledger entries.' },
+  { icon: '📊', title: 'Revenue Integrity Engine', desc: 'Real-time dashboard reconciling expected vs. collected fees. Flags revenue leakage instantly.' },
+  { icon: '💳', title: 'EduVantage Pay (Aggregator)', desc: 'One central Paybill for all schools. Parents pay once; funds auto-routed to schools.' },
+  { icon: '🏦', title: 'Automated Settlement Engine', desc: 'One-click Safaricom B2C/B2B disbursements directly to school bank accounts or Tills.' },
+  { icon: '🔐', title: 'Integrity Locks (Anti-Fraud)', desc: 'Cryptographic ghost-student prevention — receipts and report cards locked to official registry.' },
+  { icon: '🎓', title: 'SaaS Learning Subscriptions', desc: 'Monetise premium video content with Daily/Weekly/Monthly M-Pesa subscription plans.' },
   { icon: '📅', title: 'AI-Powered Timetabling', desc: 'Conflict-free master timetables generated in minutes, not weeks.' },
   { icon: '🛡️', title: 'Administrative Oversight', desc: 'Granular role-based access and global audit trails for total security.' },
-  { icon: '📲', title: 'Real-Time Parent Portal', desc: 'Live fee balances, digital report cards & instant SMS notifications.' },
+  { icon: '📲', title: 'Real-Time Parent Portal', desc: 'Live fee balances, digital report cards & M-Pesa STK push from one portal.' },
   { icon: '🏆', title: 'Premium Merit Lists', desc: 'Curriculum-specific rankings with institutional excellence markers.' },
   { icon: '💼', title: 'Staff & Finance Hub', desc: 'Automated payroll, expense tracking & digital duty rosters.' },
   { icon: '🤖', title: 'High-Speed Recovery', desc: 'Proprietary engine to link orphaned marks and restore historical data.' },
   { icon: '🌐', title: 'Multi-Tenant SaaS', desc: 'Enterprise-grade infrastructure powering institutions across Africa.' },
+  { icon: '📱', title: 'M-Pesa KES 50 Conv. Fee', desc: 'Automatic KES 50 convenience fee appended to every digital transaction — passive revenue.' },
 ];
 
 export default function LandingPage() {
@@ -90,7 +94,7 @@ export default function LandingPage() {
             Stop Managing.<br/>Start <span className="text-gradient">Optimising.</span>
           </h1>
           <p className="hero-subtitle">
-            Experience the future of school management with EduVantage&apos;s unified AI platform. Define your own <strong>institutional calendars</strong>, configure <strong>curriculum-aware grading weights</strong>, and bridge the gap with parents—all in one place.
+            The only school platform that <strong>collects fees for you</strong>. EduVantage now operates as a full payment aggregator — one Paybill for every school on the network, with automatic settlement disbursements, KES 50 convenience fees, and a real-time Revenue Integrity Engine.
           </p>
           
           <div className="hero-actions">
@@ -104,17 +108,17 @@ export default function LandingPage() {
               
               {/* Floating Glass Cards */}
               <div className="floating-card card-1 glass-card">
-                <div className="icon-wrap" style={{ color: VIBRANT }}>📊</div>
+                <div className="icon-wrap" style={{ color: VIBRANT }}>🏦</div>
                 <div>
-                  <div className="card-val">Instant CBC</div>
-                  <div className="card-lab">Automated Grading</div>
+                  <div className="card-val">Auto-Settled</div>
+                  <div className="card-lab">B2C Disbursements</div>
                 </div>
               </div>
               <div className="floating-card card-2 glass-card">
-                <div className="icon-wrap" style={{ color: ACCENT }}>💰</div>
+                <div className="icon-wrap" style={{ color: ACCENT }}>🔐</div>
                 <div>
-                  <div className="card-val">Live Sync</div>
-                  <div className="card-lab">M-Pesa Auto-Receipts</div>
+                  <div className="card-val">Integrity Lock</div>
+                  <div className="card-lab">Ghost-Student Proof</div>
                 </div>
               </div>
             </div>
@@ -191,15 +195,30 @@ export default function LandingPage() {
             {/* Finance */}
             <div className="module-card reverse">
               <div className="mod-content">
-                <h3>Zero-Touch Finance & M-Pesa</h3>
-                <p>Eliminate manual ledger errors. EduVantage Finance connects directly to your Paybill/Till, instantly reconciling fee payments, updating student balances, and sending SMS e-receipts to parents in real-time.</p>
+                <h3>EduVantage Pay — Aggregator Model</h3>
+                <p>EduVantage now operates as a <strong>central payment aggregator</strong>. Schools onboard in minutes without Safaricom KYC. Parents pay a single EduVantage Paybill; the platform automatically deducts the KES 50 convenience fee and queues the remainder for one-click B2C/B2B disbursement to the school's registered bank account or Till.</p>
                 <ul className="mod-features">
-                  <li>Real-Time M-Pesa Auto-Reconciliation</li>
-                  <li>Instant Parent E-Receipts via SMS</li>
-                  <li>Bulk Staff Payroll Generation</li>
+                  <li>Central Paybill — No School Daraja Setup Required</li>
+                  <li>Automated KES 50 Convenience Fee Per Transaction</li>
+                  <li>One-Click Settlement to School Bank / Till</li>
+                  <li>Revenue Integrity Dashboard — Flags Fee Leakage</li>
                 </ul>
               </div>
-              <div className="mod-icon" style={{ background: '#ECFDF5', color: ACCENT }}>💰</div>
+              <div className="mod-icon" style={{ background: '#ECFDF5', color: ACCENT }}>💳</div>
+            </div>
+
+            {/* Anti-Fraud */}
+            <div className="module-card">
+              <div className="mod-icon" style={{ background: '#FEF2F2', color: '#DC2626' }}>🔐</div>
+              <div className="mod-content">
+                <h3>Integrity Locks & Anti-Ghost Engine</h3>
+                <p>EduVantage's proprietary Integrity Lock system prevents "ghost" learner fraud at every touchpoint. Receipts, report cards, and parent portal access are all cryptographically bound to the official student registry — making unregistered learners technically impossible to exploit.</p>
+                <ul className="mod-features">
+                  <li>Registry-Locked Receipt & Report Card Generation</li>
+                  <li>Parent–Child Phone Number Verification Gate</li>
+                  <li>Real-Time Revenue Integrity Reconciliation Panel</li>
+                </ul>
+              </div>
             </div>
 
             {/* Timetable */}
@@ -284,11 +303,14 @@ export default function LandingPage() {
                    </tr>
                  </thead>
                  <tbody>
-                   <tr><td><strong>M-Pesa Fee Sync</strong></td><td>Manual Export/Import required</td><td className="hl">100% Automated & Real-Time</td></tr>
-                   <tr><td><strong>Grading Intelligence</strong></td><td>Static, hardcoded rules</td><td className="hl">Curriculum-Aware Weighting (CBC/IB/Cambridge)</td></tr>
-                   <tr><td><strong>School Calendar</strong></td><td>Fixed term durations</td><td className="hl">Institutional Control (Custom Cycles)</td></tr>
-                   <tr><td><strong>Parent Experience</strong></td><td>Delayed SMS only</td><td className="hl">Live Portal + Auto-Receipts</td></tr>
-                   <tr><td><strong>Infrastructure</strong></td><td>Multiple disconnected logins</td><td className="hl">One unified multi-tenant app</td></tr>
+                    <tr><td><strong>Payment Collection</strong></td><td>School manages own Paybill + Daraja KYC</td><td className="hl">EduVantage central Paybill — instant onboarding</td></tr>
+                    <tr><td><strong>Revenue Share</strong></td><td>No platform fee mechanism</td><td className="hl">Automated KES 50 convenience fee per transaction</td></tr>
+                    <tr><td><strong>Fund Disbursement</strong></td><td>Manual bank transfer by admin</td><td className="hl">One-click B2C/B2B auto-settlement to school bank</td></tr>
+                    <tr><td><strong>Fraud Prevention</strong></td><td>No ghost-student checks</td><td className="hl">Integrity Locks — registry-bound document generation</td></tr>
+                    <tr><td><strong>Grading Intelligence</strong></td><td>Static, hardcoded rules</td><td className="hl">Curriculum-Aware Weighting (CBC/IB/Cambridge)</td></tr>
+                    <tr><td><strong>Parent Experience</strong></td><td>Delayed SMS only</td><td className="hl">Live Portal + M-Pesa STK Push + Auto-Receipts</td></tr>
+                    <tr><td><strong>Revenue Visibility</strong></td><td>End-of-month manual reconciliation</td><td className="hl">Real-time Revenue Integrity Dashboard</td></tr>
+                    <tr><td><strong>Infrastructure</strong></td><td>Multiple disconnected logins</td><td className="hl">One unified multi-tenant app</td></tr>
                  </tbody>
                </table>
              </div>
