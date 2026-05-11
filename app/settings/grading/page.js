@@ -15,6 +15,8 @@ export default function GradingSettingsPage() {
   const [scales, setScales] = useState({});
   const [gradingMode, setGradingMode] = useState('per-level');
   const [uniformScale, setUniformScale] = useState(null);
+  const [subjectScales, setSubjectScales] = useState({});
+  const [selectedSubject, setSelectedSubject] = useState('');
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -59,7 +61,7 @@ export default function GradingSettingsPage() {
       const savedMode = gradData.results?.[1]?.value || 'per-level';
       setGradingMode(savedMode);
 
-      // Build scales
+      // Build per-level scales
       const nextScales = {};
       if (curr && curr.GRADING_CONFIG) {
         curr.GRADING_CONFIG.forEach(gc => {
@@ -68,9 +70,14 @@ export default function GradingSettingsPage() {
       }
       setScales(nextScales);
 
+      // Build uniform scale
       const savedUniform = cfg['uniform'];
       const baseScale = curr?.GRADING_CONFIG?.[0]?.scale || [];
       setUniformScale((savedUniform || baseScale).map(s => ({ ...s })));
+
+      // Build subject scales
+      const savedSubjects = cfg['subjects'] || {};
+      setSubjectScales(savedSubjects);
 
     } catch (e) {
       console.error('[Grading] Load error:', e);
@@ -89,7 +96,12 @@ export default function GradingSettingsPage() {
   // ─── Save ───────────────────────────────────────────────────────────────────
   async function save() {
     try {
-      const value = gradingMode === 'uniform' ? { uniform: uniformScale } : scales;
+      const value = {
+        ...scales,
+        uniform: uniformScale,
+        subjects: subjectScales
+      };
+
       await fetch('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -120,6 +132,15 @@ export default function GradingSettingsPage() {
   );
 
   const GRADING_CONFIG = currModule?.GRADING_CONFIG || [];
+  
+  // Extract all unique subjects
+  const allSubjects = [];
+  if (currModule?.DEFAULT_SUBJECTS) {
+    Object.values(currModule.DEFAULT_SUBJECTS).forEach(list => {
+      list.forEach(s => { if (!allSubjects.includes(s)) allSubjects.push(s); });
+    });
+    allSubjects.sort();
+  }
 
   return (
     <div className="page on">
@@ -162,20 +183,27 @@ export default function GradingSettingsPage() {
               title="Per-Level"
               desc="Separate scales per level."
             />
+            <ModeCard
+              active={gradingMode === 'per-subject'}
+              onClick={() => setGradingMode('per-subject')}
+              icon="🧪"
+              title="Per-Subject"
+              desc="Scales for specific subjects."
+            />
           </div>
         </div>
       </div>
 
-      {gradingMode === 'uniform' ? (
-        uniformScale && (
-          <ScaleEditor
-            key="uniform"
-            scale={uniformScale}
-            setScale={setUniformScale}
-            title="Uniform School-Wide Scale"
-          />
-        )
-      ) : (
+      {gradingMode === 'uniform' && uniformScale && (
+        <ScaleEditor
+          key="uniform"
+          scale={uniformScale}
+          setScale={setUniformScale}
+          title="Uniform School-Wide Scale"
+        />
+      )}
+
+      {gradingMode === 'per-level' && (
         GRADING_CONFIG.map(gc => (
           <ScaleEditor
             key={gc.key}
@@ -184,6 +212,31 @@ export default function GradingSettingsPage() {
             title={gc.title}
           />
         ))
+      )}
+
+      {gradingMode === 'per-subject' && (
+        <div className="panel" style={{ marginBottom: 16 }}>
+          <div className="panel-hdr"><h3>📚 Select Subject to Configure</h3></div>
+          <div className="panel-body">
+            <select
+              value={selectedSubject}
+              onChange={e => setSelectedSubject(e.target.value)}
+              style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid var(--border)', marginBottom: 20 }}
+            >
+              <option value="">-- Choose a Subject --</option>
+              {allSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+
+            {selectedSubject && (
+              <ScaleEditor
+                key={selectedSubject}
+                scale={subjectScales[selectedSubject] || currModule?.GRADING_CONFIG?.[0]?.scale || []}
+                setScale={newScale => setSubjectScales(prev => ({ ...prev, [selectedSubject]: newScale }))}
+                title={`${selectedSubject} Scale`}
+              />
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

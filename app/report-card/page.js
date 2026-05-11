@@ -93,7 +93,7 @@ function ReportCardContent() {
             const k = `${termParam}:${learner.grade}|${subj}|${assessParam}`;
             const k0 = `${learner.grade}|${subj}|${assessParam}`;
             const sc = marks[k]?.[learner.adm] ?? marks[k0]?.[learner.adm];
-            const inf = sc !== undefined ? gInfo(Number(sc), learner.grade, gradCfg) : null;
+            const inf = sc !== undefined ? gInfo(Number(sc), learner.grade, gradCfg, subj) : null;
             return { subj, score: sc, inf };
           });
 
@@ -104,7 +104,7 @@ function ReportCardContent() {
             ? Math.round(entered.reduce((s, r) => s + Number(r.score), 0) / entered.length)
             : 0;
 
-          const overallGrade = gInfo(avgPct, learner.grade, gradCfg, school?.curriculum || 'CBC');
+          const overallGrade = gInfo(avgPct, learner.grade, gradCfg, null);
 
           return (
             <div key={learner.adm} style={{ pageBreakAfter: idx < targetLearners.length - 1 ? 'always' : 'auto', padding: '32px 40px', maxWidth: 750, margin: '0 auto', fontFamily: 'Arial, sans-serif', fontSize: 13 }}>

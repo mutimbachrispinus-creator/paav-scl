@@ -700,14 +700,14 @@ const LearnerRow = memo(({
     }, 200);
   };
 
-  const inf = localVal !== '' ? gInfo(Number(localVal), grade, gradCfg) : null;
+  const inf = localVal !== '' ? gInfo(Number(localVal), grade, gradCfg, subject) : null;
   
   // Total pts across ALL subjects (summary)
   let totalPts = 0;
   let enteredCount = 0;
   subjects.forEach(s => {
     const sScore = s === subject ? (localVal === '' ? undefined : Number(localVal)) : getScore(learner.adm, s);
-    const sInf = sScore !== undefined ? gInfo(Number(sScore), grade, gradCfg) : null;
+    const sInf = sScore !== undefined ? gInfo(Number(sScore), grade, gradCfg, s) : null;
     if (sInf) { totalPts += sInf.pts; enteredCount++; }
   });
 
