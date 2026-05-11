@@ -30,7 +30,7 @@ export default function GradingSettingsPage() {
     setError(null);
     try {
       // 1. Auth check
-      const authRes = await fetch('/api/auth', { signal: AbortSignal.timeout(5000) });
+      const authRes = await fetch('/api/auth');
       const ct = authRes.headers.get('content-type');
       if (!ct || !ct.includes('application/json')) throw new Error('Auth server returned an invalid response.');
       const auth = await authRes.json();
@@ -52,8 +52,7 @@ export default function GradingSettingsPage() {
         body: JSON.stringify({ requests: [
           { type: 'get', key: 'paav8_grad' },
           { type: 'get', key: 'paav_grading_mode' }
-        ]}),
-        signal: AbortSignal.timeout(8000)
+        ]})
       });
       if (!gradRes.ok) throw new Error('Database server is not responding.');
       const gradData = await gradRes.json();
