@@ -65,6 +65,7 @@ function LoginContent() {
   
   const [stats, setStats] = useState({ schools: 0, learners: 0, classes: 0 });
   const [announcement, setAnnouncement] = useState('Welcome to the EduVantage School Network.');
+  const [globalAnnouncement, setGlobalAnnouncement] = useState(null);
   const [profile, setProfile] = useState({ 
     name: 'EduVantage School Management System', 
     tagline: 'Global Education SaaS Network',
@@ -160,6 +161,7 @@ function LoginContent() {
         const res = await fetch(`/api/saas/config?tenant=${tenantId}&_t=${Date.now()}`);
         const data = await res.json();
         if (data.announcement) setAnnouncement(data.announcement);
+        if (data.globalAnnouncement) setGlobalAnnouncement(data.globalAnnouncement);
         if (data.heroImg) setHeroImg(data.heroImg);
         if (data.theme) {
           setTheme(data.theme);
@@ -304,7 +306,7 @@ function LoginContent() {
 
         <div className="auth-announcement" style={{ background: 'rgba(255,255,255,0.05)', padding: '16px 20px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', marginBottom: 40, backdropFilter: 'blur(10px)' }}>
            <h4 style={{ color: '#FCD34D', fontSize: 10, textTransform: 'uppercase', marginBottom: 5, letterSpacing: 1.2 }}>📢 EDUVANTAGE NETWORK NEWS</h4>
-           <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12.5, lineHeight: 1.6 }}>Join the growing network of digitally-empowered schools across East Africa. High-performance school management at your fingertips.</p>
+           <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12.5, lineHeight: 1.6 }}>{globalAnnouncement?.message || globalAnnouncement?.text || 'Join the growing network of digitally-empowered schools across East Africa. High-performance school management at your fingertips.'}</p>
         </div>
 
         <div className="auth-stats">

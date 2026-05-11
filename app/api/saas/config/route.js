@@ -77,9 +77,12 @@ export async function GET(request) {
     };
 
     let plans = [];
+    let globalAnnouncement = null;
     if (isMaster) {
       const gConf = await kvGet('paav_global_config', {}, 'platform-master');
       if (gConf && gConf.plans) plans = gConf.plans;
+    } else {
+      globalAnnouncement = await kvGet('paav_global_announcement', null, 'platform-master');
     }
 
     const response = NextResponse.json({
@@ -88,6 +91,7 @@ export async function GET(request) {
       stats,
       plans,
       announcement: config.paav_announcement?.text || 'Welcome to the School Network.',
+      globalAnnouncement: globalAnnouncement || config.paav_announcement || null,
       heroImg: config.paav_hero_img || '',
       theme: config.paav_theme || { 
         primary: '#1E40AF', 

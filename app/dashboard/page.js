@@ -46,14 +46,15 @@ function DashboardContent() {
       const isSuper = tid === 'platform-master' && u.role === 'super-admin';
 
       // 2. Fetch CORE data in parallel
-      const [db, glob, statRes] = await Promise.all([
-        getCachedDBMulti(['paav_theme', 'paav_school_profile']),
-        fetch('/api/saas/global-config').then(r => r.json()).catch(() => ({})),
+      const [db, statRes] = await Promise.all([
+        getCachedDBMulti(['paav_theme', 'paav_school_profile', 'paav_announcement']),
         fetch('/api/stats/dashboard').then(r => r.json()).catch(() => ({ stats: {} }))
       ]);
 
       if (db.paav_theme) setThemePrimary(db.paav_theme.primary || '#1E293B');
-      if (glob.announcement?.active) setAnnouncement(glob.announcement);
+      if (db.paav_announcement?.active && db.paav_announcement?.text) {
+        setAnnouncement({ message: db.paav_announcement.text, priority: 'normal', active: true });
+      }
 
       const s = statRes.stats || {};
       setStats(s);

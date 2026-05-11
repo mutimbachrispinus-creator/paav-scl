@@ -40,6 +40,7 @@ export default function TemplatesPage() {
   const [feeCfg, setFeeCfg] = useState({});
   const [gradCfg, setGradCfg] = useState(null);
   const [weights, setWeights] = useState(null);
+  const [terms, setTerms] = useState([]);
   const [grade, setGrade] = useState('');
   const [term, setTerm] = useState('T1');
   const [assess, setAssess] = useState('et1');
@@ -58,7 +59,7 @@ export default function TemplatesPage() {
         setUser(auth);
         
         const db = await getCachedDBMulti([
-          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog', 'paav6_feecfg', 'paav_student_attendance', 'paav_school_profile', 'paav_grading_weights'
+          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog', 'paav6_feecfg', 'paav_student_attendance', 'paav_school_profile', 'paav_grading_weights', 'paav_terms'
         ]);
         
         setLearners(db.paav6_learners || []);
@@ -67,6 +68,7 @@ export default function TemplatesPage() {
         setGradCfg(db.paav8_grad || null);
         setFeeCfg(db.paav6_feecfg || {});
         setWeights(db.paav_grading_weights || null);
+        setTerms(Array.isArray(db.paav_terms) ? db.paav_terms : []);
         
         const feeList = db.paav6_fees || [];
         const paylogList = db.paav6_paylog || [];
@@ -219,7 +221,7 @@ export default function TemplatesPage() {
           <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} gradCfg={gradCfg} profile={profile} />
         </div>
         <div style={{ display: tab === 'report'  ? 'block' : 'none' }}>
-          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} profile={profile} att={att} weights={weights} />
+          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} profile={profile} att={att} weights={weights} terms={terms} />
         </div>
         <div style={{ display: tab === 'class'   ? 'block' : 'none' }}>
           <ClassListTemplate learners={filteredLearners} grade={grade} profile={profile} />
@@ -525,7 +527,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
   );
 }
 
-function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, profile, att, weights }) {
+function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, profile, att, weights, terms }) {
   const curr = profile?.curriculum || 'CBC';
   const themeColor = curr === 'BRITISH' ? '#1E3A8A' : curr === 'CAMBRIDGE' ? '#065F46' : curr === 'IB' ? '#4338CA' : '#8B1A1A';
   
@@ -692,7 +694,28 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, p
                   </div>
                   <div style={{ background: '#FFFBEB', padding: 10, borderRadius: 8, border: '1px solid #FEF3C7' }}>
                     <div style={{ fontSize: 8, color: '#D97706', fontWeight: 800 }}>NEXT TERM BEGINS</div>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: '#92400E' }}>05 May 2026</div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: '#92400E' }}>
+                      {(() => {
+                        if (!terms || terms.length === 0) return 'Date not set';
+                        // Determine which term number we are printing for (T1=1, T2=2, T3=3)
+                        const currentTermNum = parseInt(term.replace('T',''), 10) || 1;
+                        const nextTermNum = currentTermNum + 1;
+                        // Sort terms by start_date
+                        const sorted = [...terms].sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+                        // Try to find a term whose name contains the next term number
+                        let nextTerm = sorted.find(t => {
+                          const n = parseInt((t.name || '').match(/(\d+)/)?.[1] || '0', 10);
+                          return n === nextTermNum;
+                        });
+                        // Fallback: pick the next in order after the current
+                        if (!nextTerm && sorted.length > currentTermNum - 1) {
+                          nextTerm = sorted[currentTermNum]; // 0-indexed, currentTermNum is the *next* index
+                        }
+                        if (!nextTerm) return 'See school calendar';
+                        const d = new Date(nextTerm.start_date);
+                        return isNaN(d.getTime()) ? nextTerm.start_date : d.toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' });
+                      })()}
+                    </div>
                   </div>
                 </div>
               </div>
