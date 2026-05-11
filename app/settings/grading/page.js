@@ -29,7 +29,7 @@ export default function GradingSettingsPage() {
       const authRes = await fetch('/api/auth');
       if (!authRes.ok) throw new Error('Authentication failed.');
       const auth = await authRes.json();
-      if (!auth.ok || !['admin', 'super-admin'].includes(auth.role)) {
+      if (!auth.ok || !auth.user || !['admin', 'super-admin'].includes(auth.user.role)) {
         router.push('/dashboard');
         return;
       }
