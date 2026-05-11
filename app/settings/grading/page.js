@@ -74,7 +74,9 @@ export default function GradingSettingsPage() {
 
     } catch (e) {
       console.error('[Grading] Load failed:', e);
-      setError(e.message || 'Connection timed out. Please try again.');
+      // Ignore navigation aborts
+      if (e.name === 'AbortError' || e.message?.includes('aborted')) return;
+      setError(`V2 Error: ${e.message || 'Connection timed out. Please try again.'}`);
     } finally {
       setLoading(false);
     }
