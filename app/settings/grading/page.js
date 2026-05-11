@@ -9,6 +9,7 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedDB } from '@/lib/client-cache';
+import { getCurriculum } from '@/lib/curriculum';
 
 export default function GradingSettingsPage() {
   const router = useRouter();
@@ -40,8 +41,7 @@ export default function GradingSettingsPage() {
       const currName = profileRaw?.curriculum || 'CBC';
       setCurriculum(currName);
 
-      // 3. Dynamically import the curriculum module
-      const { getCurriculum } = await import('@/lib/curriculum');
+      // 3. Get the curriculum module statically
       const curr = getCurriculum(currName);
       setCurrModule(curr);
 

@@ -11,22 +11,22 @@ const SLATE   = 'var(--lp-slate,   #64748B)';
 const VIBRANT = 'var(--lp-vibrant, #8B5CF6)';
 
 const ALL_FEATURES = [
-  { icon: '⚖️', title: 'Curriculum-Aware Grading', desc: 'Auto-calculates weighted averages for CBC, Cambridge, British & IB.' },
-  { icon: '🗓️', title: 'Dynamic School Calendars', desc: 'Define your own institutional terms and 14-week cycles with ease.' },
-  { icon: '🚀', title: 'Unified Comms Hub', desc: 'Consolidated SMS, bulk alerts & internal messaging in one premium flow.' },
-  { icon: '📊', title: 'Revenue Integrity Engine', desc: 'Real-time dashboard reconciling expected vs. collected fees. Flags revenue leakage instantly.' },
-  { icon: '💳', title: 'EduVantage Pay (Aggregator)', desc: 'One central Paybill for all schools. Parents pay once; funds auto-routed to schools.' },
-  { icon: '🏦', title: 'Automated Settlement Engine', desc: 'One-click Safaricom B2C/B2B disbursements directly to school bank accounts or Tills.' },
-  { icon: '🔐', title: 'Integrity Locks (Anti-Fraud)', desc: 'Cryptographic ghost-student prevention — receipts and report cards locked to official registry.' },
-  { icon: '🎓', title: 'SaaS Learning Subscriptions', desc: 'Monetise premium video content with Daily/Weekly/Monthly M-Pesa subscription plans.' },
-  { icon: '📅', title: 'AI-Powered Timetabling', desc: 'Conflict-free master timetables generated in minutes, not weeks.' },
-  { icon: '🛡️', title: 'Administrative Oversight', desc: 'Granular role-based access and global audit trails for total security.' },
-  { icon: '📲', title: 'Real-Time Parent Portal', desc: 'Live fee balances, digital report cards & M-Pesa STK push from one portal.' },
-  { icon: '🏆', title: 'Premium Merit Lists', desc: 'Curriculum-specific rankings with institutional excellence markers.' },
-  { icon: '💼', title: 'Staff & Finance Hub', desc: 'Automated payroll, expense tracking & digital duty rosters.' },
-  { icon: '🤖', title: 'High-Speed Recovery', desc: 'Proprietary engine to link orphaned marks and restore historical data.' },
-  { icon: '🌐', title: 'Multi-Tenant SaaS', desc: 'Enterprise-grade infrastructure powering institutions across Africa.' },
-  { icon: '📱', title: 'M-Pesa KES 50 Conv. Fee', desc: 'Automatic KES 50 convenience fee appended to every digital transaction — passive revenue.' },
+  { icon: '⚖️', title: 'Curriculum-Aware Grading', desc: 'Auto-calculates weighted averages for CBC, Cambridge, British & IB with flexible uniform or per-level modes.' },
+  { icon: '🗓️', title: 'Dynamic Calendars', desc: 'Define your own terms. Report cards automatically print the accurate next-term resumption dates.' },
+  { icon: '🚀', title: 'Unified Comms Hub', desc: 'Consolidated SMS, bulk alerts & internal messaging. Target specific cohorts like "at-risk" students.' },
+  { icon: '📊', title: 'Revenue Integrity', desc: 'Real-time dashboard reconciling expected vs. collected fees. Flags revenue leakage instantly.' },
+  { icon: '💳', title: 'EduVantage Pay', desc: 'Platform-wide payment aggregation. Parents pay via M-Pesa STK push; funds auto-route securely.' },
+  { icon: '🏦', title: 'Automated Settlement', desc: 'One-click Safaricom B2C/B2B disbursements directly to school bank accounts or Tills.' },
+  { icon: '🔐', title: 'Anti-Fraud Locks', desc: 'Cryptographic ghost-student prevention — receipts and report cards locked to official registry.' },
+  { icon: '🎓', title: 'SaaS Subscriptions', desc: 'Monetize premium video content with Daily/Weekly/Monthly M-Pesa subscription plans.' },
+  { icon: '📅', title: 'AI Timetabling', desc: 'Conflict-free master timetables generated in minutes, optimizing teacher workload automatically.' },
+  { icon: '🛡️', title: 'Multi-Tier Network', desc: 'Platform-wide super-admin controls alongside isolated, secure tenant dashboards.' },
+  { icon: '📲', title: 'Live Parent Portal', desc: 'Live fee balances, digital report cards, and targeted school-specific announcements.' },
+  { icon: '🏆', title: 'Premium Rankings', desc: 'Curriculum-specific merit lists and automated school-wide exam performance reports.' },
+  { icon: '💼', title: 'Staff & Finance Hub', desc: 'Automated payroll, expense tracking, digital duty rosters, and asset management.' },
+  { icon: '🤖', title: 'Data Recovery', desc: 'Proprietary engine to link orphaned marks and instantly restore historical learner data.' },
+  { icon: '🌐', title: 'Cloud Infrastructure', desc: 'Enterprise-grade Edge network powering institutions across Africa with 99.9% uptime.' },
+  { icon: '📱', title: 'Passive Revenue', desc: 'Automatic KES 50 convenience fee appended to every digital transaction for the platform.' },
 ];
 
 export default function LandingPage() {
@@ -91,15 +91,15 @@ export default function LandingPage() {
         <div className="container hero-content fade-in-up">
           <div className="badge-pill pulse-glow">🚀 The Next Generation of School Intelligence</div>
           <h1 className="hero-title">
-            Stop Managing.<br/>Start <span className="text-gradient">Optimising.</span>
+            Stop Managing.<br/>Start <span className="text-gradient">Innovating.</span>
           </h1>
           <p className="hero-subtitle">
-            The only school platform that <strong>collects fees for you</strong>. EduVantage now operates as a full payment aggregator — one Paybill for every school on the network, with automatic settlement disbursements, KES 50 convenience fees, and a real-time Revenue Integrity Engine.
+            The intelligent school operating system that <strong>collects fees for you</strong>. Fully equipped with curriculum-aware grading, automated B2C settlements, AI timetabling, and a secure parent portal—all in one premium platform.
           </p>
           
           <div className="hero-actions">
-            <Link href="/saas/signup" className="btn btn-xl btn-primary">Start Your 1-Term Free Trial</Link>
-            <Link href="/login" className="btn btn-xl btn-outline glass-btn">Explore Parent Portal</Link>
+            <Link href="/saas/signup" className="btn btn-xl btn-primary btn-glow">Start Your 1-Term Free Trial</Link>
+            <Link href="/login" className="btn btn-xl btn-outline glass-btn">Explore Live Demo</Link>
           </div>
 
           <div className="hero-mockup">
@@ -172,9 +172,9 @@ export default function LandingPage() {
       <section id="features" className="modules-section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 80 }}>
-            <div className="badge-pill">Premium Modules</div>
+            <div className="badge-pill pulse-glow">Premium Modules</div>
             <h2 className="section-title">A unified suite for <br/> <span className="text-gradient">total school management</span></h2>
-            <p className="section-subtitle">Why pay for 4 different fragmented systems when EduVantage does it all seamlessly?</p>
+            <p className="section-subtitle">Why pay for 4 different fragmented systems when EduVantage does it all seamlessly? Experience the power of total integration.</p>
           </div>
 
           <div className="module-grid">
