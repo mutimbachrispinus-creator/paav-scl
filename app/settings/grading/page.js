@@ -89,7 +89,7 @@ export default function GradingSettingsPage() {
       clearTimeout(timer);
       setLoading(false);
     }
-  }, [router, loading]);
+  }, [router]);
 
   useEffect(() => { load(); }, [load]);
 
