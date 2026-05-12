@@ -530,7 +530,7 @@ export default function PortalShell({ children }) {
             )}
             {user?.role === 'admin' && editAnn && (
               <>
-                <button onClick={saveAnnouncement}
+                <button onClick={() => saveAnnouncement()}
                   style={{ background: '#D97706', border: 'none', borderRadius: 7, color: '#fff', padding: '4px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                   💾 Save
                 </button>

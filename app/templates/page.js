@@ -97,22 +97,30 @@ export default function TemplatesPage() {
   [subjCfg, grade, profile?.curriculum]);
 
   function triggerPrint(landscape) {
+    // Mark only the active tab so print doesn't show a blank page
+    document.querySelectorAll('.print-container > div').forEach(el => el.classList.remove('print-me'));
+    const activeEl = document.getElementById(`pct-${tab}`);
+    if (activeEl) activeEl.classList.add('print-me');
+
     const style = document.createElement('style');
     style.id = 'paav-print-style';
-    style.innerHTML = landscape 
-      ? '@page { size: A4 landscape; margin: 8mm; }' 
+    const pageRule = landscape
+      ? '@page { size: A4 landscape; margin: 8mm; }'
       : '@page { size: A4 portrait; margin: 10mm 12mm; }';
+    const showRule = '@media print { .print-container > div { display: none !important; } .print-container > div.print-me { display: block !important; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }';
+    style.innerHTML = pageRule + '\n' + showRule;
     document.head.appendChild(style);
-    
+
     if (landscape) document.body.classList.add('print-landscape');
     else document.body.classList.remove('print-landscape');
-    
+
     setTimeout(() => {
       window.print();
       setTimeout(() => {
         document.body.classList.remove('print-landscape');
         const s = document.getElementById('paav-print-style');
         if (s) s.remove();
+        document.querySelectorAll('.print-container > div').forEach(el => el.classList.remove('print-me'));
       }, 1000);
     }, 800);
   }
@@ -217,29 +225,29 @@ export default function TemplatesPage() {
 
       {/* Instant tab switching — all tabs rendered, only active is shown */}
       <div className="print-container">
-        <div style={{ display: tab === 'merit'   ? 'block' : 'none' }}>
+        <div id="pct-merit" style={{ display: tab === 'merit'   ? 'block' : 'none' }}>
           <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} gradCfg={gradCfg} profile={profile} />
         </div>
-        <div style={{ display: tab === 'report'  ? 'block' : 'none' }}>
+        <div id="pct-report" style={{ display: tab === 'report'  ? 'block' : 'none' }}>
           <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} profile={profile} att={att} weights={weights} terms={terms} />
         </div>
-        <div style={{ display: tab === 'class'   ? 'block' : 'none' }}>
+        <div id="pct-class" style={{ display: tab === 'class'   ? 'block' : 'none' }}>
           <ClassListTemplate learners={filteredLearners} grade={grade} profile={profile} />
         </div>
-        <div style={{ display: tab === 'balance' ? 'block' : 'none' }}>
+        <div id="pct-balance" style={{ display: tab === 'balance' ? 'block' : 'none' }}>
           <FeeBalanceListTemplate learners={filteredLearners} fees={fees} grade={grade} feeCfg={feeCfg} profile={profile} />
         </div>
-        <div style={{ display: tab === 'receipt' ? 'block' : 'none' }}>
+        <div id="pct-receipt" style={{ display: tab === 'receipt' ? 'block' : 'none' }}>
           <ReceiptTemplate learners={filteredLearners} fees={fees} grade={grade} selLearner={selLearner} feeCfg={feeCfg} profile={profile} />
         </div>
-        <div style={{ display: tab === 'id'      ? 'block' : 'none' }}>
+        <div id="pct-id" style={{ display: tab === 'id'      ? 'block' : 'none' }}>
           <IDCardTemplate learners={filteredLearners} grade={grade} profile={profile} />
         </div>
-        <div style={{ display: tab === 'register'? 'block' : 'none' }}>
+        <div id="pct-register" style={{ display: tab === 'register'? 'block' : 'none' }}>
           <AttendanceRegisterTemplate learners={filteredLearners} grade={grade} type={regType} att={att} profile={profile} />
         </div>
-        <div style={{ display: tab === 'exam_summary' ? 'block' : 'none' }}>
-          <ExamSummaryTemplate learners={learners} subjects={subjCfg} marks={marks} term={term} assess={assess} gradCfg={gradCfg} profile={profile} />
+        <div id="pct-exam_summary" style={{ display: tab === 'exam_summary' ? 'block' : 'none' }}>
+          <ExamSummaryTemplate learners={learners} subjects={subjCfg} marks={marks} gradCfg={gradCfg} profile={profile} />
         </div>
       </div>
     </div>
@@ -342,6 +350,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
             <th style={{ border: '1px solid #ddd', padding: 2, color: '#8B1A1A', textAlign: 'center' }}>Avg Pts</th>
             <th style={{ border: '1px solid #ddd', padding: 2, color: '#8B1A1A', textAlign: 'center' }}>Level</th>
             <th style={{ border: '1px solid #ddd', padding: 2, color: '#8B1A1A', textAlign: 'center' }}>%</th>
+            <th style={{ border: '1px solid #ddd', padding: 2, color: '#0369A1', textAlign: 'center' }}>VAP</th>
           </tr>
         </thead>
         <tbody>
@@ -378,6 +387,18 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                   <span style={{ color: lInfo.c, fontWeight: 800, fontSize: 8.5 }}>{lInfo.lv}</span>
                 </td>
                 <td style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center' }}>{lPct.toFixed(1)}%</td>
+                <td style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center' }}>
+                  {l.vap !== 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, color: l.vap > 0 ? '#059669' : '#dc2626' }}>
+                        {l.vap > 0 ? '↗️' : '↘️'}
+                      </span>
+                      <span style={{ fontSize: 8, fontWeight: 900, color: l.vap > 0 ? '#059669' : '#dc2626' }}>
+                        {l.vap > 0 ? `+${l.vap}` : l.vap}
+                      </span>
+                    </div>
+                  ) : <span style={{ color: '#94a3b8', fontSize: 8 }}>—</span>}
+                </td>
               </tr>
             );
           })}
@@ -401,6 +422,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800 }}>{totalPtsSum}</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800 }}>{(totalPtsSum / (data.length * (subjects.length || 1))).toFixed(2)}</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
               </tr>
               <tr style={{ background: '#f9f9f9', borderTop: '1px solid #000' }}>
                 <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>AVERAGE SCORE</td>
@@ -414,6 +436,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{(totalAvgPts / (subjects.length || 1)).toFixed(2)}</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{avgPct}%</td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
               </tr>
               <tr style={{ background: '#f9f9f9' }}>
                 <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>AVERAGE LEVEL</td>
@@ -433,6 +456,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                     </span>
                   ) : '—'}
                 </td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
               </tr>
               <tr style={{ background: '#f9f9f9' }}>
                 <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>AVERAGE POINTS</td>
@@ -449,6 +473,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                     <span style={{ fontWeight: 800 }}>{gInfo(parseFloat(avgPct), grade, gradCfg, curr).pts}</span>
                   ) : '—'}
                 </td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
               </tr>
               <tr style={{ background: '#f0f9ff' }}>
                 <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>SUBJECT RANK</td>
@@ -457,7 +482,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                     {subjectRanks[i] ? `No. ${subjectRanks[i]}` : '—'}
                   </td>
                 ))}
-                <td colSpan={4} style={{ border: '1px solid #ddd' }}></td>
+                <td colSpan={5} style={{ border: '1px solid #ddd' }}></td>
               </tr>
             </>
           )}
@@ -1218,39 +1243,42 @@ function AttendanceRegisterTemplate({ learners, grade, type, att, profile }) {
   );
 }
 
-function ExamSummaryTemplate({ learners, subjects, marks, term, assess, gradCfg, profile }) {
+function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile }) {
+  const [localTerm, setLocalTerm]     = useState('T1');
+  const [localAssess, setLocalAssess] = useState('et1');
+  const [localGrade, setLocalGrade]   = useState('ALL');
+
+  const term   = localTerm;
+  const assess = localAssess;
+  const ASSESS_LABELS = { op1: 'Opener Exam', mt1: 'Mid-Term Exam', et1: 'End-Term Exam' };
+
   const curr = profile?.curriculum || 'CBC';
   const ALL_GRADES = getAllGrades(curr, profile);
-  
+  const filteredGrades  = localGrade === 'ALL' ? ALL_GRADES : [localGrade];
+  const scopedLearners  = localGrade === 'ALL' ? learners : learners.filter(l => l.grade === localGrade);
+
   // Group metrics by grade
-  const gradeStats = ALL_GRADES.map(g => {
-    const gLearners = learners.filter(l => l.grade === g);
+  const gradeStats = filteredGrades.map(g => {
+    const gLearners = scopedLearners.filter(l => l.grade === g);
     if (gLearners.length === 0) return null;
-    
-    const gSubjects = (subjects[g] && subjects[g].length > 0) ? subjects[g] : getDefaultSubjects(g, curr);
+
     const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr);
-    
     const totalScoreSum = merit.reduce((acc, l) => acc + l.totalMarks, 0);
     const avgScore = merit.length > 0 ? (totalScoreSum / merit.length).toFixed(1) : 0;
-    
-    // Top student in this grade
     const top = merit[0];
-
-    // Grade distribution for this grade
     const dist = getDistributionBuckets(g, curr);
     merit.forEach(l => {
       const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
       const info = gInfo(lPct, g, gradCfg, curr);
       if (dist[info.lv] !== undefined) dist[info.lv]++;
     });
-
     return { grade: g, count: gLearners.length, avgScore, top, dist };
   }).filter(Boolean);
 
-  // School-wide aggregates
-  const totalStudents = learners.length;
-  const schoolAvg = gradeStats.length > 0 ? (gradeStats.reduce((acc, g) => acc + parseFloat(g.avgScore), 0) / gradeStats.length).toFixed(1) : 0;
-  
+  const totalStudents = scopedLearners.length;
+  const schoolAvg = gradeStats.length > 0
+    ? (gradeStats.reduce((acc, g) => acc + parseFloat(g.avgScore), 0) / gradeStats.length).toFixed(1)
+    : 0;
   const schoolDist = getDistributionBuckets(ALL_GRADES[0] || 'Grade 1', curr);
   gradeStats.forEach(g => {
     Object.entries(g.dist).forEach(([lv, count]) => {
@@ -1258,12 +1286,45 @@ function ExamSummaryTemplate({ learners, subjects, marks, term, assess, gradCfg,
     });
   });
 
+  const scopeLabel = localGrade === 'ALL' ? 'ALL GRADES' : localGrade;
+  const titleLabel = localGrade === 'ALL' ? 'SCHOOL ACADEMIC SUMMARY' : `${localGrade} ACADEMIC SUMMARY`;
+
   return (
     <div style={{ padding: '0 10px' }}>
-      <PrintHeader title="SCHOOL ACADEMIC SUMMARY" grade="ALL GRADES" profile={profile} />
-      
+      {/* ── Exam Summary Own Filters (no-print) ── */}
+      <div className="no-print" style={{ marginBottom: 20, padding: '14px 18px', background: '#F0F9FF', border: '1.5px solid #BAE6FD', borderRadius: 12, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div>
+          <label style={{ fontSize: 10, fontWeight: 800, color: '#0369A1', display: 'block', marginBottom: 4, textTransform: 'uppercase' }}>Term</label>
+          <select value={localTerm} onChange={e => setLocalTerm(e.target.value)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #BAE6FD', fontSize: 13, fontWeight: 700, color: '#0369A1' }}>
+            <option value="T1">Term 1</option>
+            <option value="T2">Term 2</option>
+            <option value="T3">Term 3</option>
+          </select>
+        </div>
+        <div>
+          <label style={{ fontSize: 10, fontWeight: 800, color: '#0369A1', display: 'block', marginBottom: 4, textTransform: 'uppercase' }}>Exam</label>
+          <select value={localAssess} onChange={e => setLocalAssess(e.target.value)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #BAE6FD', fontSize: 13, fontWeight: 700, color: '#0369A1' }}>
+            <option value="op1">Opener</option>
+            <option value="mt1">Mid-Term</option>
+            <option value="et1">End-Term</option>
+          </select>
+        </div>
+        <div>
+          <label style={{ fontSize: 10, fontWeight: 800, color: '#0369A1', display: 'block', marginBottom: 4, textTransform: 'uppercase' }}>Grade / Scope</label>
+          <select value={localGrade} onChange={e => setLocalGrade(e.target.value)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #BAE6FD', fontSize: 13, fontWeight: 700, color: '#0369A1' }}>
+            <option value="ALL">— Whole School —</option>
+            {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+        </div>
+        <div style={{ fontSize: 12, color: '#0369A1', fontWeight: 700, paddingBottom: 4, marginLeft: 'auto' }}>
+          📊 {totalStudents} learner{totalStudents !== 1 ? 's' : ''} · {ASSESS_LABELS[assess]} · Term {term.replace('T','')}
+        </div>
+      </div>
+
+      <PrintHeader title={titleLabel} grade={scopeLabel} profile={profile} />
+
       <div style={{ textAlign: 'center', marginBottom: 25, fontSize: 13, fontWeight: 700, color: '#333', textTransform: 'uppercase', letterSpacing: 1 }}>
-        Institutional Performance Analysis — Term {term.replace('T','')} {assess.toUpperCase()} Exam
+        {localGrade === 'ALL' ? 'Institutional Performance Analysis' : `${localGrade} Performance Analysis`} — Term {term.replace('T','')} {ASSESS_LABELS[assess]}
       </div>
 
       {/* Overview Cards */}
@@ -1369,8 +1430,8 @@ function ExamSummaryTemplate({ learners, subjects, marks, term, assess, gradCfg,
             <tbody>
                {(() => {
                   const allRanked = [];
-                  ALL_GRADES.forEach(g => {
-                     const gLearners = learners.filter(l => l.grade === g);
+                  filteredGrades.forEach(g => {
+                     const gLearners = scopedLearners.filter(l => l.grade === g);
                      const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr);
                      merit.forEach(l => {
                         const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;

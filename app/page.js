@@ -73,6 +73,7 @@ export default function LandingPage() {
             <div className="nav-links desktop-only">
               <a href="#features">Features</a>
               <a href="#solutions">Solutions</a>
+              <a href="#demo" style={{ color: 'var(--lp-primary,#4F46E5)', fontWeight: 800 }}>🎥 Demo</a>
               <a href="#compare">Why Us?</a>
               <a href="#pricing">Pricing</a>
             </div>
@@ -99,7 +100,7 @@ export default function LandingPage() {
           
           <div className="hero-actions">
             <Link href="/saas/signup" className="btn btn-xl btn-primary btn-glow">Start Your 1-Term Free Trial</Link>
-            <Link href="/login" className="btn btn-xl btn-outline glass-btn">Explore Live Demo</Link>
+            <Link href="/demo" className="btn btn-xl btn-outline glass-btn">Explore Live Demo →</Link>
           </div>
 
           <div className="hero-mockup">
@@ -263,27 +264,85 @@ export default function LandingPage() {
           <div className="solutions-grid">
             <SolutionCard 
               target="Administrators" 
+              demoHref="/demo/staff"
               desc="Total oversight of finances, staff performance, and platform-wide metrics with automated daily snapshots."
               features={['Live Fee Dashboards', 'Bulk Payroll', 'Compliance Reports']}
             />
             <SolutionCard 
               target="Teachers" 
+              demoHref="/demo/teacher"
               desc="Reduce paperwork to zero. Digital attendance, instant grade entry, and automated lesson schedules."
               features={['Digital Markbooks', '1-Click Attendance', 'Exam Analysis']}
             />
             <SolutionCard 
               target="Parents" 
+              demoHref="/demo/parent"
               desc="Unprecedented transparency. View fees, academic progress, and student welfare instantly from their phone."
               features={['Live Fee Statements', 'Termly Report Cards', 'Instant SMS Alerts']}
             />
             <SolutionCard 
-              target="Students" 
+              target="Students"
+              demoHref="/login"
               desc="Stay organized with personalized digital timetables, learning resources, and performance tracking."
               features={['Subject Trends', 'Digital Diary', 'Merit Rankings']}
             />
           </div>
         </div>
       </section>
+
+      {/* ── LIVE DEMO SECTION ── */}
+      <section id="demo" className="demo-section">
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 64 }}>
+            <div className="badge-pill pulse-glow">🎥 Live Demo Experience</div>
+            <h2 className="section-title">See EduVantage<br /><span className="text-gradient">in action.</span></h2>
+            <p className="section-subtitle">Auto-animated walkthroughs of the real platform — no sign-up needed.</p>
+          </div>
+
+          <div className="demo-cards">
+            <Link href="/demo/teacher" className="demo-card-link">
+              <div className="demo-card dc-teacher">
+                <div className="dc-emoji">👩‍🏫</div>
+                <h3>Teacher</h3>
+                <p>Mark entry, attendance, merit lists &amp; report card printing — animated live.</p>
+                <div className="dc-chips">
+                  <span>Digital Markbook</span><span>1-Click Attendance</span><span>Print Templates</span>
+                </div>
+                <div className="dc-cta">Watch Demo →</div>
+              </div>
+            </Link>
+
+            <Link href="/demo/parent" className="demo-card-link">
+              <div className="demo-card dc-parent">
+                <div className="dc-emoji">👨‍👩‍👧</div>
+                <h3>Parent</h3>
+                <p>Live fee statements, QR-verified report cards and real-time SMS alerts.</p>
+                <div className="dc-chips">
+                  <span>Fee Balance</span><span>Report Card</span><span>Alerts</span>
+                </div>
+                <div className="dc-cta">Watch Demo →</div>
+              </div>
+            </Link>
+
+            <Link href="/demo/staff" className="demo-card-link">
+              <div className="demo-card dc-staff">
+                <div className="dc-emoji">🏢</div>
+                <h3>Admin &amp; Staff</h3>
+                <p>Revenue dashboards, automated payroll disbursement &amp; school-wide exam reports.</p>
+                <div className="dc-chips">
+                  <span>Revenue Dashboard</span><span>Payroll B2C</span><span>Exam Summary</span>
+                </div>
+                <div className="dc-cta">Watch Demo →</div>
+              </div>
+            </Link>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: 48 }}>
+            <Link href="/demo" className="btn btn-primary btn-glow" style={{ padding: '14px 40px', fontSize: 16 }}>View All Demos →</Link>
+          </div>
+        </div>
+      </section>
+
 
       {/* ── COMPARISON SECTION (Why Us?) ── */}
       <section id="compare" className="compare-section">
@@ -387,8 +446,10 @@ export default function LandingPage() {
             <div>
               <h4>Product</h4>
               <a href="#features">Features</a>
-              <a href="/login">Parent Portal</a>
-              <a href="/saas/signup">Admin Demo</a>
+              <a href="/demo">Live Demos</a>
+              <a href="/demo/teacher">👩‍🏫 Teacher Demo</a>
+              <a href="/demo/parent">👨‍👩‍👧 Parent Demo</a>
+              <a href="/demo/staff">🏢 Admin Demo</a>
               <a href="#pricing">Pricing</a>
             </div>
             <div>
@@ -582,6 +643,32 @@ export default function LandingPage() {
         .feat-chip-title { font-weight: 800; font-size: 14px; color: ${DARK}; margin-bottom: 4px; }
         .feat-chip-desc { font-size: 12.5px; color: ${SLATE}; line-height: 1.5; }
 
+        /* Demo Section */
+        .demo-section { padding: 120px 0; background: #fff; }
+        .demo-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px,1fr)); gap: 28px; }
+        .demo-card-link { text-decoration: none; color: inherit; }
+        .demo-card { padding: 40px 32px; border-radius: 32px; border: 2px solid transparent; transition: 0.4s cubic-bezier(0.16,1,0.3,1); cursor: pointer; position: relative; overflow: hidden; }
+        .demo-card::before { content: ''; position: absolute; inset: 0; opacity: 0; transition: 0.4s; border-radius: 30px; }
+        .demo-card:hover { transform: translateY(-10px); border-color: transparent; }
+        .dc-teacher { background: linear-gradient(135deg, #EEF2FF, #E0E7FF); }
+        .dc-teacher:hover { background: linear-gradient(135deg, #4F46E5, #6366F1); color: #fff; box-shadow: 0 40px 80px rgba(79,70,229,0.35); }
+        .dc-teacher:hover .dc-cta { color: #fff; }
+        .dc-teacher:hover .dc-chips span { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.2); }
+        .dc-parent { background: linear-gradient(135deg, #ECFDF5, #D1FAE5); }
+        .dc-parent:hover { background: linear-gradient(135deg, #059669, #10B981); color: #fff; box-shadow: 0 40px 80px rgba(16,185,129,0.35); }
+        .dc-parent:hover .dc-cta { color: #fff; }
+        .dc-parent:hover .dc-chips span { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.2); }
+        .dc-staff { background: linear-gradient(135deg, #F5F3FF, #EDE9FE); }
+        .dc-staff:hover { background: linear-gradient(135deg, #7C3AED, #8B5CF6); color: #fff; box-shadow: 0 40px 80px rgba(124,58,237,0.35); }
+        .dc-staff:hover .dc-cta { color: #fff; }
+        .dc-staff:hover .dc-chips span { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.2); }
+        .dc-emoji { font-size: 56px; margin-bottom: 20px; }
+        .demo-card h3 { font-size: 26px; font-weight: 900; margin-bottom: 12px; letter-spacing: -0.02em; }
+        .demo-card p { font-size: 15px; line-height: 1.6; opacity: 0.75; margin-bottom: 24px; }
+        .dc-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+        .dc-chips span { padding: 5px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.08); transition: 0.3s; }
+        .dc-cta { font-size: 15px; font-weight: 800; color: ${PRIMARY}; transition: 0.3s; }
+
         /* Responsive Breakpoints */
         @media (max-width: 1024px) {
           .hero-title { font-size: 64px; }
@@ -610,6 +697,11 @@ export default function LandingPage() {
           .feat-chip-desc { display: none; }
           .modules-section { padding: 80px 0; }
           .solutions-section { border-radius: 40px; margin: 0 12px; padding: 80px 0; }
+          .demo-section { padding: 70px 0; }
+          .demo-cards { grid-template-columns: 1fr; gap: 16px; }
+          .demo-card { padding: 28px 24px; }
+          .dc-emoji { font-size: 40px; }
+          .demo-card h3 { font-size: 20px; }
           .comp-table { display: block; overflow-x: auto; white-space: nowrap; }
           .pricing-grid { grid-template-columns: 1fr; }
           .footer-grid { grid-template-columns: 1fr; gap: 40px; }
@@ -623,7 +715,7 @@ export default function LandingPage() {
   );
 }
 
-function SolutionCard({ target, desc, features }) {
+function SolutionCard({ target, desc, features, demoHref }) {
   return (
     <div className="s-card">
       <div className="s-tag">{target}</div>
@@ -631,6 +723,13 @@ function SolutionCard({ target, desc, features }) {
       <div className="s-feat">
         {features.map(f => <div key={f} className="s-feat-item"> <span>✓</span> {f}</div>)}
       </div>
+      {demoHref && (
+        <Link href={demoHref} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 24, padding: '9px 20px', borderRadius: 12, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 13, fontWeight: 800, color: '#fff', textDecoration: 'none', transition: '0.2s' }}
+          onMouseOver={e => { e.currentTarget.style.background='rgba(255,255,255,0.18)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.35)'; }}
+          onMouseOut={e => { e.currentTarget.style.background='rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'; }}>
+          🎥 Watch Demo →
+        </Link>
+      )}
       <style jsx>{`
         .s-card { padding: 40px 32px; background: rgba(255,255,255,0.03); border-radius: 32px; border: 1px solid rgba(255,255,255,0.05); transition: 0.4s; }
         .s-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }

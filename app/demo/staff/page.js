@@ -1,0 +1,310 @@
+'use client';
+export const runtime = 'edge';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+
+const SCENES = [
+  { id:'dashboard',  label:'📊 Revenue Dashboard',       dur:3500 },
+  { id:'learners',   label:'👥 Learner Registry',         dur:3000 },
+  { id:'payroll',    label:'💼 Payroll Engine',           dur:4000 },
+  { id:'exam',       label:'📈 Exam Summary Report',      dur:3500 },
+  { id:'settlement', label:'⚡ One-Click Settlement',     dur:3000 },
+];
+
+const GRADES = [
+  { g:'Grade 1', n:38, pct:78 }, { g:'Grade 2', n:42, pct:65 },
+  { g:'Grade 4', n:32, pct:91 }, { g:'Grade 7', n:28, pct:58 },
+  { g:'Grade 9', n:45, pct:84 }, { g:'Grade 12', n:22, pct:72 },
+];
+const STAFF = [
+  { name:'J. Kamau',  role:'Teacher', gross:45000, ded:6750  },
+  { name:'A. Wanjiru',role:'Teacher', gross:42000, ded:6300  },
+  { name:'M. Otieno', role:'Support', gross:25000, ded:3750  },
+  { name:'P. Njeri',  role:'Principal',gross:80000,ded:12000 },
+];
+
+export default function StaffDemoPage() {
+  const [si, setSi]       = useState(0);
+  const [prog, setProg]   = useState(0);
+  const [playing, setPlaying] = useState(true);
+
+  // Animated state
+  const [revCount, setRevCount]   = useState(0);
+  const [barWidths, setBarWidths] = useState(GRADES.map(() => 0));
+  const [learnerRows, setLearnerRows] = useState(0);
+  const [staffRows, setStaffRows]     = useState(0);
+  const [disbursed, setDisbursed]     = useState(false);
+  const [examBars, setExamBars]       = useState(GRADES.map(() => 0));
+  const [settled, setSettled]         = useState(false);
+
+  function reset() {
+    setRevCount(0); setBarWidths(GRADES.map(()=>0));
+    setLearnerRows(0); setStaffRows(0); setDisbursed(false);
+    setExamBars(GRADES.map(()=>0)); setSettled(false);
+  }
+
+  useEffect(() => {
+    if (!playing) return;
+    const dur = SCENES[si].dur; let t = 0; const steps = dur / 50;
+    const iv = setInterval(() => {
+      t++; setProg((t / steps) * 100);
+      if (t >= steps) { clearInterval(iv); setProg(0); reset(); setSi(p => (p + 1) % SCENES.length); }
+    }, 50);
+    return () => clearInterval(iv);
+  }, [si, playing]);
+
+  useEffect(() => {
+    if (si === 0) {
+      // Count up revenue
+      let v = 0; const target = 3200000;
+      const iv = setInterval(() => { v = Math.min(v + 64000, target); setRevCount(v); if (v >= target) clearInterval(iv); }, 60);
+      // Animate bars
+      const t = setTimeout(() => {
+        GRADES.forEach((g, i) => {
+          setTimeout(() => setBarWidths(prev => { const n=[...prev]; n[i]=g.pct; return n; }), i * 200);
+        });
+      }, 800);
+      return () => { clearInterval(iv); clearTimeout(t); };
+    }
+    if (si === 1) {
+      let r = 0;
+      const iv = setInterval(() => { r++; setLearnerRows(r); if (r >= 6) clearInterval(iv); }, 400);
+      return () => clearInterval(iv);
+    }
+    if (si === 2) {
+      let r = 0;
+      const iv = setInterval(() => { r++; setStaffRows(r); if (r >= STAFF.length) clearInterval(iv); }, 500);
+      const t = setTimeout(() => setDisbursed(true), 3000);
+      return () => { clearInterval(iv); clearTimeout(t); };
+    }
+    if (si === 3) {
+      const t = setTimeout(() => {
+        GRADES.forEach((g, i) => {
+          const pct = 55 + Math.random() * 40;
+          setTimeout(() => setExamBars(prev => { const n=[...prev]; n[i]=pct; return n; }), i * 250);
+        });
+      }, 500);
+      return () => clearTimeout(t);
+    }
+    if (si === 4) {
+      const t = setTimeout(() => setSettled(true), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [si]);
+
+  function jump(i) { reset(); setProg(0); setSi(i); }
+
+  const SAMPLE_LEARNERS = [
+    { adm:'2024001', name:'Alice Mwangi',  grade:'Grade 4', sex:'F' },
+    { adm:'2024002', name:'Brian Otieno',  grade:'Grade 4', sex:'M' },
+    { adm:'2024003', name:'Carol Njeri',   grade:'Grade 7', sex:'F' },
+    { adm:'2023041', name:'David Kamau',   grade:'Grade 9', sex:'M' },
+    { adm:'2024099', name:'Eve Wanjiku',   grade:'Grade 1', sex:'F' },
+    { adm:'2023012', name:'Frank Ochieng', grade:'Grade 12',sex:'M' },
+  ];
+
+  return (
+    <div style={{ minHeight:'100vh', background:'#030712', fontFamily:'Sora,sans-serif', color:'#fff', display:'flex', flexDirection:'column' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800;900&display=swap');
+        @keyframes fadeUp  { from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)} }
+        @keyframes pop     { from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)} }
+        @keyframes slideIn { from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)} }
+        @keyframes pulse   { 0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.5)}50%{box-shadow:0 0 0 12px rgba(99,102,241,0)} }
+        .pop  { animation:pop     .35s ease forwards }
+        .fup  { animation:fadeUp  .4s  ease forwards }
+        .sli  { animation:slideIn .35s ease forwards }
+        .sdot { width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.2);border:none;cursor:pointer;transition:.2s; }
+        .sdot.on { background:#8b5cf6;transform:scale(1.5); }
+        .sdot:hover { background:rgba(255,255,255,.5); }
+        .cbtn { background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:Sora,sans-serif; }
+        .cbtn:hover { background:rgba(255,255,255,.15); }
+        .pulse-btn { animation:pulse 2s infinite; }
+      `}</style>
+
+      <div style={{ padding:'14px 24px', display:'flex', alignItems:'center', borderBottom:'1px solid rgba(255,255,255,.06)' }}>
+        <Link href="/demo" style={{ color:'rgba(255,255,255,.4)', fontSize:13, fontWeight:700, textDecoration:'none' }}>← Demo Hub</Link>
+        <div style={{ marginLeft:'auto', padding:'4px 14px', borderRadius:99, background:'rgba(139,92,246,.15)', border:'1px solid rgba(139,92,246,.3)', fontSize:12, fontWeight:800, color:'#c4b5fd' }}>🏢 Admin & Staff Demo</div>
+      </div>
+
+      <div style={{ flex:1, maxWidth:1060, margin:'0 auto', width:'100%', padding:'28px 24px 40px', display:'flex', flexDirection:'column', gap:24 }}>
+        <div className="fup" key={`t${si}`} style={{ textAlign:'center' }}>
+          <div style={{ fontSize:'clamp(22px,4vw,38px)', fontWeight:900, letterSpacing:'-0.03em', marginBottom:6 }}>{SCENES[si].label}</div>
+          <div style={{ color:'rgba(255,255,255,.35)', fontSize:13, fontWeight:600 }}>Scene {si+1} of {SCENES.length} · auto-playing</div>
+        </div>
+
+        <div style={{ background:'#0F172A', borderRadius:20, border:'1px solid rgba(255,255,255,.07)', overflow:'hidden' }}>
+          <div style={{ background:'#1E293B', padding:'9px 16px', display:'flex', gap:6, alignItems:'center', borderBottom:'1px solid rgba(255,255,255,.06)' }}>
+            {['#ef4444','#f59e0b','#10b981'].map(c=><div key={c} style={{ width:9,height:9,borderRadius:'50%',background:c }} />)}
+            <div style={{ marginLeft:10, flex:1, background:'rgba(255,255,255,.05)', borderRadius:5, padding:'3px 10px', fontSize:10, color:'rgba(255,255,255,.25)' }}>app.eduvantage.co.ke/admin — School Management</div>
+          </div>
+
+          <div style={{ padding:'22px', minHeight:360 }} key={`s${si}`}>
+
+            {/* Scene 0: Revenue Dashboard */}
+            {si === 0 && (
+              <div className="fup">
+                <div style={{ fontSize:11,fontWeight:800,color:'#475569',textTransform:'uppercase',letterSpacing:1,marginBottom:16 }}>📊 Revenue Integrity Dashboard</div>
+                <div style={{ display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:24 }}>
+                  {[
+                    { l:'Expected',  v:`KES 4.8M`, c:'#818cf8' },
+                    { l:'Collected', v:`KES ${(revCount/1000000).toFixed(1)}M`, c:'#34d399' },
+                    { l:'Outstanding',v:'KES 1.6M',c:'#f87171' },
+                    { l:'This Month', v:'KES 480K',c:'#fbbf24' },
+                  ].map(c=>(
+                    <div key={c.l} style={{ padding:'14px',borderRadius:12,background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',textAlign:'center' }}>
+                      <div style={{ fontSize:10,color:'#94a3b8',fontWeight:800,textTransform:'uppercase',marginBottom:6 }}>{c.l}</div>
+                      <div style={{ fontSize:18,fontWeight:900,color:c.c }}>{c.v}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize:10,color:'#64748b',fontWeight:800,textTransform:'uppercase',marginBottom:12 }}>Per-Grade Fee Collection Rate</div>
+                {GRADES.map((g,i)=>(
+                  <div key={g.g} style={{ marginBottom:10 }}>
+                    <div style={{ display:'flex',justifyContent:'space-between',fontSize:11,fontWeight:700,marginBottom:4 }}>
+                      <span>{g.g} ({g.n} learners)</span>
+                      <span style={{ color: g.pct>=80?'#34d399':g.pct>=60?'#fbbf24':'#f87171' }}>{g.pct}%</span>
+                    </div>
+                    <div style={{ height:7,background:'rgba(255,255,255,.07)',borderRadius:99,overflow:'hidden' }}>
+                      <div style={{ height:'100%',width:`${barWidths[i]}%`,background: g.pct>=80?'#059669':g.pct>=60?'#d97706':'#dc2626',borderRadius:99,transition:'width .8s cubic-bezier(.16,1,.3,1)' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Scene 1: Learner Registry */}
+            {si === 1 && (
+              <div className="fup">
+                <div style={{ fontSize:11,fontWeight:800,color:'#475569',textTransform:'uppercase',letterSpacing:1,marginBottom:16 }}>👥 Learner Registry — 207 enrolled</div>
+                <table style={{ borderCollapse:'collapse',width:'100%',fontSize:12 }}>
+                  <thead>
+                    <tr style={{ borderBottom:'1px solid rgba(255,255,255,.1)' }}>
+                      {['ADM No.','Full Name','Grade','Sex','Status'].map(h=>(
+                        <th key={h} style={{ padding:'7px 10px',textAlign:'left',color:'#64748b',fontWeight:800,fontSize:11 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {SAMPLE_LEARNERS.slice(0, learnerRows).map((l,i)=>(
+                      <tr key={l.adm} className="sli" style={{ borderBottom:'1px solid rgba(255,255,255,.04)' }}>
+                        <td style={{ padding:'9px 10px',fontWeight:700,color:'#818cf8' }}>{l.adm}</td>
+                        <td style={{ padding:'9px 10px',fontWeight:700 }}>{l.name}</td>
+                        <td style={{ padding:'9px 10px',color:'#94a3b8' }}>{l.grade}</td>
+                        <td style={{ padding:'9px 10px' }}>{l.sex === 'F' ? '👧 F' : '👦 M'}</td>
+                        <td style={{ padding:'9px 10px' }}><span style={{ padding:'2px 8px',borderRadius:8,background:'rgba(16,185,129,.15)',color:'#34d399',fontWeight:800,fontSize:11 }}>Active</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Scene 2: Payroll */}
+            {si === 2 && (
+              <div className="fup">
+                <div style={{ fontSize:11,fontWeight:800,color:'#475569',textTransform:'uppercase',letterSpacing:1,marginBottom:16 }}>💼 May 2025 Payroll — {STAFF.length} Staff</div>
+                <table style={{ borderCollapse:'collapse',width:'100%',fontSize:12,marginBottom:20 }}>
+                  <thead>
+                    <tr style={{ borderBottom:'1px solid rgba(255,255,255,.1)' }}>
+                      {['Name','Role','Gross (KES)','Deductions','Net Pay'].map(h=>(
+                        <th key={h} style={{ padding:'7px 10px',textAlign:'left',color:'#64748b',fontWeight:800,fontSize:11 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {STAFF.slice(0, staffRows).map(s=>(
+                      <tr key={s.name} className="sli" style={{ borderBottom:'1px solid rgba(255,255,255,.04)' }}>
+                        <td style={{ padding:'9px 10px',fontWeight:700 }}>{s.name}</td>
+                        <td style={{ padding:'9px 10px',color:'#94a3b8' }}>{s.role}</td>
+                        <td style={{ padding:'9px 10px',fontWeight:800,color:'#60a5fa' }}>{s.gross.toLocaleString()}</td>
+                        <td style={{ padding:'9px 10px',color:'#f87171' }}>-{s.ded.toLocaleString()}</td>
+                        <td style={{ padding:'9px 10px',fontWeight:900,color:'#34d399' }}>{(s.gross-s.ded).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {disbursed
+                  ? <div className="pop" style={{ padding:'14px',borderRadius:12,background:'rgba(16,185,129,.1)',border:'1px solid #10b981',textAlign:'center',fontSize:14,fontWeight:900,color:'#34d399' }}>✅ KES 163,200 disbursed via B2C to {STAFF.length} accounts!</div>
+                  : staffRows >= STAFF.length && <div className="pulse-btn pop" style={{ padding:'14px',borderRadius:12,background:'rgba(99,102,241,.15)',border:'1px solid #6366f1',textAlign:'center',fontSize:14,fontWeight:900,color:'#a5b4fc',cursor:'pointer' }}>⚡ Disburse All (B2C) — One Click</div>
+                }
+              </div>
+            )}
+
+            {/* Scene 3: Exam Summary */}
+            {si === 3 && (
+              <div className="fup">
+                <div style={{ fontSize:11,fontWeight:800,color:'#475569',textTransform:'uppercase',letterSpacing:1,marginBottom:16 }}>📈 Term 2 End-Term — School-Wide Performance</div>
+                <div style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:20 }}>
+                  {[['207','Total Learners','#818cf8'],['72.4%','School Mean','#34d399'],['ME','Mean Level','#fbbf24']].map(([v,l,c])=>(
+                    <div key={l} style={{ padding:'14px',borderRadius:12,background:'rgba(255,255,255,.04)',textAlign:'center' }}>
+                      <div style={{ fontSize:24,fontWeight:900,color:c }}>{v}</div>
+                      <div style={{ fontSize:10,color:'#94a3b8',fontWeight:800,textTransform:'uppercase',marginTop:4 }}>{l}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize:10,color:'#64748b',fontWeight:800,textTransform:'uppercase',marginBottom:12 }}>Grade Mean Scores</div>
+                {GRADES.map((g,i)=>(
+                  <div key={g.g} style={{ marginBottom:10 }}>
+                    <div style={{ display:'flex',justifyContent:'space-between',fontSize:11,fontWeight:700,marginBottom:4 }}>
+                      <span>{g.g}</span>
+                      <span style={{ color:'#60a5fa' }}>{examBars[i]>0?examBars[i].toFixed(1)+'%':'—'}</span>
+                    </div>
+                    <div style={{ height:8,background:'rgba(255,255,255,.07)',borderRadius:99,overflow:'hidden' }}>
+                      <div style={{ height:'100%',width:`${examBars[i]}%`,background:'linear-gradient(90deg,#6366f1,#8b5cf6)',borderRadius:99,transition:'width .9s cubic-bezier(.16,1,.3,1)' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Scene 4: Settlement */}
+            {si === 4 && (
+              <div className="fup" style={{ display:'flex',flexDirection:'column',alignItems:'center',paddingTop:20,gap:20 }}>
+                <div style={{ fontSize:11,fontWeight:800,color:'#475569',textTransform:'uppercase',letterSpacing:1 }}>⚡ B2C Settlement — May Collection</div>
+                <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,width:'100%' }}>
+                  {[
+                    { l:'Total Collected', v:'KES 3,200,000', c:'#34d399' },
+                    { l:'Platform Fee (KES 50 × txns)', v:'- KES 12,400', c:'#f87171' },
+                    { l:'Net to Disburse', v:'KES 3,187,600', c:'#818cf8' },
+                    { l:'School Bank Account', v:'KCB ••••4521', c:'#94a3b8' },
+                  ].map(r=>(
+                    <div key={r.l} style={{ padding:'14px',borderRadius:12,background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)' }}>
+                      <div style={{ fontSize:10,color:'#94a3b8',fontWeight:800,textTransform:'uppercase',marginBottom:6 }}>{r.l}</div>
+                      <div style={{ fontSize:16,fontWeight:900,color:r.c }}>{r.v}</div>
+                    </div>
+                  ))}
+                </div>
+                {!settled
+                  ? <div className="pulse-btn pop" style={{ padding:'16px 40px',borderRadius:99,background:'linear-gradient(135deg,#6366f1,#8b5cf6)',fontSize:16,fontWeight:900,cursor:'pointer',boxShadow:'0 20px 40px rgba(99,102,241,.4)' }}>⚡ Settle to KCB Bank Now</div>
+                  : <div className="pop" style={{ padding:'20px 40px',borderRadius:20,background:'rgba(16,185,129,.1)',border:'2px solid #10b981',textAlign:'center' }}>
+                      <div style={{ fontSize:40,marginBottom:8 }}>✅</div>
+                      <div style={{ fontSize:18,fontWeight:900,color:'#34d399' }}>KES 3,187,600 Settled!</div>
+                      <div style={{ fontSize:12,color:'rgba(255,255,255,.5)',marginTop:4 }}>Funds on the way to KCB ••••4521</div>
+                    </div>
+                }
+              </div>
+            )}
+          </div>
+
+          <div style={{ height:3,background:'rgba(255,255,255,.06)' }}>
+            <div style={{ height:'100%',background:'linear-gradient(90deg,#8b5cf6,#6366f1)',width:`${prog}%`,transition:'width .05s linear' }} />
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div style={{ display:'flex',alignItems:'center',justifyContent:'center',gap:16 }}>
+          <button className="cbtn" onClick={()=>setPlaying(p=>!p)}>{playing?'⏸ Pause':'▶ Play'}</button>
+          <div style={{ display:'flex',gap:8 }}>
+            {SCENES.map((_,i)=><button key={i} className={`sdot ${i===si?'on':''}`} onClick={()=>jump(i)} />)}
+          </div>
+          <button className="cbtn" onClick={()=>jump(0)}>↺ Replay</button>
+        </div>
+
+        <div style={{ textAlign:'center', marginTop:8 }}>
+          <Link href="/saas/signup" style={{ display:'inline-block',background:'linear-gradient(135deg,#8b5cf6,#6366f1)',color:'#fff',padding:'13px 36px',borderRadius:99,fontWeight:800,fontSize:15,textDecoration:'none',boxShadow:'0 16px 40px rgba(139,92,246,.4)' }}>Onboard My School →</Link>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,171 +1,113 @@
 'use client';
 export const runtime = 'edge';
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-const slides = [
+const ROLES = [
   {
-    title: "PAAV School Management Portal",
-    subtitle: "Modernizing Education, One Click at a Time",
-    content: "A comprehensive digital ecosystem for progressive schools.",
-    bg: "linear-gradient(135deg, #8B1A1A, #4A0E0E)",
-    color: "#fff",
-    icon: "🏫"
+    id: 'teacher',
+    emoji: '👩‍🏫',
+    title: 'Teacher Demo',
+    subtitle: 'Mark Books · Attendance · Analytics',
+    desc: 'Experience the digital classroom from a teacher's perspective — enter marks, take attendance, view merit lists, and print professional report cards instantly.',
+    gradient: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+    features: ['Digital Mark Entry (CBC / Cambridge / British)', 'One-Click Attendance', 'Instant Merit List & Rankings', 'Print Report Cards & Templates'],
+    href: '/demo/teacher',
   },
   {
-    title: "Centralized Management",
-    subtitle: "Efficiency Redefined",
-    content: "Manage Learners, Staff, and Academic data in one unified dashboard. Eliminate paper trail and data redundancy.",
-    bg: "linear-gradient(135deg, #1e293b, #0f172a)",
-    color: "#fff",
-    icon: "📊",
-    features: ["Digital Student Files", "Staff Records", "Attendance Tracking"]
+    id: 'parent',
+    emoji: '👨‍👩‍👧',
+    title: 'Parent Portal Demo',
+    subtitle: 'Fees · Report Cards · Messages',
+    desc: 'See what parents experience — live fee statements, digital report cards with QR verification, real-time SMS alerts, and a transparent academic tracker.',
+    gradient: 'linear-gradient(135deg, #065f46 0%, #10b981 100%)',
+    features: ['Live Fee Balance & Payment History', 'Digital Report Card (QR-Verified)', 'Real-Time SMS & Push Notifications', 'Academic Performance Tracker'],
+    href: '/demo/parent',
   },
   {
-    title: "CBC Academic Engine",
-    subtitle: "Compliant & Automated",
-    content: "Automated Competency-Based Assessment tracking. Generate premium A4 report cards and merit lists instantly.",
-    bg: "linear-gradient(135deg, #059669, #064e3b)",
-    color: "#fff",
-    icon: "📝",
-    features: ["Custom Assessment Rubrics", "Automated Grading", "Instant Report Cards"]
+    id: 'staff',
+    emoji: '🏢',
+    title: 'Admin & Staff Demo',
+    subtitle: 'Dashboard · Payroll · Analytics',
+    desc: 'Explore the full administrative suite — manage learners, run payroll, view revenue dashboards, generate school-wide exam summaries, and control all platform settings.',
+    gradient: 'linear-gradient(135deg, #4c1d95 0%, #8b5cf6 100%)',
+    features: ['Revenue Integrity Dashboard', 'Automated Payroll Engine', 'School-Wide Exam Summary Reports', 'Multi-Role Staff Management'],
+    href: '/demo/staff',
   },
-  {
-    title: "Smart Financials",
-    subtitle: "Transparency & Growth",
-    content: "Real-time fee collection, arrears tracking, and digital statement generation for every parent.",
-    bg: "linear-gradient(135deg, #2563eb, #1e3a8a)",
-    color: "#fff",
-    icon: "💰",
-    features: ["Collection Analytics", "Instant Statements", "Arrears Management"]
-  },
-  {
-    title: "Real-Time Communication",
-    subtitle: "Bridging the Gap",
-    content: "Connect with parents via integrated SMS and private messaging. Keep everyone informed with global announcements.",
-    bg: "linear-gradient(135deg, #d97706, #92400e)",
-    color: "#fff",
-    icon: "💬",
-    features: ["Integrated SMS API", "Staff-Parent Messaging", "Global Banner Alerts"]
-  },
-  {
-    title: "Premium Value",
-    subtitle: "A Sound Investment",
-    content: "Empower your school with technology valued at KES 50,000. Low operational costs, high institutional impact.",
-    bg: "linear-gradient(135deg, #7c3aed, #4c1d95)",
-    color: "#fff",
-    icon: "💎",
-    cta: "Launch Portal"
-  }
 ];
 
-export default function DemoPage() {
-  const [current, setCurrent] = useState(0);
-  const [animating, setAnimating] = useState(false);
-
-  const next = () => {
-    if (animating) return;
-    setAnimating(true);
-    setCurrent((prev) => (prev + 1) % slides.length);
-    setTimeout(() => setAnimating(false), 600);
-  };
-
-  const prev = () => {
-    if (animating) return;
-    setAnimating(true);
-    setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
-    setTimeout(() => setAnimating(false), 600);
-  };
-
-  useEffect(() => {
-    const handleKey = (e) => {
-      if (e.key === 'ArrowRight' || e.key === ' ') next();
-      if (e.key === 'ArrowLeft') prev();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [animating]);
-
-  const slide = slides[current];
-
+export default function DemoHubPage() {
   return (
-    <div style={{ 
-      height: '100vh', 
-      width: '100vw', 
-      background: slide.bg, 
-      color: slide.color, 
-      transition: 'background 0.8s ease',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'Sora, sans-serif',
-      overflow: 'hidden',
-      position: 'relative'
-    }}>
-      <style jsx global>{`
-        @keyframes slideIn {
-          from { transform: translateY(30px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes iconBounce {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.1); }
-        }
-        .animate-in { animation: slideIn 0.8s ease forwards; }
-        .icon-anim { animation: iconBounce 3s infinite ease-in-out; }
+    <div style={{ minHeight: '100vh', background: '#0F172A', fontFamily: 'Sora, sans-serif', color: '#fff', overflow: 'hidden', position: 'relative' }}>
+      {/* Background mesh */}
+      <div style={{ position: 'fixed', inset: 0, background: 'radial-gradient(circle at 20% 20%, rgba(79,70,229,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(16,185,129,0.1) 0%, transparent 50%)', pointerEvents: 'none', zIndex: 0 }} />
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&display=swap');
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shimmer { 0%,100% { opacity: .6; } 50% { opacity: 1; } }
+        .demo-card { transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s; border: 1px solid rgba(255,255,255,.08); }
+        .demo-card:hover { transform: translateY(-10px) scale(1.01); box-shadow: 0 40px 80px rgba(0,0,0,.5); }
+        .feat-li::before { content: '✓'; color: rgba(255,255,255,.7); margin-right: 8px; font-weight: 900; }
+        .back-link { color: rgba(255,255,255,.5); font-size: 13px; font-weight: 700; text-decoration: none; transition: color .2s; }
+        .back-link:hover { color: #fff; }
       `}</style>
 
-      <div className="animate-in" style={{ textAlign: 'center', maxWidth: 800, padding: '0 40px' }}>
-        <div className="icon-anim" style={{ fontSize: 120, marginBottom: 20 }}>{slide.icon}</div>
-        <h1 style={{ fontSize: '3.5rem', fontWeight: 900, marginBottom: 10, lineHeight: 1.1 }}>{slide.title}</h1>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 500, opacity: 0.8, marginBottom: 30 }}>{slide.subtitle}</h2>
-        <p style={{ fontSize: '1.25rem', lineHeight: 1.6, opacity: 0.9, marginBottom: 40 }}>{slide.content}</p>
-        
-        {slide.features && (
-          <div style={{ display: 'flex', gap: 15, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
-            {slide.features.map(f => (
-              <span key={f} style={{ background: 'rgba(255,255,255,0.15)', padding: '10px 24px', borderRadius: 50, fontSize: 14, fontWeight: 600, border: '1px solid rgba(255,255,255,0.2)' }}>
-                {f}
-              </span>
-            ))}
-          </div>
-        )}
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 1160, margin: '0 auto', padding: '60px 24px 80px' }}>
+        {/* Back link */}
+        <Link href="/" className="back-link">← Back to EduVantage</Link>
 
-        {slide.cta && (
-          <Link href="/dashboard" style={{ 
-            display: 'inline-block',
-            background: '#fff',
-            color: slide.bg.includes('#7c3aed') ? '#7c3aed' : '#8B1A1A',
-            padding: '16px 40px',
-            borderRadius: 50,
-            fontSize: 18,
-            fontWeight: 800,
-            textDecoration: 'none',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-            transition: 'transform 0.2s'
-          }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-            {slide.cta}
-          </Link>
-        )}
-      </div>
+        {/* Hero text */}
+        <div style={{ textAlign: 'center', marginTop: 48, marginBottom: 72, animation: 'fadeUp .8s ease forwards' }}>
+          <div style={{ display: 'inline-block', padding: '6px 20px', borderRadius: 99, background: 'rgba(79,70,229,.15)', border: '1px solid rgba(79,70,229,.3)', fontSize: 13, fontWeight: 800, color: '#818CF8', marginBottom: 24 }}>🚀 Live Demo Experience</div>
+          <h1 style={{ fontSize: 'clamp(36px,6vw,72px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', margin: '0 0 20px' }}>
+            See EduVantage<br />
+            <span style={{ background: 'linear-gradient(135deg, #818CF8, #34D399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>in action.</span>
+          </h1>
+          <p style={{ fontSize: 20, color: 'rgba(255,255,255,.6)', maxWidth: 560, margin: '0 auto', lineHeight: 1.6 }}>
+            Choose your role below to explore a fully-detailed walkthrough of exactly what each stakeholder experiences daily.
+          </p>
+        </div>
 
-      {/* Controls */}
-      <div style={{ position: 'absolute', bottom: 40, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 20, alignItems: 'center' }}>
-        <button onClick={prev} style={{ background: 'rgba(255,255,255,0.1)', border: '1.5px solid rgba(255,255,255,0.3)', borderRadius: '50%', width: 50, height: 50, color: '#fff', cursor: 'pointer', fontSize: 20 }}>←</button>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {slides.map((_, i) => (
-            <div key={i} style={{ width: i === current ? 30 : 8, height: 8, background: i === current ? '#fff' : 'rgba(255,255,255,0.3)', borderRadius: 10, transition: 'all 0.3s' }} />
+        {/* Role cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px,1fr))', gap: 28 }}>
+          {ROLES.map((role, i) => (
+            <Link key={role.id} href={role.href} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="demo-card" style={{ borderRadius: 28, overflow: 'hidden', background: 'rgba(255,255,255,.03)', animation: `fadeUp .8s ${i * 0.12}s ease both` }}>
+                {/* Card gradient top */}
+                <div style={{ background: role.gradient, padding: '36px 32px 28px', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: -30, right: -30, width: 150, height: 150, borderRadius: '50%', background: 'rgba(255,255,255,.05)' }} />
+                  <div style={{ fontSize: 56, marginBottom: 12, animation: 'shimmer 4s infinite' }}>{role.emoji}</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 4 }}>{role.title}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.75, textTransform: 'uppercase', letterSpacing: 1 }}>{role.subtitle}</div>
+                </div>
+
+                {/* Card body */}
+                <div style={{ padding: '28px 32px 32px' }}>
+                  <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,.65)', lineHeight: 1.65, marginBottom: 24 }}>{role.desc}</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
+                    {role.features.map(f => (
+                      <div key={f} className="feat-li" style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.85)' }}>{f}</div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 20, borderTop: '1px solid rgba(255,255,255,.08)' }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', letterSpacing: 1 }}>Launch Demo</span>
+                    <span style={{ fontSize: 22, color: 'rgba(255,255,255,.5)' }}>→</span>
+                  </div>
+                </div>
+              </div>
+            </Link>
           ))}
         </div>
-        <button onClick={next} style={{ background: 'rgba(255,255,255,0.1)', border: '1.5px solid rgba(255,255,255,0.3)', borderRadius: '50%', width: 50, height: 50, color: '#fff', cursor: 'pointer', fontSize: 20 }}>→</button>
-      </div>
 
-      <div style={{ position: 'absolute', top: 40, left: 40, fontSize: 14, fontWeight: 700, letterSpacing: 2, opacity: 0.5 }}>
-        PAAV PORTAL // 2026
-      </div>
-      <div style={{ position: 'absolute', top: 40, right: 40, fontSize: 14, fontWeight: 700, opacity: 0.5 }}>
-        {current + 1} / {slides.length}
+        {/* Bottom CTA */}
+        <div style={{ textAlign: 'center', marginTop: 72 }}>
+          <p style={{ color: 'rgba(255,255,255,.4)', marginBottom: 20, fontSize: 14 }}>Ready to onboard your school?</p>
+          <Link href="/saas/signup" style={{ display: 'inline-block', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: '#fff', padding: '14px 40px', borderRadius: 99, fontWeight: 800, fontSize: 16, textDecoration: 'none', boxShadow: '0 20px 40px rgba(79,70,229,.4)', transition: 'transform .2s' }}
+            onMouseOver={e => e.currentTarget.style.transform = 'translateY(-3px)'}
+            onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+            Start Free Trial →
+          </Link>
+        </div>
       </div>
     </div>
   );
