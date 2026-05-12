@@ -8,7 +8,7 @@ const ROLES = [
     emoji: '👩‍🏫',
     title: 'Teacher Demo',
     subtitle: 'Mark Books · Attendance · Analytics',
-    desc: 'Experience the digital classroom from a teacher's perspective — enter marks, take attendance, view merit lists, and print professional report cards instantly.',
+    desc: "Experience the digital classroom from a teacher's perspective — enter marks, take attendance, view merit lists, and print professional report cards instantly.",
     gradient: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
     features: ['Digital Mark Entry (CBC / Cambridge / British)', 'One-Click Attendance', 'Instant Merit List & Rankings', 'Print Report Cards & Templates'],
     href: '/demo/teacher',
