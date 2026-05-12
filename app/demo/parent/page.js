@@ -1,5 +1,4 @@
 'use client';
-export const runtime = 'edge';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
@@ -37,11 +36,11 @@ export default function ParentDemoPage() {
   const [playing, setPlaying] = useState(true);
 
   // Scene-specific
-  const [feeAmt, setFeeAmt]   = useState(0);    // counting-up balance
-  const [feeRows, setFeeRows] = useState(0);    // rows appearing
+  const [feeAmt, setFeeAmt]   = useState(0);
+  const [feeRows, setFeeRows] = useState(0);
   const [cardOpen, setCardOpen] = useState(false);
-  const [visRows, setVisRows]  = useState(0);   // report rows appearing
-  const [alertN, setAlertN]   = useState(0);   // alerts popping
+  const [visRows, setVisRows]  = useState(0);
+  const [alertN, setAlertN]   = useState(0);
 
   function reset() { setFeeAmt(0); setFeeRows(0); setCardOpen(false); setVisRows(0); setAlertN(0); }
 
@@ -57,11 +56,10 @@ export default function ParentDemoPage() {
   }, [si, playing]);
 
   useEffect(() => {
+    if (!playing) return;
     if (si === 1) {
-      // Count up fee amount
       let v = 0; const target = 4500;
       const iv = setInterval(() => { v = Math.min(v + 150, target); setFeeAmt(v); if (v >= target) clearInterval(iv); }, 60);
-      // Rows appear
       let r = 0;
       const iv2 = setInterval(() => { r++; setFeeRows(r); if (r >= FEE_ROWS.length) clearInterval(iv2); }, 500);
       return () => { clearInterval(iv); clearInterval(iv2); };
@@ -77,66 +75,44 @@ export default function ParentDemoPage() {
       const iv = setInterval(() => { n++; setAlertN(n); if (n >= ALERTS.length) clearInterval(iv); }, 700);
       return () => clearInterval(iv);
     }
-  }, [si]);
+  }, [si, playing]);
 
   function jump(i) { reset(); setProg(0); setSi(i); }
 
   return (
-    <div style={{ minHeight:'100vh', background:'#030712', fontFamily:'Sora,sans-serif', color:'#fff', display:'flex', flexDirection:'column' }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800;900&display=swap');
-        @keyframes fadeUp  { from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)} }
-        @keyframes pop     { from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)} }
-        @keyframes slideIn { from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)} }
-        @keyframes cardFlip{ from{opacity:0;transform:perspective(600px) rotateX(-15deg)}to{opacity:1;transform:perspective(600px) rotateX(0)} }
-        .pop  { animation:pop     .35s ease forwards }
-        .fup  { animation:fadeUp  .4s  ease forwards }
-        .sli  { animation:slideIn .4s  ease forwards }
-        .cflp { animation:cardFlip .5s cubic-bezier(.16,1,.3,1) forwards }
-        .sdot { width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.2);border:none;cursor:pointer;transition:.2s; }
-        .sdot.on { background:#10b981;transform:scale(1.5); }
-        .sdot:hover { background:rgba(255,255,255,.5); }
-        .cbtn { background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:Sora,sans-serif; }
-        .cbtn:hover { background:rgba(255,255,255,.15); }
-      `}</style>
-
+    <div style={{ minHeight:'100vh', background:'#030712', fontFamily:'Sora, sans-serif', color:'#fff', display:'flex', flexDirection:'column' }}>
       <div style={{ padding:'14px 24px', display:'flex', alignItems:'center', borderBottom:'1px solid rgba(255,255,255,.06)' }}>
         <Link href="/demo" style={{ color:'rgba(255,255,255,.4)', fontSize:13, fontWeight:700, textDecoration:'none' }}>← Demo Hub</Link>
         <div style={{ marginLeft:'auto', padding:'4px 14px', borderRadius:99, background:'rgba(16,185,129,.15)', border:'1px solid rgba(16,185,129,.3)', fontSize:12, fontWeight:800, color:'#6ee7b7' }}>👨‍👩‍👧 Parent Demo</div>
       </div>
 
       <div style={{ flex:1, maxWidth:1060, margin:'0 auto', width:'100%', padding:'28px 24px 40px', display:'flex', flexDirection:'column', gap:24 }}>
-        <div className="fup" key={`t${si}`} style={{ textAlign:'center' }}>
+        <div className="demo-fup" key={`t${si}`} style={{ textAlign:'center' }}>
           <div style={{ fontSize:'clamp(22px,4vw,38px)', fontWeight:900, letterSpacing:'-0.03em', marginBottom:6 }}>{SCENES[si].label}</div>
-          <div style={{ color:'rgba(255,255,255,.35)', fontSize:13, fontWeight:600 }}>Scene {si+1} of {SCENES.length} · auto-playing</div>
+          <div style={{ color:'rgba(255,255,255,.35)', fontSize:13, fontWeight:600 }}>Scene {si+1} of {SCENES.length} · {playing ? 'auto-playing' : 'paused'}</div>
         </div>
 
-        <div style={{ background:'#0F172A', borderRadius:20, border:'1px solid rgba(255,255,255,.07)', overflow:'hidden' }}>
-          {/* Phone-style top bar */}
-          <div style={{ background:'#1E293B', padding:'9px 16px', display:'flex', gap:6, alignItems:'center', borderBottom:'1px solid rgba(255,255,255,.06)' }}>
-            {['#ef4444','#f59e0b','#10b981'].map(c => <div key={c} style={{ width:9, height:9, borderRadius:'50%', background:c }} />)}
-            <div style={{ marginLeft:10, flex:1, background:'rgba(255,255,255,.05)', borderRadius:5, padding:'3px 10px', fontSize:10, color:'rgba(255,255,255,.25)' }}>app.eduvantage.co.ke/nexed — Parent Portal</div>
+        <div className="demo-canvas-wrap">
+          <div className="demo-browser-bar">
+            {['#ef4444','#f59e0b','#10b981'].map(c => <div key={c} className="demo-dot" style={{ background:c }} />)}
+            <div className="demo-url-bar">app.eduvantage.co.ke — Parent Portal</div>
           </div>
 
           <div style={{ padding:'22px', minHeight:360 }} key={`s${si}`}>
-
-            {/* Scene 0: Login */}
             {si === 0 && (
-              <div className="fup" style={{ display:'flex', flexDirection:'column', alignItems:'center', paddingTop:40, gap:20 }}>
+              <div className="demo-fup" style={{ display:'flex', flexDirection:'column', alignItems:'center', paddingTop:40, gap:20 }}>
                 <div style={{ fontSize:56 }}>👨‍👩‍👧</div>
                 <div style={{ fontWeight:900, fontSize:18 }}>EduVantage Parent Portal</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:10, width:300 }}>
                   <div style={{ padding:'11px 16px', borderRadius:10, background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.12)', fontSize:13, color:'rgba(255,255,255,.5)' }}>📱 +254 712 345 678</div>
                   <div style={{ padding:'11px 16px', borderRadius:10, background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.12)', fontSize:13, color:'rgba(255,255,255,.3)', letterSpacing:4 }}>••••••••</div>
-                  <div style={{ padding:'12px', borderRadius:10, background:'#10b981', textAlign:'center', fontWeight:900, fontSize:14, cursor:'pointer' }}>Sign In →</div>
+                  <div style={{ padding:'12px', borderRadius:10, background:'#10b981', textAlign:'center', fontWeight:900, fontSize:14 }}>Sign In →</div>
                 </div>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,.3)' }}>Secured with phone-number verification</div>
               </div>
             )}
 
-            {/* Scene 1: Fee Statement */}
             {si === 1 && (
-              <div className="fup">
+              <div className="demo-fup">
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:20, paddingBottom:16, borderBottom:'1px solid rgba(255,255,255,.08)' }}>
                   <div>
                     <div style={{ fontSize:10, color:'#94a3b8', textTransform:'uppercase', fontWeight:800 }}>Learner</div>
@@ -145,17 +121,17 @@ export default function ParentDemoPage() {
                   </div>
                   <div style={{ textAlign:'right' }}>
                     <div style={{ fontSize:10, color:'#94a3b8', textTransform:'uppercase', fontWeight:800 }}>Outstanding Balance</div>
-                    <div className="pop" style={{ fontSize:28, fontWeight:900, color:'#ef4444', marginTop:4 }}>KES {feeAmt.toLocaleString()}</div>
+                    <div className="demo-pop" style={{ fontSize:28, fontWeight:900, color:'#ef4444', marginTop:4 }}>KES {feeAmt.toLocaleString()}</div>
                   </div>
                 </div>
                 {FEE_ROWS.slice(0, feeRows).map((r, i) => (
-                  <div key={r.label} className="sli" style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px dashed rgba(255,255,255,.07)' }}>
+                  <div key={r.label} className="demo-slide" style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px dashed rgba(255,255,255,.07)' }}>
                     <span style={{ color:'#94a3b8', fontSize:13 }}>{r.label}</span>
                     <span style={{ fontWeight:800, color:r.color, fontSize:14 }}>KES {r.val.toLocaleString()}</span>
                   </div>
                 ))}
                 {feeRows >= FEE_ROWS.length && (
-                  <div className="pop" style={{ marginTop:20, padding:'12px 16px', borderRadius:12, background:'rgba(239,68,68,.08)', border:'1px solid rgba(239,68,68,.2)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <div className="demo-pop" style={{ marginTop:20, padding:'12px 16px', borderRadius:12, background:'rgba(239,68,68,.08)', border:'1px solid rgba(239,68,68,.2)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ fontWeight:800, color:'#fca5a5', fontSize:13 }}>💳 Pay Now via M-Pesa STK Push</span>
                     <span style={{ fontSize:18, color:'#ef4444' }}>→</span>
                   </div>
@@ -163,9 +139,8 @@ export default function ParentDemoPage() {
               </div>
             )}
 
-            {/* Scene 2: Report Card */}
             {si === 2 && (
-              <div className="fup" style={{ display:'flex', gap:24 }}>
+              <div className="demo-fup" style={{ display:'flex', gap:24 }}>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:11, fontWeight:800, color:'#475569', textTransform:'uppercase', letterSpacing:1, marginBottom:16 }}>📋 Term 2 End-Term Report Card</div>
                   <div style={{ display:'flex', gap:10, marginBottom:16 }}>
@@ -177,35 +152,32 @@ export default function ParentDemoPage() {
                     <div style={{ fontSize:11, color:'#94a3b8', marginBottom:8 }}>Performance Summary</div>
                     <div style={{ fontSize:28, fontWeight:900, color:'#34d399' }}>82.4%</div>
                     <div style={{ padding:'4px 12px', borderRadius:8, display:'inline-block', background:'rgba(5,150,105,.2)', color:'#34d399', fontSize:12, fontWeight:900, marginTop:6 }}>EE — Exceeds Expectations</div>
-                    <div style={{ fontSize:11, color:'rgba(255,255,255,.4)', marginTop:8 }}>Rank: #1 of 32 students</div>
                   </div>
                 </div>
                 {cardOpen && (
-                  <div className="cflp" style={{ width:230, background:'#fff', borderRadius:12, padding:14, color:'#1e293b', fontSize:10, boxShadow:'0 24px 60px rgba(0,0,0,.6)', border:'3px double #1e293b', flexShrink:0 }}>
+                  <div className="demo-card-flip" style={{ width:230, background:'#fff', borderRadius:12, padding:14, color:'#1e293b', fontSize:10, boxShadow:'0 24px 60px rgba(0,0,0,.6)', border:'3px double #1e293b', flexShrink:0 }}>
                     <div style={{ textAlign:'center', marginBottom:10, borderBottom:'2px solid #1e293b', paddingBottom:8 }}>
                       <div style={{ fontWeight:900, fontSize:11 }}>GREEN VALLEY ACADEMY</div>
-                      <div style={{ fontSize:8, color:'#64748b' }}>REPORT CARD · TERM 2 · 2025</div>
+                      <div style={{ fontSize:8, color:'#64748b' }}>REPORT CARD · TERM 2</div>
                     </div>
                     <div style={{ fontWeight:800, marginBottom:10 }}>Alice Mwangi · Grade 4 · #1</div>
                     {SUBJ.slice(0, visRows).map((s, i) => (
-                      <div key={s} className="sli" style={{ display:'flex', justifyContent:'space-between', padding:'5px 0', borderBottom:'1px solid #f1f5f9' }}>
+                      <div key={s} className="demo-slide" style={{ display:'flex', justifyContent:'space-between', padding:'5px 0', borderBottom:'1px solid #f1f5f9' }}>
                         <span style={{ fontWeight:700 }}>{s}</span>
                         <span style={{ fontWeight:900, color:'#0369a1' }}>{MARKS[i]}</span>
                         <span style={{ padding:'1px 6px', borderRadius:4, background: LVC[LEVELS[i]]+'22', color:LVC[LEVELS[i]], fontWeight:900 }}>{LEVELS[i]}</span>
                       </div>
                     ))}
-                    {visRows >= SUBJ.length && <div className="pop" style={{ marginTop:8, padding:'5px', background:'#f0fdf4', borderRadius:6, textAlign:'center', fontSize:8, fontWeight:800, color:'#059669' }}>✅ QR-Verified · Tap to scan</div>}
                   </div>
                 )}
               </div>
             )}
 
-            {/* Scene 3: Alerts */}
             {si === 3 && (
-              <div className="fup" style={{ display:'flex', flexDirection:'column', gap:12 }}>
+              <div className="demo-fup" style={{ display:'flex', flexDirection:'column', gap:12 }}>
                 <div style={{ fontSize:11, fontWeight:800, color:'#475569', textTransform:'uppercase', letterSpacing:1, marginBottom:8 }}>📲 Notifications</div>
                 {ALERTS.slice(0, alertN).map(a => (
-                  <div key={a.title} className="sli" style={{ padding:'14px 16px', borderRadius:14, background:'rgba(255,255,255,.04)', border:`1px solid ${a.c}33`, display:'flex', gap:14 }}>
+                  <div key={a.title} className="demo-slide" style={{ padding:'14px 16px', borderRadius:14, background:'rgba(255,255,255,.04)', border:`1px solid ${a.c}33`, display:'flex', gap:14 }}>
                     <div style={{ fontSize:24, flexShrink:0 }}>{a.icon}</div>
                     <div style={{ flex:1 }}>
                       <div style={{ fontWeight:800, fontSize:13, color:a.c, marginBottom:4 }}>{a.title}</div>
@@ -217,10 +189,9 @@ export default function ParentDemoPage() {
               </div>
             )}
 
-            {/* Scene 4: Full portal overview */}
             {si === 4 && (
-              <div className="fup">
-                <div style={{ fontSize:11, fontWeight:800, color:'#475569', textTransform:'uppercase', letterSpacing:1, marginBottom:16 }}>🌐 Parent Portal — Alice Mwangi</div>
+              <div className="demo-fup">
+                <div style={{ fontSize:11, fontWeight:800, color:'#475569', textTransform:'uppercase', letterSpacing:1, marginBottom:16 }}>🌐 Parent Portal Overview</div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
                   {[
                     { icon:'💳', label:'Fee Balance', val:'KES 4,500 due', c:'#f87171' },
@@ -230,7 +201,7 @@ export default function ParentDemoPage() {
                     { icon:'📲', label:'Messages', val:'2 unread', c:'#818cf8' },
                     { icon:'📅', label:'Next Term', val:'Sept 2, 2025', c:'#f472b6' },
                   ].map((c, i) => (
-                    <div key={c.label} className="pop" style={{ animationDelay:`${i*0.08}s`, padding:'16px 14px', borderRadius:14, background:'rgba(255,255,255,.04)', border:'1px solid rgba(255,255,255,.07)', textAlign:'center' }}>
+                    <div key={c.label} className="demo-pop" style={{ animationDelay:`${i*0.08}s`, padding:'16px 14px', borderRadius:14, background:'rgba(255,255,255,.04)', border:'1px solid rgba(255,255,255,.07)', textAlign:'center' }}>
                       <div style={{ fontSize:28, marginBottom:8 }}>{c.icon}</div>
                       <div style={{ fontSize:10, color:'#94a3b8', fontWeight:800, textTransform:'uppercase', marginBottom:4 }}>{c.label}</div>
                       <div style={{ fontSize:13, fontWeight:900, color:c.c }}>{c.val}</div>
@@ -246,17 +217,16 @@ export default function ParentDemoPage() {
           </div>
         </div>
 
-        {/* Controls */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:16 }}>
-          <button className="cbtn" onClick={() => setPlaying(p => !p)}>{playing ? '⏸ Pause' : '▶ Play'}</button>
-          <div style={{ display:'flex', gap:8 }}>
-            {SCENES.map((_, i) => <button key={i} className={`sdot ${i===si?'on':''}`} onClick={() => jump(i)} />)}
+          <button className="demo-btn" onClick={() => setPlaying(p => !p)}>{playing ? '⏸ Pause' : '▶ Play'}</button>
+          <div style={{ display:'flex', gap:12 }}>
+            {SCENES.map((_, i) => <button key={i} className={`demo-scene-dot ${i===si?'active':''}`} onClick={() => jump(i)} />)}
           </div>
-          <button className="cbtn" onClick={() => jump(0)}>↺ Replay</button>
+          <button className="demo-btn" onClick={() => jump(0)}>↺ Replay</button>
         </div>
 
         <div style={{ textAlign:'center', marginTop:8 }}>
-          <Link href="/login" style={{ display:'inline-block', background:'linear-gradient(135deg,#059669,#10b981)', color:'#fff', padding:'13px 36px', borderRadius:99, fontWeight:800, fontSize:15, textDecoration:'none', boxShadow:'0 16px 40px rgba(16,185,129,.35)' }}>Open Parent Portal →</Link>
+          <Link href="/login" style={{ display:'inline-block', background:'linear-gradient(135deg,#059669,#10b981)', color:'#fff', padding:'13px 40px', borderRadius:99, fontWeight:800, fontSize:15, textDecoration:'none', boxShadow:'0 16px 40px rgba(16,185,129,.35)' }}>Open Parent Portal →</Link>
         </div>
       </div>
     </div>
