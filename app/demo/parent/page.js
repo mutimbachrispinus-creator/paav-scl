@@ -47,34 +47,40 @@ export default function ParentDemoPage() {
   useEffect(() => {
     if (!playing) return;
     const dur = SCENES[si].dur;
-    let t = 0; const steps = dur / 50;
+    const step = 50;
+    const increment = (step / dur) * 100;
+
     const iv = setInterval(() => {
-      t++; setProg((t / steps) * 100);
-      if (t >= steps) { clearInterval(iv); setProg(0); reset(); setSi(p => (p + 1) % SCENES.length); }
-    }, 50);
+      setProg(prev => {
+        const next = prev + increment;
+        if (next >= 100) {
+          clearInterval(iv);
+          reset();
+          setSi(p => (p + 1) % SCENES.length);
+          return 0;
+        }
+        return next;
+      });
+    }, step);
     return () => clearInterval(iv);
   }, [si, playing]);
 
   useEffect(() => {
     if (!playing) return;
+  useEffect(() => {
     if (si === 1) {
-      let v = 0; const target = 4500;
-      const iv = setInterval(() => { v = Math.min(v + 150, target); setFeeAmt(v); if (v >= target) clearInterval(iv); }, 60);
-      let r = 0;
-      const iv2 = setInterval(() => { r++; setFeeRows(r); if (r >= FEE_ROWS.length) clearInterval(iv2); }, 500);
-      return () => { clearInterval(iv); clearInterval(iv2); };
+      const target = 4500;
+      setFeeAmt(Math.floor((prog / 100) * target));
+      setFeeRows(Math.floor((prog / 100) * (FEE_ROWS.length + 1)));
     }
     if (si === 2) {
-      const t1 = setTimeout(() => setCardOpen(true), 400);
-      let r = 0;
-      const iv = setInterval(() => { r++; setVisRows(r); if (r >= SUBJ.length) clearInterval(iv); }, 400);
-      return () => { clearTimeout(t1); clearInterval(iv); };
+      if (prog > 10) setCardOpen(true);
+      setVisRows(Math.floor((prog / 100) * (SUBJ.length + 1)));
     }
     if (si === 3) {
-      let n = 0;
-      const iv = setInterval(() => { n++; setAlertN(n); if (n >= ALERTS.length) clearInterval(iv); }, 700);
-      return () => clearInterval(iv);
+      setAlertN(Math.floor((prog / 100) * (ALERTS.length + 1)));
     }
+  }, [si, prog]);
   }, [si, playing]);
 
   function jump(i) { reset(); setProg(0); setSi(i); }

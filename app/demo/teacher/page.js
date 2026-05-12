@@ -44,38 +44,37 @@ export default function TeacherDemoPage() {
     if (!playing) return;
     const dur = SCENES[si].dur;
     const step = 50;
-    const steps = dur / step;
-    let t = 0;
+    const increment = (step / dur) * 100;
+    
     const iv = setInterval(() => {
-      t++;
-      setProg((t / steps) * 100);
-      if (t >= steps) { 
-        clearInterval(iv); 
-        setProg(0); 
-        resetScene(); 
-        setSi(p => (p + 1) % SCENES.length); 
-      }
+      setProg(prev => {
+        const next = prev + increment;
+        if (next >= 100) {
+          clearInterval(iv);
+          resetScene();
+          setSi(p => (p + 1) % SCENES.length);
+          return 0;
+        }
+        return next;
+      });
     }, step);
     return () => clearInterval(iv);
   }, [si, playing]);
 
-  // Scene animations
+  // Scene animations (synced with progress)
   useEffect(() => {
-    if (!playing) return;
     if (si === 1) {
-      let c = 0;
-      const iv = setInterval(() => { c++; setTyped(c); if (c >= total) clearInterval(iv); }, SCENES[1].dur / (total + 2));
-      return () => clearInterval(iv);
+      const currentTyped = Math.floor((prog / 100) * total);
+      setTyped(currentTyped);
     }
-    if (si === 2) { const t = setTimeout(() => setLvs(true), 400); return () => clearTimeout(t); }
-    if (si === 3) { const t = setTimeout(() => setRnks(true), 400); return () => clearTimeout(t); }
+    if (si === 2) { if (prog > 15) setLvs(true); }
+    if (si === 3) { if (prog > 15) setRnks(true); }
     if (si === 4) {
-      let c = 0;
-      const iv = setInterval(() => { c++; setAtt(c); if (c >= LEARNERS.length) clearInterval(iv); }, SCENES[4].dur / (LEARNERS.length + 1));
-      return () => clearInterval(iv);
+      const currentAtt = Math.floor((prog / 100) * LEARNERS.length);
+      setAtt(currentAtt);
     }
-    if (si === 5) { const t = setTimeout(() => setCard(true), 700); return () => clearTimeout(t); }
-  }, [si, playing]);
+    if (si === 5) { if (prog > 20) setCard(true); }
+  }, [si, prog]);
 
   function jump(i) { resetScene(); setProg(0); setSi(i); }
 

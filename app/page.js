@@ -103,6 +103,31 @@ export default function LandingPage() {
             <Link href="/demo" className="btn btn-xl btn-outline glass-btn">Explore Live Demo →</Link>
           </div>
 
+          {/* Floating UI Grid */}
+          <div className="experience-grid desktop-only">
+             <div className="exp-card teacher-exp fade-in-up" style={{ animationDelay: '0.2s' }}>
+                <div className="exp-icon">👩‍🏫</div>
+                <div className="exp-info">
+                   <strong>Teacher Portal</strong>
+                   <span>Digital Markbook · Attendance</span>
+                </div>
+             </div>
+             <div className="exp-card parent-exp fade-in-up" style={{ animationDelay: '0.4s' }}>
+                <div className="exp-icon">👨‍👩‍👧</div>
+                <div className="exp-info">
+                   <strong>Parent Portal</strong>
+                   <span>Live Fees · Report Cards</span>
+                </div>
+             </div>
+             <div className="exp-card staff-exp fade-in-up" style={{ animationDelay: '0.6s' }}>
+                <div className="exp-icon">🏢</div>
+                <div className="exp-info">
+                   <strong>Admin Suite</strong>
+                   <span>Payroll · Revenue Dashboard</span>
+                </div>
+             </div>
+          </div>
+
           <div className="hero-mockup">
             <div className="mockup-frame">
               <img src="/eduvantage-hero-new.png" alt="Dashboard Mockup" className="mockup-img" />
@@ -547,6 +572,15 @@ export default function LandingPage() {
         }
         
         .glass-btn { background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); }
+
+        /* Experience Grid */
+        .experience-grid { display: flex; gap: 20px; justify-content: center; margin-bottom: 60px; }
+        .exp-card { background: #fff; padding: 16px 24px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 16px; border: 1px solid rgba(0,0,0,0.03); transition: 0.3s; }
+        .exp-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 20px 40px rgba(79,70,229,0.1); border-color: rgba(79,70,229,0.2); }
+        .exp-icon { font-size: 28px; }
+        .exp-info { text-align: left; }
+        .exp-info strong { display: block; font-size: 15px; color: ${DARK}; }
+        .exp-info span { font-size: 12px; color: ${SLATE}; font-weight: 600; }
 
         /* Hero */
         .hero { padding: 200px 0 100px; position: relative; text-align: center; overflow: hidden; background: #FAFAFB; }

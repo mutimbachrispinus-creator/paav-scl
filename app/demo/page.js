@@ -42,8 +42,15 @@ export default function DemoHubPage() {
 
 
 
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: 1160, margin: '0 auto', padding: '60px 24px 80px' }}>
-        <Link href="/" className="back-link">← Back to EduVantage</Link>
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 1160, margin: '0 auto', padding: '40px 24px 80px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <Link href="/" className="back-link">← Back to Home</Link>
+          <div style={{ display: 'flex', gap: 10 }}>
+             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#34D399' }} />
+             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#F59E0B' }} />
+             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444' }} />
+          </div>
+        </div>
 
         <div className="demo-fup" style={{ textAlign: 'center', marginTop: 48, marginBottom: 72 }}>
           <div style={{ display: 'inline-block', padding: '6px 20px', borderRadius: 99, background: 'rgba(79,70,229,.15)', border: '1px solid rgba(79,70,229,.3)', fontSize: 13, fontWeight: 800, color: '#818CF8', marginBottom: 24 }}>🚀 Live Demo Experience</div>
@@ -62,9 +69,9 @@ export default function DemoHubPage() {
               <div className="demo-card demo-fup" style={{ borderRadius: 28, overflow: 'hidden', background: 'rgba(255,255,255,.03)', animationDelay: `${i * 0.12}s` }}>
                 <div style={{ background: role.gradient, padding: '36px 32px 28px', position: 'relative', overflow: 'hidden' }}>
                   <div style={{ position: 'absolute', top: -30, right: -30, width: 150, height: 150, borderRadius: '50%', background: 'rgba(255,255,255,.05)' }} />
-                  <div className="demo-shimmer" style={{ fontSize: 56, marginBottom: 12 }}>{role.emoji}</div>
-                  <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 4 }}>{role.title}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.75, textTransform: 'uppercase', letterSpacing: 1 }}>{role.subtitle}</div>
+                  <div className="demo-shimmer" style={{ fontSize: 62, marginBottom: 16 }}>{role.emoji}</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, marginBottom: 4, letterSpacing: '-0.02em' }}>{role.title}</div>
+                  <div style={{ fontSize: 11, fontWeight: 800, opacity: 0.7, textTransform: 'uppercase', letterSpacing: 2 }}>{role.subtitle}</div>
                 </div>
 
                 <div style={{ padding: '28px 32px 32px' }}>

@@ -44,50 +44,57 @@ export default function StaffDemoPage() {
 
   useEffect(() => {
     if (!playing) return;
-    const dur = SCENES[si].dur; let t = 0; const steps = dur / 50;
+    const dur = SCENES[si].dur;
+    const step = 50;
+    const increment = (step / dur) * 100;
+
     const iv = setInterval(() => {
-      t++; setProg((t / steps) * 100);
-      if (t >= steps) { clearInterval(iv); setProg(0); reset(); setSi(p => (p + 1) % SCENES.length); }
-    }, 50);
+      setProg(prev => {
+        const next = prev + increment;
+        if (next >= 100) {
+          clearInterval(iv);
+          reset();
+          setSi(p => (p + 1) % SCENES.length);
+          return 0;
+        }
+        return next;
+      });
+    }, step);
     return () => clearInterval(iv);
   }, [si, playing]);
 
   useEffect(() => {
     if (!playing) return;
+  useEffect(() => {
     if (si === 0) {
-      let v = 0; const target = 3200000;
-      const iv = setInterval(() => { v = Math.min(v + 64000, target); setRevCount(v); if (v >= target) clearInterval(iv); }, 60);
-      const t = setTimeout(() => {
-        GRADES.forEach((g, i) => {
-          setTimeout(() => setBarWidths(prev => { const n=[...prev]; n[i]=g.pct; return n; }), i * 200);
-        });
-      }, 800);
-      return () => { clearInterval(iv); clearTimeout(t); };
+      const target = 3200000;
+      setRevCount(Math.floor((prog / 100) * target));
+      if (prog > 20) {
+        setBarWidths(GRADES.map((g, i) => {
+          const delay = i * 10;
+          return prog > 20 + delay ? g.pct : 0;
+        }));
+      }
     }
     if (si === 1) {
-      let r = 0;
-      const iv = setInterval(() => { r++; setLearnerRows(r); if (r >= 6) clearInterval(iv); }, 400);
-      return () => clearInterval(iv);
+      setLearnerRows(Math.floor((prog / 100) * 7));
     }
     if (si === 2) {
-      let r = 0;
-      const iv = setInterval(() => { r++; setStaffRows(r); if (r >= STAFF.length) clearInterval(iv); }, 500);
-      const t = setTimeout(() => setDisbursed(true), 3000);
-      return () => { clearInterval(iv); clearTimeout(t); };
+      setStaffRows(Math.floor((prog / 100) * (STAFF.length + 1)));
+      if (prog > 85) setDisbursed(true);
     }
     if (si === 3) {
-      const t = setTimeout(() => {
-        GRADES.forEach((g, i) => {
-          const pct = 55 + Math.random() * 40;
-          setTimeout(() => setExamBars(prev => { const n=[...prev]; n[i]=pct; return n; }), i * 250);
-        });
-      }, 500);
-      return () => clearTimeout(t);
+      if (prog > 10) {
+        setExamBars(GRADES.map((g, i) => {
+          const delay = i * 8;
+          return prog > 10 + delay ? (55 + (i * 7) % 35) : 0;
+        }));
+      }
     }
     if (si === 4) {
-      const t = setTimeout(() => setSettled(true), 1200);
-      return () => clearTimeout(t);
+      if (prog > 40) setSettled(true);
     }
+  }, [si, prog]);
   }, [si, playing]);
 
   function jump(i) { reset(); setProg(0); setSi(i); }

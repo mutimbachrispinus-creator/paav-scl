@@ -1,11 +1,11 @@
 /* ── INTERACTIVE DEMO HUB STYLES ── */
-@keyframes demoFadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes demoPop     { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
-@keyframes demoShimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
-@keyframes demoPulse   { 0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); } 50% { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); } }
-@keyframes demoCardIn  { from { opacity: 0; transform: rotateY(-15deg) translateX(30px); } to { opacity: 1; transform: rotateY(0) translateX(0); } }
-@keyframes demoCardFlip{ from { opacity: 0; transform: perspective(600px) rotateX(-12deg); } to { opacity: 1; transform: perspective(600px) rotateX(0); } }
-@keyframes demoSlideIn { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes demoFadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes demoPop     { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+@keyframes demoShimmer { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+@keyframes demoPulse   { 0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); } 50% { box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); } }
+@keyframes demoCardIn  { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes demoCardFlip{ from { opacity: 0; transform: perspective(800px) rotateX(-10deg); } to { opacity: 1; transform: perspective(800px) rotateX(0); } }
+@keyframes demoSlideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes demoBlink   { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
 .demo-fup  { animation: demoFadeUp 0.5s ease-out forwards; }
