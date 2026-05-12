@@ -105,7 +105,7 @@ export default function TeacherDemoPage() {
         <div className="demo-canvas-wrap">
           <div className="demo-browser-bar">
             {['#ef4444','#f59e0b','#10b981'].map(c => <div key={c} className="demo-dot" style={{ background:c }} />)}
-            <div className="demo-url-bar">app.eduvantage.co.ke — Grade 4 · Term 2 · End-Term</div>
+            <div className="demo-url-bar">app.eduvantage.co.ke — EduVantage Global School · Teacher Portal</div>
           </div>
 
           <div style={{ padding:'20px 22px', minHeight:340 }} key={`s${si}`}>
@@ -156,7 +156,9 @@ export default function TeacherDemoPage() {
 
             {si === 4 && (
               <div className="demo-fup">
-                <div style={{ fontSize:11, fontWeight:800, color:'#475569', textTransform:'uppercase', letterSpacing:1, marginBottom:16 }}>✅ Attendance — {mounted ? new Date().toLocaleDateString('en-KE',{weekday:'long',day:'numeric',month:'long'}) : 'Loading...'}</div>
+                <div style={{ fontSize:11, fontWeight:800, color:'#475569', textTransform:'uppercase', letterSpacing:1, marginBottom:16 }}>
+                  ✅ Attendance — {mounted ? new Date().toLocaleDateString('en-KE',{weekday:'long',day:'numeric',month:'long'}) : '...'}
+                </div>
                 {LEARNERS.map((l, i) => (
                   <div key={l.name} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,.05)' }}>
                     <span style={{ fontSize:13, fontWeight:700 }}>{l.name}</span>

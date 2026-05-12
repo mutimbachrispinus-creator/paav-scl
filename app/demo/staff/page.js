@@ -117,12 +117,13 @@ export default function StaffDemoPage() {
         <div className="demo-canvas-wrap">
           <div className="demo-browser-bar">
             {['#ef4444','#f59e0b','#10b981'].map(c=><div key={c} className="demo-dot" style={{ background:c }} />)}
-            <div className="demo-url-bar">app.eduvantage.co.ke/admin — School Management</div>
+            <div className="demo-url-bar">app.eduvantage.co.ke/admin — EduVantage Global School · Admin Panel</div>
           </div>
 
           <div style={{ padding:'22px', minHeight:360 }} key={`s${si}`}>
             {si === 0 && (
               <div className="demo-fup">
+                <div style={{ fontSize:13, fontWeight:900, color:'#818cf8', marginBottom:4 }}>EduVantage Global School</div>
                 <div style={{ fontSize:11,fontWeight:800,color:'#475569',textTransform:'uppercase',letterSpacing:1,marginBottom:16 }}>📊 Revenue Integrity Dashboard</div>
                 <div style={{ display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:24 }}>
                   {[

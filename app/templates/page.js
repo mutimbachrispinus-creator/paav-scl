@@ -247,7 +247,7 @@ export default function TemplatesPage() {
           <AttendanceRegisterTemplate learners={filteredLearners} grade={grade} type={regType} att={att} profile={profile} />
         </div>
         <div id="pct-exam_summary" style={{ display: tab === 'exam_summary' ? 'block' : 'none' }}>
-          <ExamSummaryTemplate learners={learners} subjects={subjCfg} marks={marks} gradCfg={gradCfg} profile={profile} />
+          <ExamSummaryTemplate learners={learners} subjects={subjCfg} marks={marks} gradCfg={gradCfg} profile={profile} mainTerm={term} mainAssess={assess} />
         </div>
       </div>
     </div>
@@ -1243,10 +1243,16 @@ function AttendanceRegisterTemplate({ learners, grade, type, att, profile }) {
   );
 }
 
-function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile }) {
-  const [localTerm, setLocalTerm]     = useState('T1');
-  const [localAssess, setLocalAssess] = useState('et1');
+function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, mainTerm, mainAssess }) {
+  const [localTerm, setLocalTerm]     = useState(mainTerm || 'T1');
+  const [localAssess, setLocalAssess] = useState(mainAssess || 'et1');
   const [localGrade, setLocalGrade]   = useState('ALL');
+
+  // Sync with main filters if they change and we are on this tab
+  useEffect(() => {
+    if (mainTerm) setLocalTerm(mainTerm);
+    if (mainAssess) setLocalAssess(mainAssess);
+  }, [mainTerm, mainAssess]);
 
   const term   = localTerm;
   const assess = localAssess;
@@ -1262,31 +1268,62 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile }) {
     const gLearners = scopedLearners.filter(l => l.grade === g);
     if (gLearners.length === 0) return null;
 
-    const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr);
+    // Use custom subjects if available
+    const gSubjs = subjects[g] && subjects[g].length > 0 ? subjects[g] : null;
+    const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr, gSubjs);
+    
     const totalScoreSum = merit.reduce((acc, l) => acc + l.totalMarks, 0);
-    const avgScore = merit.length > 0 ? (totalScoreSum / merit.length).toFixed(1) : 0;
+    const avgScore = merit.length > 0 ? (totalScoreSum / (merit.length * (maxPts(g, gSubjs, curr) || 1)) * 100).toFixed(1) : 0;
     const top = merit[0];
     const dist = getDistributionBuckets(g, curr);
+    
     merit.forEach(l => {
-      const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
+      const lPct = l.maxTotal > 0 ? (l.totalMarks / l.maxTotal * 100) : 0;
       const info = gInfo(lPct, g, gradCfg, curr);
       if (dist[info.lv] !== undefined) dist[info.lv]++;
     });
-    return { grade: g, count: gLearners.length, avgScore, top, dist };
+    
+    return { grade: g, count: gLearners.length, sitting: merit.length, avgScore, top, dist };
   }).filter(Boolean);
 
   const totalStudents = scopedLearners.length;
   const schoolAvg = gradeStats.length > 0
     ? (gradeStats.reduce((acc, g) => acc + parseFloat(g.avgScore), 0) / gradeStats.length).toFixed(1)
     : 0;
-  const schoolDist = getDistributionBuckets(ALL_GRADES[0] || 'Grade 1', curr);
+
+  // Aggregate distribution safely across all possible levels (Primary + JSS)
+  const schoolDist = { ...getDistributionBuckets('GRADE 1', curr), ...getDistributionBuckets('GRADE 7', curr) };
+  // Reset counts to zero
+  Object.keys(schoolDist).forEach(k => schoolDist[k] = 0);
+
   gradeStats.forEach(g => {
     Object.entries(g.dist).forEach(([lv, count]) => {
       if (schoolDist[lv] !== undefined) schoolDist[lv] += count;
+      else schoolDist[lv] = count; // Ensure new levels are added
     });
   });
 
-  const scopeLabel = localGrade === 'ALL' ? 'ALL GRADES' : localGrade;
+  // Aggregate subject performance
+  const subjMap = {};
+  filteredGrades.forEach(g => {
+    const gLearners = scopedLearners.filter(l => l.grade === g);
+    const gSubjs = subjects[g] && subjects[g].length > 0 ? subjects[g] : getDefaultSubjects(g, curr);
+    gLearners.forEach(l => {
+      gSubjs.forEach(s => {
+        const score = getMark(marks, term, g, s, assess, l.adm);
+        if (score !== null) {
+          if (!subjMap[s]) subjMap[s] = { total: 0, count: 0 };
+          subjMap[s].total += score;
+          subjMap[s].count++;
+        }
+      });
+    });
+  });
+  const subjectStats = Object.entries(subjMap).map(([name, data]) => {
+    const avg = data.total / data.count;
+    return { name, avg: avg.toFixed(1), count: data.count };
+  }).sort((a, b) => b.avg - a.avg);
+
   const titleLabel = localGrade === 'ALL' ? 'SCHOOL ACADEMIC SUMMARY' : `${localGrade} ACADEMIC SUMMARY`;
 
   return (
@@ -1359,7 +1396,7 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile }) {
             <thead>
               <tr style={{ background: '#F1F5F9', borderBottom: '2px solid #E2E8F0' }}>
                 <th style={{ padding: 10, textAlign: 'left' }}>Grade Level</th>
-                <th style={{ padding: 10, textAlign: 'center' }}>Learners</th>
+                <th style={{ padding: 10, textAlign: 'center' }}>Sitting / Enrolled</th>
                 <th style={{ padding: 10, textAlign: 'center' }}>Mean %</th>
                 <th style={{ padding: 10, textAlign: 'center' }}>Mean Lv</th>
                 <th style={{ padding: 10, textAlign: 'left' }}>Top Performer</th>
@@ -1371,7 +1408,7 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile }) {
                 return (
                   <tr key={g.grade} style={{ borderBottom: '1px solid #F1F5F9' }}>
                     <td style={{ padding: 10, fontWeight: 800 }}>{g.grade}</td>
-                    <td style={{ padding: 10, textAlign: 'center' }}>{g.count}</td>
+                    <td style={{ padding: 10, textAlign: 'center' }}>{g.sitting} / {g.count}</td>
                     <td style={{ padding: 10, textAlign: 'center', fontWeight: 700 }}>{g.avgScore}%</td>
                     <td style={{ padding: 10, textAlign: 'center' }}>
                       <span style={{ color: info.c, fontWeight: 900 }}>{info.lv}</span>
@@ -1413,6 +1450,28 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile }) {
         </div>
       </div>
 
+      {/* Subject Performance Summary */}
+      <div style={{ marginTop: 30 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, color: '#1E293B', marginBottom: 12, textTransform: 'uppercase' }}>📚 Subject Performance Summary</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+          {subjectStats.map(s => {
+            const info = gInfo(parseFloat(s.avg), ALL_GRADES[0], gradCfg, curr);
+            return (
+              <div key={s.name} style={{ background: '#fff', border: '1px solid #E2E8F0', padding: 12, borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 800 }}>{s.name}</div>
+                  <div style={{ fontSize: 8, color: '#64748B' }}>{s.count} Entries</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 12, fontWeight: 900, color: info.c }}>{s.avg}%</div>
+                  <div style={{ fontSize: 8, fontWeight: 700, color: info.c }}>{info.lv}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Top 10 School Wide */}
       <div style={{ marginTop: 30, pageBreakInside: 'avoid' }}>
          <div style={{ fontSize: 11, fontWeight: 900, color: '#1E293B', marginBottom: 12, textTransform: 'uppercase' }}>🏆 Top 10 Academic Giants (School Wide)</div>
@@ -1432,15 +1491,16 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile }) {
                   const allRanked = [];
                   filteredGrades.forEach(g => {
                      const gLearners = scopedLearners.filter(l => l.grade === g);
-                     const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr);
+                     const gSubjs = subjects[g] && subjects[g].length > 0 ? subjects[g] : null;
+                     const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr, gSubjs);
                      merit.forEach(l => {
-                        const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
+                        const lPct = l.maxTotal > 0 ? (l.totalMarks / l.maxTotal * 100) : 0;
                         allRanked.push({ ...l, grade: g, pct: lPct });
                      });
                   });
                   
                   return allRanked
-                     .sort((a, b) => b.totalMarks - a.totalMarks)
+                     .sort((a, b) => b.pct - a.pct)
                      .slice(0, 10)
                      .map((l, i) => {
                         const info = gInfo(l.pct, l.grade, gradCfg, curr);

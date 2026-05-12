@@ -95,14 +95,14 @@ export default function ParentDemoPage() {
         <div className="demo-canvas-wrap">
           <div className="demo-browser-bar">
             {['#ef4444','#f59e0b','#10b981'].map(c => <div key={c} className="demo-dot" style={{ background:c }} />)}
-            <div className="demo-url-bar">app.eduvantage.co.ke — Parent Portal</div>
+            <div className="demo-url-bar">app.eduvantage.co.ke — EduVantage Global School · Parent Portal</div>
           </div>
 
           <div style={{ padding:'22px', minHeight:360 }} key={`s${si}`}>
             {si === 0 && (
               <div className="demo-fup" style={{ display:'flex', flexDirection:'column', alignItems:'center', paddingTop:40, gap:20 }}>
                 <div style={{ fontSize:56 }}>👨‍👩‍👧</div>
-                <div style={{ fontWeight:900, fontSize:18 }}>EduVantage Parent Portal</div>
+                <div style={{ fontWeight:900, fontSize:18 }}>EduVantage Global School — Parent Portal</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:10, width:300 }}>
                   <div style={{ padding:'11px 16px', borderRadius:10, background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.12)', fontSize:13, color:'rgba(255,255,255,.5)' }}>📱 +254 712 345 678</div>
                   <div style={{ padding:'11px 16px', borderRadius:10, background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.12)', fontSize:13, color:'rgba(255,255,255,.3)', letterSpacing:4 }}>••••••••</div>

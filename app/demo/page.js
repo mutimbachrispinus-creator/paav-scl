@@ -40,13 +40,7 @@ export default function DemoHubPage() {
       {/* Background mesh */}
       <div style={{ position: 'fixed', inset: 0, background: 'radial-gradient(circle at 20% 20%, rgba(79,70,229,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(16,185,129,0.1) 0%, transparent 50%)', pointerEvents: 'none', zIndex: 0 }} />
 
-      <style>{`
-        .demo-card { transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s; border: 1px solid rgba(255,255,255,.08); }
-        .demo-card:hover { transform: translateY(-10px) scale(1.01); box-shadow: 0 40px 80px rgba(0,0,0,.5); }
-        .feat-li::before { content: '✓'; color: rgba(255,255,255,.7); margin-right: 8px; font-weight: 900; }
-        .back-link { color: rgba(255,255,255,.5); font-size: 13px; font-weight: 700; text-decoration: none; transition: color .2s; }
-        .back-link:hover { color: #fff; }
-      `}</style>
+
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1160, margin: '0 auto', padding: '60px 24px 80px' }}>
         <Link href="/" className="back-link">← Back to EduVantage</Link>
