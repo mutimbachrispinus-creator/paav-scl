@@ -24,7 +24,7 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
   const pathname = usePathname();
   const [showMobileNav, setShowMobileNav] = useState(false);
 
-  const { impersonateId, setUser } = useProfile() || {};
+  const { impersonateId, setUser, labels } = useProfile() || {};
   const activeRoles = [user?.role || 'member'];
   if (user?.role === 'super-admin' && impersonateId) {
     activeRoles.push('admin'); // Add admin role to see school management tabs
@@ -39,6 +39,14 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
     const normalizedPath = p.replace(/^\/|\/$/g, '');
     const normalizedKey  = key.replace(/^\/|\/$/g, '');
     return normalizedPath === normalizedKey || normalizedPath.startsWith(normalizedKey + '/');
+  }
+
+  function translateLabel(n) {
+    if (!labels) return n.label;
+    if (n.key === 'grades') return labels.assessments || n.label;
+    if (n.key === 'learners') return labels.learners || n.label;
+    if (n.key === 'nexed') return 'Nexed Finance';
+    return n.label;
   }
 
   function getBadge(key) {
@@ -124,7 +132,7 @@ export default function Navbar({ user, profile, unreadCount = 0, pendingDuties =
                 onClick={() => setShowMobileNav(false)}
                 onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
               >
-                {n.icon} {n.label}
+                {n.icon} {translateLabel(n)}
                 {b > 0 && <span className="nav-badge">{b > 9 ? '9+' : b}</span>}
               </Link>
             );

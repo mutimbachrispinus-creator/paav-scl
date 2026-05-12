@@ -83,6 +83,12 @@ function LoginContent() {
   const [learnerNames, setLearnerNames] = useState({}); // { 'schoolId|adm': 'Name' }
   const [usernameStatus, setUsernameStatus] = useState({ checking: false, taken: false });
   const [choices, setChoices] = useState(null);
+  
+  // OTP State for Registration
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
 
   useEffect(() => {
     if (tab !== 'register') return;
@@ -249,6 +255,46 @@ function LoginContent() {
       setErr(`Connection Error: ${msg}. If this persists, please contact EduVantage support.`);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const sendRegOtp = async () => {
+    if (!form.phone) return setErr('Please enter your phone number first');
+    setOtpLoading(true); setErr('');
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'request_reg_otp', phone: form.phone })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setOtpSent(true);
+      setOkMsg('Verification code sent to ' + form.phone);
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const verifyRegOtp = async () => {
+    if (!otpCode) return setErr('Please enter the verification code');
+    setOtpLoading(true); setErr('');
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify_reg_otp', phone: form.phone, otp: otpCode })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setOtpVerified(true);
+      setOkMsg('Phone number verified!');
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setOtpLoading(false);
     }
   };
 
@@ -466,8 +512,56 @@ function LoginContent() {
 
                   <div className="field">
                     <label>Phone Number</label>
-                    <input required value={form.phone} onChange={e => F('phone', e.target.value)} placeholder="07XXXXXXXX" />
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <input 
+                        required 
+                        value={form.phone} 
+                        onChange={e => { F('phone', e.target.value); setOtpVerified(false); setOtpSent(false); }} 
+                        placeholder="07XXXXXXXX" 
+                        style={{ flex: 1 }}
+                        disabled={otpVerified}
+                      />
+                      {!otpVerified && (
+                        <button 
+                          type="button" 
+                          onClick={sendRegOtp} 
+                          disabled={otpLoading || !form.phone}
+                          style={{ padding: '0 12px', background: '#F1F5F9', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: 10, fontWeight: 700, color: '#2563EB', cursor: 'pointer' }}
+                        >
+                          {otpSent ? 'Resend' : 'Verify'}
+                        </button>
+                      )}
+                    </div>
                   </div>
+
+                  {otpSent && !otpVerified && (
+                    <div style={{ background: '#EFF6FF', padding: 15, borderRadius: 12, marginBottom: 20, border: '1px solid #DBEAFE' }}>
+                      <label style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', display: 'block', marginBottom: 8 }}>ENTER 6-DIGIT CODE</label>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <input 
+                          type="text" 
+                          placeholder="000000" 
+                          value={otpCode} 
+                          onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0,6))}
+                          style={{ flex: 1, textAlign: 'center', fontSize: 18, letterSpacing: 4, fontWeight: 800, padding: 8, borderRadius: 8, border: '1.5px solid #CBD5E1' }}
+                        />
+                        <button 
+                          type="button" 
+                          onClick={verifyRegOtp}
+                          disabled={otpLoading || otpCode.length < 6}
+                          style={{ padding: '0 15px', background: '#2563EB', color: '#fff', borderRadius: 8, border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: 11 }}
+                        >
+                          Confirm
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {otpVerified && (
+                    <div style={{ fontSize: 11, color: '#16A34A', fontWeight: 700, marginBottom: 15, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      ✅ Phone number verified successfully
+                    </div>
+                  )}
                 </>
               )}
               
@@ -491,7 +585,7 @@ function LoginContent() {
               {err && <div className="alert alert-err show">{err}</div>}
               {okMsg && <div className="alert alert-ok show">{okMsg}</div>}
 
-              <button type="submit" className="btn btn-primary" disabled={busy} style={{ marginTop: 10, background: `linear-gradient(135deg, var(--primary), var(--primary))` }}>
+              <button type="submit" className="btn btn-primary" disabled={busy || (tab === 'register' && !otpVerified)} style={{ marginTop: 10, background: (tab === 'register' && !otpVerified) ? '#94A3B8' : `linear-gradient(135deg, var(--primary), var(--primary))` }}>
                 {busy ? 'Processing...' : tab === 'login' ? '🔐 Sign In' : '🚀 Create Account'}
               </button>
             </form>

@@ -11,8 +11,15 @@ export async function POST(request) {
     const { schoolName, adminName, adminUsername, adminPassword, phone, email, curriculum, plan, estimatedStudents } = await request.json();
     const selectedPlan = plan || 'trial';
 
-    if (!schoolName || !adminName || !adminUsername || !adminPassword) {
+    if (!schoolName || !adminName || !adminUsername || !adminPassword || !phone) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+    }
+
+    // 0. Verify OTP Status
+    const { kvGet } = await import('@/lib/db');
+    const otpStatus = await kvGet(`reg_otp_verified_${phone.replace(/\D/g, '')}`, null, 'platform-master');
+    if (!otpStatus || !otpStatus.verified) {
+      return NextResponse.json({ error: 'Phone number not verified. Please request and verify OTP first.' }, { status: 403 });
     }
 
     // Generate a slug-like tenant ID

@@ -16,7 +16,7 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
-import { getAllGrades, getCurriculum, gInfo, getDefaultSubjects, maxPts, calcLearnerReportData, getMark, isJSSGrade, getDistributionBuckets, getGradeColors, shouldRankByMarks, isLevelEnabled, buildMeritList } from '@/lib/cbe';
+import { getAllGrades, getCurriculum, gInfo, getDefaultSubjects, maxPts, calcLearnerReportData, getMark, isJSSGrade, getDistributionBuckets, getGradeColors, shouldRankByMarks, isLevelEnabled, buildMeritList, getLabels } from '@/lib/cbe';
 import { useSchoolProfile } from '@/lib/school-profile';
 import { useProfile } from '@/app/PortalShell';
 
@@ -29,6 +29,7 @@ export default function TemplatesPage() {
   const { profile: ctxProfile } = useProfile() || {};
   const localProfile = useSchoolProfile();
   const profile = ctxProfile && Object.keys(ctxProfile).length > 0 ? ctxProfile : localProfile;
+  const LABELS = getLabels(profile?.curriculum || 'CBC');
   const ALL_GRADES = (getAllGrades(profile?.curriculum || 'CBC') || []).filter(g => isLevelEnabled(g, profile, profile?.curriculum));
 
   const [loading, setLoading] = useState(true);
@@ -46,6 +47,7 @@ export default function TemplatesPage() {
   const [assess, setAssess] = useState('et1');
   const [selLearner, setSelLearner] = useState('');
   const [regType, setRegType] = useState('monthly');
+  const [gradingMode, setGradingMode] = useState('per-level');
 
   useEffect(() => {
     if (!grade && ALL_GRADES.length > 0) setGrade(ALL_GRADES[0]);
@@ -59,7 +61,7 @@ export default function TemplatesPage() {
         setUser(auth);
         
         const db = await getCachedDBMulti([
-          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog', 'paav6_feecfg', 'paav_student_attendance', 'paav_school_profile', 'paav_grading_weights', 'paav_terms'
+          'paav6_learners', 'paav6_marks', 'paav8_subj', 'paav6_fees', 'paav8_grad', 'paav6_paylog', 'paav6_feecfg', 'paav_student_attendance', 'paav_school_profile', 'paav_grading_weights', 'paav_terms', 'paav_grading_mode'
         ]);
         
         setLearners(db.paav6_learners || []);
@@ -74,6 +76,7 @@ export default function TemplatesPage() {
         const paylogList = db.paav6_paylog || [];
         setFees([...feeList, ...paylogList]);
         setAtt(db.paav_student_attendance || {});
+        setGradingMode(db.paav_grading_mode || 'per-level');
         
         // Profile is now handled by the useSchoolProfile hook
       } catch (e) { console.error(e); }
@@ -141,9 +144,9 @@ export default function TemplatesPage() {
     { id: 'report',  label: '📋 Report Cards' },
     { id: 'class',   label: '🏫 Class List' },
     { id: 'balance', label: '📊 Fee Balance List' },
-    { id: 'receipt', label: '💰 Fee Receipts' },
-    { id: 'id',      label: '🆔 Student IDs' },
-    { id: 'register',label: '📅 Attendance Register' },
+    { id: 'receipt', label: `💰 Fee Receipts` },
+    { id: 'id',      label: `🆔 ${LABELS.grades} IDs` },
+    { id: 'register',label: `📅 ${LABELS.attendance} Register` },
     { id: 'exam_summary', label: '📈 Exam Summary (School)', adminOnly: true },
   ].filter(t => !t.adminOnly || ['admin', 'super-admin'].includes(user?.role));
 
@@ -154,11 +157,11 @@ export default function TemplatesPage() {
       <div className="page-hdr no-print">
         <div>
           <h2>📄 Report Templates</h2>
-          <p>Printable assets — {grade} · Term {term.replace('T','')}</p>
+          <p>Printable assets — {grade || 'Select'} · Term {term.replace('T','')}</p>
         </div>
         <div className="page-hdr-acts">
-          <button className="btn btn-ghost btn-sm" onClick={printLearner}>🖨️ Print Learner</button>
-          <button className="btn btn-primary btn-sm" onClick={printGrade}>🖨️ Print Whole Grade</button>
+          <button className="btn btn-ghost btn-sm" onClick={printLearner}>🖨️ Print {LABELS.learner}</button>
+          <button className="btn btn-primary btn-sm" onClick={printGrade}>🖨️ Print Whole {LABELS.grade}</button>
         </div>
       </div>
 
@@ -175,7 +178,7 @@ export default function TemplatesPage() {
       <div className="panel no-print" style={{ marginBottom: 16 }}>
         <div className="panel-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div className="field" style={{ marginBottom: 0 }}>
-            <label>Grade</label>
+            <label>{LABELS.grade}</label>
             <select value={grade} onChange={e => { setGrade(e.target.value); setSelLearner(''); }}>
               {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
             </select>
@@ -199,7 +202,7 @@ export default function TemplatesPage() {
             </div>
           )}
           <div className="field" style={{ marginBottom: 0 }}>
-            <label>Learner</label>
+            <label>{LABELS.learner}</label>
             <select value={selLearner} onChange={e => setSelLearner(e.target.value)}>
               <option value="">— ALL ({allGradeLearners.length}) —</option>
               {allGradeLearners.map(l => <option key={l.adm} value={l.adm}>{l.name} ({l.adm})</option>)}
@@ -226,10 +229,10 @@ export default function TemplatesPage() {
       {/* Instant tab switching — all tabs rendered, only active is shown */}
       <div className="print-container">
         <div id="pct-merit" style={{ display: tab === 'merit'   ? 'block' : 'none' }}>
-          <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} gradCfg={gradCfg} profile={profile} />
+          <MeritListTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} assess={assess} gradCfg={gradCfg} profile={profile} mode={gradingMode} />
         </div>
         <div id="pct-report" style={{ display: tab === 'report'  ? 'block' : 'none' }}>
-          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} profile={profile} att={att} weights={weights} terms={terms} />
+          <ReportCardTemplate learners={filteredLearners} subjects={subjects} marks={marks} grade={grade} term={term} gradCfg={gradCfg} profile={profile} att={att} weights={weights} terms={terms} mode={gradingMode} />
         </div>
         <div id="pct-class" style={{ display: tab === 'class'   ? 'block' : 'none' }}>
           <ClassListTemplate learners={filteredLearners} grade={grade} profile={profile} />
@@ -247,7 +250,7 @@ export default function TemplatesPage() {
           <AttendanceRegisterTemplate learners={filteredLearners} grade={grade} type={regType} att={att} profile={profile} />
         </div>
         <div id="pct-exam_summary" style={{ display: tab === 'exam_summary' ? 'block' : 'none' }}>
-          <ExamSummaryTemplate learners={learners} subjects={subjCfg} marks={marks} gradCfg={gradCfg} profile={profile} mainTerm={term} mainAssess={assess} />
+          <ExamSummaryTemplate learners={learners} subjects={subjCfg} marks={marks} gradCfg={gradCfg} profile={profile} mainTerm={term} mainAssess={assess} mode={gradingMode} />
         </div>
       </div>
     </div>
@@ -274,9 +277,9 @@ function PrintHeader({ title, grade, profile = {} }) {
   );
 }
 
-function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gradCfg, profile }) {
+function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gradCfg, profile, mode = 'per-level' }) {
   const curr = profile?.curriculum || 'CBC';
-  const data = buildMeritList(learners, marks, grade, term, assess, gradCfg, curr);
+  const data = buildMeritList(learners, marks, grade, term, assess, gradCfg, curr, null, mode);
 
   const colStats = subjects.map(s => {
     let sum = 0;
@@ -289,7 +292,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
       }
     });
     const avgScore = count > 0 ? Number((sum / count).toFixed(2)) : null;
-    const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg, curr) : null;
+    const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg, curr, s, mode) : null;
     return { avgScore, avgInfo };
   });
   
@@ -317,7 +320,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
     
   data.forEach(l => {
     const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
-    const info = gInfo(lPct, grade, gradCfg, curr);
+    const info = gInfo(lPct, grade, gradCfg, curr, null, mode);
     if (dist[info.lv] !== undefined) dist[info.lv]++;
 
     // Subject-wise distribution
@@ -356,7 +359,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
         <tbody>
           {data.map((l, i) => {
             const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
-            const lInfo = gInfo(lPct, grade, gradCfg, curr);
+            const lInfo = gInfo(lPct, grade, gradCfg, curr, null, mode);
             return (
               <tr key={l.adm}>
                 <td style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center' }}>{l.rank}</td>
@@ -552,13 +555,13 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
   );
 }
 
-function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, profile, att, weights, terms }) {
+function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, profile, att, weights, terms, mode = 'per-level' }) {
   const curr = profile?.curriculum || 'CBC';
   const themeColor = curr === 'BRITISH' ? '#1E3A8A' : curr === 'CAMBRIDGE' ? '#065F46' : curr === 'IB' ? '#4338CA' : '#8B1A1A';
   
   // Pre-calculate ranks
   const rankedData = learners.map(l => {
-    const report = calcLearnerReportData(marks, l.adm, grade, term, subjects, gradCfg, curr, weights);
+    const report = calcLearnerReportData(marks, l.adm, grade, term, subjects, gradCfg, curr, weights, mode);
     return { ...l, report };
   }).sort((a, b) => {
     if (shouldRankByMarks(grade, curr)) return b.report.totalAvgScore - a.report.totalAvgScore;
@@ -1243,7 +1246,7 @@ function AttendanceRegisterTemplate({ learners, grade, type, att, profile }) {
   );
 }
 
-function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, mainTerm, mainAssess }) {
+function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, mainTerm, mainAssess, mode = 'per-level' }) {
   const [localTerm, setLocalTerm]     = useState(mainTerm || 'T1');
   const [localAssess, setLocalAssess] = useState(mainAssess || 'et1');
   const [localGrade, setLocalGrade]   = useState('ALL');
@@ -1270,7 +1273,7 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
 
     // Use custom subjects if available
     const gSubjs = subjects[g] && subjects[g].length > 0 ? subjects[g] : null;
-    const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr, gSubjs);
+    const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr, gSubjs, mode);
     
     const totalScoreSum = merit.reduce((acc, l) => acc + l.totalMarks, 0);
     const avgScore = merit.length > 0 ? (totalScoreSum / (merit.length * (maxPts(g, gSubjs, curr) || 1)) * 100).toFixed(1) : 0;
@@ -1279,7 +1282,7 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
     
     merit.forEach(l => {
       const lPct = l.maxTotal > 0 ? (l.totalMarks / l.maxTotal * 100) : 0;
-      const info = gInfo(lPct, g, gradCfg, curr);
+      const info = gInfo(lPct, g, gradCfg, curr, null, mode);
       if (dist[info.lv] !== undefined) dist[info.lv]++;
     });
     
@@ -1292,11 +1295,15 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
     : 0;
 
   // Aggregate distribution safely across all possible levels (Primary + JSS)
-  const schoolDist = { ...getDistributionBuckets('GRADE 1', curr), ...getDistributionBuckets('GRADE 7', curr) };
+  const schoolDist = { 
+    ...(ALL_GRADES[0] ? getDistributionBuckets(ALL_GRADES[0], curr) : {}), 
+    ...(ALL_GRADES.find(g => isJSSGrade(g, curr)) ? getDistributionBuckets(ALL_GRADES.find(g => isJSSGrade(g, curr)), curr) : {}) 
+  };
   // Reset counts to zero
   Object.keys(schoolDist).forEach(k => schoolDist[k] = 0);
 
   gradeStats.forEach(g => {
+    if (!g.dist) return;
     Object.entries(g.dist).forEach(([lv, count]) => {
       if (schoolDist[lv] !== undefined) schoolDist[lv] += count;
       else schoolDist[lv] = count; // Ensure new levels are added
@@ -1378,7 +1385,7 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
         </div>
         <div style={{ background: '#FFFBEB', border: '1.5px solid #FEF3C7', padding: 15, borderRadius: 12, textAlign: 'center' }}>
           <div style={{ fontSize: 10, fontWeight: 800, color: '#92400E', textTransform: 'uppercase', marginBottom: 5 }}>Mean Level</div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: '#B45309' }}>{gInfo(parseFloat(schoolAvg), ALL_GRADES[0], gradCfg, curr).lv}</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: '#B45309' }}>{gInfo(parseFloat(schoolAvg), ALL_GRADES[0] || '', gradCfg, curr).lv}</div>
           <div style={{ fontSize: 9, color: '#D97706' }}>Institution Aggregate</div>
         </div>
         <div style={{ background: '#FDF2F8', border: '1.5px solid #FCE7F3', padding: 15, borderRadius: 12, textAlign: 'center' }}>
@@ -1445,7 +1452,7 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
             })}
           </div>
           <div style={{ marginTop: 25, padding: 12, background: '#F8FAFF', borderRadius: 10, border: '1px dashed #CBD5E1', fontSize: 9, color: '#475569', fontStyle: 'italic', lineHeight: 1.5 }}>
-            <strong>Note:</strong> Distribution represents the competency levels across all learning areas as defined by the {curr} curriculum framework.
+            <strong>Note:</strong> Distribution represents the competency levels across all {LABELS.subjects.toLowerCase()} as defined by the {curr} curriculum framework.
           </div>
         </div>
       </div>

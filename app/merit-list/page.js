@@ -20,6 +20,7 @@ import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { useSchoolProfile } from '@/lib/school-profile';
 import { useProfile } from '@/app/PortalShell';
 import PrintHeader from '@/components/PrintHeader';
+import { getLabels } from '@/lib/cbe';
 
 const ASSESS_LABELS = { op1:'Opener Exam', mt1:'Mid-Term Exam', et1:'End-Term Exam' };
 
@@ -53,8 +54,14 @@ export default function MeritListPage() {
   const school = ctxProfile && Object.keys(ctxProfile).length > 0 ? ctxProfile : localProfile;
 
   const curr = getCurriculum(school?.curriculum || 'CBC');
+  const LABELS = getLabels(school?.curriculum || 'CBC');
   const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
   const ALL_GRADES = (curr.ALL_GRADES || []).filter(g => isLevelEnabled(g, school, school?.curriculum));
+  const ASSESSMENTS = curr.ASSESSMENT_TYPES || [
+    { key: 'op1', label: 'Opener'   },
+    { key: 'mt1', label: 'Mid-Term' },
+    { key: 'et1', label: 'End-Term' },
+  ];
 
   useEffect(() => {
     if (!grade && ALL_GRADES.length > 0) {
@@ -188,8 +195,8 @@ export default function MeritListPage() {
       <PrintHeader />
       <div className="page-hdr">
         <div>
-          <h2>🏆 {school.name} Merit List</h2>
-          <p>CBC top performers — ranked by total points · <span style={{fontWeight:700,color:'#8B1A1A'}}>{ASSESS_LABELS[assess]}</span></p>
+          <h2>🏆 {school.name} {LABELS.assessment} Rankings</h2>
+          <p>{curr.name} {LABELS.grades} — ranked by total points · <span style={{fontWeight:700,color:'#8B1A1A'}}>{ASSESSMENTS.find(a=>a.key===assess)?.label}</span></p>
         </div>
         <div className="page-hdr-acts">
           <button className="btn btn-ghost btn-sm no-print" onClick={() => {
@@ -232,7 +239,7 @@ export default function MeritListPage() {
       <div className="panel" style={{ marginBottom: 16 }}>
         <div className="panel-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <div className="field" style={{ marginBottom: 0, minWidth: 160 }}>
-            <label>Grade</label>
+            <label>{LABELS.grade}</label>
             <select value={grade} onChange={e => setGrade(e.target.value)}>
               {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
             </select>
@@ -244,7 +251,7 @@ export default function MeritListPage() {
             </select>
           </div>
           <div className="field" style={{ marginBottom: 0 }}>
-            <label>Assessment</label>
+            <label>{LABELS.assessment}</label>
             <select value={assess} onChange={e => setAssess(e.target.value)}>
               {ASSESSMENTS.map(a => <option key={a.key} value={a.key}>{a.label}</option>)}
             </select>
@@ -303,7 +310,7 @@ export default function MeritListPage() {
           {/* ── Full ranked table ── */}
           <div className="panel">
             <div className="panel-hdr">
-              <h3>📋 Full Rankings — {grade} · Term {term.replace('T','')} · {ASSESSMENTS.find(a=>a.key===assess)?.label} ({ASSESS_LABELS[assess]})</h3>
+              <h3>📋 Full Rankings — {grade} · Term {term.replace('T','')} · {ASSESSMENTS.find(a=>a.key===assess)?.label}</h3>
             </div>
             <div className="tbl-wrap">
               <table>

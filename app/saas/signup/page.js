@@ -45,6 +45,12 @@ export default function EduVantageSignup() {
   const [payPhone, setPayPhone] = useState('');
   const [payLoading, setPayLoading] = useState(false);
 
+  // OTP State
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+
   useEffect(() => {
     if (form.phone) setPayPhone(form.phone);
   }, [form.phone]);
@@ -83,6 +89,48 @@ export default function EduVantageSignup() {
       setShowPayment(false); // Go back if error
     } finally {
       setLoading(false);
+    }
+  };
+
+
+  
+  const sendOtp = async () => {
+    if (!form.phone) return alert('Please enter a phone number first');
+    setOtpLoading(true);
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'request_reg_otp', phone: form.phone })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setOtpSent(true);
+      alert('Verification code sent to ' + form.phone);
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const verifyOtp = async () => {
+    if (!otpCode) return alert('Please enter the verification code');
+    setOtpLoading(true);
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify_reg_otp', phone: form.phone, otp: otpCode })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      setOtpVerified(true);
+      alert('Phone number verified!');
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setOtpLoading(false);
     }
   };
 
@@ -298,11 +346,64 @@ export default function EduVantageSignup() {
               </div>
               <div className="form-group">
                 <label>Phone Number</label>
-                <input required placeholder="07XXXXXXXX" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input 
+                    required 
+                    placeholder="07XXXXXXXX" 
+                    value={form.phone} 
+                    onChange={e => { setForm({...form, phone: e.target.value}); setOtpVerified(false); setOtpSent(false); }} 
+                    style={{ flex: 1 }}
+                    disabled={otpVerified}
+                  />
+                  {!otpVerified && (
+                    <button 
+                      type="button" 
+                      onClick={sendOtp} 
+                      disabled={otpLoading || !form.phone}
+                      style={{ padding: '0 15px', background: '#F1F5F9', border: '1.5px solid #E2E8F0', borderRadius: 12, fontSize: 11, fontWeight: 700, color: '#2563EB', cursor: 'pointer' }}
+                    >
+                      {otpSent ? 'Resend' : 'Verify'}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
-            <button className="btn btn-primary" disabled={loading} style={{ padding: '14px', fontSize: 16, marginTop: 10, background: '#2563EB' }}>
+            {otpSent && !otpVerified && (
+              <div className="form-group fade-in" style={{ padding: 20, background: '#EFF6FF', borderRadius: 16, border: '2px solid #DBEAFE' }}>
+                <label style={{ color: '#2563EB' }}>Enter 6-Digit Code</label>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <input 
+                    type="text" 
+                    placeholder="000000" 
+                    value={otpCode} 
+                    onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0,6))}
+                    style={{ flex: 1, textAlign: 'center', fontSize: 20, letterSpacing: 4, fontWeight: 800 }}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={verifyOtp}
+                    disabled={otpLoading || otpCode.length < 6}
+                    style={{ padding: '0 25px', background: '#2563EB', color: '#fff', borderRadius: 12, border: 'none', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    {otpLoading ? '...' : 'Confirm'}
+                  </button>
+                </div>
+                <p style={{ fontSize: 10, color: '#64748B', marginTop: 8 }}>Check your SMS for the verification code.</p>
+              </div>
+            )}
+
+            {otpVerified && (
+              <div style={{ fontSize: 12, color: '#16A34A', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, marginBottom: -10 }}>
+                ✅ Phone number verified successfully
+              </div>
+            )}
+
+            <button 
+              className="btn btn-primary" 
+              disabled={loading || !otpVerified} 
+              style={{ padding: '14px', fontSize: 16, marginTop: 10, background: !otpVerified ? '#94A3B8' : '#2563EB' }}
+            >
               {loading ? 'Setting up...' : (form.plan === 'trial' || form.plan === 'free-term') ? 'Start My Free Access' : 'Subscribe & Create Portal'}
             </button>
           </form>

@@ -51,7 +51,7 @@ export default function GradesPage() {
   const curr = getCurriculum(school?.curriculum || 'CBC');
   const ALL_GRADES = getAllGrades(school?.curriculum || 'CBC', school);
   const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
-  const { DEFAULT_SUBJECTS, gInfo, maxPts } = curr;
+  const { DEFAULT_SUBJECTS, gInfo, maxPts, LABELS } = curr;
   const isJSSGrade = curr.isJSSGrade || curr.isSecondary || (() => false);
 
   useEffect(() => {
@@ -466,7 +466,7 @@ export default function GradesPage() {
     <div className="page on">
       <div className="page-hdr">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <h2>📊 Marks Entry</h2>
+          <h2>📊 {LABELS.assessments} Entry</h2>
           {saving ? (
             <span style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700, animation: 'pulse 1.5s infinite' }}>☁️ Syncing...</span>
           ) : dirtyMarks.length > 0 ? (
@@ -514,7 +514,7 @@ export default function GradesPage() {
       <div className="panel" style={{ marginBottom: 16 }}>
         <div className="panel-body" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           <div className="field" style={{ marginBottom: 0, minWidth: 160 }}>
-            <label>Grade</label>
+            <label>{LABELS.grade}</label>
             <select value={grade} onChange={e => { setGrade(e.target.value); setStream(''); }}>
               {ALL_GRADES.map(g => <option key={g}>{g}</option>)}
             </select>
@@ -535,15 +535,15 @@ export default function GradesPage() {
             </select>
           </div>
           <div className="field" style={{ marginBottom: 0 }}>
-            <label>Assessment</label>
+            <label>{LABELS.assessment}</label>
             <select value={assess} onChange={e => setAssess(e.target.value)}>
               {(curr.ASSESSMENT_TYPES || []).map(a => <option key={a.key} value={a.key}>{a.label}</option>)}
             </select>
           </div>
           <div className="field" style={{ marginBottom: 0, minWidth: 200 }}>
-            <label style={{ color: 'var(--primary)', fontWeight: 800 }}>Subject to Enter</label>
+            <label style={{ color: 'var(--primary)', fontWeight: 800 }}>{LABELS.subject} to Enter</label>
             <select value={selectedSubj} onChange={e => setSelectedSubj(e.target.value)} style={{ borderColor: 'var(--primary)', borderWidth: 2 }}>
-              <option value="">-- Select Subject --</option>
+              <option value="">-- Select {LABELS.subject} --</option>
               {subjects.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
@@ -609,8 +609,8 @@ export default function GradesPage() {
       ) : !selectedSubj ? (
         <div className="panel animate-in" style={{ textAlign: 'center', padding: '60px 20px', background: 'linear-gradient(to bottom, #fff, #f8fafc)' }}>
            <div style={{ fontSize: 48, marginBottom: 16 }}>📚</div>
-           <h3 style={{ color: 'var(--navy)', marginBottom: 8 }}>Ready to enter marks?</h3>
-           <p style={{ color: 'var(--muted)', fontSize: 14 }}>Please select a subject from the dropdown above to start entering scores for {grade}.</p>
+           <h3 style={{ color: 'var(--navy)', marginBottom: 8 }}>Ready to enter scores?</h3>
+           <p style={{ color: 'var(--muted)', fontSize: 14 }}>Please select a {LABELS.subject.toLowerCase()} from the dropdown above to start entering scores for {grade}.</p>
            <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', gap: 12 }}>
               {subjects.slice(0, 5).map(s => (
                 <button key={s} className="btn btn-ghost btn-sm" onClick={() => setSelectedSubj(s)} style={{ border: '1px solid var(--border)' }}>{s}</button>
@@ -625,7 +625,7 @@ export default function GradesPage() {
                 <tr>
                   <th style={{ width: 40 }}>#</th>
                   <th style={{ width: 80 }}>Adm</th>
-                  <th>Learner Name</th>
+                  <th>{curr.LABELS.grade === 'Year' ? 'Student' : 'Learner'} Name</th>
                   <th style={{ textAlign: 'center', background: 'rgba(79, 70, 229, 0.05)', color: 'var(--primary)' }}>
                     {selectedSubj} Score
                   </th>

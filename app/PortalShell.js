@@ -8,6 +8,7 @@ import { ALL_NAV } from '@/lib/navigation';
 import { getCachedUser, getCachedDBMulti, prefetchKeys, clearAllCache, fetchWithRetry, hydrateCache } from '@/lib/client-cache';
 import { initSyncEngine, stopSyncEngine } from '@/lib/sync-engine';
 import { readSchoolProfile } from '@/lib/school-profile';
+import { getLabels } from '@/lib/cbe';
 
 // Dynamic imports for performance
 const ProfilePanel = dynamic(() => import('@/components/ProfilePanel'), { ssr: false });
@@ -203,6 +204,10 @@ export default function PortalShell({ children }) {
   const warnTimer    = useRef(null);
   const countdownRef = useRef(null);
   const heroFileRef  = useRef(null);
+
+  const labels = useMemo(() => {
+    return getLabels(profile?.curriculum || 'CBC');
+  }, [profile?.curriculum]);
 
   const [impersonateId, setImpersonateId] = useState(() => {
     if (typeof window === 'undefined') return null;
@@ -490,7 +495,7 @@ export default function PortalShell({ children }) {
 
   return (
 
-    <ProfileContext.Provider value={{ profile, user, openProfile: () => setShowProfile(true), setUser, playSuccessSound, impersonateId, setImpersonateId }}>
+    <ProfileContext.Provider value={{ profile, user, openProfile: () => setShowProfile(true), setUser, playSuccessSound, impersonateId, setImpersonateId, labels }}>
       <input ref={heroFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={uploadHero} />
 
       {showNav && user && (
@@ -608,7 +613,7 @@ export default function PortalShell({ children }) {
                   onMouseEnter={() => n.prefetch && prefetchKeys(n.prefetch)}
                 >
                   <span className="icon">{n.icon}</span>
-                  <span className="label">{n.label}</span>
+                  <span className="label">{(n.key === 'grades' ? (labels.assessments || n.label) : n.key === 'learners' ? (labels.learners || n.label) : n.label)}</span>
                   {b > 0 && <span className="nav-badge" style={{ top: 4, right: 4, transform: 'scale(0.75)' }}>{b > 9 ? '9+' : b}</span>}
                 </Link>
               );

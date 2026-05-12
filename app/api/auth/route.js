@@ -30,6 +30,8 @@ const SCHEMA_REQUIRED_ACTIONS = new Set([
   'google',
   'request_otp',
   'verify_otp_reset',
+  'request_reg_otp',
+  'verify_reg_otp',
   'resetpw',
   'change_password',
   'delete_user',
@@ -79,6 +81,8 @@ export async function POST(request) {
       case 'forgot':     return handleForgot(body);
       case 'request_otp': return handleRequestOtp(body, request);
       case 'verify_otp_reset': return handleVerifyOtpReset(body, request);
+      case 'request_reg_otp': return handleRequestRegOtp(body, request);
+      case 'verify_reg_otp':  return handleVerifyRegOtp(body, request);
       case 'resetpw':    return handleResetPw(body);
       case 'change_password': return handleChangePassword(body, request);
       case 'delete_user': return handleDeleteUser(body, request);
@@ -244,7 +248,16 @@ async function handleRegister({ role, name, username, phone, password, links, gr
   }
 
   if (!name || !password || !username) return err('Name, username and password are required');
+  if (!phone) return err('Phone number is required for verification');
   if (password.length < 6) return err('Password must be at least 6 characters');
+
+  // 1.5 Verify OTP Status (Only for public self-registration)
+  if (!session) {
+    const otpStatus = await kvGet(`reg_otp_verified_${phone.replace(/\D/g, '')}`, null, 'platform-master');
+    if (!otpStatus || !otpStatus.verified) {
+      return err('Phone number not verified. Please request and verify OTP first.');
+    }
+  }
 
   const { query, execute } = await import('@/lib/db');
   const { hashPassword } = await import('@/lib/auth');
@@ -610,6 +623,46 @@ async function handleVerifyOtpReset({ username, otp, newPassword }, request) {
   await logActionInternal({ id: stored.userId || 'none', tenantId: targetTid, username: username.toLowerCase(), name: username, role: 'none' }, 'Password Reset', 'Password reset successful via OTP verification');
 
   return ok({ message: 'Password reset successful. You can now login.' });
+}
+
+/* ─── Registration OTP ────────────────────────────────────────────────── */
+async function handleRequestRegOtp({ phone }, request) {
+  if (!phone) return err('Phone number is required');
+  const cleanPhone = phone.replace(/\D/g, '');
+  if (cleanPhone.length < 9) return err('Invalid phone number');
+
+  const otp = Math.floor(100000 + Math.random() * 899999).toString();
+  // Store OTP in global platform-master KV with 10 min expiry
+  await kvSet(`reg_otp_pending_${cleanPhone}`, { otp, expires: Date.now() + 10 * 60 * 1000 }, 'platform-master');
+
+  // Send SMS
+  try {
+    const { sendSMS } = await import('@/lib/sms-client');
+    const atCreds = await kvGet('paav_at_creds', null, 'platform-master');
+    const res = await sendSMS({
+      to: phone,
+      message: `EduVantage Verification\nYour registration code is: ${otp}.\nDo not share this code.`,
+      ...(atCreds || {})
+    });
+    if (!res.success) return err(`Failed to send SMS: ${res.error}`);
+    return ok({ message: 'Verification code sent' });
+  } catch (e) {
+    return err('SMS service error: ' + e.message);
+  }
+}
+
+async function handleVerifyRegOtp({ phone, otp }) {
+  if (!phone || !otp) return err('Phone and OTP are required');
+  const cleanPhone = phone.replace(/\D/g, '');
+  const stored = await kvGet(`reg_otp_pending_${cleanPhone}`, null, 'platform-master');
+
+  if (!stored) return err('No pending verification found for this number');
+  if (stored.otp !== otp) return err('Invalid verification code');
+  if (Date.now() > stored.expires) return err('Verification code expired');
+
+  // Mark as verified for 30 minutes
+  await kvSet(`reg_otp_verified_${cleanPhone}`, { verified: true, expires: Date.now() + 30 * 60 * 1000 }, 'platform-master');
+  return ok({ message: 'Phone number verified successfully' });
 }
 
 /* ─── Admin edit user ───────────────────────────────────────────────────── */

@@ -12,7 +12,7 @@ export const runtime = 'edge';
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ALL_GRADES } from '@/lib/cbe';
+import { ALL_GRADES, getLabels } from '@/lib/cbe';
 import { getCurriculum } from '@/lib/curriculum';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { useProfile } from '@/app/PortalShell';
@@ -67,6 +67,7 @@ export default function AttendancePage() {
   const router = useRouter();
   const { playSuccessSound, profile } = useProfile();
   const curr = getCurriculum(profile?.curriculum || 'CBC');
+  const LABELS = getLabels(profile?.curriculum || 'CBC');
   const TERMS = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
   const [user,         setUser]         = useState(null);
   const [dbTerms,      setDbTerms]      = useState([]);
@@ -243,7 +244,7 @@ export default function AttendancePage() {
     <div className="page on" id="pg-attendance">
       <div className="page-hdr">
         <div>
-          <h2>📋 Attendance Register</h2>
+          <h2>📋 {LABELS.attendance} Register</h2>
           <p>{grade} · {term} · {isAdmin ? 'Admin View' : 'Class Teacher'}</p>
         </div>
         <div className="page-hdr-acts" style={{gap:8,flexWrap:'wrap'}}>
@@ -303,7 +304,7 @@ export default function AttendancePage() {
               <button className="btn btn-ghost btn-sm" onClick={markAllPresent} style={{ color: STATUS_COLORS.P, fontWeight: 800 }}>
                 ✅ Mark All Present
               </button>
-              <span style={{fontSize:12,color:'var(--muted)'}}>{classList.length} learners</span>
+              <span style={{fontSize:12,color:'var(--muted)'}}>{classList.length} {LABELS.grades.toLowerCase()}</span>
             </div>
           </div>
           <div className="tbl-wrap">
@@ -347,7 +348,7 @@ export default function AttendancePage() {
                     </tr>
                   );
                 })}
-                {classList.length===0&&<tr><td colSpan={7} style={{textAlign:'center',padding:24,color:'var(--muted)'}}>No learners in {grade}</td></tr>}
+                {classList.length===0&&<tr><td colSpan={7} style={{textAlign:'center',padding:24,color:'var(--muted)'}}>No {LABELS.grades.toLowerCase()} in {grade}</td></tr>}
               </tbody>
             </table>
           </div>
@@ -379,7 +380,7 @@ export default function AttendancePage() {
             {/* Learner Breakdown Table */}
             <div className="panel">
               <div className="panel-hdr">
-                <h3>Learner Attendance — {activeView.charAt(0).toUpperCase()+activeView.slice(1)}</h3>
+                <h3>{LABELS.grade} {LABELS.attendance} — {activeView.charAt(0).toUpperCase()+activeView.slice(1)}</h3>
               </div>
               <div className="tbl-wrap">
                 <table>

@@ -5,12 +5,39 @@ import { useEffect, useState } from 'react';
 const M = '#4F46E5', SLATE = '#64748B', NAVY = '#0F172A', EMERALD = '#10B981';
 
 function PaymentPromptModal({ plan, payments, studentCount, onClose }) {
+  const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState(null);
+
   const total = plan.billingModel === 'per-learner' ? plan.price * studentCount : plan.price;
+
+  async function initiatePay() {
+    if (!phone) return alert('Please enter your M-Pesa phone number');
+    setLoading(true);
+    setMsg({ type: 'info', text: 'Sending STK Push prompt to your phone...' });
+    try {
+      const res = await fetch('/api/billing/stk-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, planId: plan.id, amount: total })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMsg({ type: 'success', text: 'Prompt sent! Enter your M-Pesa PIN on your phone to complete. Your portal will activate automatically once paid.' });
+      } else {
+        setMsg({ type: 'error', text: data.error || 'Failed to initiate payment' });
+      }
+    } catch (e) {
+      setMsg({ type: 'error', text: e.message });
+    } finally {
+      setLoading(false);
+    }
+  }
   
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div className="panel" style={{ maxWidth: 500, width: '100%', padding: 40, borderRadius: 32, boxShadow: '0 25px 50px rgba(0,0,0,0.3)', position: 'relative' }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#64748B' }}>✕</button>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 15 }}>
+      <div className="panel modal-content" style={{ maxWidth: 500, width: '100%', borderRadius: 32, boxShadow: '0 25px 50px rgba(0,0,0,0.3)', position: 'relative' }}>
+        <button onClick={onClose} className="close-btn" style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#64748B' }}>✕</button>
         
         <div style={{ textAlign: 'center', marginBottom: 30 }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>💳</div>
@@ -27,14 +54,45 @@ function PaymentPromptModal({ plan, payments, studentCount, onClose }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ padding: 20, background: '#F0F9FF', borderRadius: 16, border: '1.5px solid #0EA5E930' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <span style={{ fontSize: 20 }}>📲</span>
+              <span style={{ fontWeight: 800, color: '#0369A1', fontSize: 13, textTransform: 'uppercase' }}>Instant Activation (STK Push)</span>
+            </div>
+            <div className="field" style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 11, color: '#0369A1' }}>M-Pesa Phone Number</label>
+              <input 
+                placeholder="e.g. 0712345678" 
+                value={phone} 
+                onChange={e => setPhone(e.target.value)}
+                style={{ width: '100%', padding: '12px 16px', borderRadius: 12, border: '1px solid #BAE6FD', fontSize: 16 }}
+              />
+            </div>
+            <button 
+              className="btn" 
+              disabled={loading}
+              onClick={initiatePay}
+              style={{ width: '100%', padding: 14, borderRadius: 12, background: '#0EA5E9', color: '#fff', fontWeight: 900, border: 'none', cursor: 'pointer' }}
+            >
+              {loading ? 'Initiating...' : 'Pay via M-Pesa Prompt'}
+            </button>
+            {msg && (
+              <div style={{ marginTop: 12, fontSize: 11, color: msg.type === 'error' ? '#EF4444' : msg.type === 'success' ? '#059669' : '#0284C7', fontWeight: 700 }}>
+                {msg.text}
+              </div>
+            )}
+          </div>
+
+          <div style={{ textAlign: 'center', margin: '10px 0', fontSize: 11, color: '#94A3B8', fontWeight: 800 }}>OR USE MANUAL CHANNELS</div>
+
           {payments.map((p, i) => (
             <div key={i} style={{ padding: 16, border: '1.5px solid #4F46E515', borderRadius: 16, background: '#fff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: 12, fontWeight: 800, color: '#4F46E5' }}>{p.type.toUpperCase()} • {p.name}</span>
                 <span style={{ fontSize: 10, background: '#EEF2FF', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>VERIFIED</span>
               </div>
-              <div style={{ display: 'flex', gap: 20 }}>
-                <div>
+              <div className="payment-details" style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                <div style={{ minWidth: 140 }}>
                   <div style={{ fontSize: 9, color: '#64748B', fontWeight: 800, textTransform: 'uppercase' }}>{p.type === 'Bank' ? 'Account Number' : p.type === 'PesaPal' ? 'Consumer Key' : 'Shortcode'}</div>
                   <div style={{ fontWeight: 900, fontSize: 18, color: '#0F172A' }}>{p.shortcode || p.account || p.consumerKey}</div>
                 </div>
@@ -84,16 +142,16 @@ export default function BillingPage() {
   const isFreeTerm = subscription.plan === 'free-term';
 
   return (
-    <div className="page on" style={{ padding: 40, background: '#F8FAFC', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: -100, right: -100, width: 400, height: 400, background: 'radial-gradient(circle, rgba(79,70,229,0.05) 0%, transparent 70%)', zIndex: 0 }}></div>
+    <div className="page on billing-page" style={{ background: '#F8FAFC', minHeight: '100vh', position: 'relative', overflowX: 'hidden' }}>
+      <div className="blob-bg" style={{ position: 'absolute', top: -100, right: -100, width: 400, height: 400, background: 'radial-gradient(circle, rgba(79,70,229,0.05) 0%, transparent 70%)', zIndex: 0 }}></div>
       
       <div style={{ position: 'relative', zIndex: 1, marginBottom: 40 }}>
         <h1 style={{ fontSize: 32, fontWeight: 900, color: NAVY, letterSpacing: '-0.02em' }}>💳 Institutional Billing</h1>
         <p style={{ color: SLATE, fontSize: 16 }}>Securely manage your platform subscription and academic licensing.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30, position: 'relative', zIndex: 1, marginBottom: 40 }}>
-        <div className="panel" style={{ background: '#fff', padding: 40, borderRadius: 32, boxShadow: '0 20px 50px rgba(15,23,42,0.05)', border: '1px solid rgba(0,0,0,0.03)' }}>
+      <div className="sg sg2" style={{ position: 'relative', zIndex: 1, marginBottom: 40 }}>
+        <div className="panel billing-panel" style={{ background: '#fff', borderRadius: 32, boxShadow: '0 20px 50px rgba(15,23,42,0.05)', border: '1px solid rgba(0,0,0,0.03)' }}>
           <h3 style={{ marginBottom: 24, fontSize: 14, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: SLATE }}>Current Subscription</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 32 }}>
             <div style={{ width: 80, height: 80, borderRadius: 24, background: isExpired ? '#FEF2F2' : 'linear-gradient(135deg, #F0FDF4, #DCFCE7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, boxShadow: '0 10px 20px rgba(0,0,0,0.02)' }}>
@@ -138,7 +196,7 @@ export default function BillingPage() {
           )}
         </div>
 
-        <div className="panel" style={{ background: '#fff', padding: 40, borderRadius: 32, boxShadow: '0 20px 50px rgba(15,23,42,0.05)', border: '1px solid rgba(0,0,0,0.03)' }}>
+        <div className="panel billing-panel" style={{ background: '#fff', borderRadius: 32, boxShadow: '0 20px 50px rgba(15,23,42,0.05)', border: '1px solid rgba(0,0,0,0.03)' }}>
           <h3 style={{ marginBottom: 24, fontSize: 14, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: SLATE }}>Platform Payment Instructions</h3>
           <p style={{ color: SLATE, fontSize: 15, marginBottom: 30, lineHeight: 1.6 }}>To renew or upgrade, please use our official channels. Your license will be extended automatically upon verification.</p>
           
@@ -146,9 +204,9 @@ export default function BillingPage() {
             {platformPayments.map((p, idx) => (
               <div key={idx} style={{ padding: 24, border: `1.5px solid ${M}15`, borderRadius: 24, background: `linear-gradient(135deg, ${M}05, #fff)`, position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', top: -10, right: -10, fontSize: 64, opacity: 0.05, transform: 'rotate(-15deg)' }}>{p.type === 'Paybill' ? '📲' : '🏦'}</div>
-                <div style={{ fontWeight: 800, color: M, marginBottom: 8, fontSize: 16 }}>{p.name} • {p.type}</div>
-                <div style={{ display: 'flex', gap: 32 }}>
-                  <div>
+                <div style={{ fontWeight: 800, color: M, marginBottom: 12, fontSize: 16 }}>{p.name} • {p.type}</div>
+                <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 120 }}>
                     <div style={{ fontSize: 11, color: SLATE, textTransform: 'uppercase', fontWeight: 800, marginBottom: 4 }}>{p.type === 'Bank' ? 'Account Number' : 'Shortcode'}</div>
                     <div style={{ fontWeight: 900, fontSize: 22, color: NAVY }}>{p.shortcode || p.account}</div>
                   </div>
@@ -165,7 +223,7 @@ export default function BillingPage() {
         </div>
       </div>
 
-      <div className="panel" style={{ marginTop: 40, background: '#fff', padding: 40, borderRadius: 32, boxShadow: '0 20px 50px rgba(15,23,42,0.05)', position: 'relative', zIndex: 1 }}>
+      <div className="panel billing-panel" style={{ marginTop: 40, background: '#fff', borderRadius: 32, boxShadow: '0 20px 50px rgba(15,23,42,0.05)', position: 'relative', zIndex: 1 }}>
         <h3 style={{ marginBottom: 32, fontSize: 14, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: SLATE }}>Available License Upgrades</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
           {data.plans.map((p, idx) => (
@@ -206,6 +264,34 @@ export default function BillingPage() {
           onClose={() => setSelectedPlan(null)} 
         />
       )}
+
+      <style jsx>{`
+        .billing-page {
+          padding: 40px;
+        }
+        .billing-panel {
+          padding: 40px;
+        }
+        .modal-content {
+          padding: 40px;
+        }
+        @media (max-width: 800px) {
+          .billing-page {
+            padding: 20px 16px;
+          }
+          .billing-panel {
+            padding: 24px 20px;
+            border-radius: 20px !important;
+          }
+          .modal-content {
+            padding: 24px 20px;
+            border-radius: 24px !important;
+          }
+          h1 {
+            font-size: 24px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

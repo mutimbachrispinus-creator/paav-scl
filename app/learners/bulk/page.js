@@ -40,9 +40,12 @@ export default function BulkLearnersPage() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!bulkGrade && ALL_GRADES.length > 0) {
-      setBulkGrade(ALL_GRADES[0]);
-      setRows(prev => prev.map(r => ({ ...r, grade: ALL_GRADES[0] })));
+    if (ALL_GRADES.length > 0) {
+      // If bulkGrade is empty OR not in the current curriculum's grades list, reset it
+      if (!bulkGrade || !ALL_GRADES.includes(bulkGrade)) {
+        setBulkGrade(ALL_GRADES[0]);
+        setRows(prev => prev.map(r => ({ ...r, grade: ALL_GRADES[0] })));
+      }
     }
   }, [ALL_GRADES, bulkGrade]);
 
@@ -243,14 +246,28 @@ export default function BulkLearnersPage() {
     if (!input) return '';
     const clean = input.toUpperCase().trim().replace(/[^A-Z0-9]/g, '');
     
-    // Fuzzy matching for Kindergarten & Common variations
-    if (clean.includes('KINDER')) return 'KINDERGARTEN';
-    if (clean === 'PP1' || clean === 'PREPRIMARY1') return 'PP1';
-    if (clean === 'PP2' || clean === 'PREPRIMARY2') return 'PP2';
-    
-    // Exact match in ALL_GRADES
+    // 1. Exact match in ALL_GRADES (Highest priority)
     const exact = ALL_GRADES.find(g => g.toUpperCase().replace(/[^A-Z0-9]/g, '') === clean);
     if (exact) return exact;
+
+    // 2. Map common numeric formats (e.g. "G1", "Y1", "1" -> match current curriculum's 1st grade)
+    const numericMatch = clean.match(/\d+/);
+    if (numericMatch) {
+      const num = numericMatch[0];
+      const found = ALL_GRADES.find(g => g.includes(num));
+      if (found) return found;
+    }
+
+    // 3. Fuzzy matching for Kindergarten & Common variations (Curriculum Aware)
+    if (clean.includes('KINDER') || clean.includes('EYFS')) {
+       return ALL_GRADES.find(g => g.includes('KINDER') || g.includes('PP') || g.includes('EYFS')) || ALL_GRADES[0];
+    }
+    if (clean.startsWith('PP1') || clean.includes('PREPRIMARY1')) {
+      return ALL_GRADES.find(g => g.includes('PP1') || g.includes('RECEPTION')) || ALL_GRADES[0];
+    }
+    if (clean.startsWith('PP2') || clean.includes('PREPRIMARY2')) {
+      return ALL_GRADES.find(g => g.includes('PP2') || g.includes('YEAR 1')) || ALL_GRADES[1] || ALL_GRADES[0];
+    }
     
     return input.toUpperCase(); // Fallback
   }

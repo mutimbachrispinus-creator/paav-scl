@@ -28,6 +28,7 @@ export default function SuperAdminPage() {
     pricing: { basic: 25000, premium: 50000 },
     plans: [],
     platformPayments: [],
+    mpesaGateway: { consumerKey: '', consumerSecret: '', shortcode: '', passkey: '', env: 'sandbox' },
     maintenanceMode: false
   });
   const [announcement, setAnnouncement] = useState({ message: '', priority: 'normal', active: false });
@@ -186,19 +187,22 @@ export default function SuperAdminPage() {
   ];
 
   return (
-    <div className="page on" style={{ background: '#F8FAFC', minHeight: '100vh' }}>
-      <div className="page-hdr" style={{ background: `linear-gradient(135deg, ${NAVY}, ${M})`, color: '#fff', padding: '30px 40px', borderRadius: '0 0 30px 30px', marginBottom: 30, boxShadow: '0 10px 40px rgba(15,23,42,0.2)' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 28 }}>👑 EduVantage Command Center</h1>
-          <p style={{ color: '#94A3B8', margin: '5px 0 0 0' }}>Global Oversight: {globalConfig.platformName}</p>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 12, color: '#94A3B8', textTransform: 'uppercase' }}>Total Network Revenue</div>
-          <div style={{ fontSize: 32, fontWeight: 900, color: '#FCD34D' }}>KES {(data?.totalRevenue || 0).toLocaleString()}</div>
+  return (
+    <div className="page on sa-dashboard" style={{ background: '#F8FAFC', minHeight: '100vh' }}>
+      <div className="page-hdr sa-hdr" style={{ background: `linear-gradient(135deg, ${NAVY}, ${M})`, color: '#fff', borderRadius: '0 0 30px 30px', marginBottom: 30, boxShadow: '0 10px 40px rgba(15,23,42,0.2)' }}>
+        <div className="sa-hdr-inner">
+          <div>
+            <h1 style={{ margin: 0 }}>👑 EduVantage Command Center</h1>
+            <p style={{ color: '#94A3B8', margin: '5px 0 0 0' }}>Global Oversight: {globalConfig.platformName}</p>
+          </div>
+          <div className="sa-revenue">
+            <div style={{ fontSize: 12, color: '#94A3B8', textTransform: 'uppercase' }}>Total Network Revenue</div>
+            <div style={{ fontSize: 32, fontWeight: 900, color: '#FCD34D' }}>KES {(data?.totalRevenue || 0).toLocaleString()}</div>
+          </div>
         </div>
       </div>
 
-      <div className="tabs" style={{ margin: '0 40px 30px', display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 10 }}>
+      <div className="tabs sa-tabs" style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 10 }}>
         <TabBtn icon="📊" label="Overview" on={tab === 'overview'} onClick={() => setTab('overview')} />
         <TabBtn icon="🏫" label="Institutions" on={tab === 'schools'} onClick={() => setTab('schools')} />
         <TabBtn icon="💸" label="Settlements" on={tab === 'settlements'} onClick={() => setTab('settlements')} />
@@ -210,7 +214,7 @@ export default function SuperAdminPage() {
         <TabBtn icon="🩺" label="System Health" on={tab === 'health'} onClick={() => setTab('health')} />
       </div>
 
-      <div style={{ padding: '0 40px 40px' }}>
+      <div className="sa-content">
         {tab === 'overview' && (
           <>
             <div className="sg sg4" style={{ marginBottom: 30 }}>
@@ -515,6 +519,38 @@ export default function SuperAdminPage() {
                   <div className="field"><label>Premium Plan</label><input type="number" value={globalConfig.pricing.premium} onChange={e => setGlobalConfig({...globalConfig, pricing: {...globalConfig.pricing, premium: e.target.value}})} /></div>
                 </div>
                 <button className="btn btn-primary" onClick={saveGlobalConfig} disabled={saving}>Save Pricing</button>
+              </div>
+            </div>
+            <div className="panel" style={{ border: '2px solid var(--blue)' }}>
+              <div className="panel-hdr"><h3 style={{ color: 'var(--blue)' }}>💸 M-Pesa Automation Gateway</h3></div>
+              <div className="panel-body">
+                <p style={{ fontSize: 11, color: SLATE, marginBottom: 15 }}>Configure Safaricom Daraja API credentials to enable automated STK Push billing for schools.</p>
+                <div className="field">
+                  <label>Consumer Key</label>
+                  <input type="password" value={globalConfig.mpesaGateway?.consumerKey || ''} onChange={e => setGlobalConfig({...globalConfig, mpesaGateway: {...globalConfig.mpesaGateway, consumerKey: e.target.value}})} />
+                </div>
+                <div className="field">
+                  <label>Consumer Secret</label>
+                  <input type="password" value={globalConfig.mpesaGateway?.consumerSecret || ''} onChange={e => setGlobalConfig({...globalConfig, mpesaGateway: {...globalConfig.mpesaGateway, consumerSecret: e.target.value}})} />
+                </div>
+                <div className="field-row">
+                  <div className="field">
+                    <label>Shortcode</label>
+                    <input value={globalConfig.mpesaGateway?.shortcode || ''} onChange={e => setGlobalConfig({...globalConfig, mpesaGateway: {...globalConfig.mpesaGateway, shortcode: e.target.value}})} />
+                  </div>
+                  <div className="field">
+                    <label>Passkey</label>
+                    <input type="password" value={globalConfig.mpesaGateway?.passkey || ''} onChange={e => setGlobalConfig({...globalConfig, mpesaGateway: {...globalConfig.mpesaGateway, passkey: e.target.value}})} />
+                  </div>
+                </div>
+                <div className="field">
+                  <label>Environment</label>
+                  <select value={globalConfig.mpesaGateway?.env || 'sandbox'} onChange={e => setGlobalConfig({...globalConfig, mpesaGateway: {...globalConfig.mpesaGateway, env: e.target.value}})}>
+                    <option value="sandbox">Sandbox (Testing)</option>
+                    <option value="production">Production (Live)</option>
+                  </select>
+                </div>
+                <button className="btn btn-primary" onClick={saveGlobalConfig} disabled={saving}>Save Gateway Config</button>
               </div>
             </div>
             <div className="panel" style={{ border: '2px dashed #EF4444' }}>
@@ -902,9 +938,24 @@ export default function SuperAdminPage() {
       )}
 
       <style jsx>{`
+        .sa-dashboard { padding: 0 !important; }
+        .sa-hdr { padding: 30px 40px; display: block; height: auto; }
+        .sa-hdr-inner { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 20px; }
+        .sa-tabs { margin: 0 40px 30px; }
+        .sa-content { padding: 0 40px 40px; }
         .activity-item { padding: 12px; background: #fff; border-radius: 8px; font-size: 13px; border-left: 3px solid ${M}; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .tabs { background: #E2E8F0; padding: 5px; border-radius: 15px; }
         .hover-row:hover { background: #F1F5F9; }
+
+        @media (max-width: 800px) {
+          .sa-hdr { padding: 24px 20px; border-radius: 0 0 20px 20px; }
+          .sa-hdr-inner { flex-direction: column; align-items: flex-start; text-align: left; }
+          .sa-hdr-inner h1 { font-size: 22px; }
+          .sa-revenue { text-align: left !important; width: 100%; }
+          .sa-revenue div:last-child { font-size: 24px !important; }
+          .sa-tabs { margin: 0 16px 20px; }
+          .sa-content { padding: 0 16px 40px; }
+        }
       `}</style>
     </div>
   );
@@ -912,10 +963,11 @@ export default function SuperAdminPage() {
 
 function TabBtn({ icon, label, on, onClick }) {
   return (
-    <button onClick={onClick} style={{ 
-      flex: 1, padding: '12px', border: 'none', borderRadius: '12px', background: on ? '#fff' : 'transparent',
+    <button onClick={onClick} className="tab-btn-sa" style={{ 
+      minWidth: '140px', padding: '12px', border: 'none', borderRadius: '12px', background: on ? '#fff' : 'transparent',
       color: on ? NAVY : SLATE, fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: '0.2s',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: on ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: on ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+      flexShrink: 0
     }}>
       <span style={{ fontSize: 18 }}>{icon}</span> {label}
     </button>

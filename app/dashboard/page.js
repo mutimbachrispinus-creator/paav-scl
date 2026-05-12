@@ -31,6 +31,7 @@ function DashboardContent() {
   const curr = getCurriculum(school?.curriculum || 'CBC');
   const ALL_GRADES = curr.ALL_GRADES || [];
   const GRADE_GROUPS = curr.CATEGORIES || [];
+  const LABELS = curr.LABELS || { grade: 'Grade', grades: 'Grades', subject: 'Subject', subjects: 'Subjects' };
 
   const [announcement, setAnnouncement] = useState(null);
 
@@ -226,13 +227,13 @@ function DashboardContent() {
               icon="🎓"
               bg="#EFF6FF"
               value={stats.totalLearners || 0}
-              label="Learners"
+              label={LABELS.grades}
               onClick={() => router.push('/learners')}
             />
             {user.role === 'admin' && (
               <>
                 <StatCard icon="💰" bg="#ECFDF5" value={fmtK(totalPaid)} label="Collected" sub={`${collectionPct}% Rate`} subBg="#ECFDF5" subColor="#059669" onClick={() => router.push('/fees')} />
-                <StatCard icon="✅" bg="#F5F3FF" value={stats.totalLearners || 0} label="Enrolled" sub="Platform Sync Active" subBg="#FEF3C7" subColor="#D97706" onClick={() => router.push('/learners')} />
+                <StatCard icon="✅" bg="#F5F3FF" value={stats.totalLearners || 0} label="Enrolled" sub={`${LABELS.grades} Active`} subBg="#FEF3C7" subColor="#D97706" onClick={() => router.push('/learners')} />
               </>
             )}
             <StatCard icon="💬" bg="#EFF6FF" value={unread} label="Messages" onClick={() => router.push('/messages')} />
@@ -241,7 +242,7 @@ function DashboardContent() {
           <div className="sg sg2 home-insight-grid">
             {user.role === 'admin' && (
               <div className="panel insight-panel">
-                <div className="panel-hdr"><h3>📚 Enrolment</h3></div>
+                <div className="panel-hdr"><h3>📚 {LABELS.grades} Enrolment</h3></div>
                 <div className="panel-body">
                   {ALL_GRADES.map(grade => {
                     const count = stats.enrolmentByGrade?.[grade] || 0;

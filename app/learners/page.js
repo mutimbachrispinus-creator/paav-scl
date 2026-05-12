@@ -26,7 +26,7 @@ export default function LearnersPage() {
   const [user,     setUser]     = useState(null);
   const { profile: school } = useProfile();
   const curr = getCurriculum(school.curriculum);
-  const { ALL_GRADES } = curr;
+  const { ALL_GRADES, LABELS } = curr;
   const [learners, setLearners] = useState([]);
   const [feeCfg,   setFeeCfg]   = useState({});
   const [streams,  setStreams]  = useState([]);
@@ -110,7 +110,7 @@ export default function LearnersPage() {
       <div className="page on" id="pg-learners">
         <div className="page-hdr">
           <div>
-            <h2>🎓 Learners</h2>
+            <h2>🎓 {LABELS.grades}</h2>
             <p>All enrolled learners — {curr.name}</p>
           </div>
           <div className="page-hdr-acts">
@@ -128,12 +128,12 @@ export default function LearnersPage() {
                   🗑️ Recycle Bin
                 </button>
                 <button className="btn btn-gold btn-sm" onClick={() => setModal('promote')}>
-                  🎓 Promote Learners
+                  🎓 Promote {LABELS.grades}
                 </button>
               </>
             )}
             <button className="btn btn-primary btn-sm" onClick={() => setModal('add')}>
-              ➕ Add Learner
+              ➕ Add {LABELS.grade}
             </button>
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function LearnersPage() {
                 onChange={e => setGradeF(e.target.value)}
                 style={{ padding: '8px 11px', border: '2px solid var(--border)',
                   borderRadius: 'var(--r2)', fontSize: 12, outline: 'none' }}>
-                <option value="">All Active Grades</option>
+                <option value="">All {LABELS.grades}</option>
                 {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
                 <option value="ALUMNI">🎓 ALUMNI / GRADUATED</option>
               </select>
@@ -173,7 +173,7 @@ export default function LearnersPage() {
                   </th>
                   <th style={{ padding: '6px 8px' }}>Adm</th>
                   <th style={{ padding: '6px 8px' }}>Name</th>
-                  <th style={{ padding: '6px 8px' }}>Grade</th>
+                  <th style={{ padding: '6px 8px' }}>{LABELS.grade}</th>
                   <th style={{ padding: '6px 8px' }}>Stream</th>
                   <th style={{ padding: '6px 8px' }}>Gender</th>
                   <th style={{ padding: '6px 8px' }}>Age</th>

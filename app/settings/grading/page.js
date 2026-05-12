@@ -21,6 +21,7 @@ export default function GradingSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [labels, setLabels] = useState({ grade: 'Grade', grades: 'Grades', subject: 'Subject', subjects: 'Subjects' });
 
   // ─── Load data ──────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
@@ -45,6 +46,8 @@ export default function GradingSettingsPage() {
       // 3. Get curriculum module
       const curr = getCurriculum(currName);
       setCurrModule(curr);
+      const labels = curr.LABELS || { grade: 'Grade', grades: 'Grades', subject: 'Subject', subjects: 'Subjects' };
+      setLabels(labels);
 
       // 4. Load saved grading config
       const gradRes = await fetch('/api/db', {
@@ -177,20 +180,16 @@ export default function GradingSettingsPage() {
               title="Uniform"
               desc="One scale for all grades."
             />
-            <ModeCard
-              active={gradingMode === 'per-level'}
-              onClick={() => setGradingMode('per-level')}
-              icon="📚"
-              title="Per-Level"
-              desc="Separate scales per level."
-            />
-            <ModeCard
-              active={gradingMode === 'per-subject'}
-              onClick={() => setGradingMode('per-subject')}
-              icon="🧪"
-              title="Per-Subject"
-              desc="Scales for specific subjects."
-            />
+            <div className={`mode-card ${gradingMode === 'per-level' ? 'active' : ''}`} onClick={() => setGradingMode('per-level')}>
+              <div className="mode-icon">📚</div>
+              <div className="mode-name">Per-{labels.grade}</div>
+              <div className="mode-desc">Unique grading scales for each school level.</div>
+            </div>
+            <div className={`mode-card ${gradingMode === 'per-subject' ? 'active' : ''}`} onClick={() => setGradingMode('per-subject')}>
+              <div className="mode-icon">📖</div>
+              <div className="mode-name">Per-{labels.subject}</div>
+              <div className="mode-desc">Custom scales for specific {labels.subjects.toLowerCase()}.</div>
+            </div>
           </div>
         </div>
       </div>
