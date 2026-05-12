@@ -42,7 +42,6 @@ export async function POST(request) {
     const expiresAt = new Date();
     
     // Fetch global config to get plan cycle
-    const { kvGet } = await import('@/lib/db');
     const gConf = await kvGet('paav_global_config', {}, 'platform-master');
     const planData = (gConf.plans || []).find(p => p.id === selectedPlan);
     const cycle = planData?.cycle || 'termly';

@@ -187,7 +187,6 @@ export default function SuperAdminPage() {
   ];
 
   return (
-  return (
     <div className="page on sa-dashboard" style={{ background: '#F8FAFC', minHeight: '100vh' }}>
       <div className="page-hdr sa-hdr" style={{ background: `linear-gradient(135deg, ${NAVY}, ${M})`, color: '#fff', borderRadius: '0 0 30px 30px', marginBottom: 30, boxShadow: '0 10px 40px rgba(15,23,42,0.2)' }}>
         <div className="sa-hdr-inner">
