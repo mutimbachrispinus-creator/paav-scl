@@ -4,8 +4,9 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@libsql/client/web';
 
 export async function GET() {
-  const url = 'https://paav-school-portal-mutimba.aws-ap-south-1.turso.io';
-  const token = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzgyNjIwMDIsImlkIjoiMDE5ZGM2NWYtODkwMS03MjA1LWIyYzEtOWQ1ODE2NDczMWU1IiwicmlkIjoiMWFmMzc1N2MtZjNlOS00YzI5LThlMjYtNTg3ODViNzJkMGNiIn0.mq7xtXfkF_DnT9fXb0o7axIxGoK2Vo-nP5VsvuoDsrvk0xjkXro9wOiCoBsaAh-EDIPBQ5-5shu4If-dnzagAQ';
+  const url = process.env.TURSO_DATABASE_URL || 'https://paav-school-portal-mutimba.aws-ap-south-1.turso.io';
+  const token = process.env.TURSO_AUTH_TOKEN;
+  if (!token) return NextResponse.json({ error: 'TURSO_AUTH_TOKEN not configured' }, { status: 500 });
   const client = createClient({ url, authToken: token });
 
   try {

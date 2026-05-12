@@ -3,7 +3,26 @@ export const runtime = 'edge';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser } from '@/lib/client-cache';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from '@/components/DynamicCharts';
+import dynamic from 'next/dynamic';
+const DynamicRevenueChart = dynamic(async () => {
+  const { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = await import('recharts');
+  return ({ data, color }) => (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data}>
+        <defs>
+          <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={color} stopOpacity={0.3}/><stop offset="95%" stopColor={color} stopOpacity={0}/>
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
+        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
+        <Tooltip />
+        <Area type="monotone" dataKey="rev" stroke={color} strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}, { ssr: false });
 
 const M = '#4F46E5', GOLD = '#FCD34D', NAVY = '#0F172A', EMERALD = '#10B981', SLATE = '#64748B';
 
@@ -227,20 +246,7 @@ export default function SuperAdminPage() {
               <div className="panel">
                 <div className="panel-hdr"><h3>📈 Platform Revenue Growth</h3></div>
                 <div className="panel-body" style={{ height: 350 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
-                      <defs>
-                        <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={M} stopOpacity={0.3}/><stop offset="95%" stopColor={M} stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
-                      <Tooltip />
-                      <Area type="monotone" dataKey="rev" stroke={M} strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  <DynamicRevenueChart data={chartData} color={M} />
                 </div>
               </div>
               <div className="panel">
@@ -519,6 +525,7 @@ export default function SuperAdminPage() {
                 </div>
                 <button className="btn btn-primary" onClick={saveGlobalConfig} disabled={saving}>Save Pricing</button>
               </div>
+            </div>
             <div className="panel" style={{ border: '2px solid #2563EB' }}>
               <div className="panel-hdr"><h3 style={{ color: '#2563EB' }}>💸 M-Pesa Automation Gateway</h3></div>
               <div className="panel-body">
