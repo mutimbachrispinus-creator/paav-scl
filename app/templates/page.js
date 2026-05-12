@@ -1314,7 +1314,12 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
     : 0;
 
   // Aggregate distribution safely across all possible levels (Primary + JSS)
-  const schoolDist = {};
+  const schoolDist = { 
+    ...(ALL_GRADES[0] ? getDistributionBuckets(ALL_GRADES[0], curr) : {}), 
+    ...(ALL_GRADES.find(g => isJSSGrade(g, curr)) ? getDistributionBuckets(ALL_GRADES.find(g => isJSSGrade(g, curr)), curr) : {}) 
+  };
+  // Reset counts to zero
+  Object.keys(schoolDist).forEach(k => schoolDist[k] = 0);
   
   gradeStats.forEach(g => {
     if (!g.dist) return;
