@@ -9,62 +9,64 @@ export async function POST(req) {
     const { phone, amount, accountRef, description, term, paybillId, includeFee } = await req.json();
 
     if (!phone || !amount || !accountRef) {
-      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Missing required fields: phone, amount, and accountRef are required' }, { status: 400 });
     }
-    
+
     const platformFee = includeFee ? 50 : 0;
     const finalAmount = Number(amount) + platformFee;
 
     const session = await getSession();
-    if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    if (!session) return NextResponse.json({ success: false, error: 'Unauthorized. Please log in and try again.' }, { status: 401 });
 
     const tenantId = session.tenantId;
 
+    // Load school's paybill accounts from KV
     const paybills = (await kvGet('paav_paybill_accounts', [], tenantId)) || [];
     const paybill = paybills.find(p => String(p.id) === String(paybillId)) || paybills[0] || {};
 
-    // Parse adm from accountRef which may be "2025/001:T1" or just "2025/001"
-    // We send just the raw adm number as AccountReference (Safaricom limit: 12 chars)
-    // The adm number itself is what parents & schools recognise.
-    // Term + tenantId are tracked separately via the CheckoutRequestID record below.
+    // Parse clean adm from accountRef which may be "2025/001:T1" or just "2025/001"
     const adm = String(accountRef).split(':')[0].trim();
-    const safaricomRef = adm.slice(0, 12); // Max 12 chars enforced by Safaricom
+    const safaricomRef = adm.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12) || 'FEES';
 
-    const result = await stkPush({
+    // Use school-level Daraja credentials if configured, else fall back to env vars
+    const stkResult = await stkPush({
       phone,
       amount: finalAmount,
       accountRef: safaricomRef,
-      description: description || 'School Fees'
+      description: description || 'School Fees',
+      shortcode:      paybill.shortcode     || undefined,
+      passkey:        paybill.passkey       || undefined,
+      consumerKey:    paybill.consumerKey   || undefined,
+      consumerSecret: paybill.consumerSecret|| undefined,
+      env:            paybill.env           || process.env.MPESA_ENV || 'sandbox',
     });
 
-    if (result.success && result.checkoutRequestId) {
-      // Store a pending payment record keyed by CheckoutRequestID.
-      // The callback will look this up to know exactly which student, term,
-      // and school to credit — works for ANY length admission number.
+    if (stkResult.success && stkResult.checkoutRequestId) {
+      // Track pending payment by CheckoutRequestID so the callback can reconcile
       const pendingKey = 'paav_mpesa_pending';
       const pending = (await kvGet(pendingKey, {}, tenantId)) || {};
-      pending[result.checkoutRequestId] = {
+      pending[stkResult.checkoutRequestId] = {
         adm,
-        term:     term || 'T1',
-        amount:   Number(amount), // Original base amount for school ledger
+        term:              term || 'T1',
+        amount:            Number(amount), // base school amount
         platformFee,
         tenantId,
         phone,
-        settlementAccount: paybill.shortcode || paybill.accNo || 'Primary', // Where EduVantage should send funds
-        initiatedAt: new Date().toISOString()
+        settlementAccount: paybill.shortcode || paybill.accNo || 'Primary',
+        initiatedAt:       new Date().toISOString()
       };
-      // Keep at most 200 pending records (auto-cleanup of old ones)
+
+      // Keep at most 200 pending records
       const keys = Object.keys(pending);
       if (keys.length > 200) {
-        const oldest = keys.slice(0, keys.length - 200);
-        oldest.forEach(k => delete pending[k]);
+        keys.slice(0, keys.length - 200).forEach(k => delete pending[k]);
       }
       await kvSet(pendingKey, pending, tenantId);
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json(stkResult);
   } catch (error) {
-    console.error('STK Push API Error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error('[STK Push] Error:', error);
+    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
   }
 }

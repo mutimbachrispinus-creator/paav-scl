@@ -231,6 +231,21 @@ async function finalizeRegistration(orderTrackingId) {
     'active'
   ]);
 
+  // Send Zeraki-style Welcome SMS
+  try {
+    const { sendSMS } = await import('@/lib/sms-client');
+    const atCreds = await kvGet('paav_at_creds', null, 'platform-master');
+    const welcomeMsg = 
+      `🚀 Welcome to EduVantage!\n` +
+      `Hello ${payload.adminName}, your school portal for ${payload.schoolName} is ready.\n` +
+      `Username: ${payload.adminUsername}\n` +
+      `Login: ${process.env.NEXT_PUBLIC_SITE_URL || 'https://eduvantage.app'}/login?tenant=${tenantId}`;
+    
+    await sendSMS({ to: payload.phone, message: welcomeMsg, ...(atCreds || {}) });
+  } catch (smsErr) {
+    console.warn('[Pesapal] Welcome SMS failed:', smsErr.message);
+  }
+
   await kvSet(`pesapal_pending_${orderTrackingId}`, null, 'platform-master');
   return { 
     message: 'Institution activated successfully', 

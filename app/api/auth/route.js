@@ -538,7 +538,7 @@ async function handleRequestOtp(body, request) {
   const tid = request.headers.get('x-tenant-id') || 'platform-master';
   
   // Search for the user globally (usernames are unique)
-  const rows = await query('SELECT name, phone, tenant_id FROM staff WHERE LOWER(username) = ?', [username.toLowerCase()]);
+  const rows = await query('SELECT id, name, phone, tenant_id FROM staff WHERE LOWER(username) = ?', [username.toLowerCase()]);
   const user = rows[0];
   
   if (!user) return err('Account not found. Please check your username.');
@@ -635,7 +635,6 @@ async function handleRequestRegOtp({ phone }, request) {
   // Store OTP in global platform-master KV with 10 min expiry
   await kvSet(`reg_otp_pending_${cleanPhone}`, { otp, expires: Date.now() + 10 * 60 * 1000 }, 'platform-master');
 
-  // Send SMS
   try {
     const { sendSMS } = await import('@/lib/sms-client');
     const atCreds = await kvGet('paav_at_creds', null, 'platform-master');

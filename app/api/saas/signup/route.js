@@ -109,6 +109,21 @@ export async function POST(request) {
         args: ['paav_theme', tenantId, defaultTheme, now]
       }
     ]);
+    
+    // 5. Send Zeraki-style Welcome SMS
+    try {
+      const { sendSMS } = await import('@/lib/sms-client');
+      const atCreds = await kvGet('paav_at_creds', null, 'platform-master');
+      const welcomeMsg = 
+        `🚀 Welcome to EduVantage!\n` +
+        `Hello ${adminName}, your school portal for ${schoolName} is ready.\n` +
+        `Username: ${adminUsername}\n` +
+        `Login: ${process.env.NEXT_PUBLIC_SITE_URL}/login?tenant=${tenantId}`;
+      
+      await sendSMS({ to: phone, message: welcomeMsg, ...(atCreds || {}) });
+    } catch (smsErr) {
+      console.warn('[Signup] Welcome SMS failed:', smsErr.message);
+    }
 
     return NextResponse.json({ 
       ok: true, 
