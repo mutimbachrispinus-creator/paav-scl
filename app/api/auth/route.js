@@ -589,11 +589,12 @@ async function handleRequestOtp(body, request) {
   if (!smsRes.success) {
     console.warn(`[OTP] SMS Failed for ${username}: ${smsRes.error}. OTP is: ${otp} (Logged for recovery)`);
     
-    // In dev/sandbox or if explicitly requested, we could return a more helpful error
-    if (smsRes.error?.includes('API key not configured')) {
-      return err('SMS Gateway not configured. Please contact your school administrator to set up Africa\'s Talking credentials.');
+    // Give a clean, actionable error without exposing raw AT internals
+    const errMsg = smsRes.error || '';
+    if (errMsg.includes('API key not configured') || errMsg.includes('supplier') || errMsg.includes('credentials')) {
+      return err('SMS gateway not configured. Please ask your school administrator to set up Africa\'s Talking API credentials in Settings → SMS.');
     }
-    return err(`Failed to send SMS code: ${smsRes.error}. Please try again later.`);
+    return err(`Could not send OTP via SMS. Please check your phone number and try again, or contact support.`);
   }
 
   return ok({ message: `OTP sent to your phone ending in ${user.phone.slice(-3)}`, sent: true });
