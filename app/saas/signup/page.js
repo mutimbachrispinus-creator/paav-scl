@@ -275,10 +275,13 @@ export default function SignupPage() {
                   </div>
                 </div>
                 <div className="su-field">
-                  <label className="su-label">Phone Number (for OTP) *</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <label className="su-label" style={{ margin: 0 }}>Phone Number (for OTP) *</label>
+                    <span style={{ fontSize: 9, opacity: 0.6, color: '#1D4ED8', fontWeight: 700 }}>Include country code (e.g. +254...)</span>
+                  </div>
                   <div className="su-otp-row">
-                    <input className="su-input" placeholder="07XXXXXXXX" value={form.phone} disabled={otpVerified}
-                      onChange={e=>{F('phone',e.target.value);setOtpSent(false);setOtpVerified(false);setOtpMsg('');}}/>
+                    <input className="su-input" placeholder="+254 7XX XXX XXX" value={form.phone} disabled={otpVerified}
+                      onChange={e=>{F('phone',e.target.value.replace(/[^\d+]/g, ''));setOtpSent(false);setOtpVerified(false);setOtpMsg('');}}/>
                     {!otpVerified&&<button className="su-otp-btn" disabled={otpLoading||!form.phone} onClick={sendOtp}>
                       {otpLoading?'Sending…':otpSent?'Resend':'Send OTP'}
                     </button>}

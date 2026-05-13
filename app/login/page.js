@@ -551,14 +551,17 @@ function LoginContent() {
                     <button type="button" onClick={() => setLinks([...links, { schoolId: '', adm: '' }])} style={{ width: '100%', padding: '8px', background: '#fff', border: '1.5px dashed #CBD5E1', borderRadius: 8, fontSize: 11, fontWeight: 700, color: '#2563EB', cursor: 'pointer' }}>+ Add Another School</button>
                   </div>
 
-                  <div className="field">
-                    <label>Phone Number</label>
+                   <div className="field">
+                    <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      Phone Number
+                      <span style={{ fontSize: 9, opacity: 0.6, color: 'var(--primary)', fontWeight: 700 }}>Include country code (e.g. +254...)</span>
+                    </label>
                     <div style={{ display: 'flex', gap: 10 }}>
                       <input 
                         required 
                         value={form.phone} 
-                        onChange={e => { F('phone', e.target.value); setOtpVerified(false); setOtpSent(false); }} 
-                        placeholder="07XXXXXXXX" 
+                        onChange={e => { F('phone', e.target.value.replace(/[^\d+]/g, '')); setOtpVerified(false); setOtpSent(false); }} 
+                        placeholder="+254 7XX XXX XXX" 
                         style={{ flex: 1 }}
                         disabled={otpVerified}
                       />
