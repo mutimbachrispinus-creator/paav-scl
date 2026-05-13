@@ -139,10 +139,20 @@ export default function BulkLearnersPage() {
       const s1 = String(n1).toUpperCase().trim().replace(/[^A-Z\s]/g, '');
       const s2 = String(n2).toUpperCase().trim().replace(/[^A-Z\s]/g, '');
       if (s1 === s2) return true;
-      const w1 = s1.split(/\s+/).filter(w => w.length > 0).sort();
-      const w2 = s2.split(/\s+/).filter(w => w.length > 0).sort();
-      if (w1.length < 2 || w2.length < 2) return s1 === s2;
-      return (w1[0] === w2[0] && w1[1] === w2[1]);
+      
+      const w1 = s1.split(/\s+/).filter(w => w.length > 1);
+      const w2 = s2.split(/\s+/).filter(w => w.length > 1);
+      
+      if (w1.length === 0 || w2.length === 0) return s1 === s2;
+
+      // Check if at least 2 words match (Order independent)
+      const longer = w1.length >= w2.length ? w1 : w2;
+      const shorter = w1.length < w2.length ? w1 : w2;
+      const longerSet = new Set(longer);
+      const matches = shorter.filter(w => longerSet.has(w)).length;
+
+      if (shorter.length === 1) return matches === 1 && longer.includes(shorter[0]);
+      return matches >= 2;
     }
 
     for (const r of valid) {
@@ -376,7 +386,7 @@ export default function BulkLearnersPage() {
           // MERGE: Latest (CSV) wins
           const merged = [...rows.filter(r => r.adm || r.name)];
           for (const nr of newRows) {
-            const idx = merged.findIndex(m => (m.adm && m.adm === nr.adm) || (m.name && m.grade === nr.grade && m.name === nr.name));
+            const idx = merged.findIndex(m => (m.adm && m.adm === nr.adm) || (m.name && m.grade === nr.grade && isFuzzyMatch(m.name, nr.name)));
             if (idx !== -1) {
               merged[idx] = { ...merged[idx], ...nr };
             } else {
@@ -429,11 +439,8 @@ export default function BulkLearnersPage() {
         const csvName = cols[map.name]?.toUpperCase() || '';
         if (!csvName) continue;
 
-        // Match by Name (Fuzzy: exact or contains)
-        const match = gradeLearners.find(l => {
-          const lName = l.name.toUpperCase();
-          return lName === csvName || lName.includes(csvName) || csvName.includes(lName);
-        });
+        // Match by Name (Fuzzy Match)
+        const match = gradeLearners.find(l => isFuzzyMatch(l.name, csvName));
 
         if (match) {
           matchedRows.push({

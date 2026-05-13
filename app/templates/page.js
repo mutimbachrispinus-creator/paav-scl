@@ -1352,6 +1352,41 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
 
   const sortedGrades = (gradeStats || []).sort((a, b) => (b.avgScore || 0) - (a.avgScore || 0));
 
+  // Identify learners needing attention (Bottom performers across the school/grade)
+  const allRanked = [];
+  filteredGrades.forEach(g => {
+    const gLearners = scopedLearners.filter(l => l.grade === g);
+    const gSubjs = subjects[g] && subjects[g].length > 0 ? subjects[g] : null;
+    const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr, gSubjs, mode);
+    merit.forEach(l => {
+      const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
+      allRanked.push({ ...l, grade: g, pct: lPct });
+    });
+  });
+  const needAttention = allRanked.sort((a, b) => a.pct - b.pct).slice(0, 10);
+
+  // Gender Performance Comparison
+  const genderStats = {
+    M: { total: 0, count: 0, sitting: 0 },
+    F: { total: 0, count: 0, sitting: 0 }
+  };
+  allRanked.forEach(l => {
+    const s = l.sex === 'Female' || l.sex === 'F' ? 'F' : 'M';
+    genderStats[s].total += l.pct;
+    genderStats[s].sitting++;
+  });
+  scopedLearners.forEach(l => {
+    const s = l.sex === 'Female' || l.sex === 'F' ? 'F' : 'M';
+    genderStats[s].count++;
+  });
+  const genderAnalysis = Object.entries(genderStats).map(([sex, data]) => ({
+    sex: sex === 'F' ? 'Female' : 'Male',
+    avg: data.sitting > 0 ? (data.total / data.sitting).toFixed(1) : 0,
+    sitting: data.sitting,
+    enrolled: data.count
+  }));
+
+
   const titleLabel = localGrade === 'ALL' ? 'SCHOOL ACADEMIC SUMMARY' : `${localGrade} ACADEMIC SUMMARY`;
 
   return (
@@ -1478,27 +1513,92 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
         </div>
       </div>
 
-      {/* Subject Performance Summary */}
-      <div style={{ marginTop: 30 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color: '#1E293B', marginBottom: 12, textTransform: 'uppercase' }}>📚 Subject Performance Summary</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-          {subjectStats.map(s => {
-            const info = gInfo(parseFloat(s.avg), ALL_GRADES[0], gradCfg, curr);
-            return (
-              <div key={s.name} style={{ background: '#fff', border: '1px solid #E2E8F0', padding: 12, borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 800 }}>{s.name}</div>
-                  <div style={{ fontSize: 8, color: '#64748B' }}>{s.count} Entries</div>
+      {/* Subject Performance & Gender Comparison */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 30 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 900, color: '#1E293B', marginBottom: 12, textTransform: 'uppercase' }}>📚 Subject Performance Summary</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+            {subjectStats.map(s => {
+              const info = gInfo(parseFloat(s.avg), ALL_GRADES[0], gradCfg, curr);
+              return (
+                <div key={s.name} style={{ background: '#fff', border: '1px solid #E2E8F0', padding: 10, borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 9, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
+                    <div style={{ fontSize: 7, color: '#64748B' }}>{s.count} Entries</div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 900, color: info.c }}>{s.avg}%</div>
+                    <div style={{ fontSize: 7, fontWeight: 700, color: info.c }}>{info.lv}</div>
+                  </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 12, fontWeight: 900, color: info.c }}>{s.avg}%</div>
-                  <div style={{ fontSize: 8, fontWeight: 700, color: info.c }}>{info.lv}</div>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 900, color: '#1E293B', marginBottom: 12, textTransform: 'uppercase' }}>🚻 Gender Performance Analysis</div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
+            <thead>
+              <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
+                <th style={{ padding: 10, textAlign: 'left' }}>Gender</th>
+                <th style={{ padding: 10, textAlign: 'center' }}>Sitting / Enrolled</th>
+                <th style={{ padding: 10, textAlign: 'center' }}>Mean Score</th>
+                <th style={{ padding: 10, textAlign: 'center' }}>Mean Level</th>
+              </tr>
+            </thead>
+            <tbody>
+              {genderAnalysis.map(g => {
+                const info = gInfo(parseFloat(g.avg), ALL_GRADES[0], gradCfg, curr);
+                return (
+                  <tr key={g.sex} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <td style={{ padding: 10, fontWeight: 800 }}>{g.sex}</td>
+                    <td style={{ padding: 10, textAlign: 'center' }}>{g.sitting} / {g.enrolled}</td>
+                    <td style={{ padding: 10, textAlign: 'center', fontWeight: 700, color: info.c }}>{g.avg}%</td>
+                    <td style={{ padding: 10, textAlign: 'center', fontWeight: 800, color: info.c }}>{info.lv}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div style={{ marginTop: 15, padding: 12, background: '#F0FDF4', borderRadius: 10, border: '1px solid #DCFCE7', fontSize: 9, color: '#166534' }}>
+            <strong>Gender Insight:</strong> The institution maintains a {Math.abs(genderAnalysis[0].avg - genderAnalysis[1].avg).toFixed(1)}% performance gap between genders.
+          </div>
         </div>
       </div>
+
+      {/* Learners Needing Attention */}
+      <div style={{ marginTop: 30, pageBreakInside: 'avoid' }}>
+        <div style={{ fontSize: 11, fontWeight: 900, color: '#DC2626', marginBottom: 12, textTransform: 'uppercase' }}>⚠️ Learners Requiring Immediate Attention (Bottom Performers)</div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
+          <thead>
+            <tr style={{ background: '#FEF2F2', borderBottom: '2px solid #FCA5A5' }}>
+              <th style={{ padding: 8, textAlign: 'center', width: 40 }}>#</th>
+              <th style={{ padding: 8, textAlign: 'left' }}>Learner Name</th>
+              <th style={{ padding: 8, textAlign: 'center' }}>Grade</th>
+              <th style={{ padding: 8, textAlign: 'center' }}>Mean Score</th>
+              <th style={{ padding: 8, textAlign: 'center' }}>Level</th>
+              <th style={{ padding: 8, textAlign: 'left' }}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {needAttention.map((l, i) => {
+              const info = gInfo(l.pct, l.grade, gradCfg, curr);
+              return (
+                <tr key={l.adm} style={{ borderBottom: '1px solid #FEE2E2' }}>
+                  <td style={{ padding: 8, textAlign: 'center', fontWeight: 900 }}>{i + 1}</td>
+                  <td style={{ padding: 8, fontWeight: 700 }}>{l.name}</td>
+                  <td style={{ padding: 8, textAlign: 'center' }}>{l.grade}</td>
+                  <td style={{ padding: 8, textAlign: 'center', fontWeight: 700, color: '#991B1B' }}>{l.pct.toFixed(1)}%</td>
+                  <td style={{ padding: 8, textAlign: 'center', fontWeight: 800, color: info.c }}>{info.lv}</td>
+                  <td style={{ padding: 8, fontSize: 9, color: '#B91C1C', fontWeight: 600 }}>Urgent Intervention Required</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
 
       {/* Top 10 School Wide */}
       <div style={{ marginTop: 30, pageBreakInside: 'avoid' }}>
