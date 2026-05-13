@@ -123,6 +123,7 @@ function ReportCardContent() {
 
               {/* Learner Info */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 32px', marginBottom: 20, padding: '12px 16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #E2E8F0' }}>
+                {[['Student Name', learner.name], ['Admission No.', learner.adm], [labels.grade + ' / Class', learner.grade], ['Stream', learner.stream || '—'], ['Gender', learner.sex === 'F' ? 'Female' : learner.sex === 'M' ? 'Male' : '—'], ['Class Teacher', learner.teacher || '—']].map(([k, v]) => (
                   <div key={k} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #CBD5E1', paddingBottom: 4 }}>
                     <span style={{ color: '#64748b', fontSize: 11 }}>{k}</span>
                     <strong style={{ fontSize: 12 }}>{v}</strong>
