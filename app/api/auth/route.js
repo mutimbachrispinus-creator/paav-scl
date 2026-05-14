@@ -60,12 +60,7 @@ export async function POST(request) {
   console.log(`[api/auth] Action: ${action} | Runtime: ${process.env.NEXT_RUNTIME || 'node'}`);
   
   try {
-    try {
-      await ensureSchema();
-    } catch (dbErr) {
-      console.error('[api/auth] DB Initialization Failed:', dbErr);
-      return err(`Database Initialization Error: ${dbErr.message}`, 500);
-    }
+    // Removed blocking ensureSchema call for Edge performance
 
     switch (action) {
       case 'login':      return handleLogin(body, request);

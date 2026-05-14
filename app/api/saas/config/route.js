@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import { query, kvGet, ensureSchema } from '@/lib/db';
+import { query, kvGet } from '@/lib/db';
 
 /**
  * GET /api/saas/config?tenant=xxx

@@ -1,7 +1,7 @@
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import { kvGet, kvSet } from '@/lib/db';
+import { kvGet, kvSet, forceInitSchema } from '@/lib/db';
 import { hashPassword, getSession } from '@/lib/auth';
 import { ALL_GRADES } from '@/lib/cbe';
 
@@ -11,6 +11,7 @@ export async function GET() {
     return new NextResponse('Unauthorized', { status: 401 });
   }
   try {
+    await forceInitSchema(); // Ensure tables exist since auto-migrate is disabled on Edge
     const staff = (await kvGet('paav6_staff')) || [];
     const learners = (await kvGet('paav6_learners')) || [];
     
