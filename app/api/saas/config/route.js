@@ -10,7 +10,6 @@ import { query, kvGet, ensureSchema } from '@/lib/db';
  */
 export async function GET(request) {
   try {
-    await ensureSchema();
     const { searchParams } = new URL(request.url);
     const tenantId = searchParams.get('tenant') || 'platform-master';
 
@@ -105,6 +104,10 @@ export async function GET(request) {
     return response;
 
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500, headers: { 'Cache-Control': 'no-store' } });
+    console.error('[Config API] Error:', err);
+    return NextResponse.json({ 
+      error: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    }, { status: 500, headers: { 'Cache-Control': 'no-store' } });
   }
 }

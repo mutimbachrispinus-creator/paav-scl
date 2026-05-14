@@ -27,7 +27,8 @@ export const viewport = {
 
 export default async function RootLayout({ children }) {
   // 🚀 Speed Injection: Pre-fetch session and branding on the server
-  const session = await getSession();
+  let session = null;
+  try { session = await getSession(); } catch(e) { console.error(e); }
   let initialBranding = null;
   
   if (session?.tenantId && session.tenantId !== 'platform-master') {

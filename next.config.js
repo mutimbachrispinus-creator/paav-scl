@@ -27,7 +27,6 @@ const nextConfig = {
       http: false,
       https: false,
       stream: false,
-      crypto: false,
       os: false,
       path: false,
       fs: false,
