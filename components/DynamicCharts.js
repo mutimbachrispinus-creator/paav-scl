@@ -119,3 +119,5 @@ export const CartesianGrid = () => null;
 export const Tooltip = () => null;
 export const Cell = () => null;
 export const Area = () => null;
+export const Bar = () => null;
+export const Line = () => null;

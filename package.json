@@ -14,6 +14,7 @@
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
     "@libsql/client": "^0.14.0",
+    "@react-pdf/renderer": "^4.5.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "jose": "^5.4.0",
