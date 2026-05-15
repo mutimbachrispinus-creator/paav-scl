@@ -1501,7 +1501,7 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
               return (
                 <div key={lv} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <div style={{ fontSize: 10, fontWeight: 800, color: color }}>{count}</div>
-                  <div style={{ width: '100%', height: \`\${heightPct}%\`, background: color, borderRadius: '4px 4px 0 0', opacity: 0.85, transition: 'all 0.3s ease', minHeight: '2px' }}></div>
+                  <div style={{ width: '100%', height: `${heightPct}%`, background: color, borderRadius: '4px 4px 0 0', opacity: 0.85, transition: 'all 0.3s ease', minHeight: '2px' }}></div>
                   <div style={{ fontSize: 9, fontWeight: 800, color: '#475569', marginTop: 4 }}>{lv}</div>
                 </div>
               );
