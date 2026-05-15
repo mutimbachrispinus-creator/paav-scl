@@ -1,6 +1,6 @@
 # EduVantage School Management Platform
 
-**Next.js 14 · Turso (libSQL) · Africa's Talking · M-Pesa Daraja**
+**Next.js 15 · Turso (libSQL) · Africa's Talking · M-Pesa Daraja · Cloudflare Pages**
 
 > "Empowering Education Excellence" — A production-grade Next.js App Router SaaS platform
 > for centralized school operations, automated academic tracking, and real-time parent engagement.
@@ -72,6 +72,7 @@ paav-school-portal/
 ├── next.config.js
 ├── tailwind.config.js
 ├── vercel.json
+├── wrangler.toml
 └── .env.example
 ```
 
@@ -101,13 +102,25 @@ npm run dev
 # Open http://localhost:3000
 ```
 
-### 4. Deploy to Vercel
+### 4. Deploy to Cloudflare Pages
 
 ```bash
-vercel --prod
-# Set environment variables in the Vercel dashboard (Settings → Environment Variables)
-# or use `vercel env add` for each variable in .env.example
+npm run build
+wrangler pages deploy
 ```
+
+Cloudflare Pages settings:
+
+| Setting | Value |
+|---------|-------|
+| Build command | `npm run build` |
+| Build output directory | `.vercel/output/static` |
+| Root directory | Repo root |
+
+Set production secrets in Cloudflare Pages → Settings → Environment Variables.
+The `vercel.json` file intentionally points Vercel's internal build step at
+`npm run next:build`; this lets `@cloudflare/next-on-pages` call `vercel build`
+without recursively invoking the Cloudflare build script.
 
 ---
 

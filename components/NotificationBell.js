@@ -78,7 +78,7 @@ export default function NotificationBell({ userId }) {
       <button
         onClick={() => { setOpen(!open); if (!open) load(); }}
         style={{
-          position: 'relative', background: 'transparent', border: 'none',
+          position: 'relative', border: 'none',
           cursor: 'pointer', padding: '6px 10px', borderRadius: 10,
           fontSize: 20, lineHeight: 1, transition: '0.2s',
           background: open ? '#EEF2FF' : 'transparent',
