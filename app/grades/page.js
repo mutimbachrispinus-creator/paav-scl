@@ -158,7 +158,7 @@ export default function GradesPage() {
   const classLearners = learners.filter(l => l.grade === grade && (!stream || (l.stream || 'Default') === stream))
     .sort((a, b) => a.name.localeCompare(b.name));
   const gradeStreams = streams.filter(s => s.grade === grade);
-  const subjects      = (subjCfg[grade] && subjCfg[grade].length > 0) ? subjCfg[grade] : (DEFAULT_SUBJECTS[grade] || []);
+  const subjects      = (subjCfg[grade] !== undefined) ? subjCfg[grade] : (DEFAULT_SUBJECTS[grade] || []);
   const getLockKey = (subj) => `${term}:${grade}:${assess}:${subj}`;
   const isSubjLocked = (subj) => !!locked[getLockKey(subj)] || !!locked[`${term}:${grade}:${assess}`];
   const isLocked      = !!locked[`${term}:${grade}:${assess}`];

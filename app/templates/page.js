@@ -95,9 +95,11 @@ export default function TemplatesPage() {
     (learners || []).filter(l => l.grade === grade).sort((a,b) => (a.name || '').localeCompare(b.name || '')),
   [learners, grade]);
 
-  const subjects = useMemo(() =>
-    (subjCfg[grade] && subjCfg[grade].length > 0) ? subjCfg[grade] : (getDefaultSubjects(grade, profile?.curriculum || 'CBC')),
-  [subjCfg, grade, profile?.curriculum]);
+  const subjects = useMemo(() => {
+    const list = subjCfg[grade] !== undefined ? subjCfg[grade] : getDefaultSubjects(grade, profile?.curriculum || 'CBC');
+    return (list || []).filter(s => s && s.trim());
+  }, [subjCfg, grade, profile?.curriculum]);
+
 
   function triggerPrint(landscape) {
     // Mark only the active tab so print doesn't show a blank page
@@ -296,9 +298,12 @@ function PrintHeader({ title, grade, profile = {} }) {
 
 function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gradCfg, profile, mode = 'per-level' }) {
   const curr = profile?.curriculum || 'CBC';
-  const data = buildMeritList(learners, marks, grade, term, assess, gradCfg, curr, null, mode);
+  // Ensure we pass the dynamic subjects list to buildMeritList
+  const filteredSubjects = (subjects || []).filter(s => s && s.trim());
+  const data = buildMeritList(learners, marks, grade, term, assess, gradCfg, curr, filteredSubjects, mode);
 
-  const colStats = subjects.map(s => {
+
+  const colStats = filteredSubjects.map(s => {
     let sum = 0;
     let count = 0;
     data.forEach(l => {
@@ -312,6 +317,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
     const avgInfo = avgScore !== null ? gInfo(avgScore, grade, gradCfg, curr, s, mode) : null;
     return { avgScore, avgInfo };
   });
+
   
   const subjectPerformanceRanks = colStats
     .map((s, i) => ({ index: i, avgScore: s.avgScore }))
@@ -333,7 +339,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
   // Distribution stats — dynamically initialized based on curriculum
   const dist = getDistributionBuckets(grade, curr);
   const subjectDistribution = {};
-  subjects.forEach(s => { subjectDistribution[s] = getDistributionBuckets(grade, curr); });
+  filteredSubjects.forEach(s => { subjectDistribution[s] = getDistributionBuckets(grade, curr); });
     
   data.forEach(l => {
     const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
@@ -364,7 +370,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
             <th style={{ border: '1px solid #ddd', padding: 2, textAlign: 'center' }}>Pos</th>
             <th style={{ border: '1px solid #ddd', padding: 2, textAlign: 'center' }}>ADM</th>
             <th style={{ border: '1px solid #ddd', padding: 2, textAlign: 'left' }}>Name</th>
-            {subjects.map(s => <th key={s} style={{ border: '1px solid #ddd', padding: 2, fontSize: 7.5, textAlign: 'center' }}>{s.slice(0,5)}</th>)}
+            {filteredSubjects.map(s => <th key={s} style={{ border: '1px solid #ddd', padding: 2, fontSize: 7.5, textAlign: 'center' }}>{s.slice(0,5)}</th>)}
             <th style={{ border: '1px solid #ddd', padding: 2, color: '#8B1A1A', textAlign: 'center' }}>Total Marks</th>
             <th style={{ border: '1px solid #ddd', padding: 2, color: '#8B1A1A', textAlign: 'center' }}>Total Pts</th>
             <th style={{ border: '1px solid #ddd', padding: 2, color: '#8B1A1A', textAlign: 'center' }}>Avg Pts</th>
@@ -382,7 +388,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                 <td style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center' }}>{l.rank}</td>
                 <td style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center' }}>{l.adm}</td>
                 <td style={{ border: '1px solid #ddd', padding: 1.5 }}>{l.name}</td>
-                {subjects.map(s => {
+                {filteredSubjects.map(s => {
                   const d = l.detail.find(x => x.subj === s);
                   return (
                     <td key={s} style={{ border: '1px solid #ddd', padding: 1.5, textAlign: 'center' }}>
@@ -426,7 +432,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
             <>
               <tr style={{ background: '#f0fdf4', borderTop: '2px solid #000' }}>
                 <td colSpan={3} style={{ border: '1px solid #ddd', padding: 6, textAlign: 'right', fontWeight: 800 }}>TOTAL MARKS</td>
-                {subjects.map((s, i) => {
+                {filteredSubjects.map((s, i) => {
                   let sum = 0;
                   data.forEach(l => {
                     const score = getMark(marks, term, grade, s, assess, l.adm);
@@ -453,7 +459,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                 ))}
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{totalAvgMarks}</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{totalAvgPts}</td>
-                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{(totalAvgPts / (subjects.length || 1)).toFixed(2)}</td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{(totalAvgPts / (filteredSubjects.length || 1)).toFixed(2)}</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 700 }}>{avgPct}%</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
@@ -487,7 +493,7 @@ function MeritListTemplate({ learners, subjects, marks, grade, term, assess, gra
                 ))}
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>—</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800, color: '#8B1A1A' }}>{totalAvgPts}</td>
-                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800, color: '#8B1A1A' }}>{(totalAvgPts / (subjects.length || 1)).toFixed(2)}</td>
+                <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center', fontWeight: 800, color: '#8B1A1A' }}>{(totalAvgPts / (filteredSubjects.length || 1)).toFixed(2)}</td>
                 <td style={{ border: '1px solid #ddd', padding: 6, textAlign: 'center' }}>
                   {avgPct > 0 ? (
                     <span style={{ fontWeight: 800 }}>{gInfo(parseFloat(avgPct), grade, gradCfg, curr).pts}</span>
@@ -1289,13 +1295,15 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
     if (gLearners.length === 0) return null;
 
     // Use custom subjects if available
-    const gSubjs = subjects[g] && subjects[g].length > 0 ? subjects[g] : null;
+    const gSubjs = subjects[g] !== undefined ? subjects[g] : null;
     const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr, gSubjs, mode);
     
     const totalScoreSum = merit.reduce((acc, l) => acc + l.totalPts, 0);
     const maxPossible = merit.length > 0 ? merit.reduce((acc, l) => acc + l.maxTotal, 0) : 1;
     const avgScore = maxPossible > 0 ? (totalScoreSum / maxPossible * 100).toFixed(1) : 0;
-    const top = merit[0];
+    
+    const top3 = merit.slice(0, 3);
+    const bottom3 = merit.slice(-3).reverse();
     const dist = getDistributionBuckets(g, curr);
     
     merit.forEach(l => {
@@ -1304,7 +1312,7 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
       if (dist[info.lv] !== undefined) dist[info.lv]++;
     });
     
-    return { grade: g, count: gLearners.length, sitting: merit.length, avgScore, top, dist };
+    return { grade: g, count: gLearners.length, sitting: merit.length, avgScore, top3, bottom3, dist, maxPossible };
   }).filter(Boolean);
 
   const totalStudents = scopedLearners.length;
@@ -1318,7 +1326,6 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
     ...(ALL_GRADES[0] ? getDistributionBuckets(ALL_GRADES[0], curr) : {}), 
     ...(ALL_GRADES.find(g => isJSSGrade(g, curr)) ? getDistributionBuckets(ALL_GRADES.find(g => isJSSGrade(g, curr)), curr) : {}) 
   };
-  // Reset counts to zero
   Object.keys(schoolDist).forEach(k => schoolDist[k] = 0);
   
   gradeStats.forEach(g => {
@@ -1333,7 +1340,7 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
   const subjMap = {};
   filteredGrades.forEach(g => {
     const gLearners = scopedLearners.filter(l => l.grade === g);
-    const gSubjs = subjects[g] && subjects[g].length > 0 ? subjects[g] : getDefaultSubjects(g, curr);
+    const gSubjs = subjects[g] !== undefined ? subjects[g] : getDefaultSubjects(g, curr);
     gLearners.forEach(l => {
       gSubjs.forEach(s => {
         const score = getMark(marks, term, g, s, assess, l.adm);
@@ -1350,35 +1357,31 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
     return { name, avg: avg.toFixed(1), count: data.count };
   }).sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg));
 
-  const sortedGrades = (gradeStats || []).sort((a, b) => (b.avgScore || 0) - (a.avgScore || 0));
-
-  // Identify learners needing attention (Bottom performers across the school/grade)
-  const allRanked = [];
-  filteredGrades.forEach(g => {
-    const gLearners = scopedLearners.filter(l => l.grade === g);
-    const gSubjs = subjects[g] && subjects[g].length > 0 ? subjects[g] : null;
-    const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr, gSubjs, mode);
-    merit.forEach(l => {
-      const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
-      allRanked.push({ ...l, grade: g, pct: lPct });
-    });
-  });
-  const needAttention = allRanked.sort((a, b) => a.pct - b.pct).slice(0, 10);
-
   // Gender Performance Comparison
   const genderStats = {
     M: { total: 0, count: 0, sitting: 0 },
     F: { total: 0, count: 0, sitting: 0 }
   };
-  allRanked.forEach(l => {
-    const s = l.sex === 'Female' || l.sex === 'F' ? 'F' : 'M';
-    genderStats[s].total += l.pct;
-    genderStats[s].sitting++;
+  
+  const allRanked = [];
+  filteredGrades.forEach(g => {
+    const gLearners = scopedLearners.filter(l => l.grade === g);
+    const gSubjs = subjects[g] !== undefined ? subjects[g] : null;
+    const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr, gSubjs, mode);
+    merit.forEach(l => {
+      const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
+      allRanked.push({ ...l, grade: g, pct: lPct });
+      const s = l.sex === 'Female' || l.sex === 'F' ? 'F' : 'M';
+      genderStats[s].total += lPct;
+      genderStats[s].sitting++;
+    });
   });
+  
   scopedLearners.forEach(l => {
     const s = l.sex === 'Female' || l.sex === 'F' ? 'F' : 'M';
     genderStats[s].count++;
   });
+  
   const genderAnalysis = Object.entries(genderStats).map(([sex, data]) => ({
     sex: sex === 'F' ? 'Female' : 'Male',
     avg: data.sitting > 0 ? (data.total / data.sitting).toFixed(1) : 0,
@@ -1386,11 +1389,10 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
     enrolled: data.count
   }));
 
-
   const titleLabel = localGrade === 'ALL' ? 'SCHOOL ACADEMIC SUMMARY' : `${localGrade} ACADEMIC SUMMARY`;
 
   return (
-    <div style={{ padding: '0 10px' }}>
+    <div style={{ padding: '0 10px', minWidth: '1000px', margin: '0 auto', WebkitTextSizeAdjust: '100%' }}>
       {/* ── Exam Summary Own Filters (no-print) ── */}
       <div className="no-print" style={{ marginBottom: 20, padding: '14px 18px', background: '#F0F9FF', border: '1.5px solid #BAE6FD', borderRadius: 12, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div>
@@ -1477,8 +1479,8 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
                       <span style={{ color: info.c, fontWeight: 900 }}>{info.lv}</span>
                     </td>
                     <td style={{ padding: 10, fontSize: 9.5 }}>
-                      <div style={{ fontWeight: 700 }}>{g.top?.name || '—'}</div>
-                      <div style={{ color: '#64748B', fontSize: 8 }}>ADM: {g.top?.adm} · {g.top?.totalMarks} Marks</div>
+                      <div style={{ fontWeight: 700 }}>{g.top3[0]?.name || '—'}</div>
+                      <div style={{ color: '#64748B', fontSize: 8 }}>ADM: {g.top3[0]?.adm} · {g.top3[0]?.totalMarks} Marks</div>
                     </td>
                   </tr>
                 );
@@ -1487,36 +1489,111 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
           </table>
         </div>
 
-        {/* Distribution Analysis */}
+        {/* Graphical Curriculum-Aware Distribution Analysis */}
         <div style={{ padding: 15, border: '1.5px solid #E2E8F0', borderRadius: 15, background: '#fff' }}>
-          <div style={{ fontSize: 11, fontWeight: 900, color: '#1E293B', marginBottom: 20, textTransform: 'uppercase', textAlign: 'center' }}>Institutional Distribution</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+          <div style={{ fontSize: 11, fontWeight: 900, color: '#1E293B', marginBottom: 10, textTransform: 'uppercase', textAlign: 'center' }}>Institutional Competency Distribution</div>
+          
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 160, padding: '10px 0', borderBottom: '1px solid #E2E8F0', marginBottom: 15 }}>
             {Object.entries(schoolDist).map(([lv, count]) => {
-              const pct = totalStudents > 0 ? (count / totalStudents * 100) : 0;
+              const maxCount = Math.max(...Object.values(schoolDist), 1);
+              const heightPct = (count / maxCount) * 100;
               const color = getGradeColors(curr)[lv] || '#94A3B8';
               return (
-                <div key={lv}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontWeight: 800, marginBottom: 5 }}>
-                    <span style={{ color }}>{lv} — {count} Students</span>
-                    <span style={{ color: '#64748B' }}>{pct.toFixed(1)}%</span>
-                  </div>
-                  <div style={{ width: '100%', height: 10, background: '#F1F5F9', borderRadius: 10, overflow: 'hidden' }}>
-                    <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 10 }}></div>
-                  </div>
+                <div key={lv} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: color }}>{count}</div>
+                  <div style={{ width: '100%', height: \`\${heightPct}%\`, background: color, borderRadius: '4px 4px 0 0', opacity: 0.85, transition: 'all 0.3s ease', minHeight: '2px' }}></div>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: '#475569', marginTop: 4 }}>{lv}</div>
                 </div>
               );
             })}
           </div>
-          <div style={{ marginTop: 25, padding: 12, background: '#F8FAFF', borderRadius: 10, border: '1px dashed #CBD5E1', fontSize: 9, color: '#475569', fontStyle: 'italic', lineHeight: 1.5 }}>
-            <strong>Note:</strong> Distribution represents the competency levels across all {LABELS.subjects.toLowerCase()} as defined by the {curr} curriculum framework.
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {Object.entries(schoolDist).map(([lv, count]) => {
+              const pct = totalStudents > 0 ? (count / totalStudents * 100) : 0;
+              const color = getGradeColors(curr)[lv] || '#94A3B8';
+              return (
+                <div key={lv} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontWeight: 700 }}>
+                  <span style={{ color }}>{lv}:</span>
+                  <span>{count} <span style={{ color: '#94A3B8', fontSize: 8 }}>({pct.toFixed(1)}%)</span></span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ marginTop: 15, padding: 8, background: '#F8FAFF', borderRadius: 8, border: '1px dashed #CBD5E1', fontSize: 8.5, color: '#475569', fontStyle: 'italic', lineHeight: 1.5 }}>
+            <strong>Note:</strong> Graphic illustrates the overall {curr} proficiency distribution across the school.
           </div>
         </div>
       </div>
 
+      {/* Grade-Level Top and Bottom Performers (Detailed) */}
+      <div style={{ marginTop: 30 }}>
+         <div style={{ fontSize: 11, fontWeight: 900, color: '#1E293B', marginBottom: 15, textTransform: 'uppercase' }}>🏆 Grade-Level Rankings & Subject Recommendations</div>
+         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {gradeStats.map(g => (
+               <div key={g.grade} style={{ background: '#fff', border: '1px solid #E2E8F0', borderRadius: 12, overflow: 'hidden', pageBreakInside: 'avoid' }}>
+                 <div style={{ background: '#F8FAFC', padding: '10px 15px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontSize: 12, fontWeight: 900, color: '#0F172A' }}>{g.grade}</h3>
+                    <div style={{ fontSize: 10, color: '#64748B', fontWeight: 700 }}>Mean: {g.avgScore}%</div>
+                 </div>
+                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+                    {/* Top 3 */}
+                    <div style={{ padding: 15, borderRight: '1px dashed #E2E8F0' }}>
+                       <div style={{ fontSize: 10, fontWeight: 800, color: '#059669', marginBottom: 10, textTransform: 'uppercase' }}>🌟 Top 3 Performers</div>
+                       {g.top3.length === 0 && <div style={{ fontSize: 10, color: '#94A3B8' }}>No data available</div>}
+                       {g.top3.map((l, i) => {
+                          const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
+                          const info = gInfo(lPct, g.grade, gradCfg, curr);
+                          const bestSubj = [...l.detail].filter(d=>d.score!==null).sort((a,b)=>b.score-a.score)[0];
+                          return (
+                             <div key={l.adm} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid #F1F5F9' }}>
+                                <div style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</div>
+                                <div style={{ flex: 1 }}>
+                                   <div style={{ fontSize: 10, fontWeight: 800, color: '#1E293B' }}>{l.name} <span style={{ fontSize: 8, color: '#94A3B8' }}>({l.adm})</span></div>
+                                   <div style={{ fontSize: 9, color: '#64748B' }}>Best in {bestSubj?.subj || 'N/A'} ({bestSubj?.score || 0})</div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                   <div style={{ fontSize: 10, fontWeight: 800, color: '#059669' }}>{l.totalMarks} Marks</div>
+                                   <div style={{ fontSize: 8, color: info.c, fontWeight: 700 }}>{info.lv} ({lPct.toFixed(1)}%)</div>
+                                </div>
+                             </div>
+                          );
+                       })}
+                    </div>
+                    {/* Bottom 3 */}
+                    <div style={{ padding: 15 }}>
+                       <div style={{ fontSize: 10, fontWeight: 800, color: '#DC2626', marginBottom: 10, textTransform: 'uppercase' }}>⚠️ Require Attention (Bottom 3)</div>
+                       {g.bottom3.length === 0 && <div style={{ fontSize: 10, color: '#94A3B8' }}>No data available</div>}
+                       {g.bottom3.map((l, i) => {
+                          const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
+                          const info = gInfo(lPct, g.grade, gradCfg, curr);
+                          const worstSubj = [...l.detail].filter(d=>d.score!==null).sort((a,b)=>a.score-b.score)[0];
+                          return (
+                             <div key={l.adm} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid #F1F5F9' }}>
+                                <div style={{ fontSize: 12, fontWeight: 900, color: '#94A3B8', width: 24, textAlign: 'center' }}>#{g.sitting - i}</div>
+                                <div style={{ flex: 1 }}>
+                                   <div style={{ fontSize: 10, fontWeight: 800, color: '#1E293B' }}>{l.name} <span style={{ fontSize: 8, color: '#94A3B8' }}>({l.adm})</span></div>
+                                   <div style={{ fontSize: 9, color: '#B91C1C' }}>Support needed in {worstSubj?.subj || 'N/A'}</div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                   <div style={{ fontSize: 10, fontWeight: 800, color: '#DC2626' }}>{l.totalMarks} Marks</div>
+                                   <div style={{ fontSize: 8, color: info.c, fontWeight: 700 }}>{info.lv} ({lPct.toFixed(1)}%)</div>
+                                </div>
+                             </div>
+                          );
+                       })}
+                    </div>
+                 </div>
+               </div>
+            ))}
+         </div>
+      </div>
+
       {/* Subject Performance & Gender Comparison */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 30 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 30, pageBreakInside: 'avoid' }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 900, color: '#1E293B', marginBottom: 12, textTransform: 'uppercase' }}>📚 Subject Performance Summary</div>
+          <div style={{ fontSize: 11, fontWeight: 900, color: '#1E293B', marginBottom: 12, textTransform: 'uppercase' }}>📚 Overall Subject Averages</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
             {subjectStats.map(s => {
               const info = gInfo(parseFloat(s.avg), ALL_GRADES[0], gradCfg, curr);
@@ -1567,90 +1644,7 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
         </div>
       </div>
 
-      {/* Learners Needing Attention */}
-      <div style={{ marginTop: 30, pageBreakInside: 'avoid' }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color: '#DC2626', marginBottom: 12, textTransform: 'uppercase' }}>⚠️ Learners Requiring Immediate Attention (Bottom Performers)</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
-          <thead>
-            <tr style={{ background: '#FEF2F2', borderBottom: '2px solid #FCA5A5' }}>
-              <th style={{ padding: 8, textAlign: 'center', width: 40 }}>#</th>
-              <th style={{ padding: 8, textAlign: 'left' }}>Learner Name</th>
-              <th style={{ padding: 8, textAlign: 'center' }}>Grade</th>
-              <th style={{ padding: 8, textAlign: 'center' }}>Mean Score</th>
-              <th style={{ padding: 8, textAlign: 'center' }}>Level</th>
-              <th style={{ padding: 8, textAlign: 'left' }}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {needAttention.map((l, i) => {
-              const info = gInfo(l.pct, l.grade, gradCfg, curr);
-              return (
-                <tr key={l.adm} style={{ borderBottom: '1px solid #FEE2E2' }}>
-                  <td style={{ padding: 8, textAlign: 'center', fontWeight: 900 }}>{i + 1}</td>
-                  <td style={{ padding: 8, fontWeight: 700 }}>{l.name}</td>
-                  <td style={{ padding: 8, textAlign: 'center' }}>{l.grade}</td>
-                  <td style={{ padding: 8, textAlign: 'center', fontWeight: 700, color: '#991B1B' }}>{l.pct.toFixed(1)}%</td>
-                  <td style={{ padding: 8, textAlign: 'center', fontWeight: 800, color: info.c }}>{info.lv}</td>
-                  <td style={{ padding: 8, fontSize: 9, color: '#B91C1C', fontWeight: 600 }}>Urgent Intervention Required</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-
-      {/* Top 10 School Wide */}
-      <div style={{ marginTop: 30, pageBreakInside: 'avoid' }}>
-         <div style={{ fontSize: 11, fontWeight: 900, color: '#1E293B', marginBottom: 12, textTransform: 'uppercase' }}>🏆 Top 10 Academic Giants (School Wide)</div>
-         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
-            <thead>
-               <tr style={{ background: 'linear-gradient(to right, #1E3A8A, #3B82F6)', color: '#fff' }}>
-                  <th style={{ padding: 8, textAlign: 'center', width: 40 }}>#</th>
-                  <th style={{ padding: 8, textAlign: 'left' }}>Learner Name</th>
-                  <th style={{ padding: 8, textAlign: 'center' }}>Grade</th>
-                  <th style={{ padding: 8, textAlign: 'center' }}>Mean Score</th>
-                  <th style={{ padding: 8, textAlign: 'center' }}>Total Points</th>
-                  <th style={{ padding: 8, textAlign: 'center' }}>Level</th>
-               </tr>
-            </thead>
-            <tbody>
-               {(() => {
-                  const allRanked = [];
-                  filteredGrades.forEach(g => {
-                     const gLearners = scopedLearners.filter(l => l.grade === g);
-                     const gSubjs = subjects[g] && subjects[g].length > 0 ? subjects[g] : null;
-                     const merit = buildMeritList(gLearners, marks, g, term, assess, gradCfg, curr, gSubjs, mode);
-                     merit.forEach(l => {
-                        const lPct = l.maxTotal > 0 ? (l.totalPts / l.maxTotal * 100) : 0;
-                        allRanked.push({ ...l, grade: g, pct: lPct });
-                     });
-                  });
-                  
-                  return allRanked
-                     .sort((a, b) => b.pct - a.pct)
-                     .slice(0, 10)
-                     .map((l, i) => {
-                        const info = gInfo(l.pct, l.grade, gradCfg, curr);
-                        return (
-                           <tr key={l.adm} style={{ borderBottom: '1px solid #E2E8F0', background: i < 3 ? '#FEFCE8' : 'transparent' }}>
-                              <td style={{ padding: 8, textAlign: 'center', fontWeight: 900 }}>{i + 1}</td>
-                              <td style={{ padding: 8, fontWeight: 700 }}>{l.name} {i === 0 ? '👑' : ''}</td>
-                              <td style={{ padding: 8, textAlign: 'center' }}>{l.grade}</td>
-                              <td style={{ padding: 8, textAlign: 'center', fontWeight: 700, color: '#1E40AF' }}>{l.totalMarks}</td>
-                              <td style={{ padding: 8, textAlign: 'center' }}>{l.totalPts}</td>
-                              <td style={{ padding: 8, textAlign: 'center' }}>
-                                 <span style={{ fontWeight: 800, color: info.c }}>{info.lv}</span>
-                              </td>
-                           </tr>
-                        );
-                     });
-               })()}
-            </tbody>
-         </table>
-      </div>
-
-      <div style={{ marginTop: 40, borderTop: '2px solid #E2E8F0', paddingTop: 20, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 40, textAlign: 'center' }}>
+      <div style={{ marginTop: 40, borderTop: '2px solid #E2E8F0', paddingTop: 20, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 40, textAlign: 'center', pageBreakInside: 'avoid' }}>
          <div>
             <div style={{ height: 40, borderBottom: '1px solid #CBD5E1', marginBottom: 5 }}></div>
             <div style={{ fontSize: 9, fontWeight: 700, color: '#64748B' }}>EXAMS COORDINATOR</div>

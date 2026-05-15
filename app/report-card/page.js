@@ -87,7 +87,7 @@ function ReportCardContent() {
       {/* Report Cards */}
       <div ref={printRef}>
         {targetLearners.map((learner, idx) => {
-          const subjects = (subjCfg[learner.grade]?.length > 0 ? subjCfg[learner.grade] : DEFAULT_SUBJECTS[learner.grade]) || [];
+          const subjects = (subjCfg[learner.grade] !== undefined ? subjCfg[learner.grade] : DEFAULT_SUBJECTS[learner.grade]) || [];
           const cfg = feeCfg[learner.grade] || {};
           const annualFee = (cfg.t1||0) + (cfg.t2||0) + (cfg.t3||0) || cfg.annual || 0;
           const totalPaid = (learner.t1||0) + (learner.t2||0) + (learner.t3||0);

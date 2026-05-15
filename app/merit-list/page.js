@@ -102,11 +102,13 @@ export default function MeritListPage() {
   useEffect(() => { load(); }, [load]);
 
   const subjects = useMemo(() => {
-    if (subjCfg && subjCfg[grade] && subjCfg[grade].length > 0) {
-      return subjCfg[grade];
-    }
-    return curr.DEFAULT_SUBJECTS?.[grade] || [];
+    let list = (subjCfg && subjCfg[grade] !== undefined)
+      ? subjCfg[grade]
+      : (curr.DEFAULT_SUBJECTS?.[grade] || []);
+    // Filter out any null/undefined/empty subjects that might have crept in
+    return list.filter(s => s && s.trim());
   }, [subjCfg, grade, curr]);
+
 
   /* ── Build ranked list (memoized so dropdowns trigger re-render) ── */
   const ranked = useMemo(() => loading ? [] : buildMeritList(learners, marks, grade, term, assess, gradCfg, school?.curriculum || 'CBC', subjects), [learners, marks, grade, term, assess, gradCfg, loading, school?.curriculum, subjects]);
