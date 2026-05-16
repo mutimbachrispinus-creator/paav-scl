@@ -288,6 +288,38 @@ export default function ProfilePage() {
     if (ALL_GRADES.length > 0 && !ALL_GRADES.includes(bulkGrade)) setBulkGrade(ALL_GRADES[0]);
   }, [ALL_GRADES, bulkGrade]);
 
+  // Sync Bulk Enroll with existing learners for the selected grade
+  useEffect(() => {
+    if (tab === 'bulk' && bulkGrade && allLearners.length > 0) {
+      const existing = allLearners.filter(l => l.grade === bulkGrade);
+      if (existing.length > 0) {
+        const rows = existing.map(l => {
+          const extra = allProfiles[l.adm] || {};
+          return {
+            adm: l.adm,
+            name: l.name,
+            grade: l.grade,
+            stream: l.stream || extra.stream || '',
+            gender: l.gender || extra.gender || (l.sex === 'M' ? 'Male' : l.sex === 'F' ? 'Female' : ''),
+            dob: l.dob || extra.dob || '',
+            parent: l.parent || '',
+            phone: l.phone || extra.phone || '',
+            father: extra.father || '',
+            mother: extra.mother || '',
+            address: extra.address || '',
+            medical: extra.medical || '',
+            blood: extra.blood || '',
+            transport: extra.transport || '',
+            parentEmail: l.parentEmail || extra.parentEmail || ''
+          };
+        });
+        setBulkRows([...rows, createEmptyBulkRow()]);
+      } else {
+        setBulkRows([createEmptyBulkRow()]);
+      }
+    }
+  }, [tab, bulkGrade, allLearners, allProfiles]);
+
   const load = useCallback(async () => {
     try {
       const [authRes, dbRes] = await Promise.all([
@@ -549,14 +581,15 @@ export default function ProfilePage() {
       'Parent/Guardian', 'Phone', 'Father', 'Mother', 'Address', 'Medical', 'Blood Group', 'Transport', 'Parent Email'
     ];
     const sample = [
-      '1001', 'JANE WAMBUI', bulkGrade || ALL_GRADES[0] || 'GRADE 1', 'East', 'Female', '2016-03-12',
-      'MARY WAMBUI', '0712345678', 'JOHN WAMBUI', 'MARY WAMBUI', 'Nairobi', 'None', 'O+', 'Bus', 'parent@example.com'
+      ['1001', 'JOHN DOE', bulkGrade || ALL_GRADES[0] || 'GRADE 1', 'North', 'Male', '2016-05-20', 'PETER DOE', '0700111222', 'PETER DOE', 'JANE DOE', 'Nairobi West', 'None', 'O+', 'Bus', 'parents@example.com'],
+      ['1002', 'MARY AMANI', bulkGrade || ALL_GRADES[0] || 'GRADE 1', 'South', 'Female', '2017-02-14', 'SARAH AMANI', '0722333444', 'JAMES AMANI', 'SARAH AMANI', 'Mombasa', 'Asthma', 'A-', 'Walk', 'sarah@example.com']
     ];
-    const blob = new Blob([headers.join(',') + '\n' + sample.join(',') + '\n'], { type: 'text/csv' });
+    const csvContent = headers.join(',') + '\n' + sample.map(r => r.join(',')).join('\n') + '\n';
+    const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'eduvantage-profile-bulk-enrol-template.csv';
+    a.download = `eduvantage-bulk-enroll-${(bulkGrade || 'template').toLowerCase().replace(/\s+/g, '-')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }

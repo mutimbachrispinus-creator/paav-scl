@@ -278,16 +278,40 @@ function SchoolProfileContent() {
                   
                   <div className="field">
                     <label>Active Curriculum</label>
-                    <select 
-                      value={profile.curriculum || 'CBC'} 
-                      onChange={e => setProfile({...profile, curriculum: e.target.value})}
-                      style={{ width: '100%', padding: '14px 18px', border: '2px solid var(--primary)', borderRadius: 12, fontSize: 16, fontWeight: 700, outline: 'none', background: '#fff', color: 'var(--primary)' }}
-                    >
-                      <option value="CBC">🇰🇪 Kenya CBC (Competency-Based)</option>
-                      <option value="BRITISH">🇬🇧 British National Curriculum (IGCSE/A-Level)</option>
-                      <option value="IB">🌍 International Baccalaureate (PYP/MYP/DP)</option>
-                      <option value="MONTESSORI">🌀 Montessori Curriculum (Mastery-based)</option>
-                    </select>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 15, marginTop: 10 }}>
+                      {[
+                        { id: 'CBC', label: 'Kenya CBC', icon: '🇰🇪', desc: 'Competency-Based Education focusing on skills and application.' },
+                        { id: 'BRITISH', label: 'British Curriculum', icon: '🇬🇧', desc: 'IGCSE and A-Level standards with a focus on core subjects.' },
+                        { id: 'IB', label: 'IB World', icon: '🌍', desc: 'International Baccalaureate program for global citizenship.' },
+                        { id: 'MONTESSORI', label: 'Montessori', icon: '🌀', desc: 'Student-led, hands-on learning with multi-age classrooms.' }
+                      ].map(c => {
+                        const active = (profile.curriculum || 'CBC') === c.id;
+                        return (
+                          <div 
+                            key={c.id} 
+                            onClick={() => setProfile({...profile, curriculum: c.id})}
+                            style={{ 
+                              padding: '20px', 
+                              borderRadius: 16, 
+                              border: `2px solid ${active ? 'var(--primary)' : 'var(--border)'}`, 
+                              background: active ? '#FFF1F1' : '#fff', 
+                              cursor: 'pointer',
+                              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                              transform: active ? 'scale(1.02)' : 'scale(1)',
+                              boxShadow: active ? '0 10px 20px -5px rgba(139, 26, 26, 0.15)' : 'none',
+                              position: 'relative',
+                              overflow: 'hidden'
+                            }}
+                            className="curriculum-card"
+                          >
+                            {active && <div style={{ position: 'absolute', top: 10, right: 10, fontSize: 16 }}>✅</div>}
+                            <div style={{ fontSize: 32, marginBottom: 12 }}>{c.icon}</div>
+                            <div style={{ fontWeight: 800, fontSize: 16, color: active ? 'var(--primary)' : 'var(--navy)', marginBottom: 6 }}>{c.label}</div>
+                            <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4 }}>{c.desc}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                   
                   <div style={{ marginTop: 20, padding: 15, background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 12, display: 'flex', gap: 12 }}>
@@ -475,6 +499,11 @@ function SchoolProfileContent() {
         }
         .tab-btn:hover:not(.on) {
           background: #F8FAFC;
+        }
+        .curriculum-card:hover {
+          border-color: var(--primary) !important;
+          transform: translateY(-5px);
+          box-shadow: 0 12px 24px -10px rgba(139, 26, 26, 0.2);
         }
         @keyframes pulse {
           0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb, 37, 99, 235), 0.4); }
