@@ -172,7 +172,7 @@ export default function GradingSettingsPage() {
       <div className="panel" style={{ marginBottom: 20 }}>
         <div className="panel-hdr"><h3>🎚️ Grading Mode</h3></div>
         <div className="panel-body">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 15 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
             {[
               { id: 'uniform', icon: '🏫', title: 'Uniform Scale', desc: 'Single grading scale across the entire school.' },
               { id: 'per-level', icon: '📚', title: `Per-${labels.grade}`, desc: `Different scales for Pre-Primary, Primary, and Junior School.` },
@@ -285,22 +285,26 @@ function ModeCard({ active, onClick, icon, title, desc }) {
     <div
       onClick={onClick}
       style={{
-        flex: 1, padding: 20, 
-        border: `2px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
-        borderRadius: 16, cursor: 'pointer', 
+        padding: 20,
+        border: `2px solid ${active ? 'var(--primary)' : 'rgba(0,0,0,0.06)'}`,
+        borderRadius: 16,
+        cursor: 'pointer',
         background: active ? '#FFF1F1' : '#fff',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: active ? 'scale(1.02)' : 'scale(1)',
         boxShadow: active ? '0 8px 16px -4px rgba(139, 26, 26, 0.12)' : 'none',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
       }}
       className="mode-card-item"
     >
       {active && <div style={{ position: 'absolute', top: 12, right: 12, fontSize: 14 }}>✅</div>}
       <div style={{ fontSize: 32, marginBottom: 12 }}>{icon}</div>
       <div style={{ fontWeight: 800, fontSize: 15, color: active ? 'var(--primary)' : '#1E293B', marginBottom: 4 }}>{title}</div>
-      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4 }}>{desc}</div>
+      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4, flex: 1 }}>{desc}</div>
     </div>
   );
 }
