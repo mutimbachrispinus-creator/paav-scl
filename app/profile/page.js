@@ -6,15 +6,16 @@ export const runtime = 'edge';
  * Tabs: My Profile | Password | Staff Directory | Learner Lookup | Bulk Enroll
  */
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ALL_GRADES } from '@/lib/cbe';
+import { getAllGrades } from '@/lib/cbe';
+import { useProfile } from '@/app/PortalShell';
 
 const M = '#8B1A1A', ML = '#FDF2F2';
 const PROFILE_ROLES = ['admin', 'teacher', 'jss_teacher', 'senior_teacher', 'staff', 'parent', 'super-admin'];
 const PEOPLE_DIRECTORY_ROLES = ['admin', 'super-admin'];
 const LEARNER_LOOKUP_ROLES = ['admin', 'teacher', 'jss_teacher', 'senior_teacher', 'staff'];
-const BULK_ENROLL_ROLES = ['admin'];
+const BULK_ENROLL_ROLES = ['admin', 'super-admin'];
 
 async function safeJson(response, fallback = {}) {
   if (!response) return fallback;
@@ -28,8 +29,175 @@ async function safeJson(response, fallback = {}) {
   }
 }
 
+function createEmptyBulkRow() {
+  return {
+    adm: '', name: '', grade: '', stream: '', gender: '', dob: '', parent: '', phone: '',
+    address: '', medical: '', blood: '', father: '', mother: '', transport: '', parentEmail: ''
+  };
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    const next = text[i + 1];
+
+    if (ch === '"' && inQuotes && next === '"') {
+      cell += '"';
+      i++;
+    } else if (ch === '"') {
+      inQuotes = !inQuotes;
+    } else if (ch === ',' && !inQuotes) {
+      row.push(cell.trim());
+      cell = '';
+    } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (ch === '\r' && next === '\n') i++;
+      row.push(cell.trim());
+      if (row.some(v => String(v || '').trim())) rows.push(row);
+      row = [];
+      cell = '';
+    } else {
+      cell += ch;
+    }
+  }
+
+  row.push(cell.trim());
+  if (row.some(v => String(v || '').trim())) rows.push(row);
+  return rows;
+}
+
+function cleanHeader(value) {
+  return String(value || '')
+    .replace(/^\uFEFF/, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function isHeaderLike(row) {
+  const joined = row.map(cleanHeader).join(' ');
+  const signals = ['adm', 'admission', 'name', 'learner', 'student', 'grade', 'class', 'gender', 'sex', 'parent', 'guardian', 'phone', 'dob', 'birth'];
+  return signals.filter(s => joined.includes(s)).length >= 2;
+}
+
+function isDateLike(value) {
+  const v = String(value || '').trim();
+  return /^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(v) || /^\d{1,2}[-/]\d{1,2}[-/]\d{2,4}$/.test(v);
+}
+
+function isPhoneLike(value) {
+  const v = String(value || '').replace(/[\s()-]/g, '');
+  return /^(\+?254|0)?[17]\d{8}$/.test(v);
+}
+
+function isGenderLike(value) {
+  return /^(m|f|male|female|boy|girl)$/i.test(String(value || '').trim());
+}
+
+function isGradeLike(value) {
+  const v = String(value || '').trim();
+  return /^(grade|class|form|year|pp|playgroup|baby|middle|pre|reception|nursery)/i.test(v) || /^(g|c|y|f)?\s?\d{1,2}$/i.test(v);
+}
+
+function normalizeGender(value) {
+  const v = String(value || '').trim().toLowerCase();
+  if (['m', 'male', 'boy'].includes(v)) return 'Male';
+  if (['f', 'female', 'girl'].includes(v)) return 'Female';
+  return '';
+}
+
+function normalizeTransport(value) {
+  const v = String(value || '').trim();
+  if (!v) return '';
+  if (/bus|van|school/i.test(v)) return 'Bus';
+  if (/private|car|taxi/i.test(v)) return 'Private';
+  if (/walk|foot/i.test(v)) return 'Walk';
+  return v;
+}
+
+function matchGradeName(value, grades, fallback) {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback || '';
+  const compact = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const exact = grades.find(g => g.toUpperCase().replace(/[^A-Z0-9]/g, '') === compact);
+  if (exact) return exact;
+  const n = compact.match(/\d+/)?.[0];
+  if (n) {
+    const numeric = grades.find(g => g.toUpperCase().replace(/[^A-Z0-9]/g, '').includes(n));
+    if (numeric) return numeric;
+  }
+  return raw.toUpperCase();
+}
+
+const CSV_FIELDS = [
+  { key: 'adm', fallback: 0, aliases: ['adm', 'adm no', 'adm number', 'admission', 'admission no', 'admission number', 'student no', 'student id', 'learner id', 'index no'] },
+  { key: 'name', fallback: 1, aliases: ['name', 'full name', 'learner name', 'student name', 'pupil name'], block: ['parent', 'guardian', 'father', 'mother'] },
+  { key: 'grade', fallback: 2, aliases: ['grade', 'class', 'level', 'year', 'form'] },
+  { key: 'stream', fallback: 3, aliases: ['stream', 'house', 'branch', 'section'] },
+  { key: 'gender', fallback: 4, aliases: ['gender', 'sex'] },
+  { key: 'dob', fallback: 5, aliases: ['dob', 'date of birth', 'birth date', 'birth'] },
+  { key: 'parent', fallback: 6, aliases: ['parent', 'parent name', 'guardian', 'guardian name', 'main parent'] },
+  { key: 'phone', fallback: 7, aliases: ['phone', 'mobile', 'contact', 'telephone', 'tel', 'parent phone', 'guardian phone'] },
+  { key: 'father', fallback: 8, aliases: ['father', 'father name', 'father s name'] },
+  { key: 'mother', fallback: 9, aliases: ['mother', 'mother name', 'mother s name'] },
+  { key: 'address', fallback: 10, aliases: ['address', 'physical address', 'residence', 'location'] },
+  { key: 'medical', fallback: 11, aliases: ['medical', 'medical condition', 'health', 'allergy', 'allergies'] },
+  { key: 'blood', fallback: 12, aliases: ['blood', 'blood group', 'blood type'] },
+  { key: 'transport', fallback: 13, aliases: ['transport', 'transport means', 'route', 'bus'] },
+  { key: 'parentEmail', fallback: 14, aliases: ['email', 'parent email', 'guardian email'] },
+];
+
+function detectCsvColumns(rows) {
+  const hasHeader = rows.length > 0 && isHeaderLike(rows[0]);
+  const headers = hasHeader ? rows[0].map(cleanHeader) : [];
+  const sampleRows = (hasHeader ? rows.slice(1) : rows).slice(0, 25);
+  const used = new Set();
+  const map = {};
+
+  for (const field of CSV_FIELDS) {
+    let best = { idx: field.fallback, score: field.fallback >= 0 ? 1 : 0 };
+    headers.forEach((header, idx) => {
+      if (!header || used.has(idx)) return;
+      if (field.block?.some(b => header.includes(b))) return;
+      let score = 0;
+      for (const alias of field.aliases) {
+        const cleanAlias = cleanHeader(alias);
+        if (header === cleanAlias) score = Math.max(score, 100);
+        else if (header.includes(cleanAlias) || cleanAlias.includes(header)) score = Math.max(score, 72);
+      }
+      if (score > best.score) best = { idx, score };
+    });
+
+    if (best.score < 40) {
+      sampleRows.forEach(row => {
+        row.forEach((value, idx) => {
+          if (used.has(idx)) return;
+          let score = 0;
+          if (field.key === 'dob' && isDateLike(value)) score = 55;
+          if (field.key === 'phone' && isPhoneLike(value)) score = 55;
+          if (field.key === 'gender' && isGenderLike(value)) score = 55;
+          if (field.key === 'grade' && isGradeLike(value)) score = 45;
+          if (field.key === 'adm' && /^[a-z0-9/-]{2,}$/i.test(String(value || '').trim()) && !isPhoneLike(value)) score = 20;
+          if (score > best.score) best = { idx, score };
+        });
+      });
+    }
+
+    map[field.key] = best.idx;
+    if (best.idx >= 0 && best.score >= 40) used.add(best.idx);
+  }
+
+  return { hasHeader, map, dataRows: hasHeader ? rows.slice(1) : rows };
+}
+
 export default function ProfilePage() {
   const router = useRouter();
+  const { profile: school } = useProfile() || {};
+  const ALL_GRADES = useMemo(() => getAllGrades(school?.curriculum || 'CBC', school), [school]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState(() => {
@@ -65,13 +233,14 @@ export default function ProfilePage() {
 
   // Bulk Enroll
   const [bulkGrade, setBulkGrade] = useState(ALL_GRADES[0]);
-  const [bulkRows, setBulkRows] = useState([createEmptyRow()]);
+  const [bulkRows, setBulkRows] = useState([createEmptyBulkRow()]);
+  const [csvInfo, setCsvInfo] = useState(null);
 
   const photoRef = useRef(null);
 
-  function createEmptyRow() {
-    return { adm: '', name: '', gender: '', dob: '', parent: '', phone: '', address: '', medical: '', blood: '', father: '', mother: '', transport: '' };
-  }
+  useEffect(() => {
+    if (ALL_GRADES.length > 0 && !ALL_GRADES.includes(bulkGrade)) setBulkGrade(ALL_GRADES[0]);
+  }, [ALL_GRADES, bulkGrade]);
 
   const load = useCallback(async () => {
     try {
@@ -224,9 +393,18 @@ export default function ProfilePage() {
 
       const logs = [];
       for (const r of validRows) {
+        const finalGender = normalizeGender(r.gender);
         const lData = {
-          adm: r.adm, name: r.name, grade: bulkGrade, stream: '',
-          sex: r.gender === 'Female' ? 'F' : 'M', dob: r.dob, parent: r.parent, phone: r.phone
+          adm: String(r.adm).trim(),
+          name: String(r.name).trim().toUpperCase(),
+          grade: r.grade || bulkGrade,
+          stream: r.stream || '',
+          sex: finalGender === 'Male' ? 'M' : finalGender === 'Female' ? 'F' : '',
+          gender: finalGender,
+          dob: r.dob,
+          parent: r.parent,
+          phone: r.phone,
+          parentEmail: r.parentEmail || ''
         };
         const idx = currentLearners.findIndex(l => String(l.adm) === String(r.adm));
         if (idx >= 0) currentLearners[idx] = { ...currentLearners[idx], ...lData };
@@ -235,7 +413,8 @@ export default function ProfilePage() {
         currentProfiles[r.adm] = {
           ...currentProfiles[r.adm],
           address: r.address, medical: r.medical, blood: r.blood,
-          father: r.father, mother: r.mother, transport: r.transport
+          father: r.father, mother: r.mother, transport: r.transport,
+          gender: finalGender, parentEmail: r.parentEmail || '', stream: r.stream || ''
         };
         logs.push(`Enrolled ${r.name} (${r.adm})`);
       }
@@ -256,7 +435,8 @@ export default function ProfilePage() {
       invalidateDB(['paav6_learners', 'paav_profiles']);
 
       alert(`✅ Success! ${validRows.length} learners have been enrolled and synchronized with the institutional database.`);
-      setBulkRows([createEmptyRow()]);
+      setBulkRows([{ ...createEmptyBulkRow(), grade: bulkGrade }]);
+      setCsvInfo(null);
       setAllLearners(currentLearners);
       setAllProfiles(currentProfiles);
     } catch(e) { 
@@ -264,6 +444,97 @@ export default function ProfilePage() {
     } finally { 
       setBusy(false); 
     }
+  }
+
+  function updateBulkRow(index, field, value) {
+    setBulkRows(prev => prev.map((row, i) => i === index ? { ...row, [field]: value } : row));
+  }
+
+  function downloadBulkTemplate() {
+    const headers = [
+      'Admission No', 'Full Name', 'Grade', 'Stream', 'Gender', 'Date of Birth',
+      'Parent/Guardian', 'Phone', 'Father', 'Mother', 'Address', 'Medical', 'Blood Group', 'Transport', 'Parent Email'
+    ];
+    const sample = [
+      '1001', 'JANE WAMBUI', bulkGrade || ALL_GRADES[0] || 'GRADE 1', 'East', 'Female', '2016-03-12',
+      'MARY WAMBUI', '0712345678', 'JOHN WAMBUI', 'MARY WAMBUI', 'Nairobi', 'None', 'O+', 'Bus', 'parent@example.com'
+    ];
+    const blob = new Blob([headers.join(',') + '\n' + sample.join(',') + '\n'], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'eduvantage-profile-bulk-enrol-template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleBulkCsvUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        const parsedRows = parseCsv(String(evt.target.result || ''));
+        if (!parsedRows.length) throw new Error('The CSV file is empty.');
+
+        const { hasHeader, map, dataRows } = detectCsvColumns(parsedRows);
+        const importedRows = dataRows.map(row => {
+          const pick = key => {
+            const idx = map[key];
+            return idx >= 0 ? String(row[idx] || '').trim() : '';
+          };
+          const grade = matchGradeName(pick('grade'), ALL_GRADES, bulkGrade);
+          return {
+            ...createEmptyBulkRow(),
+            adm: pick('adm'),
+            name: pick('name').toUpperCase(),
+            grade,
+            stream: pick('stream').toUpperCase(),
+            gender: normalizeGender(pick('gender')),
+            dob: pick('dob'),
+            parent: pick('parent').toUpperCase(),
+            phone: pick('phone'),
+            father: pick('father').toUpperCase(),
+            mother: pick('mother').toUpperCase(),
+            address: pick('address'),
+            medical: pick('medical'),
+            blood: pick('blood').toUpperCase(),
+            transport: normalizeTransport(pick('transport')),
+            parentEmail: pick('parentEmail')
+          };
+        }).filter(r => r.adm || r.name);
+
+        if (!importedRows.length) throw new Error('No learner rows could be detected. Confirm the file has admission numbers and learner names.');
+
+        const current = bulkRows.filter(r => r.adm || r.name);
+        const merged = [...current];
+        let updated = 0;
+        importedRows.forEach(row => {
+          const idx = merged.findIndex(existing => String(existing.adm || '').trim() && String(existing.adm).trim() === String(row.adm).trim());
+          if (idx >= 0) {
+            merged[idx] = { ...merged[idx], ...row };
+            updated++;
+          } else {
+            merged.push(row);
+          }
+        });
+
+        setBulkRows([...merged, { ...createEmptyBulkRow(), grade: bulkGrade }]);
+        setCsvInfo({
+          text: `Detected ${importedRows.length} learner rows${hasHeader ? ' with headers' : ' using positional columns'}. ${updated} existing grid row${updated === 1 ? '' : 's'} updated.`,
+          fields: Object.entries(map)
+            .filter(([, idx]) => idx >= 0)
+            .map(([key, idx]) => `${key}: column ${idx + 1}`)
+            .join(' · ')
+        });
+      } catch (err) {
+        alert('CSV import failed: ' + err.message);
+      } finally {
+        e.target.value = '';
+      }
+    };
+    reader.readAsText(file);
   }
 
   const handleTabChange = useCallback(async (newTab) => {
@@ -595,20 +866,37 @@ export default function ProfilePage() {
               <div style={{fontSize:12,color:'var(--muted)',marginTop:4}}>Quickly add multiple learners with extended profile data.</div>
             </div>
             {tabLoading ? <span className="badge bg-gray">Loading DB…</span> : (
-              <div style={{ display:'flex', gap:10 }}>
+              <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
                 <select value={bulkGrade} onChange={e=>setBulkGrade(e.target.value)} style={{padding:'6px 10px',borderRadius:6,border:'1.5px solid var(--border)'}}>
                   {ALL_GRADES.map(g=><option key={g}>{g}</option>)}
                 </select>
-                <button className="btn btn-gold btn-sm" onClick={() => setBulkRows([...bulkRows, createEmptyRow()])}>➕ Add Row</button>
+                <label className="btn btn-gold btn-sm" style={{ cursor:'pointer' }}>
+                  📁 Upload CSV
+                  <input type="file" accept=".csv,text/csv" onChange={handleBulkCsvUpload} style={{ display:'none' }} />
+                </label>
+                <button className="btn btn-ghost btn-sm" onClick={downloadBulkTemplate}>📥 Template</button>
+                <button className="btn btn-gold btn-sm" onClick={() => setBulkRows([...bulkRows, { ...createEmptyBulkRow(), grade: bulkGrade }])}>➕ Add Row</button>
               </div>
             )}
           </div>
+          {csvInfo && (
+            <div className="alert alert-info show" style={{ margin: 16, marginBottom: 0, alignItems:'flex-start' }}>
+              <span>✅</span>
+              <span>
+                <strong>{csvInfo.text}</strong>
+                <br />
+                <span style={{ fontSize: 11 }}>{csvInfo.fields}</span>
+              </span>
+            </div>
+          )}
           <div className="tbl-wrap" style={{ overflowX:'auto' }}>
-            <table style={{ minWidth: 1400 }}>
+            <table style={{ minWidth: 1640 }}>
               <thead>
                 <tr>
                   <th style={{width:100}}>Adm No*</th>
                   <th style={{width:160}}>Full Name*</th>
+                  <th style={{width:130}}>Grade</th>
+                  <th style={{width:100}}>Stream</th>
                   <th style={{width:80}}>Gender</th>
                   <th style={{width:110}}>DOB</th>
                   <th style={{width:130}}>Main Parent</th>
@@ -625,18 +913,24 @@ export default function ProfilePage() {
               <tbody>
                 {bulkRows.map((r, i) => (
                   <tr key={i}>
-                    <td><input value={r.adm} onChange={e=>{const nr=[...bulkRows];nr[i].adm=e.target.value;setBulkRows(nr);}} placeholder="e.g. 1001" style={{width:'100%',padding:4}} /></td>
-                    <td><input value={r.name} onChange={e=>{const nr=[...bulkRows];nr[i].name=e.target.value;setBulkRows(nr);}} placeholder="Full Name" style={{width:'100%',padding:4}} /></td>
-                    <td><select value={r.gender} onChange={e=>{const nr=[...bulkRows];nr[i].gender=e.target.value;setBulkRows(nr);}} style={{width:'100%',padding:4}}><option value=""></option><option>Male</option><option>Female</option></select></td>
-                    <td><input type="date" value={r.dob} onChange={e=>{const nr=[...bulkRows];nr[i].dob=e.target.value;setBulkRows(nr);}} style={{width:'100%',padding:4}} /></td>
-                    <td><input value={r.parent} onChange={e=>{const nr=[...bulkRows];nr[i].parent=e.target.value;setBulkRows(nr);}} style={{width:'100%',padding:4}} /></td>
-                    <td><input value={r.phone} onChange={e=>{const nr=[...bulkRows];nr[i].phone=e.target.value;setBulkRows(nr);}} style={{width:'100%',padding:4}} /></td>
-                    <td><input value={r.father} onChange={e=>{const nr=[...bulkRows];nr[i].father=e.target.value;setBulkRows(nr);}} style={{width:'100%',padding:4}} /></td>
-                    <td><input value={r.mother} onChange={e=>{const nr=[...bulkRows];nr[i].mother=e.target.value;setBulkRows(nr);}} style={{width:'100%',padding:4}} /></td>
-                    <td><input value={r.address} onChange={e=>{const nr=[...bulkRows];nr[i].address=e.target.value;setBulkRows(nr);}} style={{width:'100%',padding:4}} /></td>
-                    <td><input value={r.medical} onChange={e=>{const nr=[...bulkRows];nr[i].medical=e.target.value;setBulkRows(nr);}} style={{width:'100%',padding:4}} /></td>
-                    <td><input value={r.blood} onChange={e=>{const nr=[...bulkRows];nr[i].blood=e.target.value;setBulkRows(nr);}} style={{width:'100%',padding:4}} /></td>
-                    <td><select value={r.transport} onChange={e=>{const nr=[...bulkRows];nr[i].transport=e.target.value;setBulkRows(nr);}} style={{width:'100%',padding:4}}><option value=""></option><option>Walk</option><option>Bus</option><option>Private</option></select></td>
+                    <td><input value={r.adm} onChange={e=>updateBulkRow(i, 'adm', e.target.value)} placeholder="e.g. 1001" style={{width:'100%',padding:4}} /></td>
+                    <td><input value={r.name} onChange={e=>updateBulkRow(i, 'name', e.target.value.toUpperCase())} placeholder="Full Name" style={{width:'100%',padding:4}} /></td>
+                    <td>
+                      <select value={r.grade || bulkGrade} onChange={e=>updateBulkRow(i, 'grade', e.target.value)} style={{width:'100%',padding:4}}>
+                        {ALL_GRADES.map(g=><option key={g}>{g}</option>)}
+                      </select>
+                    </td>
+                    <td><input value={r.stream} onChange={e=>updateBulkRow(i, 'stream', e.target.value.toUpperCase())} placeholder="A" style={{width:'100%',padding:4}} /></td>
+                    <td><select value={r.gender} onChange={e=>updateBulkRow(i, 'gender', e.target.value)} style={{width:'100%',padding:4}}><option value=""></option><option>Male</option><option>Female</option></select></td>
+                    <td><input type="date" value={r.dob} onChange={e=>updateBulkRow(i, 'dob', e.target.value)} style={{width:'100%',padding:4}} /></td>
+                    <td><input value={r.parent} onChange={e=>updateBulkRow(i, 'parent', e.target.value.toUpperCase())} style={{width:'100%',padding:4}} /></td>
+                    <td><input value={r.phone} onChange={e=>updateBulkRow(i, 'phone', e.target.value)} style={{width:'100%',padding:4}} /></td>
+                    <td><input value={r.father} onChange={e=>updateBulkRow(i, 'father', e.target.value.toUpperCase())} style={{width:'100%',padding:4}} /></td>
+                    <td><input value={r.mother} onChange={e=>updateBulkRow(i, 'mother', e.target.value.toUpperCase())} style={{width:'100%',padding:4}} /></td>
+                    <td><input value={r.address} onChange={e=>updateBulkRow(i, 'address', e.target.value)} style={{width:'100%',padding:4}} /></td>
+                    <td><input value={r.medical} onChange={e=>updateBulkRow(i, 'medical', e.target.value)} style={{width:'100%',padding:4}} /></td>
+                    <td><input value={r.blood} onChange={e=>updateBulkRow(i, 'blood', e.target.value.toUpperCase())} style={{width:'100%',padding:4}} /></td>
+                    <td><select value={r.transport} onChange={e=>updateBulkRow(i, 'transport', e.target.value)} style={{width:'100%',padding:4}}><option value=""></option><option>Walk</option><option>Bus</option><option>Private</option></select></td>
                     <td><button className="btn btn-ghost btn-sm" onClick={() => {const nr=[...bulkRows];nr.splice(i,1);setBulkRows(nr);}} style={{padding:4}}>✕</button></td>
                   </tr>
                 ))}

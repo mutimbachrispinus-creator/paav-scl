@@ -1,6 +1,6 @@
 'use client';
 export const runtime = 'edge';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedUser, getCachedDBMulti } from '@/lib/client-cache';
 import { getCurriculum } from '@/lib/curriculum';
@@ -23,17 +23,46 @@ const CATEGORIES = [
   { id: 'videos', label: 'Video Lessons', icon: '🎥' },
 ];
 
+function getVideoEmbedUrl(url) {
+  const raw = String(url || '').trim();
+  if (!raw) return '';
+  try {
+    const u = new URL(raw);
+    if (u.hostname.includes('youtube.com')) {
+      const id = u.searchParams.get('v') || u.pathname.split('/').filter(Boolean).pop();
+      return id ? `https://www.youtube-nocookie.com/embed/${id}` : raw;
+    }
+    if (u.hostname.includes('youtu.be')) {
+      const id = u.pathname.split('/').filter(Boolean)[0];
+      return id ? `https://www.youtube-nocookie.com/embed/${id}` : raw;
+    }
+    if (u.hostname.includes('vimeo.com')) {
+      const id = u.pathname.split('/').filter(Boolean).pop();
+      return id ? `https://player.vimeo.com/video/${id}` : raw;
+    }
+  } catch {}
+  return raw;
+}
+
+function isEmbeddableVideo(url) {
+  return /youtube\.com|youtu\.be|vimeo\.com/i.test(String(url || ''));
+}
+
 export default function EducationHubPage() {
   const router = useRouter();
   const { profile: school } = useProfile() || {};
-  const curr = getCurriculum(school?.curriculum || 'CBC');
-  const ALL_GRADES = curr?.ALL_GRADES || [];
+  const curriculumName = school?.curriculum || 'CBC';
+  const curr = useMemo(() => getCurriculum(curriculumName), [curriculumName]);
+  const ALL_GRADES = useMemo(() => curr?.ALL_GRADES || [], [curr]);
   
   // Hub state
   const [user, setUser] = useState(null);
   const [docs, setDocs] = useState([]);
   const [tab,  setTab]  = useState('hub'); // 'hub' | 'live'
   const [cat,  setCat]  = useState('all');
+  const [resourceQuery, setResourceQuery] = useState('');
+  const [resourceGrade, setResourceGrade] = useState('all');
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [showUpload, setShowUpload] = useState(false);
   const [newDoc, setNewDoc] = useState({ title: '', grade: '', subject: '', category: 'notes', url: '' });
   const [uploading, setUploading] = useState(false);
@@ -205,17 +234,48 @@ export default function EducationHubPage() {
     if (activeSession?.id === id) { if (apiRef.current) { try { apiRef.current.dispose(); } catch {} apiRef.current = null; } setActiveSession(null); }
   }
 
-  if (!user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading Education Hub…</div>;
-
-  const canUpload = ['admin', 'teacher'].includes(user.role);
-  const filteredDocs = docs.filter(d => cat === 'all' || d.category === cat);
-  const resources = curr?.RESOURCES || [];
+  const canUpload = !!user && ['admin', 'teacher'].includes(user.role);
+  const resources = useMemo(() => curr?.RESOURCES || [], [curr]);
   const officialRes = resources.filter(r => r.cat === 'Official');
   const otherRes = resources.filter(r => r.cat !== 'Official');
+  const officialVideos = useMemo(() => resources
+    .filter(r => r.cat === 'Videos')
+    .map((r, i) => ({
+      id: `official-video-${i}`,
+      title: r.title,
+      url: r.url,
+      desc: r.desc,
+      category: 'videos',
+      grade: 'All',
+      subject: curr.name,
+      author: 'Official curriculum source',
+      official: true
+    })), [resources, curr.name]);
+
+  const filteredDocs = useMemo(() => {
+    const q = resourceQuery.trim().toLowerCase();
+    return docs.filter(d => {
+      const matchesCategory = cat === 'all' || d.category === cat;
+      const matchesGrade = resourceGrade === 'all' || !d.grade || d.grade === resourceGrade || d.grade === 'All';
+      const haystack = `${d.title || ''} ${d.subject || ''} ${d.grade || ''} ${d.author || ''}`.toLowerCase();
+      const matchesQuery = !q || haystack.includes(q);
+      return matchesCategory && matchesGrade && matchesQuery;
+    });
+  }, [docs, cat, resourceGrade, resourceQuery]);
+
+  const visibleDocs = useMemo(() => {
+    if (cat !== 'videos') return filteredDocs;
+    const q = resourceQuery.trim().toLowerCase();
+    const official = officialVideos.filter(d => {
+      const haystack = `${d.title || ''} ${d.subject || ''} ${d.desc || ''}`.toLowerCase();
+      return (!q || haystack.includes(q)) && (resourceGrade === 'all' || d.grade === 'All');
+    });
+    return [...filteredDocs, ...official];
+  }, [cat, filteredDocs, officialVideos, resourceGrade, resourceQuery]);
 
   // Subscription check
   const isPremiumCat = cat === 'videos';
-  const mySub = subs[user.username] || { expires: 0 };
+  const mySub = user ? (subs[user.username] || { expires: 0 }) : { expires: 0 };
   const hasSub = canUpload || mySub.expires > Date.now();
 
   async function initiateSubMpesa(plan, amount) {
@@ -241,6 +301,8 @@ export default function EducationHubPage() {
       else alert('❌ Error: ' + (data.error || 'Failed to initiate M-Pesa.'));
     } catch (err) { alert('❌ Connection error: ' + err.message); }
   }
+
+  if (!user) return <div style={{ padding: 40, color: 'var(--muted)' }}>Loading Education Hub…</div>;
 
   return (
     <div className="page on">
@@ -273,10 +335,26 @@ export default function EducationHubPage() {
                 ))}
               </div>
 
+              <div className="panel" style={{ marginBottom: 16 }}>
+                <div className="panel-body resource-filters">
+                  <div className="field" style={{ marginBottom: 0, flex: 1, minWidth: 220 }}>
+                    <label>Search materials</label>
+                    <input value={resourceQuery} onChange={e => setResourceQuery(e.target.value)} placeholder="Search by title, subject, grade, or teacher..." />
+                  </div>
+                  <div className="field" style={{ marginBottom: 0, width: 180 }}>
+                    <label>Grade</label>
+                    <select value={resourceGrade} onChange={e => setResourceGrade(e.target.value)}>
+                      <option value="all">All grades</option>
+                      {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               <div className="panel">
                 <div className="panel-hdr">
                   <h3>{isPremiumCat ? '⭐ Premium Video Lessons' : 'Recent Shared Materials'}</h3>
-                  <span style={{ fontSize: 11, color: 'var(--muted)' }}>{isPremiumCat && !hasSub ? 'Locked' : `${filteredDocs.length} items found`}</span>
+                  <span style={{ fontSize: 11, color: 'var(--muted)' }}>{isPremiumCat && !hasSub ? 'Locked' : `${visibleDocs.length} items found`}</span>
                 </div>
                 <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {isPremiumCat && !hasSub ? (
@@ -305,19 +383,24 @@ export default function EducationHubPage() {
                     </div>
                   ) : (
                     <>
-                      {filteredDocs.map((d, i) => (
-                        <div key={i} className="doc-row">
+                      {visibleDocs.map((d, i) => (
+                        <div key={d.id || i} className={`doc-row ${d.category === 'videos' ? 'video-doc-row' : ''}`}>
                           <div style={{ display: 'flex', gap: 15, alignItems: 'center' }}>
                             <div style={{ fontSize: 24 }}>{d.category === 'videos' ? '🎬' : '📄'}</div>
                             <div style={{ flex: 1 }}>
                               <div style={{ fontWeight: 800, color: 'var(--navy)' }}>{d.title}</div>
-                              <div style={{ fontSize: 11, color: 'var(--muted)' }}>{d.grade} • {d.subject} • Shared by {d.author}</div>
+                              <div style={{ fontSize: 11, color: 'var(--muted)' }}>{d.grade || 'All'} • {d.subject || 'General'} • {d.official ? 'Official source' : `Shared by ${d.author}`}</div>
+                              {d.desc && <div style={{ fontSize: 11, color: '#475569', marginTop: 3 }}>{d.desc}</div>}
                             </div>
                           </div>
-                          <a href={d.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{ fontSize: 20, textDecoration: 'none' }}>{d.category === 'videos' ? '▶️' : '📥'}</a>
+                          {d.category === 'videos' ? (
+                            <button className="btn btn-primary btn-sm" style={{ width: 'auto' }} onClick={() => setSelectedVideo(d)}>▶ Preview</button>
+                          ) : (
+                            <a href={d.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{ fontSize: 20, textDecoration: 'none' }}>📥</a>
+                          )}
                         </div>
                       ))}
-                      {filteredDocs.length === 0 && (
+                      {visibleDocs.length === 0 && (
                         <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--muted)', background: '#F8FAFC', borderRadius: 15 }}>
                           <div style={{ fontSize: 48, marginBottom: 15 }}>📚</div>
                           <h3 style={{ margin: 0 }}>No materials found</h3>
@@ -402,7 +485,7 @@ export default function EducationHubPage() {
                   <button key={t.id} onClick={() => setActiveLiveTab(t.id)} style={{ background: activeLiveTab === t.id ? '#8B1A1A' : 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 8, color: '#fff', padding: '7px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>{t.icon} {t.label}</button>
                 ))}
               </div>
-              {activeLiveTab === 'video' && <div ref={jitsiRef} style={{ width: '100%', height: 520, background: '#0F172A' }} />}
+              {activeLiveTab === 'video' && <div ref={jitsiRef} className="live-video-stage" style={{ width: '100%', background: '#0F172A' }} />}
               {activeLiveTab === 'board' && (
                 <div style={{ background: '#1e293b', padding: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', background: '#0F172A', flexWrap: 'wrap' }}>
@@ -415,11 +498,11 @@ export default function EducationHubPage() {
                     </div>
                     <div style={{ marginLeft: 'auto' }}><button onClick={clearBoard} style={{ background: '#DC2626', border: 'none', borderRadius: 7, color: '#fff', padding: '6px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>🗑️ Clear</button></div>
                   </div>
-                  <canvas ref={canvasRef} width={900} height={480} style={{ display: 'block', width: '100%', height: 480, background: '#fff', cursor: tool === 'eraser' ? 'cell' : 'crosshair', touchAction: 'none' }} onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw} onTouchStart={e => { e.preventDefault(); startDraw(e); }} onTouchMove={e => { e.preventDefault(); draw(e); }} onTouchEnd={stopDraw} />
+                  <canvas ref={canvasRef} width={900} height={480} className="lesson-board" style={{ display: 'block', width: '100%', background: '#fff', cursor: tool === 'eraser' ? 'cell' : 'crosshair', touchAction: 'none' }} onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw} onTouchStart={e => { e.preventDefault(); startDraw(e); }} onTouchMove={e => { e.preventDefault(); draw(e); }} onTouchEnd={stopDraw} />
                 </div>
               )}
               {activeLiveTab === 'slides' && (
-                <div style={{ background: '#0F172A', minHeight: 520, display: 'flex' }}>
+                <div className="slides-stage" style={{ background: '#0F172A', display: 'flex' }}>
                   <div style={{ width: 160, background: '#1E293B', display: 'flex', flexDirection: 'column', gap: 6, padding: 10, overflowY: 'auto' }}>
                     {slides.map((sl, i) => (
                       <div key={sl.id} onClick={() => setActiveSlide(i)} style={{ cursor: 'pointer', borderRadius: 8, border: `2px solid ${activeSlide === i ? '#8B1A1A' : 'rgba(255,255,255,0.1)'}`, overflow: 'hidden', background: '#0F172A' }}>
@@ -470,6 +553,8 @@ export default function EducationHubPage() {
                 <div className="field"><label>Grade</label><select value={newDoc.grade} onChange={e => setNewDoc({...newDoc, grade: e.target.value})}>{ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}</select></div>
                 <div className="field"><label>Category</label><select value={newDoc.category} onChange={e => setNewDoc({...newDoc, category: e.target.value})}>{CATEGORIES.filter(c => c.id !== 'all').map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></div>
               </div>
+              <div className="field"><label>Subject / Learning Area</label><input value={newDoc.subject} onChange={e => setNewDoc({...newDoc, subject: e.target.value})} placeholder="e.g. Mathematics" /></div>
+              <div className="field"><label>{newDoc.category === 'videos' ? 'Video URL' : 'External URL'}</label><input value={newDoc.url} onChange={e => setNewDoc({...newDoc, url: e.target.value})} placeholder="https://..." /></div>
               <div className="field"><label>File Upload</label><div style={{ border: '2px dashed #E2E8F0', padding: 20, borderRadius: 12, textAlign: 'center' }}><input type="file" onChange={handleFileChange} />{uploading && <div>⏳ Uploading...</div>}</div></div>
             </div>
             <div className="modal-ftr"><button className="btn btn-ghost" onClick={() => setShowUpload(false)}>Cancel</button><button className="btn btn-primary" onClick={saveDoc} disabled={uploading}>Upload & Share</button></div>
@@ -494,16 +579,63 @@ export default function EducationHubPage() {
         </div>
       )}
 
+      {selectedVideo && (
+        <div className="modal-overlay open">
+          <div className="modal modal-lg">
+            <div className="modal-hdr">
+              <div>
+                <h3>🎥 {selectedVideo.title}</h3>
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>{selectedVideo.grade || 'All'} • {selectedVideo.subject || 'General'}</div>
+              </div>
+              <button className="modal-close" onClick={() => setSelectedVideo(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              {isEmbeddableVideo(selectedVideo.url) ? (
+                <div className="video-preview-frame">
+                  <iframe
+                    src={getVideoEmbedUrl(selectedVideo.url)}
+                    title={selectedVideo.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                </div>
+              ) : (
+                <div style={{ padding: 28, border: '1.5px solid var(--border)', borderRadius: 12, background: '#F8FAFC', textAlign: 'center' }}>
+                  <div style={{ fontSize: 38, marginBottom: 10 }}>🎬</div>
+                  <p style={{ color: 'var(--muted)', marginBottom: 16 }}>This lesson opens in a new secure tab.</p>
+                  <a className="btn btn-primary" href={selectedVideo.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>Open Lesson</a>
+                </div>
+              )}
+              {selectedVideo.desc && <p style={{ color: '#475569', fontSize: 13, marginTop: 14 }}>{selectedVideo.desc}</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .sg-responsive { display: flex; gap: 20px; }
+        .resource-filters { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
         .cat-card { cursor: pointer; text-align: center; padding: 15px; transition: 0.2s; border: 1.5px solid #E2E8F0; min-width: 100px; }
         .cat-card.active { background: var(--primary); color: #fff; border-color: var(--primary); }
         .cat-icon { font-size: 24px; margin-bottom: 5px; }
         .cat-label { font-weight: 800; font-size: 11px; }
         .doc-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fff; border: 1.5px solid #F1F5F9; border-radius: 12px; }
+        .video-doc-row { border-color: #DBEAFE; background: linear-gradient(180deg, #fff, #F8FAFF); }
         .kicd-link { text-decoration: none; color: inherit; padding: 10px; border-radius: 10px; border: 1.5px solid #F1F5F9; display: block; }
         .kicd-link:hover { background: #F0F9FF; border-color: #0369A1; }
+        .live-video-stage { height: min(64vh, 560px); min-height: 360px; }
+        .lesson-board { height: 480px; }
+        .slides-stage { min-height: min(64vh, 540px); }
+        .video-preview-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #0F172A; border-radius: 12px; overflow: hidden; }
+        .video-preview-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         @media (max-width: 900px) { .sg-responsive { flex-direction: column; } .sidebar { width: 100% !important; } }
+        @media (max-width: 600px) {
+          .resource-filters { display: grid; grid-template-columns: 1fr; }
+          .doc-row { align-items: flex-start; gap: 12px; flex-direction: column; }
+          .live-video-stage { min-height: 300px; height: 56vh; }
+          .lesson-board { height: 360px; }
+          .slides-stage { min-height: 360px; flex-direction: column; }
+        }
       `}</style>
     </div>
   );

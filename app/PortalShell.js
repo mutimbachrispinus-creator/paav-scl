@@ -309,8 +309,11 @@ export default function PortalShell({ children }) {
           setUnreadCount(unr);
         }
         
-        // Only prefetch once session is confirmed
-        prefetchKeys(['paav6_learners', 'paav6_staff', 'paav6_marks', 'paav6_feecfg']);
+        // Only warm small shell data here. Large datasets such as learners and marks are
+        // fetched by the pages that need them, which keeps login light for large schools.
+        const warmKeys = ['paav6_msgs', 'paav_announcement', 'paav_theme'];
+        if (['admin', 'super-admin'].includes(u.role)) warmKeys.push('paav6_feecfg');
+        prefetchKeys(warmKeys);
       }
     } catch (e) {
       console.error('[PortalShell] session load error:', e);

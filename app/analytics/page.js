@@ -71,12 +71,12 @@ export default function AnalyticsPage() {
     async function loadPerformance() {
       if (!profile?.tenantId) return;
       const { getCachedDBMulti } = await import('@/lib/client-cache');
-      const db = await getCachedDBMulti(['paav6_learners', 'paav6_marks', 'paav8_subj', 'paav8_grad', 'paav_staff']);
+      const db = await getCachedDBMulti(['paav6_learners', 'paav6_marks', 'paav8_subj', 'paav8_grad', 'paav6_staff']);
       setLearners(db.paav6_learners || []);
       setMarks(db.paav6_marks || {});
       setSubjCfg(db.paav8_subj || {});
       setGradCfg(db.paav8_grad || null);
-      setStaff(db.paav_staff || []);
+      setStaff(db.paav6_staff || []);
     }
     if (activeTab === 'performance' || activeTab === 'staff') loadPerformance();
   }, [activeTab, profile]);
@@ -558,7 +558,7 @@ function OutreachTab({ learners, marks, grade, term, assess, stats, schoolName }
 
 function StaffPerformance({ staff, learners, marks, pTerm, pAssess, subjCfg }) {
   const teacherStats = React.useMemo(() => {
-    return staff.map(t => {
+    return staff.filter(t => !['parent', 'student'].includes(String(t.role || '').toLowerCase())).map(t => {
       let areas = [];
       try { areas = JSON.parse(t.teachingAreas || '[]'); } catch { areas = []; }
       
@@ -566,7 +566,7 @@ function StaffPerformance({ staff, learners, marks, pTerm, pAssess, subjCfg }) {
       const subjects = areas.length ? areas : (subjCfg[tGrade] || []);
       
       const classLearners = learners.filter(l => l.grade === tGrade);
-      if (!classLearners.length) return { ...t, avg: 0, entries: 0, completion: 0 };
+      if (!classLearners.length) return { ...t, avg: 0, entries: 0, completion: 0, recommendation: 'Assign a class or teaching area to activate performance tracking.' };
 
       const scores = [];
       let entries = 0;
@@ -581,14 +581,21 @@ function StaffPerformance({ staff, learners, marks, pTerm, pAssess, subjCfg }) {
       });
 
       const expected = classLearners.length * subjects.length;
+      const completion = expected > 0 ? (entries / expected) * 100 : 0;
+      const avg = scores.length ? scores.reduce((a,b) => a+b, 0) / scores.length : 0;
       return {
         ...t,
-        avg: scores.length ? scores.reduce((a,b) => a+b, 0) / scores.length : 0,
+        avg,
         entries,
         expected,
-        completion: expected > 0 ? (entries / expected) * 100 : 0,
+        completion,
         subjectCount: subjects.length,
-        studentCount: classLearners.length
+        studentCount: classLearners.length,
+        recommendation: completion < 70
+          ? 'Follow up on mark entry completion and evidence upload.'
+          : avg < 50
+            ? 'Review lesson delivery, item difficulty, and remedial grouping.'
+            : 'Maintain documented teaching approach and mentor lower-performing teams.'
       };
     }).sort((a,b) => b.avg - a.avg);
   }, [staff, learners, marks, pTerm, pAssess, subjCfg]);
@@ -608,7 +615,7 @@ function StaffPerformance({ staff, learners, marks, pTerm, pAssess, subjCfg }) {
             <div className="sc-icon" style={{ background: '#eff6ff' }}><Activity size={20} /></div>
             <div>
               <div className="sc-l">Active Teachers</div>
-              <div className="sc-n">{staff.length}</div>
+              <div className="sc-n">{teacherStats.length}</div>
             </div>
           </div>
         </div>
@@ -617,7 +624,7 @@ function StaffPerformance({ staff, learners, marks, pTerm, pAssess, subjCfg }) {
             <div className="sc-icon" style={{ background: '#ecfdf5' }}><ClipboardList size={20} /></div>
             <div>
               <div className="sc-l">Global Entry Rate</div>
-              <div className="sc-n">{Math.round(teacherStats.reduce((s,t) => s + t.completion, 0) / (staff.length || 1))}%</div>
+              <div className="sc-n">{Math.round(teacherStats.reduce((s,t) => s + t.completion, 0) / (teacherStats.length || 1))}%</div>
             </div>
           </div>
         </div>
@@ -646,6 +653,7 @@ function StaffPerformance({ staff, learners, marks, pTerm, pAssess, subjCfg }) {
                 <th>Class Avg</th>
                 <th>Entry Completion</th>
                 <th>Efficiency Score</th>
+                <th>Recommendation</th>
               </tr>
             </thead>
             <tbody>
@@ -676,6 +684,7 @@ function StaffPerformance({ staff, learners, marks, pTerm, pAssess, subjCfg }) {
                       {t.completion >= 80 && t.avg >= 60 ? 'High Impact' : t.completion < 50 ? 'Requires Follow-up' : 'Steady'}
                     </span>
                   </td>
+                  <td style={{ fontSize: 11, color: '#475569', minWidth: 220 }}>{t.recommendation}</td>
                 </tr>
               ))}
             </tbody>
@@ -744,6 +753,8 @@ function PerformanceDetail({ learners, marks, grade, term, assess, subjCfg, grad
 
   const analysis = React.useMemo(() => {
     const classLearners = learners.filter(l => l.grade === grade && (!stream || l.stream === stream));
+    const averages = data.map(l => l.enteredCount ? l.totalMarks / l.enteredCount : 0);
+    const avg = averages.length ? averages.reduce((a, b) => a + b, 0) / averages.length : 0;
     const subjectRows = subjects.map(subj => {
       const scores = data
         .map(l => l.detail.find(d => d.subj === subj)?.score)
@@ -761,14 +772,17 @@ function PerformanceDetail({ learners, marks, grade, term, assess, subjCfg, grad
         missing: Math.max(0, classLearners.length - scores.length),
         passRate: scores.length ? Number(((pass / scores.length) * 100).toFixed(1)) : 0
       };
-    }).sort((a, b) => b.avg - a.avg);
+    }).map(s => ({ ...s, deviation: Number((s.avg - avg).toFixed(1)) }))
+      .sort((a, b) => b.avg - a.avg)
+      .map((s, i) => ({ ...s, rank: i + 1 }));
 
-    const averages = data.map(l => l.enteredCount ? l.totalMarks / l.enteredCount : 0);
-    const avg = averages.length ? averages.reduce((a, b) => a + b, 0) / averages.length : 0;
     const top = data[0];
     const bottom = data[data.length - 1];
     const risk = data.filter(l => (l.totalMarks / (l.enteredCount || 1)) < 40);
     const excellence = data.filter(l => (l.totalMarks / (l.enteredCount || 1)) >= 80);
+    const avgVap = data.length ? data.reduce((sum, l) => sum + (Number(l.vap) || 0), 0) / data.length : 0;
+    const variance = averages.length ? averages.reduce((sum, value) => sum + Math.pow(value - avg, 2), 0) / averages.length : 0;
+    const stdDev = Number(Math.sqrt(variance).toFixed(1));
     const missingCount = subjectRows.reduce((sum, s) => sum + s.missing, 0);
     const entries = subjectRows.reduce((sum, s) => sum + s.entries, 0);
     const expected = Math.max(1, classLearners.length * subjects.length);
@@ -787,6 +801,8 @@ function PerformanceDetail({ learners, marks, grade, term, assess, subjCfg, grad
       bottom,
       risk,
       excellence,
+      avgVap: Number(avgVap.toFixed(1)),
+      stdDev,
       entries,
       missingCount,
       coverage: Number(((entries / expected) * 100).toFixed(1)),
@@ -819,17 +835,57 @@ function PerformanceDetail({ learners, marks, grade, term, assess, subjCfg, grad
         </div>
       </div>
 
+      <div className="panel" style={{ marginBottom: 18, border: '2px solid #0F172A' }}>
+        <div className="panel-hdr" style={{ background: '#0F172A', color: '#fff' }}>
+          <div>
+            <h3 style={{ color: '#fff' }}>Official Exam Summary</h3>
+            <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 3 }}>
+              {grade} {stream ? `· ${stream}` : ''} · {term} · {assess.toUpperCase()} · generated from verified marks
+            </div>
+          </div>
+          <span className="badge bg-gold">For administration</span>
+        </div>
+        <div className="panel-body">
+          <div className="sg sg4" style={{ marginBottom: 14 }}>
+            <Metric title="Candidates" value={analysis.classLearners.length} icon={<Users size={19} />} color="#0F172A" sub={`${data.length} with marks`} />
+            <Metric title="Mean Score" value={`${analysis.avg}%`} icon={<Gauge size={19} />} color="#2563EB" sub={`Std deviation ${analysis.stdDev}`} />
+            <Metric title="Mean VAP" value={`${analysis.avgVap > 0 ? '+' : ''}${analysis.avgVap}`} icon={<TrendingUp size={19} />} color={analysis.avgVap >= 0 ? '#059669' : '#DC2626'} sub="Change from previous assessment" />
+            <Metric title="Top Candidate" value={analysis.top?.name ? `#${analysis.top.rank}` : '—'} icon={<Award size={19} />} color="#D97706" sub={analysis.top?.name || 'No ranked learner'} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+            <div style={{ padding: 14, border: '1.5px solid var(--border)', borderRadius: 12, background: '#F8FAFC' }}>
+              <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 800, textTransform: 'uppercase' }}>Subject Strength</div>
+              <div style={{ fontWeight: 900, marginTop: 4 }}>{analysis.subjectRows[0]?.name || '—'}</div>
+              <div style={{ fontSize: 12, color: '#475569' }}>Mean {analysis.subjectRows[0]?.avg || 0}% · deviation {analysis.subjectRows[0]?.deviation > 0 ? '+' : ''}{analysis.subjectRows[0]?.deviation || 0}</div>
+            </div>
+            <div style={{ padding: 14, border: '1.5px solid var(--border)', borderRadius: 12, background: '#FFF7ED' }}>
+              <div style={{ fontSize: 11, color: '#B45309', fontWeight: 800, textTransform: 'uppercase' }}>Priority Subject</div>
+              <div style={{ fontWeight: 900, marginTop: 4 }}>{analysis.subjectRows[analysis.subjectRows.length - 1]?.name || '—'}</div>
+              <div style={{ fontSize: 12, color: '#92400E' }}>Schedule item analysis and remedial work before next assessment.</div>
+            </div>
+            <div style={{ padding: 14, border: '1.5px solid var(--border)', borderRadius: 12, background: '#EFF6FF' }}>
+              <div style={{ fontSize: 11, color: '#1D4ED8', fontWeight: 800, textTransform: 'uppercase' }}>Recommendation</div>
+              <div style={{ fontSize: 12, color: '#1E3A8A', marginTop: 4, lineHeight: 1.55 }}>
+                {analysis.coverage < 90 ? 'Complete missing marks before publishing official summaries.' : analysis.risk.length > 0 ? 'Approve intervention groups and parent communication for learners below 40%.' : 'Maintain current programme and document the teaching practices behind the strongest subject.'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="sg sg2" style={{ alignItems: 'stretch' }}>
         <div className="panel">
           <div className="panel-hdr"><h3>Subject Diagnostic Matrix</h3></div>
           <div className="tbl-wrap">
             <table>
-              <thead><tr><th>Subject</th><th>Avg</th><th>High</th><th>Low</th><th>Pass Rate</th><th>Missing</th><th>Signal</th></tr></thead>
+              <thead><tr><th>Rank</th><th>Subject</th><th>Avg</th><th>Deviation</th><th>High</th><th>Low</th><th>Pass Rate</th><th>Missing</th><th>Signal</th></tr></thead>
               <tbody>
                 {analysis.subjectRows.map(s => (
                   <tr key={s.name}>
+                    <td style={{ fontWeight: 900 }}>#{s.rank}</td>
                     <td style={{ fontWeight: 800 }}>{s.name}</td>
                     <td>{s.avg}%</td>
+                    <td style={{ fontWeight: 800, color: s.deviation >= 0 ? '#059669' : '#DC2626' }}>{s.deviation > 0 ? '+' : ''}{s.deviation}</td>
                     <td>{s.high}</td>
                     <td>{s.low}</td>
                     <td><Progress value={s.passRate} color={s.passRate >= 70 ? '#059669' : s.passRate >= 45 ? '#D97706' : '#DC2626'} /></td>
@@ -883,12 +939,13 @@ function PerformanceDetail({ learners, marks, grade, term, assess, subjCfg, grad
               <tr>
                 <th>Rank</th><th>Adm</th><th>Name</th><th>Stream</th>
                 {subjects.map(s => <th key={s} style={{ fontSize: 9 }}>{s.slice(0, 6)}</th>)}
-                <th>Total Pts</th><th>Total Marks</th><th>Avg %</th><th>VAP</th><th>Status</th>
+                <th>Total Pts</th><th>Total Marks</th><th>Avg %</th><th>Deviation</th><th>VAP</th><th>Status</th>
               </tr>
             </thead>
             <tbody>
               {data.map(l => {
                 const average = l.enteredCount ? l.totalMarks / l.enteredCount : 0;
+                const deviation = Number((average - analysis.avg).toFixed(1));
                 return (
                   <tr key={l.adm}>
                     <td style={{ fontWeight: 900 }}>#{l.rank}</td>
@@ -904,12 +961,13 @@ function PerformanceDetail({ learners, marks, grade, term, assess, subjCfg, grad
                     <td style={{ fontWeight: 900, color: '#8B1A1A' }}>{l.totalPts}</td>
                     <td style={{ fontWeight: 800 }}>{l.totalMarks}</td>
                     <td style={{ fontWeight: 800 }}>{pct(average)}%</td>
+                    <td style={{ fontWeight: 800, color: deviation >= 0 ? '#059669' : '#DC2626' }}>{deviation > 0 ? '+' : ''}{deviation}</td>
                     <td style={{ fontWeight: 800, color: l.vap >= 0 ? '#059669' : '#DC2626' }}>{l.vap > 0 ? '+' : ''}{l.vap || 0}</td>
                     <td><span className={`badge ${average >= 80 ? 'bg-green' : average >= 50 ? 'bg-blue' : average >= 40 ? 'bg-amber' : 'bg-red'}`}>{average >= 80 ? 'Excellent' : average >= 50 ? 'Secure' : average >= 40 ? 'Watch' : 'Urgent'}</span></td>
                   </tr>
                 );
               })}
-              {data.length === 0 && <tr><td colSpan={subjects.length + 9} style={{ textAlign: 'center', color: 'var(--muted)', padding: 30 }}>No marks found for this selection.</td></tr>}
+              {data.length === 0 && <tr><td colSpan={subjects.length + 10} style={{ textAlign: 'center', color: 'var(--muted)', padding: 30 }}>No marks found for this selection.</td></tr>}
             </tbody>
           </table>
         </div>

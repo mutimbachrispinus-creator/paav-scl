@@ -11,6 +11,22 @@ const ASSESS_LIST = [
   { id: 'et1', label: 'End-Term' }
 ];
 
+const NATIONAL_SERIES = ['T1', 'T2', 'T3'].flatMap(term =>
+  ASSESS_LIST.map(a => ({ term, assess: a.id, label: `${term} ${a.label}` }))
+);
+
+function clamp(n, min = 0, max = 100) {
+  return Math.max(min, Math.min(max, Number.isFinite(Number(n)) ? Number(n) : 0));
+}
+
+function examBand(score) {
+  if (score >= 80) return { label: 'A / Excellent', color: 'var(--green)', bg: 'var(--green-bg)' };
+  if (score >= 65) return { label: 'B / Strong', color: 'var(--blue)', bg: 'var(--blue-bg)' };
+  if (score >= 50) return { label: 'C / Secure', color: 'var(--amber)', bg: 'var(--amber-bg)' };
+  if (score >= 35) return { label: 'D / Watch', color: '#B45309', bg: '#FFF7ED' };
+  return { label: 'E / Critical', color: 'var(--red)', bg: 'var(--red-bg)' };
+}
+
 export default function PredictorPage() {
   const router = useRouter();
   const { profile: school } = useProfile() || { profile: {} };
@@ -26,6 +42,8 @@ export default function PredictorPage() {
   const [selTerm, setSelTerm] = useState('T1');
   const [selAssess, setSelAssess] = useState('mt1');
   const [selLearner, setSelLearner] = useState(null);
+  const [mode, setMode] = useState('continuous');
+  const [targetExam, setTargetExam] = useState('National Exam');
 
   useEffect(() => {
     if (!selGrade && ALL_GRADES.length > 0) {
@@ -84,6 +102,56 @@ export default function PredictorPage() {
     retain: gradeLearners.filter(l => l.status === 'retain').length,
   }), [gradeLearners]);
 
+  const nationalForecast = useMemo(() => {
+    const classLearners = learners.filter(l => l.grade === selGrade);
+    const rows = classLearners.map(l => {
+      const series = NATIONAL_SERIES.map(point => {
+        const scores = subjects
+          .map(subject => marks[`${point.term}:${selGrade}|${subject}|${point.assess}`]?.[l.adm])
+          .filter(v => v !== undefined && v !== null && v !== '');
+        if (!scores.length) return null;
+        const avg = scores.reduce((sum, value) => sum + Number(value), 0) / scores.length;
+        return { ...point, avg: Number(avg.toFixed(1)), entries: scores.length };
+      }).filter(Boolean);
+
+      const current = series.length ? series[series.length - 1].avg : 0;
+      const baseline = series.length ? series[0].avg : 0;
+      const momentum = series.length > 1 ? (current - baseline) / (series.length - 1) : 0;
+      const latestPoint = series.length ? series[series.length - 1] : null;
+      const completion = subjects.length ? Math.round(((latestPoint?.entries || 0) / subjects.length) * 100) : 0;
+      const forecast = clamp(current + (momentum * Math.max(1, 9 - series.length)) + (completion >= 90 ? 1.5 : 0));
+      const band = examBand(forecast);
+      return {
+        ...l,
+        series,
+        current,
+        baseline,
+        momentum: Number(momentum.toFixed(1)),
+        forecast: Number(forecast.toFixed(1)),
+        band,
+        confidence: Math.min(95, 35 + series.length * 7 + (completion >= 80 ? 10 : 0)),
+        recommendation: series.length < 3
+          ? 'Capture more termly marks before making high-stakes placement decisions.'
+          : forecast < 45
+            ? 'Create a monitored intervention plan with weekly subject targets.'
+            : momentum < 0
+              ? 'Stabilize declining subjects through targeted revision and attendance checks.'
+              : 'Maintain pace and assign national-exam practice under timed conditions.'
+      };
+    }).filter(r => r.series.length > 0).sort((a, b) => b.forecast - a.forecast);
+
+    const avgForecast = rows.length ? rows.reduce((sum, r) => sum + r.forecast, 0) / rows.length : 0;
+    return {
+      rows,
+      candidates: classLearners.length,
+      forecasted: rows.length,
+      avgForecast: Number(avgForecast.toFixed(1)),
+      top: rows[0],
+      watch: rows.filter(r => r.forecast < 45).length,
+      strong: rows.filter(r => r.forecast >= 65).length
+    };
+  }, [learners, marks, selGrade, subjects]);
+
   const learnerDetail = useMemo(() => {
     if (!selLearner) return null;
     const l = learners.find(x => x.adm === selLearner);
@@ -116,12 +184,17 @@ export default function PredictorPage() {
       <div className="page-hdr">
         <div>
           <h2>🎯 Performance Predictor</h2>
-          <p>Detailed analysis and trajectory forecasting</p>
+          <p>Detailed analysis, trajectory forecasting, and national exam readiness</p>
         </div>
         <div className="page-hdr-acts no-print">
-          {selLearner && <button className="btn btn-ghost btn-sm" onClick={() => setSelLearner(null)}>← Back to List</button>}
+          {mode === 'continuous' && selLearner && <button className="btn btn-ghost btn-sm" onClick={() => setSelLearner(null)}>← Back to List</button>}
           <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Print Analysis</button>
         </div>
+      </div>
+
+      <div className="tabs no-print" style={{ marginBottom: 18 }}>
+        <button className={`tab-btn ${mode === 'continuous' ? 'on' : ''}`} onClick={() => { setMode('continuous'); setSelLearner(null); }}>Continuous Assessment</button>
+        <button className={`tab-btn ${mode === 'national' ? 'on' : ''}`} onClick={() => { setMode('national'); setSelLearner(null); }}>National Exam Forecast</button>
       </div>
 
       <div className="panel no-print">
@@ -132,22 +205,40 @@ export default function PredictorPage() {
               {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
             </select>
           </div>
-          <div className="field" style={{ marginBottom: 0 }}>
-            <label>Term</label>
-            <select value={selTerm} onChange={e => setSelTerm(e.target.value)}>
-              <option value="T1">Term 1</option><option value="T2">Term 2</option><option value="T3">Term 3</option>
-            </select>
-          </div>
-          <div className="field" style={{ marginBottom: 0 }}>
-            <label>Assessment</label>
-            <select value={selAssess} onChange={e => setSelAssess(e.target.value)}>
-              {ASSESS_LIST.map(a => <option key={a.id} value={a.id}>{a.label}</option>)}
-            </select>
-          </div>
+          {mode === 'continuous' ? (
+            <>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Term</label>
+                <select value={selTerm} onChange={e => setSelTerm(e.target.value)}>
+                  <option value="T1">Term 1</option><option value="T2">Term 2</option><option value="T3">Term 3</option>
+                </select>
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Assessment</label>
+                <select value={selAssess} onChange={e => setSelAssess(e.target.value)}>
+                  {ASSESS_LIST.map(a => <option key={a.id} value={a.id}>{a.label}</option>)}
+                </select>
+              </div>
+            </>
+          ) : (
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Target Exam</label>
+              <select value={targetExam} onChange={e => setTargetExam(e.target.value)}>
+                <option>National Exam</option>
+                <option>KPSEA</option>
+                <option>KJSEA</option>
+                <option>KCSE</option>
+                <option>IGCSE</option>
+                <option>IB Finals</option>
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
-      {!selLearner ? (
+      {mode === 'national' ? (
+        <NationalExamForecast forecast={nationalForecast} grade={selGrade} targetExam={targetExam} onAnalyze={adm => { setMode('continuous'); setSelLearner(adm); }} />
+      ) : !selLearner ? (
         <>
           <div className="sg sg3" style={{ marginBottom: '22px' }}>
             <div className="stat-card" style={{ borderLeft: '4px solid var(--green)' }}>
@@ -351,4 +442,116 @@ export default function PredictorPage() {
 
 function LoadingSkeleton() {
   return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>Loading analytics...</div>;
+}
+
+function NationalExamForecast({ forecast, grade, targetExam, onAnalyze }) {
+  return (
+    <div className="national-forecast">
+      <div className="panel" style={{ marginBottom: 22, border: '2px solid #0F172A' }}>
+        <div className="panel-hdr" style={{ background: '#0F172A', color: '#fff' }}>
+          <div>
+            <h3 style={{ color: '#fff' }}>Official {targetExam} Readiness Forecast — {grade}</h3>
+            <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 3 }}>
+              Projection uses captured opener, mid-term, and end-term performance across available terms.
+            </div>
+          </div>
+          <span className="badge bg-gold">Interactive prediction</span>
+        </div>
+        <div className="panel-body">
+          <div className="sg sg4">
+            <div className="stat-card" style={{ borderLeft: '4px solid #2563EB' }}>
+              <div className="sc-inner">
+                <div style={{ flex: 1 }}>
+                  <div className="sc-n">{forecast.avgForecast}%</div>
+                  <div className="sc-l">Projected Mean</div>
+                </div>
+                <div style={{ fontSize: 24 }}>📈</div>
+              </div>
+            </div>
+            <div className="stat-card" style={{ borderLeft: '4px solid #059669' }}>
+              <div className="sc-inner">
+                <div style={{ flex: 1 }}>
+                  <div className="sc-n">{forecast.strong}</div>
+                  <div className="sc-l">Strong Candidates</div>
+                </div>
+                <div style={{ fontSize: 24 }}>🏅</div>
+              </div>
+            </div>
+            <div className="stat-card" style={{ borderLeft: '4px solid #DC2626' }}>
+              <div className="sc-inner">
+                <div style={{ flex: 1 }}>
+                  <div className="sc-n">{forecast.watch}</div>
+                  <div className="sc-l">Intervention Watch</div>
+                </div>
+                <div style={{ fontSize: 24 }}>⚠️</div>
+              </div>
+            </div>
+            <div className="stat-card" style={{ borderLeft: '4px solid #D97706' }}>
+              <div className="sc-inner">
+                <div style={{ flex: 1 }}>
+                  <div className="sc-n">{forecast.forecasted}/{forecast.candidates}</div>
+                  <div className="sc-l">Forecast Coverage</div>
+                </div>
+                <div style={{ fontSize: 24 }}>📋</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ padding: 14, borderRadius: 12, background: '#EFF6FF', border: '1.5px solid #BFDBFE', color: '#1E3A8A', fontSize: 13, lineHeight: 1.6 }}>
+            <strong>Administrative recommendation:</strong> {forecast.watch > 0
+              ? `Approve a monitored intervention programme for ${forecast.watch} learner${forecast.watch === 1 ? '' : 's'} before the next mock or national exam cycle.`
+              : 'Maintain current revision structures and increase timed practice for top-band conversion.'}
+          </div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-hdr">
+          <h3>{targetExam} Candidate Forecast Table</h3>
+          <span className="badge bg-blue">{forecast.rows.length} learners with trend data</span>
+        </div>
+        <div className="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Adm</th>
+                <th>Name</th>
+                <th>Current Avg</th>
+                <th>Momentum</th>
+                <th>Predicted</th>
+                <th>Band</th>
+                <th>Confidence</th>
+                <th>Recommendation</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {forecast.rows.map((row, i) => (
+                <tr key={row.adm}>
+                  <td style={{ fontWeight: 900 }}>#{i + 1}</td>
+                  <td>{row.adm}</td>
+                  <td style={{ fontWeight: 800 }}>{row.name}</td>
+                  <td style={{ fontWeight: 800 }}>{row.current}%</td>
+                  <td style={{ color: row.momentum >= 0 ? 'var(--green)' : 'var(--red)', fontWeight: 800 }}>{row.momentum > 0 ? '+' : ''}{row.momentum}</td>
+                  <td style={{ fontWeight: 900, fontSize: 15 }}>{row.forecast}%</td>
+                  <td><span className="badge" style={{ background: row.band.bg, color: row.band.color }}>{row.band.label}</span></td>
+                  <td>{row.confidence}%</td>
+                  <td style={{ minWidth: 260, color: '#475569', fontSize: 11 }}>{row.recommendation}</td>
+                  <td><button className="btn btn-ghost btn-sm" onClick={() => onAnalyze(row.adm)}>Analyze</button></td>
+                </tr>
+              ))}
+              {forecast.rows.length === 0 && (
+                <tr>
+                  <td colSpan={10} style={{ textAlign: 'center', padding: 40, color: 'var(--muted)' }}>
+                    No trend data is available yet. Capture marks across at least one assessment to generate a forecast.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 }

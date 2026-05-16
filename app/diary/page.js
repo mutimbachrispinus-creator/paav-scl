@@ -341,9 +341,21 @@ export default function StudentDiaryPage() {
           <div 
             className="fixed left-1/2 top-10 -translate-x-1/2 z-[101] w-[calc(100%-32px)] max-w-[700px] bg-white shadow-[0_32px_64px_-12px_rgba(0,0,0,0.3)] rounded-3xl overflow-hidden transition-all duration-500 ease-out border border-slate-200"
             style={{ 
+              position: 'fixed',
+              left: '50%',
+              top: 16,
+              transform: 'translateX(-50%)',
+              zIndex: 101,
+              width: 'calc(100% - 32px)',
+              maxWidth: 700,
+              background: '#fff',
+              border: '1px solid #e2e8f0',
+              borderRadius: 24,
+              overflow: 'hidden',
+              boxShadow: '0 32px 64px -12px rgba(0,0,0,0.3)',
               display: 'flex', 
               flexDirection: 'column', 
-              maxHeight: 'calc(100vh - 80px)',
+              maxHeight: 'calc(100vh - 32px)',
               animation: 'slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
           >

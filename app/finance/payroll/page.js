@@ -7,6 +7,93 @@ import { useProfile } from '@/app/PortalShell';
 
 const M = 'var(--primary)', M2 = 'var(--accent)', ML = 'var(--primary-low)', MB = '#F8FAFC';
 
+function moneyValue(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function money(value) {
+  return Math.round(moneyValue(value)).toLocaleString('en-KE');
+}
+
+function calcPayrollForStaff(staffMember, oneOffDeductions = []) {
+  const gross = moneyValue(staffMember?.salary);
+  const nssf = Math.min(2160, gross * 0.06);
+  const levy = gross * 0.015;
+  const shif = gross * 0.0275;
+  let taxable = gross - nssf;
+  let paye = 0;
+  if (taxable > 24000) {
+    if (taxable <= 32333) paye = (taxable - 24000) * 0.1;
+    else if (taxable <= 500000) paye = (32333 - 24000) * 0.1 + (taxable - 32333) * 0.25;
+    else paye = (32333 - 24000) * 0.1 + (500000 - 32333) * 0.25 + (taxable - 500000) * 0.3;
+  }
+  paye = Math.max(0, paye - 2400);
+
+  const statutoryItems = [
+    { label: 'NSSF Contribution', amount: nssf },
+    { label: 'Housing Levy (1.5%)', amount: levy },
+    { label: 'SHIF / Health Insurance', amount: shif },
+    { label: 'P.A.Y.E Tax', amount: paye },
+  ];
+
+  const recurring = [
+    { label: 'SACCO Loan', amount: staffMember?.saccoLoan },
+    { label: 'Bank Loan', amount: staffMember?.bankLoan },
+    { label: 'Salary Advance', amount: staffMember?.salaryAdvance },
+    { label: 'Welfare Deduction', amount: staffMember?.welfareDeduction },
+  ];
+
+  if (moneyValue(staffMember?.loan) > 0 && moneyValue(staffMember?.saccoLoan) === 0 && moneyValue(staffMember?.bankLoan) === 0) {
+    recurring.push({ label: 'Loan Repayment', amount: staffMember.loan });
+  }
+
+  const extraItems = [...recurring, ...oneOffDeductions]
+    .map(item => ({ label: item.label || 'Other Deduction', amount: moneyValue(item.amount) }))
+    .filter(item => item.amount > 0);
+
+  const statutoryTotal = statutoryItems.reduce((sum, item) => sum + item.amount, 0);
+  const otherDeductions = extraItems.reduce((sum, item) => sum + item.amount, 0);
+  const totalDeductions = statutoryTotal + otherDeductions;
+
+  return {
+    gross, nssf, levy, shif, paye,
+    statutoryItems,
+    deductionItems: extraItems,
+    statutoryTotal,
+    otherDeductions,
+    totalDeductions,
+    net: gross - totalDeductions
+  };
+}
+
+function recordDeductionItems(record) {
+  if (Array.isArray(record?.statutoryItems) || Array.isArray(record?.deductionItems)) {
+    return [
+      ...(record.statutoryItems || []),
+      ...(record.deductionItems || [])
+    ].map(item => ({ label: item.label || 'Deduction', amount: moneyValue(item.amount) })).filter(item => item.amount > 0);
+  }
+
+  const items = [
+    { label: 'NSSF Contribution', amount: record?.nssf },
+    { label: 'Housing Levy (1.5%)', amount: record?.levy },
+    { label: 'SHIF / Health Insurance', amount: record?.shif },
+    { label: 'P.A.Y.E Tax', amount: record?.paye },
+    { label: 'SACCO Loan', amount: record?.saccoLoan },
+    { label: 'Bank Loan', amount: record?.bankLoan },
+    { label: 'Loan Repayment', amount: record?.loan },
+    { label: 'Other Deductions', amount: record?.otherDeductions },
+  ];
+  return items.map(item => ({ ...item, amount: moneyValue(item.amount) })).filter(item => item.amount > 0);
+}
+
+function recordDeductionTotal(record) {
+  const stored = moneyValue(record?.totalDeductions);
+  if (stored > 0) return stored;
+  return recordDeductionItems(record).reduce((sum, item) => sum + item.amount, 0);
+}
+
 export default function UnifiedPayrollPage() {
   const router = useRouter();
   const { profile } = useProfile();
@@ -19,6 +106,7 @@ export default function UnifiedPayrollPage() {
   const [tab, setTab] = useState('calc'); 
   const [selStaffId, setSelStaffId] = useState('');
   const [printSlip, setPrintSlip] = useState(null);
+  const [oneOffDeduction, setOneOffDeduction] = useState({ label: 'Bank/SACCO Loan', amount: '' });
 
   const load = useCallback(async () => {
     const u = await getCachedUser();
@@ -33,35 +121,26 @@ export default function UnifiedPayrollPage() {
   }, [router]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { setOneOffDeduction({ label: 'Bank/SACCO Loan', amount: '' }); }, [selStaffId]);
 
   const selStaff = useMemo(() => staff.find(s => s.username === selStaffId), [staff, selStaffId]);
 
   /* ── Kenyan Payroll Logic ── */
   const currentPay = useMemo(() => {
     if (!selStaff) return null;
-    const g = Number(selStaff.salary) || 0;
-    const nssf = Math.min(2160, g * 0.06);
-    const levy = g * 0.015;
-    const shif = g * 0.0275;
-    let taxable = g - nssf;
-    let paye = 0;
-    if (taxable > 24000) {
-      if (taxable <= 32333) paye = (taxable - 24000) * 0.1;
-      else if (taxable <= 500000) paye = (32333 - 24000) * 0.1 + (taxable - 32333) * 0.25;
-      else paye = (32333 - 24000) * 0.1 + (500000 - 32333) * 0.25 + (taxable - 500000) * 0.3;
-    }
-    paye = Math.max(0, paye - 2400); 
-    const net = g - nssf - levy - shif - paye;
-    return { gross: g, nssf, levy, shif, paye, net };
-  }, [selStaff]);
+    const manual = moneyValue(oneOffDeduction.amount) > 0
+      ? [{ label: oneOffDeduction.label || 'Other Deduction', amount: oneOffDeduction.amount }]
+      : [];
+    return calcPayrollForStaff(selStaff, manual);
+  }, [selStaff, oneOffDeduction]);
 
   const schoolSummary = useMemo(() => {
     const activeMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
     const currentMonthPayroll = payroll.filter(p => p.month === activeMonth);
     const totalGross = currentMonthPayroll.reduce((s, p) => s + (Number(p.basic) || 0), 0);
     const totalNet = currentMonthPayroll.reduce((s, p) => s + (Number(p.net) || 0), 0);
-    const totalStat = totalGross - totalNet;
-    return { totalGross, totalNet, totalStat, count: currentMonthPayroll.length };
+    const totalDeductions = currentMonthPayroll.reduce((s, p) => s + recordDeductionTotal(p), 0);
+    return { totalGross, totalNet, totalStat: totalDeductions, count: currentMonthPayroll.length };
   }, [payroll]);
 
   async function saveRecord() {
@@ -72,11 +151,15 @@ export default function UnifiedPayrollPage() {
       staffId: selStaff.username,
       staffName: selStaff.name,
       month: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
-      basic: selStaff.salary,
+      basic: currentPay.gross,
       nssf: currentPay.nssf,
       levy: currentPay.levy,
       shif: currentPay.shif,
       paye: currentPay.paye,
+      statutoryItems: currentPay.statutoryItems,
+      deductionItems: currentPay.deductionItems,
+      otherDeductions: currentPay.otherDeductions,
+      totalDeductions: currentPay.totalDeductions,
       net: currentPay.net,
       status: 'pending',
       date: new Date().toLocaleDateString()
@@ -109,29 +192,24 @@ export default function UnifiedPayrollPage() {
       // Skip if already processed for this month
       if (payroll.some(p => p.staffId === s.username && p.month === month)) continue;
       
-      const g = Number(s.salary) || 0;
-      if (g <= 0) continue;
-
-      const nssf = Math.min(2160, g * 0.06);
-      const levy = g * 0.015;
-      const shif = g * 0.0275;
-      let taxable = g - nssf;
-      let paye = 0;
-      if (taxable > 24000) {
-        if (taxable <= 32333) paye = (taxable - 24000) * 0.1;
-        else if (taxable <= 500000) paye = (32333 - 24000) * 0.1 + (taxable - 32333) * 0.25;
-        else paye = (32333 - 24000) * 0.1 + (500000 - 32333) * 0.25 + (taxable - 500000) * 0.3;
-      }
-      paye = Math.max(0, paye - 2400); 
-      const net = g - nssf - levy - shif - paye;
+      const pay = calcPayrollForStaff(s);
+      if (pay.gross <= 0) continue;
 
       newRecords.push({
         id: Date.now() + Math.random(),
         staffId: s.username,
         staffName: s.name,
         month,
-        basic: s.salary,
-        nssf, levy, shif, paye, net,
+        basic: pay.gross,
+        nssf: pay.nssf,
+        levy: pay.levy,
+        shif: pay.shif,
+        paye: pay.paye,
+        statutoryItems: pay.statutoryItems,
+        deductionItems: pay.deductionItems,
+        otherDeductions: pay.otherDeductions,
+        totalDeductions: pay.totalDeductions,
+        net: pay.net,
         status: 'pending',
         date: new Date().toLocaleDateString()
       });
@@ -170,7 +248,7 @@ export default function UnifiedPayrollPage() {
     setPayroll(updated);
   }
 
-  async function updateSalary(username, newSal) {
+  async function updateSalary(username, newSal, saccoLoan = 0, bankLoan = 0) {
     setBusy(true);
     try {
       const dbRes = await fetch('/api/db', {
@@ -181,7 +259,9 @@ export default function UnifiedPayrollPage() {
       const list = db.results[0]?.value || [];
       const idx = list.findIndex(s => s.username === username);
       if (idx >= 0) {
-        list[idx].salary = Number(newSal);
+        list[idx].salary = moneyValue(newSal);
+        list[idx].saccoLoan = moneyValue(saccoLoan);
+        list[idx].bankLoan = moneyValue(bankLoan);
         await fetch('/api/db', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ requests: [{ type: 'set', key: 'paav6_staff', value: list }] }),
@@ -211,15 +291,15 @@ export default function UnifiedPayrollPage() {
       <div className="sg sg4" style={{ marginBottom: 25 }}>
         <div className="panel" style={{ background: '#F0F9FF', border: '1px solid #BAE6FD' }}>
            <div style={{ fontSize: 11, color: '#0369A1', fontWeight: 700 }}>MONTHLY GROSS</div>
-           <div style={{ fontSize: 24, fontWeight: 900 }}>KSH {schoolSummary.totalGross.toLocaleString()}</div>
+           <div style={{ fontSize: 24, fontWeight: 900 }}>KSH {money(schoolSummary.totalGross)}</div>
         </div>
         <div className="panel" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
            <div style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>NET DISBURSEMENT</div>
-           <div style={{ fontSize: 24, fontWeight: 900, color: '#166534' }}>KSH {schoolSummary.totalNet.toLocaleString()}</div>
+           <div style={{ fontSize: 24, fontWeight: 900, color: '#166534' }}>KSH {money(schoolSummary.totalNet)}</div>
         </div>
         <div className="panel" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
            <div style={{ fontSize: 11, color: '#991B1B', fontWeight: 700 }}>STATUTORY (PAYE/SHIF/NSSF)</div>
-           <div style={{ fontSize: 24, fontWeight: 900, color: '#991B1B' }}>KSH {schoolSummary.totalStat.toLocaleString()}</div>
+           <div style={{ fontSize: 24, fontWeight: 900, color: '#991B1B' }}>KSH {money(schoolSummary.totalStat)}</div>
         </div>
         <div className="panel" style={{ background: '#F5F3FF', border: '1px solid #DDD6FE' }}>
            <div style={{ fontSize: 11, color: '#5B21B6', fontWeight: 700 }}>STAFF PROCESSED</div>
@@ -251,8 +331,18 @@ export default function UnifiedPayrollPage() {
                      <div style={{ width: 50, height: 50, borderRadius: 25, background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 900 }}>{selStaff.name[0]}</div>
                      <div>
                         <div style={{ fontWeight: 800, fontSize: 16 }}>{selStaff.name}</div>
-                        <div style={{ fontSize: 12, color: 'var(--muted)' }}>{selStaff.role.toUpperCase()} • Base: KSH {selStaff.salary?.toLocaleString()}</div>
+                        <div style={{ fontSize: 12, color: 'var(--muted)' }}>{selStaff.role.toUpperCase()} • Base: KSH {money(selStaff.salary)}</div>
                      </div>
+                  </div>
+                  <div className="field-row" style={{ marginTop: 18 }}>
+                    <div className="field" style={{ marginBottom: 0 }}>
+                      <label>One-off deduction</label>
+                      <input value={oneOffDeduction.label} onChange={e => setOneOffDeduction(d => ({ ...d, label: e.target.value }))} placeholder="e.g. Bank loan" />
+                    </div>
+                    <div className="field" style={{ marginBottom: 0 }}>
+                      <label>Amount (KSH)</label>
+                      <input type="number" min="0" value={oneOffDeduction.amount} onChange={e => setOneOffDeduction(d => ({ ...d, amount: e.target.value }))} placeholder="0" />
+                    </div>
                   </div>
                 </div>
               )}
@@ -273,12 +363,21 @@ export default function UnifiedPayrollPage() {
                   <div className="tbl-wrap" style={{ marginBottom: 20 }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <tbody>
-                        <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '12px 0', color: 'var(--muted)' }}>Basic Salary</td><td style={{ textAlign: 'right', fontWeight: 700 }}>{currentPay.gross.toLocaleString()}</td></tr>
-                        <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '12px 0', color: '#DC2626' }}>NSSF Contribution</td><td style={{ textAlign: 'right', color: '#DC2626' }}>({currentPay.nssf.toLocaleString()})</td></tr>
-                        <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '12px 0', color: '#DC2626' }}>Housing Levy (1.5%)</td><td style={{ textAlign: 'right', color: '#DC2626' }}>({Math.round(currentPay.levy).toLocaleString()})</td></tr>
-                        <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '12px 0', color: '#DC2626' }}>SHIF / Health Ins.</td><td style={{ textAlign: 'right', color: '#DC2626' }}>({Math.round(currentPay.shif).toLocaleString()})</td></tr>
-                        <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '12px 0', color: '#DC2626' }}>P.A.Y.E Tax</td><td style={{ textAlign: 'right', color: '#DC2626' }}>({Math.round(currentPay.paye).toLocaleString()})</td></tr>
-                        <tr style={{ background: 'var(--primary-low)', fontWeight: 900, fontSize: 22 }}><td style={{ padding: 20 }}>NET SALARY</td><td style={{ textAlign: 'right', padding: 20, color: '#16A34A' }}>KSH {Math.round(currentPay.net).toLocaleString()}</td></tr>
+                        <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '12px 0', color: 'var(--muted)' }}>Basic Salary</td><td style={{ textAlign: 'right', fontWeight: 700 }}>{money(currentPay.gross)}</td></tr>
+                        {currentPay.statutoryItems.map(item => (
+                          <tr key={item.label} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                            <td style={{ padding: '12px 0', color: '#DC2626' }}>{item.label}</td>
+                            <td style={{ textAlign: 'right', color: '#DC2626' }}>({money(item.amount)})</td>
+                          </tr>
+                        ))}
+                        {currentPay.deductionItems.map(item => (
+                          <tr key={item.label} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                            <td style={{ padding: '12px 0', color: '#B45309' }}>{item.label}</td>
+                            <td style={{ textAlign: 'right', color: '#B45309', fontWeight: 700 }}>({money(item.amount)})</td>
+                          </tr>
+                        ))}
+                        <tr style={{ borderBottom: '1px solid #F1F5F9', background: '#FEF2F2' }}><td style={{ padding: '12px 0', fontWeight: 900, color: '#991B1B' }}>Total Deductions</td><td style={{ textAlign: 'right', color: '#991B1B', fontWeight: 900 }}>({money(currentPay.totalDeductions)})</td></tr>
+                        <tr style={{ background: 'var(--primary-low)', fontWeight: 900, fontSize: 22 }}><td style={{ padding: 20 }}>NET SALARY</td><td style={{ textAlign: 'right', padding: 20, color: '#16A34A' }}>KSH {money(currentPay.net)}</td></tr>
                       </tbody>
                     </table>
                   </div>
@@ -311,9 +410,9 @@ export default function UnifiedPayrollPage() {
                   <tr key={p.id} className="hover-row">
                     <td style={{ fontSize: 11, fontWeight: 700 }}>{p.month}</td>
                     <td style={{ fontWeight: 800 }}>{p.staffName}</td>
-                    <td>{p.basic.toLocaleString()}</td>
-                    <td style={{ color: '#DC2626' }}>({Math.round(p.nssf + p.levy + p.shif + p.paye).toLocaleString()})</td>
-                    <td style={{ fontWeight: 900, color: 'var(--primary)' }}>{Math.round(p.net).toLocaleString()}</td>
+                    <td>{money(p.basic)}</td>
+                    <td style={{ color: '#DC2626' }}>({money(recordDeductionTotal(p))})</td>
+                    <td style={{ fontWeight: 900, color: 'var(--primary)' }}>{money(p.net || (moneyValue(p.basic) - recordDeductionTotal(p)))}</td>
                     <td><span className={`badge bg-${p.status === 'paid' ? 'green' : 'amber'}`}>{p.status.toUpperCase()}</span></td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: 5, justifyContent: 'flex-end' }}>
@@ -341,6 +440,8 @@ export default function UnifiedPayrollPage() {
                     <th style={{ textAlign: 'left', padding: 12 }}>Staff Name</th>
                     <th style={{ textAlign: 'left', padding: 12 }}>Role</th>
                     <th style={{ textAlign: 'left', padding: 12 }}>Base Salary (KSH)</th>
+                    <th style={{ textAlign: 'left', padding: 12 }}>SACCO Loan</th>
+                    <th style={{ textAlign: 'left', padding: 12 }}>Bank Loan</th>
                     <th style={{ textAlign: 'right', padding: 12 }}>Action</th>
                   </tr>
                 </thead>
@@ -350,7 +451,14 @@ export default function UnifiedPayrollPage() {
                       <td style={{ padding: 12 }}><strong>{s.name}</strong></td>
                       <td style={{ padding: 12, fontSize: 11, color: 'var(--muted)' }}>{s.role.toUpperCase()}</td>
                       <td style={{ padding: 12 }}><input type="number" id={`sal-${s.username}`} defaultValue={s.salary} className="field" style={{ width: 150, margin: 0, padding: '8px 12px' }} /></td>
-                      <td style={{ padding: 12, textAlign: 'right' }}><button className="btn btn-sm btn-ghost" onClick={() => updateSalary(s.username, document.getElementById(`sal-${s.username}`).value)}>Update</button></td>
+                      <td style={{ padding: 12 }}><input type="number" id={`sacco-${s.username}`} defaultValue={moneyValue(s.saccoLoan)} className="field" style={{ width: 130, margin: 0, padding: '8px 12px' }} /></td>
+                      <td style={{ padding: 12 }}><input type="number" id={`bank-${s.username}`} defaultValue={moneyValue(s.bankLoan)} className="field" style={{ width: 130, margin: 0, padding: '8px 12px' }} /></td>
+                      <td style={{ padding: 12, textAlign: 'right' }}><button className="btn btn-sm btn-ghost" onClick={() => updateSalary(
+                        s.username,
+                        document.getElementById(`sal-${s.username}`).value,
+                        document.getElementById(`sacco-${s.username}`).value,
+                        document.getElementById(`bank-${s.username}`).value
+                      )}>Update</button></td>
                     </tr>
                   ))}
                 </tbody>
@@ -385,13 +493,16 @@ export default function UnifiedPayrollPage() {
                  <table style={{ width: '100%', fontSize: 14, borderCollapse: 'collapse' }}>
                    <tbody>
                      <tr style={{ background: '#F8FAFC' }}><td colSpan={2} style={{ padding: '10px 15px', fontWeight: 800, fontSize: 11 }}>EARNINGS</td></tr>
-                     <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '12px 15px' }}>Basic Salary</td><td style={{ textAlign: 'right', fontWeight: 700 }}>{Number(printSlip.basic).toLocaleString()}</td></tr>
+                     <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '12px 15px' }}>Basic Salary</td><td style={{ textAlign: 'right', fontWeight: 700 }}>{money(printSlip.basic)}</td></tr>
                      <tr style={{ background: '#F8FAFC' }}><td colSpan={2} style={{ padding: '10px 15px', fontWeight: 800, fontSize: 11 }}>DEDUCTIONS & STATUTORY</td></tr>
-                     <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '10px 15px' }}>NSSF Contribution</td><td style={{ textAlign: 'right' }}>({Math.round(printSlip.nssf).toLocaleString()})</td></tr>
-                     <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '10px 15px' }}>Housing Levy (1.5%)</td><td style={{ textAlign: 'right' }}>({Math.round(printSlip.levy).toLocaleString()})</td></tr>
-                     <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '10px 15px' }}>SHIF / Health Insurance</td><td style={{ textAlign: 'right' }}>({Math.round(printSlip.shif).toLocaleString()})</td></tr>
-                     <tr style={{ borderBottom: '1px solid #F1F5F9' }}><td style={{ padding: '10px 15px' }}>P.A.Y.E Tax</td><td style={{ textAlign: 'right' }}>({Math.round(printSlip.paye).toLocaleString()})</td></tr>
-                     <tr style={{ background: 'var(--primary)', color: '#fff', fontWeight: 900, fontSize: 20 }}><td style={{ padding: '20px 15px', borderRadius: '0 0 0 10px' }}>NET PAYABLE</td><td style={{ textAlign: 'right', padding: '20px 15px', borderRadius: '0 0 10px 0' }}>KSH {Math.round(printSlip.net).toLocaleString()}</td></tr>
+                     {recordDeductionItems(printSlip).map((item, idx) => (
+                       <tr key={`${item.label}-${idx}`} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                         <td style={{ padding: '10px 15px' }}>{item.label}</td>
+                         <td style={{ textAlign: 'right' }}>({money(item.amount)})</td>
+                       </tr>
+                     ))}
+                     <tr style={{ background: '#FEF2F2', color: '#991B1B', fontWeight: 900 }}><td style={{ padding: '10px 15px' }}>TOTAL DEDUCTIONS</td><td style={{ textAlign: 'right', padding: '10px 15px' }}>({money(recordDeductionTotal(printSlip))})</td></tr>
+                     <tr style={{ background: 'var(--primary)', color: '#fff', fontWeight: 900, fontSize: 20 }}><td style={{ padding: '20px 15px', borderRadius: '0 0 0 10px' }}>NET PAYABLE</td><td style={{ textAlign: 'right', padding: '20px 15px', borderRadius: '0 0 10px 0' }}>KSH {money(printSlip.net || (moneyValue(printSlip.basic) - recordDeductionTotal(printSlip)))}</td></tr>
                    </tbody>
                  </table>
                  <div style={{ marginTop: 30, fontSize: 10, color: '#94A3B8', textAlign: 'center', fontStyle: 'italic' }}>This is a computer generated payslip and does not require a signature.</div>

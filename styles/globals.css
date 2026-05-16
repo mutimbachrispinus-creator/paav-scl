@@ -747,9 +747,14 @@ tr:hover td{background:#F8FAFF}
 @media (max-width: 600px) {
   .mobile-bottom-nav {
     display: flex;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    height: 62px;
+    left: 8px;
+    right: 8px;
+    border-radius: 16px;
   }
   #main {
-    padding-bottom: 84px;
+    padding: 8px 8px 96px;
   }
   .tb-nbtn { padding: 6px 10px; font-size: 11px; }
   .tb-user { padding: 4px; }
@@ -759,9 +764,25 @@ tr:hover td{background:#F8FAFF}
     flex-direction: column;
     align-items: flex-start;
   }
-  .page-hdr-acts { width: 100%; }
-  .page-hdr-acts .btn { flex: 1; }
+  .page-hdr-acts { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .page-hdr-acts .btn,
+  .page-hdr-acts select,
+  .page-hdr-acts input {
+    width: 100% !important;
+    min-width: 0;
+    justify-content: center;
+  }
   .sg2, .sg3, .sg4, .sg5 { grid-template-columns: 1fr; }
+  .panel-hdr { padding: 12px 14px; }
+  .tbl-wrap { margin-left: -4px; margin-right: -4px; padding: 0 4px; }
+  th, td { padding: 8px 10px; }
+  .modal-overlay { padding: 10px; align-items: flex-start; }
+  .modal { width: 100%; max-height: calc(100vh - 20px); }
+  .mobile-bottom-nav a,
+  .mbn-logout-btn,
+  .mbn-bell { min-width: 56px; }
+  .mobile-bottom-nav a .label,
+  .mbn-logout-btn .label { max-width: 54px; overflow: hidden; text-overflow: ellipsis; }
 }
 
 /* ── PREMIUM TWEAKS ── */
@@ -2486,5 +2507,4 @@ input:focus, select:focus, textarea:focus {
 .hover-glow:hover {
   box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
 }
-
 

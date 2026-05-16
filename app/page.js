@@ -12,20 +12,22 @@ const VIBRANT = 'var(--lp-vibrant, #8B5CF6)';
 
 const ALL_FEATURES = [
   { icon: '⚖️', title: 'Curriculum-Aware Grading', desc: 'Auto-calculates weighted averages for CBC, TVET/CBET, Cambridge, British, IB & Montessori.' },
+  { icon: '📥', title: 'Smart CSV Enrolment', desc: 'Bulk profile enrolment detects admission, learner, grade, stream, parent and medical columns automatically.' },
   { icon: '🗓️', title: 'Dynamic Calendars', desc: 'Define your own terms. Report cards automatically print accurate next-term resumption dates.' },
   { icon: '🚀', title: 'Unified Comms Hub', desc: 'Consolidated SMS, bulk alerts & internal messaging. Target specific cohorts like "at-risk" students.' },
   { icon: '📊', title: 'Revenue Integrity', desc: 'Real-time dashboard reconciling expected vs. collected fees. Flags revenue leakage instantly.' },
   { icon: '💳', title: 'EduVantage Pay', desc: 'Platform-wide payment aggregation. Parents pay via M-Pesa STK push; funds auto-route securely.' },
   { icon: '🏦', title: 'Automated Settlement', desc: 'One-click Safaricom B2C/B2B disbursements directly to school bank accounts or Tills.' },
   { icon: '🔐', title: 'Anti-Fraud Locks', desc: 'Cryptographic ghost-student prevention — receipts and report cards locked to official registry.' },
-  { icon: '🎓', title: 'SaaS Subscriptions', desc: 'Monetize premium video content with Daily/Weekly/Monthly M-Pesa subscription plans.' },
+  { icon: '🎓', title: 'Professional Video Lessons', desc: 'Searchable lesson library, embedded previews, live video classes, whiteboard, slides and premium access controls.' },
   { icon: '📅', title: 'AI Timetabling', desc: 'Conflict-free master timetables generated in minutes, optimizing teacher workload automatically.' },
   { icon: '🛡️', title: 'Multi-Tier Network', desc: 'Platform-wide super-admin controls alongside isolated, secure tenant dashboards.' },
   { icon: '📲', title: 'Live Parent Portal', desc: 'Live fee balances, digital report cards, and targeted school-specific announcements.' },
-  { icon: '🏆', title: 'Premium Rankings', desc: 'Curriculum-specific merit lists and automated school-wide exam performance reports.' },
-  { icon: '💼', title: 'Staff & Finance Hub', desc: 'Automated payroll, expense tracking, digital duty rosters, and asset management.' },
+  { icon: '🏆', title: 'Official Exam Intelligence', desc: 'Detailed exam summaries, subject ranks, deviations, teacher performance and action recommendations.' },
+  { icon: '🔮', title: 'National Exam Predictor', desc: 'Interactive class and learner forecasting for KPSEA, KJSEA, KCSE, IGCSE and other national exam pathways.' },
+  { icon: '💼', title: 'Staff & Finance Hub', desc: 'Automated payroll with itemized PAYE, SHIF, NSSF, housing levy, bank loans and SACCO deductions.' },
   { icon: '🤖', title: 'Data Recovery', desc: 'Proprietary engine to link orphaned marks and instantly restore historical learner data.' },
-  { icon: '🌐', title: 'Cloud Infrastructure', desc: 'Enterprise-grade Edge network powering institutions across Africa with 99.9% uptime.' },
+  { icon: '🌐', title: 'Cloud Infrastructure', desc: 'Tenant-isolated caching, light login warmups and Edge-ready architecture for very large school networks.' },
   { icon: '📱', title: 'Passive Revenue', desc: 'Automatic KES 50 convenience fee appended to every digital transaction for the platform.' },
 ];
 
@@ -90,12 +92,12 @@ export default function LandingPage() {
         <div className="hero-mesh"></div>
         
         <div className="container hero-content fade-in-up">
-          <div className="badge-pill pulse-glow">🚀 The Next Generation of School Intelligence</div>
+          <div className="badge-pill pulse-glow">🚀 Official School Intelligence at Scale</div>
           <h1 className="hero-title">
             Stop Managing.<br/>Start <span className="text-gradient">Innovating.</span>
           </h1>
           <p className="hero-subtitle">
-            The intelligent school operating system that <strong>collects fees for you</strong>. Fully equipped with curriculum-aware grading, automated B2C settlements, AI timetabling, and a secure parent portal—all in one premium platform.
+            The intelligent school operating system that <strong>collects fees for you</strong> and turns academic data into official decisions. Fully equipped with smart CSV enrolment, loan-aware payroll, professional video lessons, national exam prediction, automated B2C settlements, AI timetabling, and a secure parent portal.
           </p>
           
           <div className="hero-actions">
@@ -123,7 +125,7 @@ export default function LandingPage() {
                 <div className="exp-icon">🏢</div>
                 <div className="exp-info">
                    <strong>Admin Suite</strong>
-                   <span>Payroll · Revenue Dashboard</span>
+                   <span>Payroll · Official Analytics</span>
                 </div>
              </div>
           </div>
@@ -208,12 +210,12 @@ export default function LandingPage() {
             <div className="module-card">
               <div className="mod-icon" style={{ background: '#EEF2FF', color: PRIMARY }}>📊</div>
               <div className="mod-content">
-                <h3>Curriculum-Aware Insights</h3>
-                <p>Gain total institutional clarity. Our merged analytics engine provides both high-level trend visualizations and granular academic rankings—fully adaptive for <strong>Kenya CBC</strong>, <strong>TVET / CBET</strong>, <strong>Montessori</strong>, <strong>Cambridge International</strong>, <strong>British IGCSE</strong>, and <strong>IB</strong> structures.</p>
+                <h3>Official Academic Intelligence</h3>
+                <p>Gain total institutional clarity. EduVantage now combines detailed exam summaries, subject ranks, class deviations, teacher performance, and national exam readiness forecasts—fully adaptive for <strong>Kenya CBC</strong>, <strong>TVET / CBET</strong>, <strong>Montessori</strong>, <strong>Cambridge International</strong>, <strong>British IGCSE</strong>, and <strong>IB</strong> structures.</p>
                 <ul className="mod-features">
-                  <li>Visual Subject Mastery Heatmaps</li>
-                  <li>Instant Class-Wide Merit Rankings</li>
-                  <li>Gender & Stream Parity Analytics</li>
+                  <li>Official Exam Summary With Deviations</li>
+                  <li>Subject Rankings & Teacher Performance</li>
+                  <li>National Exam Class & Learner Forecasts</li>
                 </ul>
               </div>
             </div>
@@ -228,6 +230,7 @@ export default function LandingPage() {
                   <li>Automated KES 50 Convenience Fee Per Transaction</li>
                   <li>One-Click Settlement to School Bank / Till</li>
                   <li>Revenue Integrity Dashboard — Flags Fee Leakage</li>
+                  <li>Payroll Deductions — PAYE, SHIF, NSSF, Loans & SACCO</li>
                 </ul>
               </div>
               <div className="mod-icon" style={{ background: '#ECFDF5', color: ACCENT }}>💳</div>
@@ -290,14 +293,14 @@ export default function LandingPage() {
             <SolutionCard 
               target="Administrators" 
               demoHref="/demo/staff"
-              desc="Total oversight of finances, staff performance, and platform-wide metrics with automated daily snapshots."
-              features={['Live Fee Dashboards', 'Bulk Payroll', 'Compliance Reports']}
+              desc="Total oversight of finances, staff performance, learner onboarding and official academic summaries with automated daily snapshots."
+              features={['Smart CSV Enrolment', 'Loan-Aware Payroll', 'Official Exam Reports']}
             />
             <SolutionCard 
               target="Teachers" 
               demoHref="/demo/teacher"
-              desc="Reduce paperwork to zero. Digital attendance, instant grade entry, and automated lesson schedules."
-              features={['Digital Markbooks', '1-Click Attendance', 'Exam Analysis']}
+              desc="Reduce paperwork to zero. Digital attendance, instant grade entry, video lessons, and automated lesson schedules."
+              features={['Digital Markbooks', 'Video Lessons', 'Exam Analysis']}
             />
             <SolutionCard 
               target="Parents" 
@@ -308,8 +311,8 @@ export default function LandingPage() {
             <SolutionCard 
               target="Students"
               demoHref="/login"
-              desc="Stay organized with personalized digital timetables, learning resources, and performance tracking."
-              features={['Subject Trends', 'Digital Diary', 'Merit Rankings']}
+              desc="Stay organized with personalized digital timetables, learning resources, performance tracking and exam readiness prediction."
+              features={['Subject Trends', 'Video Lessons', 'Exam Forecasts']}
             />
           </div>
         </div>
