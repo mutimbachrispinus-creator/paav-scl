@@ -269,6 +269,8 @@ export default function GradingSettingsPage() {
           </div>
         </div>
       )}
+      </div>
+
       <style jsx>{`
         .mode-card-item:hover {
           border-color: var(--primary) !important;
