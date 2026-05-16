@@ -172,27 +172,26 @@ export default function GradingSettingsPage() {
       <div className="panel" style={{ marginBottom: 20 }}>
         <div className="panel-hdr"><h3>🎚️ Grading Mode</h3></div>
         <div className="panel-body">
-          <div style={{ display: 'flex', gap: 12 }}>
-            <ModeCard
-              active={gradingMode === 'uniform'}
-              onClick={() => setGradingMode('uniform')}
-              icon="🏫"
-              title="Uniform"
-              desc="One scale for all grades."
-            />
-            <div className={`mode-card ${gradingMode === 'per-level' ? 'active' : ''}`} onClick={() => setGradingMode('per-level')}>
-              <div className="mode-icon">📚</div>
-              <div className="mode-name">Per-{labels.grade}</div>
-              <div className="mode-desc">Unique grading scales for each school level.</div>
-            </div>
-            <div className={`mode-card ${gradingMode === 'per-subject' ? 'active' : ''}`} onClick={() => setGradingMode('per-subject')}>
-              <div className="mode-icon">📖</div>
-              <div className="mode-name">Per-{labels.subject}</div>
-              <div className="mode-desc">Custom scales for specific {labels.subjects.toLowerCase()}.</div>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 15 }}>
+            {[
+              { id: 'uniform', icon: '🏫', title: 'Uniform Scale', desc: 'Single grading scale across the entire school.' },
+              { id: 'per-level', icon: '📚', title: `Per-${labels.grade}`, desc: `Different scales for Pre-Primary, Primary, and Junior School.` },
+              { id: 'per-subject', icon: '📖', title: `Per-${labels.subject}`, desc: `Configure specific scales for unique subjects like Languages or Sciences.` }
+            ].map(m => (
+              <ModeCard
+                key={m.id}
+                active={gradingMode === m.id}
+                onClick={() => setGradingMode(m.id)}
+                icon={m.icon}
+                title={m.title}
+                desc={m.desc}
+              />
+            ))}
           </div>
         </div>
       </div>
+
+      <div style={{ transition: 'all 0.4s ease-in-out', opacity: loading ? 0.5 : 1 }}>
 
       {gradingMode === 'uniform' && uniformScale && (
         <ScaleEditor
@@ -270,6 +269,13 @@ export default function GradingSettingsPage() {
           </div>
         </div>
       )}
+      <style jsx>{`
+        .mode-card-item:hover {
+          border-color: var(--primary) !important;
+          transform: translateY(-4px) !important;
+          box-shadow: 0 12px 24px -10px rgba(139, 26, 26, 0.2) !important;
+        }
+      `}</style>
     </div>
   );
 }
@@ -279,14 +285,22 @@ function ModeCard({ active, onClick, icon, title, desc }) {
     <div
       onClick={onClick}
       style={{
-        flex: 1, padding: 18, border: `2px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
-        borderRadius: 14, cursor: 'pointer', background: active ? 'rgba(var(--primary-rgb,37,99,235),0.05)' : '#fff',
-        transition: 'all 0.2s'
+        flex: 1, padding: 20, 
+        border: `2px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
+        borderRadius: 16, cursor: 'pointer', 
+        background: active ? '#FFF1F1' : '#fff',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: active ? 'scale(1.02)' : 'scale(1)',
+        boxShadow: active ? '0 8px 16px -4px rgba(139, 26, 26, 0.12)' : 'none',
+        position: 'relative',
+        overflow: 'hidden'
       }}
+      className="mode-card-item"
     >
-      <div style={{ fontSize: 24, marginBottom: 8 }}>{icon}</div>
-      <div style={{ fontWeight: 800, fontSize: 14, color: active ? 'var(--primary)' : 'var(--dark)', marginBottom: 4 }}>{title}</div>
-      <div style={{ fontSize: 12, color: 'var(--muted)' }}>{desc}</div>
+      {active && <div style={{ position: 'absolute', top: 12, right: 12, fontSize: 14 }}>✅</div>}
+      <div style={{ fontSize: 32, marginBottom: 12 }}>{icon}</div>
+      <div style={{ fontWeight: 800, fontSize: 15, color: active ? 'var(--primary)' : '#1E293B', marginBottom: 4 }}>{title}</div>
+      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.4 }}>{desc}</div>
     </div>
   );
 }
