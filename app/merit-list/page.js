@@ -220,8 +220,8 @@ export default function MeritListPage() {
       <div className="print-only" style={{ marginBottom: 20 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 15, border: '2px solid #000', padding: 15, borderRadius: 8 }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#666', fontWeight: 800 }}>Class Total Marks</div>
-            <div style={{ fontSize: 24, fontWeight: 900 }}>{totalMarksSum}</div>
+            <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#666', fontWeight: 800 }}>Sitting Students</div>
+            <div style={{ fontSize: 24, fontWeight: 900 }}>{ranked.length}</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#666', fontWeight: 800 }}>Mean Marks</div>
@@ -234,6 +234,27 @@ export default function MeritListPage() {
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#666', fontWeight: 800 }}>Mean Grade</div>
             <div style={{ fontSize: 24, fontWeight: 900, color: overallLevel?.c }}>{overallLevel?.lv}</div>
+          </div>
+          
+          <div style={{ textAlign: 'center', borderTop: '1px solid #eee', paddingTop: 10 }}>
+            <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#666', fontWeight: 800 }}>Top Student</div>
+            <div style={{ fontSize: 13, fontWeight: 800 }}>{ranked[0]?.name || '—'}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#059669' }}>{ranked[0]?.totalMarks} Marks</div>
+          </div>
+          <div style={{ textAlign: 'center', borderTop: '1px solid #eee', paddingTop: 10 }}>
+            <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#666', fontWeight: 800 }}>Bottom Student</div>
+            <div style={{ fontSize: 13, fontWeight: 800 }}>{ranked[ranked.length-1]?.name || '—'}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#dc2626' }}>{ranked[ranked.length-1]?.totalMarks} Marks</div>
+          </div>
+          <div style={{ textAlign: 'center', borderTop: '1px solid #eee', paddingTop: 10 }}>
+            <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#666', fontWeight: 800 }}>Pass Rate (≥50%)</div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: '#059669' }}>
+              {ranked.length > 0 ? (ranked.filter(l => (max ? (l.totalPts/max)*100 : 0) >= 50).length / ranked.length * 100).toFixed(1) : 0}%
+            </div>
+          </div>
+          <div style={{ textAlign: 'center', borderTop: '1px solid #eee', paddingTop: 10 }}>
+            <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#666', fontWeight: 800 }}>Total Marks</div>
+            <div style={{ fontSize: 24, fontWeight: 900 }}>{totalMarksSum}</div>
           </div>
         </div>
       </div>
@@ -278,7 +299,7 @@ export default function MeritListPage() {
             <div className="sg sg3" style={{ marginBottom: 18 }}>
               {ranked.slice(0, 3).map(l => {
                 const overallPct = max ? Number(((l.totalPts/max)*100).toFixed(2)) : 0;
-                const overallInfo = max ? (curr.gInfo ? curr.gInfo(overallPct, grade) : gInfo(overallPct, grade)) : null;
+                const overallInfo = max ? gInfo(overallPct, grade, gradCfg, school?.curriculum || 'CBC') : null;
                 return (
                   <div key={l.adm} className={`stat-card merit-rank-${l.rank}`}>
                     <div style={{ textAlign: 'center', padding: '4px 0 8px' }}>
@@ -329,7 +350,7 @@ export default function MeritListPage() {
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Total Marks</th>
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Total Pts</th>
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Avg Pts</th>
-                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Level</th>
+                    <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>Band</th>
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>/ {max}</th>
                     <th style={{ textAlign: 'center', color:'#8B1A1A', padding: '3px 2px', fontSize: 9 }}>%</th>
                     <th style={{ textAlign: 'center', color:'#0369A1', padding: '3px 2px', fontSize: 9 }}>VAP</th>
@@ -339,7 +360,7 @@ export default function MeritListPage() {
                 <tbody>
                   {ranked.map(l => {
                     const lPct = max ? Number(((l.totalPts/max)*100).toFixed(2)) : 0;
-                    const lInfo = max ? (curr.gInfo ? curr.gInfo(lPct, grade) : gInfo(lPct, grade)) : { lv: '—' };
+                    const lInfo = max ? gInfo(lPct, grade, gradCfg, school?.curriculum || 'CBC') : { lv: '—' };
                     return (
                       <tr key={l.adm}
                         className={l.rank <= 3 ? `merit-rank-${l.rank}` : ''}

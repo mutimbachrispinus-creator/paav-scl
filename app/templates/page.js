@@ -1389,6 +1389,11 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
     enrolled: data.count
   }));
 
+  const topGrade = [...gradeStats].sort((a,b) => b.avgScore - a.avgScore)[0];
+  const bottomGrade = [...gradeStats].sort((a,b) => a.avgScore - b.avgScore)[0];
+  const totalSitting = gradeStats.reduce((acc, g) => acc + g.sitting, 0);
+  const passRate = allRanked.length > 0 ? (allRanked.filter(l => l.pct >= 50).length / allRanked.length * 100).toFixed(1) : 0;
+
   const titleLabel = localGrade === 'ALL' ? 'SCHOOL ACADEMIC SUMMARY' : `${localGrade} ACADEMIC SUMMARY`;
 
   return (
@@ -1430,26 +1435,49 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
       </div>
 
       {/* Overview Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 15, marginBottom: 30 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 15, marginBottom: 15 }}>
         <div style={{ background: '#F8FAFF', border: '1.5px solid #E2E8F0', padding: 15, borderRadius: 12, textAlign: 'center' }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: 5 }}>Total Learners</div>
+          <div style={{ fontSize: 10, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: 5 }}>Total Enrolled</div>
           <div style={{ fontSize: 24, fontWeight: 900, color: '#1E3A8A' }}>{totalStudents}</div>
-          <div style={{ fontSize: 9, color: '#94A3B8' }}>Active Enrollment</div>
+          <div style={{ fontSize: 9, color: '#94A3B8' }}>Institutional Scope</div>
         </div>
         <div style={{ background: '#F0FDF4', border: '1.5px solid #DCFCE7', padding: 15, borderRadius: 12, textAlign: 'center' }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: '#166534', textTransform: 'uppercase', marginBottom: 5 }}>School Mean Score</div>
+          <div style={{ fontSize: 10, fontWeight: 800, color: '#166534', textTransform: 'uppercase', marginBottom: 5 }}>Institutional Mean</div>
           <div style={{ fontSize: 24, fontWeight: 900, color: '#15803d' }}>{schoolAvg}%</div>
           <div style={{ fontSize: 9, color: '#16a34a' }}>Overall Performance</div>
         </div>
         <div style={{ background: '#FFFBEB', border: '1.5px solid #FEF3C7', padding: 15, borderRadius: 12, textAlign: 'center' }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: '#92400E', textTransform: 'uppercase', marginBottom: 5 }}>Mean Level</div>
+          <div style={{ fontSize: 10, fontWeight: 800, color: '#92400E', textTransform: 'uppercase', marginBottom: 5 }}>Mean Band</div>
           <div style={{ fontSize: 24, fontWeight: 900, color: '#B45309' }}>{gInfo(parseFloat(schoolAvg), ALL_GRADES[0] || '', gradCfg, curr).lv}</div>
-          <div style={{ fontSize: 9, color: '#D97706' }}>Institution Aggregate</div>
+          <div style={{ fontSize: 9, color: '#D97706' }}>Aggregated Proficiency</div>
         </div>
-        <div style={{ background: '#FDF2F8', border: '1.5px solid #FCE7F3', padding: 15, borderRadius: 12, textAlign: 'center' }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: '#9D174D', textTransform: 'uppercase', marginBottom: 5 }}>Exams Synced</div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: '#BE185D' }}>100%</div>
-          <div style={{ fontSize: 9, color: '#DB2777' }}>Data Integrity Confirmed</div>
+        <div style={{ background: '#ECFDF5', border: '1.5px solid #A7F3D0', padding: 15, borderRadius: 12, textAlign: 'center' }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: '#065F46', textTransform: 'uppercase', marginBottom: 5 }}>Pass Rate (≥50%)</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: '#059669' }}>{passRate}%</div>
+          <div style={{ fontSize: 9, color: '#059669' }}>Success Benchmark</div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 15, marginBottom: 30 }}>
+        <div style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', padding: 12, borderRadius: 12, textAlign: 'center' }}>
+          <div style={{ fontSize: 9, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: 3 }}>Total Sitting</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: '#1E293B' }}>{totalSitting}</div>
+          <div style={{ fontSize: 8, color: '#94A3B8' }}>{Math.round(totalSitting/totalStudents*100)}% Participation</div>
+        </div>
+        <div style={{ background: '#F0F9FF', border: '1.5px solid #BAE6FD', padding: 12, borderRadius: 12, textAlign: 'center' }}>
+          <div style={{ fontSize: 9, fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', marginBottom: 3 }}>Best Grade</div>
+          <div style={{ fontSize: 15, fontWeight: 900, color: '#0369A1' }}>{topGrade?.grade || '—'}</div>
+          <div style={{ fontSize: 8, color: '#0369A1' }}>Mean: {topGrade?.avgScore}%</div>
+        </div>
+        <div style={{ background: '#FEF2F2', border: '1.5px solid #FEE2E2', padding: 12, borderRadius: 12, textAlign: 'center' }}>
+          <div style={{ fontSize: 9, fontWeight: 800, color: '#991B1B', textTransform: 'uppercase', marginBottom: 3 }}>Weakest Grade</div>
+          <div style={{ fontSize: 15, fontWeight: 900, color: '#991B1B' }}>{bottomGrade?.grade || '—'}</div>
+          <div style={{ fontSize: 8, color: '#991B1B' }}>Mean: {bottomGrade?.avgScore}%</div>
+        </div>
+        <div style={{ background: '#F9FAFB', border: '1.5px solid #E5E7EB', padding: 12, borderRadius: 12, textAlign: 'center' }}>
+          <div style={{ fontSize: 9, fontWeight: 800, color: '#374151', textTransform: 'uppercase', marginBottom: 3 }}>Data Quality</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: '#374151' }}>100%</div>
+          <div style={{ fontSize: 8, color: '#94A3B8' }}>Exams Synced</div>
         </div>
       </div>
 
@@ -1463,7 +1491,7 @@ function ExamSummaryTemplate({ learners, subjects, marks, gradCfg, profile, main
                 <th style={{ padding: 10, textAlign: 'left' }}>Grade Level</th>
                 <th style={{ padding: 10, textAlign: 'center' }}>Sitting / Enrolled</th>
                 <th style={{ padding: 10, textAlign: 'center' }}>Mean %</th>
-                <th style={{ padding: 10, textAlign: 'center' }}>Mean Lv</th>
+                <th style={{ padding: 10, textAlign: 'center' }}>Mean Band</th>
                 <th style={{ padding: 10, textAlign: 'left' }}>Top Performer</th>
               </tr>
             </thead>

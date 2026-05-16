@@ -104,6 +104,7 @@ export default function LearnerProfilePage() {
   const tabs = [
     { key: 'overview', label: '📋 Overview' },
     { key: 'marks', label: '📊 Marks' },
+    { key: 'performance', label: '📈 Performance' },
     { key: 'timeline', label: '🕒 Timeline' },
     { key: 'finance', label: '💰 Finance' },
   ];
@@ -275,8 +276,38 @@ export default function LearnerProfilePage() {
               </select>
             </div>
           </div>
-          {/* ── AI Performance Predictor Card ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 20, marginBottom: 20 }}>
+          <div className="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>Subject</th><th style={{ textAlign: 'center' }}>Score</th><th style={{ textAlign: 'center' }}>Level</th><th style={{ textAlign: 'center' }}>Points</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                {marksRows.map(({ subj, score, inf }) => (
+                  <tr key={subj}>
+                    <td style={{ fontWeight: 700 }}>{subj}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800, fontSize: 16, color: score !== undefined ? (score >= 70 ? '#059669' : score >= 50 ? '#2563EB' : '#DC2626') : 'var(--muted)' }}>{score !== undefined ? score : '—'}</td>
+                    <td style={{ textAlign: 'center' }}>{inf ? <span className="badge" style={{ background: inf.bg, color: inf.c }}>{inf.lv}</span> : '—'}</td>
+                    <td style={{ textAlign: 'center', fontWeight: 900, color: inf ? inf.c : 'var(--muted)' }}>{inf ? inf.pts : '—'}</td>
+                    <td style={{ fontSize: 11, color: 'var(--muted)' }}>{inf?.desc || '—'}</td>
+                  </tr>
+                ))}
+                {entered.length > 0 && (
+                  <tr style={{ background: 'linear-gradient(135deg,#050F1C,#0D1F3C)' }}>
+                    <td colSpan="3" style={{ color: '#fff', fontWeight: 800 }}>Total ({entered.length}/{subjects.length} subjects)</td>
+                    <td style={{ textAlign: 'center', color: '#FCD34D', fontWeight: 900, fontSize: 16 }}>{totalPts} / {maxTotal}</td>
+                    <td style={{ color: 'rgba(255,255,255,.5)', fontSize: 11 }}>{Math.round((totalPts / maxTotal) * 100)}%</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          {entered.length === 0 && <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', fontSize: 12 }}>No marks entered for this selection.</div>}
+        </div>
+      )}
+      {/* ══════ PERFORMANCE ══════ */}
+      {activeTab === 'performance' && (
+        <div className="space-y-6">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 20 }}>
             <div className="panel" style={{ borderLeft: '4px solid #2563eb' }}>
               <div className="panel-hdr"><h3>🧠 AI Trajectory</h3></div>
               <div className="panel-body" style={{ textAlign: 'center', padding: '20px 10px' }}>
@@ -295,7 +326,7 @@ export default function LearnerProfilePage() {
                   const prev = termAverages[termAverages.length - 2];
                   const diff = latest - prev;
                   const trajectory = diff > 2 ? 'Improving' : diff < -2 ? 'Declining' : 'Stable';
-                  const info = gInfo(latest, learner.grade, null, school?.curriculum || 'CBC');
+                  const info = gInfo(latest, learner.grade, gradCfg, profile?.curriculum || 'CBC');
                   const color = trajectory === 'Improving' ? '#059669' : trajectory === 'Declining' ? '#dc2626' : '#2563eb';
                   const icon = trajectory === 'Improving' ? '📈' : trajectory === 'Declining' ? '📉' : '➡️';
                   const prediction = Math.min(100, Math.max(0, latest + diff));
@@ -308,7 +339,7 @@ export default function LearnerProfilePage() {
                       <div style={{ marginTop: 20, paddingTop: 15, borderTop: '1px solid var(--border)' }}>
                         <div style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 800, textTransform: 'uppercase' }}>Next Term Prediction</div>
                         <div style={{ fontSize: 24, fontWeight: 900, color: '#1e293b' }}>{Math.round(prediction)}%</div>
-                        <div style={{ background: info.bg, color: info.c, display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 900, marginTop: 4 }}>Level: {info.lv}</div>
+                        <div style={{ background: info.bg, color: info.c, display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 900, marginTop: 4 }}>Band: {info.lv}</div>
                       </div>
                     </>
                   );
@@ -348,32 +379,25 @@ export default function LearnerProfilePage() {
             </div>
           </div>
 
-          <div className="tbl-wrap">
-            <table>
-              <thead>
-                <tr><th>Subject</th><th style={{ textAlign: 'center' }}>Score</th><th style={{ textAlign: 'center' }}>Level</th><th style={{ textAlign: 'center' }}>Points</th><th>Description</th></tr>
-              </thead>
-              <tbody>
+          <div className="panel">
+            <div className="panel-hdr"><h3>📚 Subject Mastery</h3></div>
+            <div className="panel-body">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 15 }}>
                 {marksRows.map(({ subj, score, inf }) => (
-                  <tr key={subj}>
-                    <td style={{ fontWeight: 700 }}>{subj}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 800, fontSize: 16, color: score !== undefined ? (score >= 70 ? '#059669' : score >= 50 ? '#2563EB' : '#DC2626') : 'var(--muted)' }}>{score !== undefined ? score : '—'}</td>
-                    <td style={{ textAlign: 'center' }}>{inf ? <span className="badge" style={{ background: inf.bg, color: inf.c }}>{inf.lv}</span> : '—'}</td>
-                    <td style={{ textAlign: 'center', fontWeight: 900, color: inf ? inf.c : 'var(--muted)' }}>{inf ? inf.pts : '—'}</td>
-                    <td style={{ fontSize: 11, color: 'var(--muted)' }}>{inf?.desc || '—'}</td>
-                  </tr>
+                  <div key={subj} style={{ padding: 12, borderRadius: 12, border: '1px solid var(--border)', background: inf?.bg + '11' || 'transparent' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase' }}>{subj}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 4 }}>
+                      <div style={{ fontSize: 20, fontWeight: 900, color: inf?.c || 'var(--navy)' }}>{score !== undefined ? score + '%' : '—'}</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: inf?.c || 'var(--muted)' }}>{inf?.lv || 'N/A'}</div>
+                    </div>
+                    <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, marginTop: 8, overflow: 'hidden' }}>
+                      <div style={{ width: `${score || 0}%`, height: '100%', background: inf?.c || 'var(--primary)' }} />
+                    </div>
+                  </div>
                 ))}
-                {entered.length > 0 && (
-                  <tr style={{ background: 'linear-gradient(135deg,#050F1C,#0D1F3C)' }}>
-                    <td colSpan="3" style={{ color: '#fff', fontWeight: 800 }}>Total ({entered.length}/{subjects.length} subjects)</td>
-                    <td style={{ textAlign: 'center', color: '#FCD34D', fontWeight: 900, fontSize: 16 }}>{totalPts} / {maxTotal}</td>
-                    <td style={{ color: 'rgba(255,255,255,.5)', fontSize: 11 }}>{Math.round((totalPts / maxTotal) * 100)}%</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+              </div>
+            </div>
           </div>
-          {entered.length === 0 && <div style={{ padding: 20, textAlign: 'center', color: 'var(--muted)', fontSize: 12 }}>No marks entered for this selection.</div>}
         </div>
       )}
 
