@@ -122,7 +122,7 @@ export default function NexedPage() {
         </div>
       </div>
 
-      <ExpenseVoucher inline isOpen={showExpense} onClose={() => setShowExpense(false)} />
+      <ExpenseVoucher inline isOpen={showExpense} onClose={() => setShowExpense(false)} schoolName={school?.name} tenantId={user?.tenantId} />
 
       <div className="sg sg4" style={{ marginBottom: 32 }}>
         <div className="stat-card glass-card animate-float" style={{ borderLeft: '4px solid #059669', animationDelay: '0s' }}>

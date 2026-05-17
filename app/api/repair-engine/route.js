@@ -4,12 +4,21 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@libsql/client/web';
 
 export async function GET(request) {
+  if (!process.env.CRON_SECRET) {
+    return NextResponse.json({ error: 'CRON_SECRET is not configured' }, { status: 500 });
+  }
+  const authHeader = request.headers.get('authorization');
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const confirm = searchParams.get('confirm') === 'true';
-  const tenantId = 'paav-gitombo';
+  const tenantId = searchParams.get('tenantId') || 'paav-gitombo';
 
-  const url = 'https://paav-school-portal-mutimba.aws-ap-south-1.turso.io';
-  const token = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzgyNjIwMDIsImlkIjoiMDE5ZGM2NWYtODkwMS03MjA1LWIyYzEtOWQ1ODE2NDczMWU1IiwicmlkIjoiMWFmMzc1N2MtZjNlOS00YzI5LThlMjYtNTg3ODViNzJkMGNiIn0.mq7xtXfkF_DnT9fXb0o7axIxGoK2Vo-nP5VsvuoDsrvk0xjkXro9wOiCoBsaAh-EDIPBQ5-5shu4If-dnzagAQ';
+  const url = process.env.TURSO_DATABASE_URL || process.env.TURSO_URL;
+  const token = process.env.TURSO_AUTH_TOKEN || process.env.TURSO_TOKEN;
+  if (!url || !token) return NextResponse.json({ error: 'Turso database credentials are not configured' }, { status: 500 });
   const client = createClient({ url, authToken: token });
 
   try {

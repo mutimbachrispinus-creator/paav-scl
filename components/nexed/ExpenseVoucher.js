@@ -13,7 +13,7 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-export default function ExpenseVoucher({ isOpen: forcedOpen, onClose, schoolName = 'Nexed Portal', inline = false }) {
+export default function ExpenseVoucher({ isOpen: forcedOpen, onClose, schoolName = 'Nexed Portal', tenantId, inline = false }) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = forcedOpen !== undefined ? forcedOpen : internalOpen;
 
@@ -76,7 +76,7 @@ export default function ExpenseVoucher({ isOpen: forcedOpen, onClose, schoolName
         amount: parseFloat(amount),
         method,
         description: desc || `Expenditure for ${selectedVotehead.name}`,
-        tenantId: 'paav-gitombo' // Mock tenant for now
+        tenantId
       });
 
       if (res.success) {

@@ -11,24 +11,30 @@ const SLATE   = 'var(--lp-slate,   #64748B)';
 const VIBRANT = 'var(--lp-vibrant, #8B5CF6)';
 
 const ALL_FEATURES = [
-  { icon: '⚖️', title: 'Curriculum-Aware Grading', desc: 'Auto-calculates weighted averages for CBC, TVET/CBET, Cambridge, British, IB & Montessori.' },
-  { icon: '📥', title: 'Smart CSV Enrolment', desc: 'Bulk profile enrolment detects admission, learner, grade, stream, parent and medical columns automatically.' },
-  { icon: '🗓️', title: 'Dynamic Calendars', desc: 'Define your own terms. Report cards automatically print accurate next-term resumption dates.' },
-  { icon: '🚀', title: 'Unified Comms Hub', desc: 'Consolidated SMS, bulk alerts & internal messaging. Target specific cohorts like "at-risk" students.' },
-  { icon: '📊', title: 'Revenue Integrity', desc: 'Real-time dashboard reconciling expected vs. collected fees. Flags revenue leakage instantly.' },
-  { icon: '💳', title: 'EduVantage Pay', desc: 'Platform-wide payment aggregation. Parents pay via M-Pesa STK push; funds auto-route securely.' },
-  { icon: '🏦', title: 'Automated Settlement', desc: 'One-click Safaricom B2C/B2B disbursements directly to school bank accounts or Tills.' },
-  { icon: '🔐', title: 'Anti-Fraud Locks', desc: 'Cryptographic ghost-student prevention — receipts and report cards locked to official registry.' },
-  { icon: '🎓', title: 'Professional Video Lessons', desc: 'Searchable lesson library, embedded previews, live video classes, whiteboard, slides and premium access controls.' },
-  { icon: '📅', title: 'AI Timetabling', desc: 'Conflict-free master timetables generated in minutes, optimizing teacher workload automatically.' },
-  { icon: '🛡️', title: 'Multi-Tier Network', desc: 'Platform-wide super-admin controls alongside isolated, secure tenant dashboards.' },
-  { icon: '📲', title: 'Live Parent Portal', desc: 'Live fee balances, digital report cards, and targeted school-specific announcements.' },
-  { icon: '🏆', title: 'Official Exam Intelligence', desc: 'Detailed exam summaries, subject ranks, deviations, teacher performance and action recommendations.' },
-  { icon: '🔮', title: 'National Exam Predictor', desc: 'Interactive class and learner forecasting for KPSEA, KJSEA, KCSE, IGCSE and other national exam pathways.' },
-  { icon: '💼', title: 'Staff & Finance Hub', desc: 'Automated payroll with itemized PAYE, SHIF, NSSF, housing levy, bank loans and SACCO deductions.' },
-  { icon: '🤖', title: 'Data Recovery', desc: 'Proprietary engine to link orphaned marks and instantly restore historical learner data.' },
-  { icon: '🌐', title: 'Cloud Infrastructure', desc: 'Tenant-isolated caching, light login warmups and Edge-ready architecture for very large school networks.' },
-  { icon: '📱', title: 'Passive Revenue', desc: 'Automatic KES 50 convenience fee appended to every digital transaction for the platform.' },
+  { icon: '⚖️', title: 'Curriculum-Aware Grading', desc: 'Weighted grading workflows for CBC, TVET/CBET, Cambridge, British, IB and Montessori-style setups.' },
+  { icon: '📥', title: 'Smart CSV Enrolment', desc: 'Bulk learner import for admission, learner, grade, stream, parent, fee and medical profile fields.' },
+  { icon: '🗓️', title: 'Dynamic Calendars', desc: 'School-defined terms, closing dates and next-term dates that carry into report cards.' },
+  { icon: '🚀', title: 'Communication Hub', desc: 'Bulk SMS, internal messaging and targeted alerts from one operational workspace.' },
+  { icon: '📊', title: 'Revenue Visibility', desc: 'Dashboards compare expected fees, collections, arrears and payment history.' },
+  { icon: '💳', title: 'M-Pesa Payments', desc: 'STK push and payment callback flows when Safaricom Daraja credentials are configured.' },
+  { icon: '🏦', title: 'Settlement Workflow', desc: 'Track school settlement queues and payout status from the finance area.' },
+  { icon: '🔐', title: 'Registry Checks', desc: 'Receipts and reports are tied to stored learner records to reduce manual mismatch risk.' },
+  { icon: '🎓', title: 'Learning Area', desc: 'Support for learning resources, lesson access and video-class links where providers are configured.' },
+  { icon: '📅', title: 'Timetable Tools', desc: 'Build, review and publish school timetables with teacher and class views.' },
+  { icon: '🛡️', title: 'Tenant Management', desc: 'Super-admin controls, tenant-aware data access and school-specific branding.' },
+  { icon: '📲', title: 'Parent Portal', desc: 'Parent-facing balances, learner progress and school communication entry points.' },
+  { icon: '🏆', title: 'Exam Analytics', desc: 'Subject summaries, ranks, deviations and report-card workflows for academic teams.' },
+  { icon: '🔮', title: 'Performance Predictor', desc: 'Forecasting screens for learner and class trends based on the data already entered.' },
+  { icon: '💼', title: 'Staff & Finance Hub', desc: 'Payroll, budgets, expenses, invoices, petty cash and reconciliation modules.' },
+  { icon: '🤖', title: 'Repair Utilities', desc: 'Admin repair and diagnostic routes for controlled maintenance and data recovery tasks.' },
+  { icon: '🌐', title: 'Cloud-Ready Build', desc: 'Next.js app configured for Cloudflare Pages with Edge API routes.' },
+  { icon: '📱', title: 'Mobile-Friendly UX', desc: 'Responsive dashboards for administrators, teachers and parents.' },
+];
+
+const TRUST_POINTS = [
+  { label: 'Use Today', value: 'Admissions, fees, grading, attendance, reports, SMS, finance and parent portal workflows.' },
+  { label: 'Configure First', value: 'Database, auth secrets, SMS, email and payment provider credentials must be set before production use.' },
+  { label: 'Deployment Target', value: 'Cloudflare Pages build is supported; dynamic routes run on the Edge runtime.' },
 ];
 
 export default function LandingPage() {
@@ -76,7 +82,8 @@ export default function LandingPage() {
               <a href="#features">Features</a>
               <a href="#solutions">Solutions</a>
               <a href="#demo" style={{ color: 'var(--lp-primary,#4F46E5)', fontWeight: 800 }}>🎥 Demo</a>
-              <a href="#compare">Why Us?</a>
+              <a href="#audit">Readiness</a>
+              <a href="#compare">Compare</a>
               <a href="#pricing">Pricing</a>
             </div>
             <div className="nav-btns">
@@ -92,17 +99,17 @@ export default function LandingPage() {
         <div className="hero-mesh"></div>
         
         <div className="container hero-content fade-in-up">
-          <div className="badge-pill pulse-glow">🚀 Official School Intelligence at Scale</div>
+          <div className="badge-pill pulse-glow">School operations, finance and learning in one place</div>
           <h1 className="hero-title">
-            Stop Managing.<br/>Start <span className="text-gradient">Innovating.</span>
+            Run the school.<br/>See the <span className="text-gradient">whole picture.</span>
           </h1>
           <p className="hero-subtitle">
-            The intelligent school operating system that <strong>collects fees for you</strong> and turns academic data into official decisions. Fully equipped with smart CSV enrolment, loan-aware payroll, professional video lessons, national exam prediction, automated B2C settlements, AI timetabling, and a secure parent portal.
+            EduVantage brings admissions, fees, academics, attendance, communication, finance and parent access into one tenant-aware platform. Start with the core workflows, then connect SMS, email and payments when your provider accounts are ready.
           </p>
           
           <div className="hero-actions">
-            <Link href="/saas/signup" className="btn btn-xl btn-primary btn-glow">Start Your 1-Term Free Trial</Link>
-            <Link href="/demo" className="btn btn-xl btn-outline glass-btn">Explore Live Demo →</Link>
+            <Link href="/saas/signup" className="btn btn-xl btn-primary btn-glow">Start Setup</Link>
+            <Link href="/demo" className="btn btn-xl btn-outline glass-btn">Explore Live Demo</Link>
           </div>
 
           {/* Floating UI Grid */}
@@ -125,7 +132,7 @@ export default function LandingPage() {
                 <div className="exp-icon">🏢</div>
                 <div className="exp-info">
                    <strong>Admin Suite</strong>
-                   <span>Payroll · Official Analytics</span>
+                   <span>Finance · Analytics · Settings</span>
                 </div>
              </div>
           </div>
@@ -138,15 +145,15 @@ export default function LandingPage() {
               <div className="floating-card card-1 glass-card">
                 <div className="icon-wrap" style={{ color: VIBRANT }}>🏦</div>
                 <div>
-                  <div className="card-val">Auto-Settled</div>
-                  <div className="card-lab">B2C Disbursements</div>
+                  <div className="card-val">Payments Ready</div>
+                  <div className="card-lab">Daraja / Pesapal Config</div>
                 </div>
               </div>
               <div className="floating-card card-2 glass-card">
                 <div className="icon-wrap" style={{ color: ACCENT }}>🔐</div>
                 <div>
-                  <div className="card-val">Integrity Lock</div>
-                  <div className="card-lab">Ghost-Student Proof</div>
+                  <div className="card-val">Tenant-Aware</div>
+                  <div className="card-lab">School Data Isolation</div>
                 </div>
               </div>
             </div>
@@ -158,18 +165,39 @@ export default function LandingPage() {
       <section className="stats-strip">
         <div className="container stats-box">
           <div className="stat-item">
-            <strong>{stats.schools > 10 ? `${stats.schools}+` : 'Trusted By'}</strong>
-            <span>Forward-Thinking Schools</span>
+            <strong>{stats.schools > 0 ? `${stats.schools}+` : 'Multi'}</strong>
+            <span>School Tenant Support</span>
           </div>
           <div className="stat-sep"></div>
           <div className="stat-item">
-            <strong>{stats.learners > 500 ? `${(stats.learners / 1000).toFixed(1)}k+` : 'Growing'}</strong>
-            <span>Active Student Profiles</span>
+            <strong>{stats.learners > 0 ? `${(stats.learners / 1000).toFixed(1)}k+` : 'Bulk'}</strong>
+            <span>Learner Records</span>
           </div>
           <div className="stat-sep"></div>
           <div className="stat-item">
-            <strong>99.9%</strong>
-            <span>Uptime & Reliability</span>
+            <strong>Edge</strong>
+            <span>Cloudflare Pages Build</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── READINESS / TRUST SECTION ── */}
+      <section id="audit" className="readiness-section">
+        <div className="container readiness-grid">
+          <div>
+            <div className="badge-pill">Implementation Readiness</div>
+            <h2 className="section-title">Powerful, but honest about setup.</h2>
+            <p className="section-subtitle left">
+              EduVantage includes the operational screens and provider integrations schools expect, but production value depends on clean school data and configured external APIs.
+            </p>
+          </div>
+          <div className="readiness-cards">
+            {TRUST_POINTS.map(point => (
+              <div key={point.label} className="readiness-card">
+                <strong>{point.label}</strong>
+                <span>{point.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -178,9 +206,9 @@ export default function LandingPage() {
       <section className="all-features-section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div className="badge-pill">🚀 Everything Included</div>
+            <div className="badge-pill">Core Platform</div>
             <h2 className="section-title">One platform.<br/><span className="text-gradient">Every feature you need.</span></h2>
-            <p className="section-subtitle">No add-ons. No hidden fees. All modules included in every plan.</p>
+            <p className="section-subtitle">A practical operating system for the daily work of running a school.</p>
           </div>
           <div className="feat-grid">
             {ALL_FEATURES.map(f => (
@@ -200,9 +228,9 @@ export default function LandingPage() {
       <section id="features" className="modules-section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 80 }}>
-            <div className="badge-pill pulse-glow">Premium Modules</div>
+            <div className="badge-pill pulse-glow">Operational Modules</div>
             <h2 className="section-title">A unified suite for <br/> <span className="text-gradient">total school management</span></h2>
-            <p className="section-subtitle">Why pay for 4 different fragmented systems when EduVantage does it all seamlessly? Experience the power of total integration.</p>
+            <p className="section-subtitle">Replace scattered spreadsheets and disconnected portals with one shared workspace for daily school operations.</p>
           </div>
 
           <div className="module-grid">
@@ -210,8 +238,8 @@ export default function LandingPage() {
             <div className="module-card">
               <div className="mod-icon" style={{ background: '#EEF2FF', color: PRIMARY }}>📊</div>
               <div className="mod-content">
-                <h3>Official Academic Intelligence</h3>
-                <p>Gain total institutional clarity. EduVantage now combines detailed exam summaries, subject ranks, class deviations, teacher performance, and national exam readiness forecasts—fully adaptive for <strong>Kenya CBC</strong>, <strong>TVET / CBET</strong>, <strong>Montessori</strong>, <strong>Cambridge International</strong>, <strong>British IGCSE</strong>, and <strong>IB</strong> structures.</p>
+                <h3>Academic Intelligence</h3>
+                <p>Turn marks into decisions. EduVantage combines exam summaries, subject ranks, class deviations, report cards and forecasting views across common curriculum structures including <strong>Kenya CBC</strong>, <strong>TVET / CBET</strong>, <strong>Montessori</strong>, <strong>Cambridge International</strong>, <strong>British IGCSE</strong>, and <strong>IB</strong>.</p>
                 <ul className="mod-features">
                   <li>Official Exam Summary With Deviations</li>
                   <li>Subject Rankings & Teacher Performance</li>
@@ -223,13 +251,13 @@ export default function LandingPage() {
             {/* Finance */}
             <div className="module-card reverse">
               <div className="mod-content">
-                <h3>EduVantage Pay — Aggregator Model</h3>
-                <p>EduVantage now operates as a <strong>central payment aggregator</strong>. Schools onboard in minutes without Safaricom KYC. Parents pay a single EduVantage Paybill; the platform automatically deducts the KES 50 convenience fee and queues the remainder for one-click B2C/B2B disbursement to the school's registered bank account or Till.</p>
+                <h3>Payments & Finance</h3>
+                <p>Connect M-Pesa or Pesapal when your credentials are ready, then manage school collections, fee balances, receipts, expenses and reconciliation from one finance workspace. Settlement workflows are available for teams using the supported payment model.</p>
                 <ul className="mod-features">
-                  <li>Central Paybill — No School Daraja Setup Required</li>
-                  <li>Automated KES 50 Convenience Fee Per Transaction</li>
-                  <li>One-Click Settlement to School Bank / Till</li>
-                  <li>Revenue Integrity Dashboard — Flags Fee Leakage</li>
+                  <li>M-Pesa STK Push and Callback Support</li>
+                  <li>Pesapal Checkout Support</li>
+                  <li>Receipt and Fee Ledger Workflows</li>
+                  <li>Revenue Dashboard and Reconciliation</li>
                   <li>Payroll Deductions — PAYE, SHIF, NSSF, Loans & SACCO</li>
                 </ul>
               </div>
@@ -240,12 +268,12 @@ export default function LandingPage() {
             <div className="module-card">
               <div className="mod-icon" style={{ background: '#FEF2F2', color: '#DC2626' }}>🔐</div>
               <div className="mod-content">
-                <h3>Integrity Locks & Anti-Ghost Engine</h3>
-                <p>EduVantage's proprietary Integrity Lock system prevents "ghost" learner fraud at every touchpoint. Receipts, report cards, and parent portal access are all cryptographically bound to the official student registry — making unregistered learners technically impossible to exploit.</p>
+                <h3>Registry Controls</h3>
+                <p>Reduce manual mistakes by keeping reports, receipts, parent access and fee activity tied to official learner records. Admin diagnostics and repair utilities help teams resolve data issues when imports or legacy records need attention.</p>
                 <ul className="mod-features">
-                  <li>Registry-Locked Receipt & Report Card Generation</li>
-                  <li>Parent–Child Phone Number Verification Gate</li>
-                  <li>Real-Time Revenue Integrity Reconciliation Panel</li>
+                  <li>Receipt and Report Card Registry Checks</li>
+                  <li>Parent-Learner Lookup Flow</li>
+                  <li>Controlled Repair and Diagnostic Routes</li>
                 </ul>
               </div>
             </div>
@@ -254,11 +282,11 @@ export default function LandingPage() {
             <div className="module-card">
               <div className="mod-icon" style={{ background: '#FFFBEB', color: '#D97706' }}>📅</div>
               <div className="mod-content">
-                <h3>Smart AI Timetabling</h3>
-                <p>Generating a master timetable used to take weeks. Now it takes minutes. Our intelligent engine automatically allocates teachers, subjects, and venues while instantly resolving overlaps and optimizing workload.</p>
+                <h3>Timetabling</h3>
+                <p>Build, review and publish timetable structures for classes and teachers. The app includes generator tooling and school-specific timetable settings for teams that want to reduce spreadsheet work.</p>
                 <ul className="mod-features">
-                  <li>Conflict-Free Auto-Generation</li>
-                  <li>Teacher Workload Optimization</li>
+                  <li>Class and Teacher Timetable Views</li>
+                  <li>Timetable Generator Tooling</li>
                   <li>Digital Publishing to Teacher Dashboards</li>
                 </ul>
               </div>
@@ -267,12 +295,12 @@ export default function LandingPage() {
             {/* Communication */}
             <div className="module-card reverse">
               <div className="mod-content">
-                <h3>Unified Communication Hub</h3>
-                <p>Bridge the gap between your institution and stakeholders. Our new consolidated center brings internal messaging and bulk SMS together. Send instant absence alerts, fee reminders, or school-wide announcements from a single, intuitive interface.</p>
+                <h3>Communication Hub</h3>
+                <p>Bring internal messaging and SMS workflows into one place. Schools can send absence alerts, fee reminders, report-card links and school-wide announcements after SMS credentials are configured.</p>
                 <ul className="mod-features">
-                  <li>One-Click Bulk SMS Blast Engine</li>
-                  <li>Instant Automated Absence Alerts</li>
-                  <li>Real-time Parent-Teacher Messaging</li>
+                  <li>Bulk SMS Campaigns</li>
+                  <li>Attendance and Fee Reminder Templates</li>
+                  <li>Internal Messaging</li>
                 </ul>
               </div>
               <div className="mod-icon" style={{ background: '#F5F3FF', color: VIBRANT }}>💬</div>
@@ -285,33 +313,33 @@ export default function LandingPage() {
       <section id="solutions" className="solutions-section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
-            <h2 style={{ fontSize: 42, fontWeight: 900, color: '#fff' }}>Empowering <span className="text-gradient">Every Stakeholder</span></h2>
-            <p style={{ color: '#94A3B8', fontSize: 18 }}>An ecosystem where data flows perfectly between roles.</p>
+            <h2 style={{ fontSize: 42, fontWeight: 900, color: '#fff' }}>Built for <span className="text-gradient">each school role</span></h2>
+            <p style={{ color: '#94A3B8', fontSize: 18 }}>One system, different workspaces for the people who keep the school moving.</p>
           </div>
           
           <div className="solutions-grid">
             <SolutionCard 
               target="Administrators" 
               demoHref="/demo/staff"
-              desc="Total oversight of finances, staff performance, learner onboarding and official academic summaries with automated daily snapshots."
+              desc="Oversight of finances, learner onboarding, staff operations, communication and academic summaries."
               features={['Smart CSV Enrolment', 'Loan-Aware Payroll', 'Official Exam Reports']}
             />
             <SolutionCard 
               target="Teachers" 
               demoHref="/demo/teacher"
-              desc="Reduce paperwork to zero. Digital attendance, instant grade entry, video lessons, and automated lesson schedules."
+              desc="Digital attendance, mark entry, class insights, learning resources and report-card workflows."
               features={['Digital Markbooks', 'Video Lessons', 'Exam Analysis']}
             />
             <SolutionCard 
               target="Parents" 
               demoHref="/demo/parent"
-              desc="Unprecedented transparency. View fees, academic progress, and student welfare instantly from their phone."
+              desc="View fee balances, academic progress, report cards and school messages from a parent-facing portal."
               features={['Live Fee Statements', 'Termly Report Cards', 'Instant SMS Alerts']}
             />
             <SolutionCard 
               target="Students"
               demoHref="/login"
-              desc="Stay organized with personalized digital timetables, learning resources, performance tracking and exam readiness prediction."
+              desc="Access learning resources, timetable information and performance views where the school enables student access."
               features={['Subject Trends', 'Video Lessons', 'Exam Forecasts']}
             />
           </div>
@@ -322,9 +350,9 @@ export default function LandingPage() {
       <section id="demo" className="demo-section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 64 }}>
-            <div className="badge-pill pulse-glow">🎥 Live Demo Experience</div>
+            <div className="badge-pill pulse-glow">Live Demo Experience</div>
             <h2 className="section-title">See EduVantage<br /><span className="text-gradient">in action.</span></h2>
-            <p className="section-subtitle">Auto-animated walkthroughs of the real platform — no sign-up needed.</p>
+            <p className="section-subtitle">Walk through the platform by role before creating a school account.</p>
           </div>
 
           <div className="demo-cards">
@@ -336,7 +364,7 @@ export default function LandingPage() {
                 <div className="dc-chips">
                   <span>Digital Markbook</span><span>1-Click Attendance</span><span>Print Templates</span>
                 </div>
-                <div className="dc-cta">Watch Demo →</div>
+                <div className="dc-cta">Watch Demo</div>
               </div>
             </Link>
 
@@ -348,7 +376,7 @@ export default function LandingPage() {
                 <div className="dc-chips">
                   <span>Fee Balance</span><span>Report Card</span><span>Alerts</span>
                 </div>
-                <div className="dc-cta">Watch Demo →</div>
+                <div className="dc-cta">Watch Demo</div>
               </div>
             </Link>
 
@@ -360,13 +388,13 @@ export default function LandingPage() {
                 <div className="dc-chips">
                   <span>Revenue Dashboard</span><span>Payroll B2C</span><span>Exam Summary</span>
                 </div>
-                <div className="dc-cta">Watch Demo →</div>
+                <div className="dc-cta">Watch Demo</div>
               </div>
             </Link>
           </div>
 
           <div style={{ textAlign: 'center', marginTop: 48 }}>
-            <Link href="/demo" className="btn btn-primary btn-glow" style={{ padding: '14px 40px', fontSize: 16 }}>View All Demos →</Link>
+            <Link href="/demo" className="btn btn-primary btn-glow" style={{ padding: '14px 40px', fontSize: 16 }}>View All Demos</Link>
           </div>
         </div>
       </section>
@@ -378,7 +406,7 @@ export default function LandingPage() {
           <div className="comparison-box">
              <div className="comp-hdr">
                <h3>EduVantage vs. The Alternatives</h3>
-               <p>Why modern institutions are switching to a truly unified platform.</p>
+               <p>A grounded comparison against spreadsheet-heavy and disconnected school systems.</p>
              </div>
              <div className="tbl-wrap">
                <table className="comp-table">
@@ -390,13 +418,12 @@ export default function LandingPage() {
                    </tr>
                  </thead>
                  <tbody>
-                    <tr><td><strong>Payment Collection</strong></td><td>School manages own Paybill + Daraja KYC</td><td className="hl">EduVantage central Paybill — instant onboarding</td></tr>
-                    <tr><td><strong>Revenue Share</strong></td><td>No platform fee mechanism</td><td className="hl">Automated KES 50 convenience fee per transaction</td></tr>
-                    <tr><td><strong>Fund Disbursement</strong></td><td>Manual bank transfer by admin</td><td className="hl">One-click B2C/B2B auto-settlement to school bank</td></tr>
-                    <tr><td><strong>Fraud Prevention</strong></td><td>No ghost-student checks</td><td className="hl">Integrity Locks — registry-bound document generation</td></tr>
+                    <tr><td><strong>Payment Collection</strong></td><td>Manual receipt books or separate payment portals</td><td className="hl">M-Pesa and Pesapal flows inside the school ledger</td></tr>
+                    <tr><td><strong>Revenue Visibility</strong></td><td>End-of-month manual reconciliation</td><td className="hl">Collection, balance and arrears dashboards</td></tr>
+                    <tr><td><strong>Settlements</strong></td><td>Tracked outside the school system</td><td className="hl">Settlement queues visible to platform admins</td></tr>
+                    <tr><td><strong>Registry Control</strong></td><td>Documents can drift from learner records</td><td className="hl">Receipts and reports generated from stored records</td></tr>
                     <tr><td><strong>Grading Intelligence</strong></td><td>Static, hardcoded rules</td><td className="hl">Curriculum-Aware (CBC/IB/Cambridge/Montessori)</td></tr>
                     <tr><td><strong>Parent Experience</strong></td><td>Delayed SMS only</td><td className="hl">Live Portal + M-Pesa STK Push + Auto-Receipts</td></tr>
-                    <tr><td><strong>Revenue Visibility</strong></td><td>End-of-month manual reconciliation</td><td className="hl">Real-time Revenue Integrity Dashboard</td></tr>
                     <tr><td><strong>Infrastructure</strong></td><td>Multiple disconnected logins</td><td className="hl">One unified multi-tenant app</td></tr>
                  </tbody>
                </table>
@@ -410,7 +437,7 @@ export default function LandingPage() {
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 80 }}>
             <div className="badge-pill" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}>Transparent Pricing</div>
-            <h2 style={{ fontSize: 52, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>Invest in <span className="text-gradient">Excellence</span></h2>
+            <h2 style={{ fontSize: 52, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>Choose a <span className="text-gradient">school-ready plan</span></h2>
           </div>
 
           <div className="pricing-grid">
@@ -432,7 +459,7 @@ export default function LandingPage() {
                 <PriceCard 
                   name="1 Term Free" 
                   price={0} 
-                  desc="Experience the full platform for one term. No strings attached."
+                  desc="Try the core workflows for one term while your school prepares data and integrations."
                   features={['Full Platform Access', 'Bulk CSV Learner Uploads', 'M-Pesa Test Integration', 'CBC / Montessori / IB / British Support', 'Standard Support']}
                 />
                 <PriceCard 
@@ -465,7 +492,7 @@ export default function LandingPage() {
               </div>
               <span className="logo-text">EduVantage</span>
             </Link>
-            <p>The leading school management platform for the digital age. Bridging the gap between educators, students, and parents across Africa.</p>
+            <p>A practical school management platform for admissions, academics, finance, communication and parent access.</p>
             <div className="social-links">
               <span>𝕏</span> <span>LinkedIn</span> <span>Facebook</span>
             </div>
@@ -620,6 +647,16 @@ export default function LandingPage() {
         .modules-section { padding: 140px 0; background: #fff; }
         .section-title { font-size: 52px; font-weight: 900; letter-spacing: -0.03em; color: ${DARK}; line-height: 1.1; margin-bottom: 24px; }
         .section-subtitle { font-size: 20px; color: ${SLATE}; max-width: 600px; margin: 0 auto; line-height: 1.6; }
+        .section-subtitle.left { margin: 0; }
+
+        /* Readiness */
+        .readiness-section { padding: 100px 0; background: #fff; }
+        .readiness-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 56px; align-items: center; }
+        .readiness-cards { display: grid; gap: 16px; }
+        .readiness-card { padding: 24px 26px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 18px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); }
+        .readiness-card strong { display: block; color: ${DARK}; font-size: 15px; font-weight: 900; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .readiness-card span { display: block; color: ${SLATE}; font-size: 15px; line-height: 1.6; font-weight: 600; }
+
         .module-grid { display: flex; flex-direction: column; gap: 80px; margin-top: 80px; }
         
         .module-card { display: flex; gap: 60px; align-items: center; padding: 50px; background: #F8FAFC; border-radius: 40px; border: 1px solid rgba(0,0,0,0.03); transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -734,6 +771,8 @@ export default function LandingPage() {
           .feat-chip-title { font-size: 12px; }
           .feat-chip-desc { display: none; }
           .modules-section { padding: 80px 0; }
+          .readiness-section { padding: 70px 0; }
+          .readiness-grid { grid-template-columns: 1fr; gap: 28px; }
           .solutions-section { border-radius: 40px; margin: 0 12px; padding: 80px 0; }
           .demo-section { padding: 70px 0; }
           .demo-cards { grid-template-columns: 1fr; gap: 16px; }
@@ -772,7 +811,7 @@ function SolutionCard({ target, desc, features, demoHref }) {
         .s-card { padding: 40px 32px; background: rgba(255,255,255,0.03); border-radius: 32px; border: 1px solid rgba(255,255,255,0.05); transition: 0.4s; }
         .s-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
         .s-tag { font-family: var(--font-sora, sans-serif); font-weight: 800; font-size: 20px; color: #fff; margin-bottom: 16px; }
-        .s-desc { color: #94A3B8; font-size: 15px; lineHeight: 1.6; margin-bottom: 24px; }
+        .s-desc { color: #94A3B8; font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
         .s-feat { display: flex; flex-direction: column; gap: 12px; }
         .s-feat-item { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: #E2E8F0; }
         .s-feat-item span { color: ${ACCENT}; font-weight: 900; }
