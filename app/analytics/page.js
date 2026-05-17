@@ -18,6 +18,7 @@ export default function AnalyticsPage() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('insights');
   const [isPending, startTransition] = useTransition();
+  const [retryCount, setRetryCount] = useState(0);
 
   // Performance Detail States
   const [learners, setLearners] = useState([]);
@@ -64,7 +65,8 @@ export default function AnalyticsPage() {
       });
       return () => clearTimeout(timeout);
     }
-  }, [grade, term, profile]);
+  }, [grade, term, profile, retryCount]);
+
 
   useEffect(() => {
     async function loadPerformance() {
@@ -77,46 +79,9 @@ export default function AnalyticsPage() {
       setGradCfg(db.paav8_grad || null);
       setStaff(db.paav6_staff || []);
     }
-    if (activeTab === 'performance' || activeTab === 'staff') loadPerformance();
+    if (activeTab === 'performance' || activeTab === 'staff' || activeTab === 'outreach') loadPerformance();
   }, [activeTab, profile]);
 
-  if (error) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-8 text-center">
-      <AlertCircle className="text-red-500" size={48} />
-      <div>
-        <h3 className="text-lg font-bold text-slate-900">Analysis Failed</h3>
-        <p className="text-slate-500 max-w-md mx-auto mt-2">
-          {error === 'An unexpected response was received from the server.' || error.includes('Unexpected') 
-            ? 'The server encountered an error processing the academic data for this grade. This is often caused by incomplete mark records or curriculum configuration mismatches.'
-            : error}
-        </p>
-      </div>
-      <div className="flex gap-4 mt-4">
-        <button 
-          className="btn btn-primary"
-          onClick={() => window.location.reload()}
-        >
-          Retry Analysis
-        </button>
-        <button 
-          className="btn btn-ghost"
-          onClick={() => {
-            setError(null);
-            setActiveTab('performance');
-          }}
-        >
-          View Markbook Anyway
-        </button>
-      </div>
-    </div>
-  );
-
-  if (!stats) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <Loader2 className="animate-spin text-slate-400" size={40} />
-      <p className="text-slate-500 font-medium animate-pulse">Calculating institutional insights...</p>
-    </div>
-  );
 
   return (
     <div className="page on animate-in fade-in duration-500">
@@ -141,7 +106,7 @@ export default function AnalyticsPage() {
           <div className="page-hdr" style={{ marginTop: 20, border: 'none' }}>
             <div>
               <h3 style={{ fontSize: 20, fontWeight: 800 }}>{activeTab === 'outreach' ? 'Parent Communications' : 'Global Analytics'}</h3>
-              <p style={{ color: 'var(--muted)', fontSize: 13 }}><Users size={14} className="inline mr-1" /> {activeTab === 'outreach' ? `Broadcasting to ${grade}` : `Analyzing ${stats.studentCount} students in ${grade}`}</p>
+              <p style={{ color: 'var(--muted)', fontSize: 13 }}><Users size={14} className="inline mr-1" /> {activeTab === 'outreach' ? `Broadcasting to ${grade}` : stats ? `Analyzing ${stats.studentCount} students in ${grade}` : `Loading data for ${grade}...`}</p>
             </div>
             <div className="page-hdr-acts">
               <select value={grade} onChange={(e) => setGrade(e.target.value)} style={{ background: 'var(--slate-50)', fontWeight: 700 }}>
@@ -180,6 +145,30 @@ export default function AnalyticsPage() {
 
       {activeTab === 'insights' ? (
         <>
+          {/* Insights loading/error states — contained to this tab only */}
+          {error && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: 16, padding: 32, textAlign: 'center' }}>
+              <AlertCircle style={{ color: '#dc2626' }} size={48} />
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#1e293b' }}>Insights Analysis Failed</h3>
+                <p style={{ color: '#64748b', maxWidth: 420, margin: '8px auto 0', fontSize: 14 }}>
+                  {error.includes('Unexpected') ? 'The server encountered an error processing academic data for this grade. This is often caused by incomplete mark records or curriculum configuration mismatches.' : error}
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                <button className="btn btn-primary" onClick={() => { setError(null); setStats(null); setRetryCount(c => c + 1); }}>Retry Analysis</button>
+                <button className="btn btn-ghost" onClick={() => setActiveTab('performance')}>View Markbook Instead →</button>
+              </div>
+            </div>
+          )}
+          {!error && !stats && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: 16 }}>
+              <Loader2 className="animate-spin" style={{ color: '#94a3b8' }} size={40} />
+              <p style={{ color: '#64748b', fontWeight: 600 }} className="animate-pulse">Calculating institutional insights...</p>
+            </div>
+          )}
+          {!error && stats && (
+          <>
           {/* Insight Cards */}
           <div className="sg sg3">
             <div className="stat-card" style={{ borderLeft: '4px solid #2563eb' }}>
@@ -347,6 +336,8 @@ export default function AnalyticsPage() {
               </div>
             </div>
           </div>
+          </>
+          )}
         </>
       ) : activeTab === 'performance' ? (
         <div className="space-y-6">
