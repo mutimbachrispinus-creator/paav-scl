@@ -85,14 +85,29 @@ export default function AnalyticsPage() {
       <AlertCircle className="text-red-500" size={48} />
       <div>
         <h3 className="text-lg font-bold text-slate-900">Analysis Failed</h3>
-        <p className="text-slate-500">{error}</p>
+        <p className="text-slate-500 max-w-md mx-auto mt-2">
+          {error === 'An unexpected response was received from the server.' || error.includes('Unexpected') 
+            ? 'The server encountered an error processing the academic data for this grade. This is often caused by incomplete mark records or curriculum configuration mismatches.'
+            : error}
+        </p>
       </div>
-      <button 
-        className="btn btn-primary btn-sm"
-        onClick={() => window.location.reload()}
-      >
-        Retry Analysis
-      </button>
+      <div className="flex gap-4 mt-4">
+        <button 
+          className="btn btn-primary"
+          onClick={() => window.location.reload()}
+        >
+          Retry Analysis
+        </button>
+        <button 
+          className="btn btn-ghost"
+          onClick={() => {
+            setError(null);
+            setActiveTab('performance');
+          }}
+        >
+          View Markbook Anyway
+        </button>
+      </div>
     </div>
   );
 
@@ -741,7 +756,7 @@ function PerformanceDetail({ learners, marks, grade, term, assess, subjCfg, grad
   }, [learners, grade]);
 
   const data = React.useMemo(() => {
-    return buildMeritList(learners, marks, grade, term, assess, gradCfg, curriculum)
+    return buildMeritList(learners, marks, grade, term, assess, gradCfg, curriculum, subjects)
       .filter(l => !stream || l.stream === stream)
       .filter(l => {
         const q = String(query || '').trim().toLowerCase();
