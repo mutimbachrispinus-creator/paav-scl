@@ -14,7 +14,7 @@
 
 .su-hero{position:relative;z-index:1}
 .su-hero h1{font-size:34px;font-weight:900;line-height:1.2;margin-bottom:16px;font-family: 'Sora', sans-serif;}
-.su-hero h1 span{color:#93C5FD;background: linear-gradient(to right, #93C5FD, #BFDBFE); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+.su-hero h1 span{color:#93C5FD;background: linear-gradient(to right, #93C5FD, #BFDBFE); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;}
 .su-hero p{font-size:14px;opacity:.8;line-height:1.7;margin-bottom:40px;font-weight: 500;}
 
 .su-feat{display:flex;flex-direction:column;gap:18px}

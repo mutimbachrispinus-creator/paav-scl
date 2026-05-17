@@ -99,7 +99,7 @@ class ErrorBoundary extends React.Component {
 }
 
 /* Pages that should NOT show the navbar */
-const NO_NAV_PATHS = ['/', '/login', '/fees/pay', '/saas/signup', '/api'];
+const NO_NAV_PATHS = ['/', '/login', '/fees/pay', '/saas/signup', '/api', '/privacy', '/terms'];
 
 /* Inactivity config */
 const IDLE_WARNING_MS  = 7 * 60 * 1000;   // warn after 7 min
@@ -224,9 +224,9 @@ export default function PortalShell({ children }) {
   // Sync document title with active branding to prevent stale metadata
   useEffect(() => {
     const siteName = 'EduVantage School Management System';
-    const publicPaths = ['/', '/login', '/saas/signup'];
+    const publicPaths = ['/', '/login', '/saas/signup', '/privacy', '/terms'];
     
-    if (publicPaths.includes(pathname)) {
+    if (publicPaths.includes(pathname) || pathname.startsWith('/demo')) {
       document.title = siteName;
       return;
     }
@@ -248,7 +248,7 @@ export default function PortalShell({ children }) {
     }
   }, [theme, user, impersonateId]);
 
-  const showNav = !NO_NAV_PATHS.includes(pathname) && !pathname.startsWith('/api');
+  const showNav = !NO_NAV_PATHS.includes(pathname) && !pathname.startsWith('/api') && !pathname.startsWith('/demo');
 
   const loadSession = useCallback(async () => {
     try {
@@ -288,7 +288,7 @@ export default function PortalShell({ children }) {
       }
 
       // Use platform branding on public pages unless a tenant is specified
-      const isPublic = pathname === '/' || pathname === '/login' || pathname === '/saas/signup';
+      const isPublic = pathname === '/' || pathname === '/login' || pathname === '/saas/signup' || pathname === '/privacy' || pathname === '/terms' || pathname.startsWith('/demo');
       if (isPublic && !tenantParam && !impersonateId) {
         setProfile({ name: 'EduVantage School Management System', tagline: 'Global Education SaaS Network', logo: '/ev-brand-v3.png' });
         setTheme({ primary: '#1E40AF', secondary: '#D4AF37', accent: '#0F172A' });
@@ -329,9 +329,9 @@ export default function PortalShell({ children }) {
   }, [showNav, loadSession]);
 
   // targeted branding transition effect (public <-> private)
-  const [isPublicState, setIsPublicState] = useState(pathname === '/' || pathname === '/login' || pathname === '/saas/signup');
+  const [isPublicState, setIsPublicState] = useState(pathname === '/' || pathname === '/login' || pathname === '/saas/signup' || pathname === '/privacy' || pathname === '/terms' || pathname.startsWith('/demo'));
   useEffect(() => {
-    const isPublic = pathname === '/' || pathname === '/login' || pathname === '/saas/signup';
+    const isPublic = pathname === '/' || pathname === '/login' || pathname === '/saas/signup' || pathname === '/privacy' || pathname === '/terms' || pathname.startsWith('/demo');
     if (isPublic !== isPublicState) {
       setIsPublicState(isPublic);
       loadSession();

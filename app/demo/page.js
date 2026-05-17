@@ -56,7 +56,7 @@ export default function DemoHubPage() {
           <div style={{ display: 'inline-block', padding: '6px 20px', borderRadius: 99, background: 'rgba(79,70,229,.15)', border: '1px solid rgba(79,70,229,.3)', fontSize: 13, fontWeight: 800, color: '#818CF8', marginBottom: 24 }}>🚀 Live Demo Experience</div>
           <h1 style={{ fontSize: 'clamp(36px,6vw,72px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', margin: '0 0 20px' }}>
             See EduVantage<br />
-            <span style={{ background: 'linear-gradient(135deg, #818CF8, #34D399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>in action.</span>
+            <span style={{ background: 'linear-gradient(135deg, #818CF8, #34D399)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>in action.</span>
           </h1>
           <p style={{ fontSize: 20, color: 'rgba(255,255,255,.6)', maxWidth: 560, margin: '0 auto', lineHeight: 1.6 }}>
             Choose your role below to explore a fully-detailed walkthrough of exactly what each stakeholder experiences daily.

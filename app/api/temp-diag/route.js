@@ -3,7 +3,11 @@ export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { createClient } from '@libsql/client/web';
 
-export async function GET() {
+export async function GET(request) {
+  const authHeader = request.headers.get('authorization');
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
   const url = process.env.TURSO_DATABASE_URL || 'https://paav-school-portal-mutimba.aws-ap-south-1.turso.io';
   const token = process.env.TURSO_AUTH_TOKEN;
   if (!token) return NextResponse.json({ error: 'TURSO_AUTH_TOKEN not configured' }, { status: 500 });

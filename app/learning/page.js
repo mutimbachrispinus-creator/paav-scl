@@ -116,13 +116,21 @@ export default function EducationHubPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  /* Jitsi logic stays same */
+  /* Daily.co / Jitsi logic */
   useEffect(() => {
     if (!activeSession || activeLiveTab !== 'video' || !jitsiRef.current) return;
+
+    const dailyDomain = process.env.NEXT_PUBLIC_DAILY_DOMAIN;
+    if (dailyDomain) {
+      jitsiRef.current.innerHTML = `<iframe src="${dailyDomain}/${activeSession.id}" allow="camera; microphone; fullscreen; display-capture" style="width:100%; height:100%; border:0;"></iframe>`;
+      return;
+    }
+
+    const jitsiDomain = process.env.NEXT_PUBLIC_JITSI_DOMAIN || 'meet.jit.si';
     if (apiRef.current) { try { apiRef.current.dispose(); } catch {} apiRef.current = null; }
     const init = () => {
       if (!window.JitsiMeetExternalAPI || !jitsiRef.current) return;
-      apiRef.current = new window.JitsiMeetExternalAPI('meet.jit.si', {
+      apiRef.current = new window.JitsiMeetExternalAPI(jitsiDomain, {
         roomName: `eduvantage-${activeSession.id}`,
         parentNode: jitsiRef.current,
         width: '100%', height: '100%',
@@ -134,7 +142,7 @@ export default function EducationHubPage() {
     if (window.JitsiMeetExternalAPI) { init(); }
     else {
       const s = document.createElement('script');
-      s.src = 'https://meet.jit.si/external_api.js';
+      s.src = `https://${jitsiDomain}/external_api.js`;
       s.async = true; s.onload = init;
       document.head.appendChild(s);
     }

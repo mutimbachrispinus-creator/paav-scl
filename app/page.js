@@ -510,7 +510,7 @@ export default function LandingPage() {
         
         /* Typography */
         h1, h2, h3, h4, .logo-text, .card-val { font-family: var(--font-sora, sans-serif); }
-        .text-gradient { background: linear-gradient(135deg, ${PRIMARY}, #06B6D4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .text-gradient { background: linear-gradient(135deg, ${PRIMARY}, #06B6D4); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
         
         /* Utilities */
         .badge-pill { display: inline-block; padding: 8px 18px; background: rgba(79, 70, 229, 0.08); color: ${PRIMARY}; border-radius: 99px; font-weight: 800; font-size: 13px; margin-bottom: 24px; border: 1px solid rgba(79, 70, 229, 0.2); }

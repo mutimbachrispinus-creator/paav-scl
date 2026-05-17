@@ -96,7 +96,7 @@ export async function POST(request) {
       {
         sql: `INSERT INTO staff (id, tenant_id, name, username, role, phone, password, status, createdAt) 
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        args: ['admin-1', tenantId, adminName, adminUsername.toLowerCase().trim(), 'admin', phone || '', hashedPassword, 'active', new Date().toISOString()]
+        args: [`staff_${crypto.randomUUID()}`, tenantId, adminName, adminUsername.toLowerCase().trim(), 'admin', phone || '', hashedPassword, 'active', new Date().toISOString()]
       },
       // 3. Set School Profile
       {

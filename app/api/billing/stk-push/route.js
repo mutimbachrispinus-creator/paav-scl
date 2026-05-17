@@ -12,6 +12,15 @@ export async function POST(request) {
     const { phone, planId, amount } = await request.json();
     const tid = session.tenantId;
 
+    // 0. Rate Limiting (1 request per minute per phone)
+    const { kvSet } = await import('@/lib/db');
+    const rlKey = `stk_rl_${phone}`;
+    const lastReq = await kvGet(rlKey, null, 'platform-master');
+    if (lastReq && (Date.now() - lastReq.time < 60000)) {
+      return NextResponse.json({ error: 'Too many requests. Please wait a minute before trying again.' }, { status: 429 });
+    }
+    await kvSet(rlKey, { time: Date.now() }, 'platform-master');
+
     // 1. Get Global Config (for Gateway Credentials)
     const gConf = await kvGet('paav_global_config', {}, 'platform-master');
     const gw = gConf.mpesaGateway;

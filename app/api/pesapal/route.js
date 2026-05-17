@@ -192,7 +192,7 @@ async function finalizeRegistration(orderTrackingId) {
       INSERT INTO subscriptions (tenant_id, plan, status, expires_at, updated_at)
       VALUES (?, ?, 'active', ?, strftime('%s','now'))
       ON CONFLICT(tenant_id) DO UPDATE SET status = 'active', expires_at = excluded.expires_at, plan = excluded.plan
-    `, [tenantId, planId, Math.floor(expiresAt.getTime() / 1000)]);
+    `, [tenantId, planId, expiresAt.toISOString()]);
 
     await kvSet(`pesapal_pending_${orderTrackingId}`, null, 'platform-master');
     return { message: 'Subscription updated successfully', loginUrl: '/billing' };
@@ -201,6 +201,9 @@ async function finalizeRegistration(orderTrackingId) {
   // Registration Flow
   const tenantId = payload.schoolName.toLowerCase().trim().replace(/[^a-z0-9]/g, '-');
   
+  const oneYearFromNow = new Date();
+  oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
   await execute(`
     INSERT INTO subscriptions (tenant_id, plan, status, expires_at, learner_limit, billing_model, cycle, amount, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%s','now'))
@@ -209,7 +212,7 @@ async function finalizeRegistration(orderTrackingId) {
     tenantId, 
     payload.plan || 'premium-learner', 
     'active', 
-    Math.floor(Date.now()/1000) + (365 * 24 * 3600),
+    oneYearFromNow.toISOString(),
     500, 
     'per-learner', 
     'annually', 
@@ -222,7 +225,7 @@ async function finalizeRegistration(orderTrackingId) {
     INSERT INTO staff (id, tenant_id, name, username, role, password, status, createdAt)
     VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%s','now'))
   `, [
-    `staff_${Date.now()}`, 
+    `staff_${crypto.randomUUID()}`, 
     tenantId, 
     payload.adminName, 
     payload.adminUsername, 

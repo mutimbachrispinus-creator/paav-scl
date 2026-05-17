@@ -518,7 +518,7 @@ tr:hover td{background:#F8FAFF}
   html { height: auto !important; overflow: visible !important; }
   #main { padding:0!important; max-width:none!important; height: auto !important; overflow: visible !important; }
 
-  * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
   /* Default portrait */
   @page { size: A4 portrait; margin: 10mm 12mm; }
@@ -1080,9 +1080,9 @@ tr:hover td{background:#F8FAFF}
    ═══════════════════════════════════════════ */
 
 /* Landscape print for merit & class lists */
+@page landscape-page { size: A4 landscape; margin: 6mm; }
 @media print {
-  body.print-landscape { }
-  .print-landscape-page @page { size: A4 landscape !important; margin: 6mm; }
+  .print-landscape-page { page: landscape-page; }
 }
 @page :blank {}
 
@@ -1148,16 +1148,12 @@ tr:hover td{background:#F8FAFF}
 }
 
 /* Landscape @page for merit/class print */
-@media print {
-  body.print-landscape * { }
-}
 @page { size: A4 portrait; margin: 10mm; }
 
-/* This selector is the only reliable way to trigger landscape in modern browsers */
-@media print {
-  body.print-landscape { }
-}
 /* Applied via JS: document.body.classList.add('print-landscape') before window.print() */
+@media print {
+  body.print-landscape { page: landscape-page; }
+}
 
 /* ═══════════════════════════════════════════
    ROUND 5: Nav animation, maroon polish,
@@ -2491,6 +2487,7 @@ input:focus, select:focus, textarea:focus {
 .gradient-text {
   background: linear-gradient(135deg, var(--blue), var(--purple));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 

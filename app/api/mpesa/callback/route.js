@@ -71,6 +71,15 @@ export async function POST(req) {
         }
 
         if (tenantId && adm) {
+          // Idempotency check: Ensure the payment hasn't been recorded already
+          if (result.mpesaCode) {
+            const existing = await query('SELECT id FROM paylog WHERE ref = ? AND tenant_id = ? LIMIT 1', [result.mpesaCode, tenantId]);
+            if (existing.length > 0) {
+              console.log('[M-Pesa Callback] Duplicate transaction ignored:', result.mpesaCode);
+              return;
+            }
+          }
+
           // Process Subscription
           if (term && term.startsWith('SUB_')) {
             const durationMap = { 'SUB_DAILY': 1, 'SUB_WEEKLY': 7, 'SUB_MONTHLY': 30 };

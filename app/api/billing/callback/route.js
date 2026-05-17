@@ -15,10 +15,15 @@ export async function POST(request) {
       const logId = `billing_${checkoutRequestId}`;
 
       // 1. Find the pending transaction
-      const logRows = await query('SELECT payload FROM nexed_mpesa_logs WHERE id = ?', [logId]);
+      const logRows = await query('SELECT payload, status FROM nexed_mpesa_logs WHERE id = ?', [logId]);
       if (!logRows.length) {
         console.error('[Billing Callback] Transaction not found:', logId);
         return NextResponse.json({ ok: true }); // Still return ok to Safaricom
+      }
+
+      if (logRows[0].status === 'processed') {
+        console.log('[Billing Callback] Duplicate transaction ignored:', result.mpesaCode);
+        return NextResponse.json({ ok: true });
       }
 
       const meta = JSON.parse(logRows[0].payload);

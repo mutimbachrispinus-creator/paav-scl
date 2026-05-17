@@ -15,6 +15,14 @@ export async function POST(req) {
     const platformFee = includeFee ? 50 : 0;
     const finalAmount = Number(amount) + platformFee;
 
+    // Rate Limiting (1 request per minute per phone)
+    const rlKey = `stk_rl_${phone}`;
+    const lastReq = await kvGet(rlKey, null, 'platform-master');
+    if (lastReq && (Date.now() - lastReq.time < 60000)) {
+      return NextResponse.json({ success: false, error: 'Too many requests. Please wait a minute before trying again.' }, { status: 429 });
+    }
+    await kvSet(rlKey, { time: Date.now() }, 'platform-master');
+
     const session = await getSession();
     if (!session) return NextResponse.json({ success: false, error: 'Unauthorized. Please log in and try again.' }, { status: 401 });
 

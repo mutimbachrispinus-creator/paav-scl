@@ -4,10 +4,13 @@ import { kvGet, kvSet } from '@/lib/db';
 import { hashPassword, getSession } from '@/lib/auth';
 import { ALL_GRADES } from '@/lib/cbe';
 
-export async function GET() {
-  const session = await getSession();
-  if (!session || !['admin', 'super-admin'].includes(session.role)) {
-    return new NextResponse('Unauthorized', { status: 401 });
+export async function GET(request) {
+  const authHeader = request.headers.get('authorization');
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const session = await getSession();
+    if (!session || !['admin', 'super-admin'].includes(session.role)) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
   }
   try {
     const staff = (await kvGet('paav6_staff')) || [];
