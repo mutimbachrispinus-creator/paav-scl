@@ -609,7 +609,7 @@ function ReportCardTemplate({ learners, subjects, marks, grade, term, gradCfg, p
           
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div style={{ position: 'absolute', top: 10, right: 10, textAlign: 'center' }}>
-              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://eduvantage.app/verify/${profile.tenantId}/${l.adm}`} alt="QR Verification" style={{ width: 60, height: 60, border: '1px solid #ddd', padding: 2, background: '#fff' }} />
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://eduvantage.app/verify/${profile?.tenantId || 'demo'}/${encodeURIComponent(l.adm)}`} alt="QR Verification" style={{ width: 60, height: 60, border: '1px solid #ddd', padding: 2, background: '#fff' }} />
               <div style={{ fontSize: 7, fontWeight: 800, color: '#94A3B8', marginTop: 2 }}>SCAN TO VERIFY</div>
             </div>
             <PrintHeader title="OFFICIAL PROGRESS REPORT" grade={grade} profile={profile} />
