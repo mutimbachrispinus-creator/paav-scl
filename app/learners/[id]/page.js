@@ -326,7 +326,7 @@ export default function LearnerProfilePage() {
                   const prev = termAverages[termAverages.length - 2];
                   const diff = latest - prev;
                   const trajectory = diff > 2 ? 'Improving' : diff < -2 ? 'Declining' : 'Stable';
-                  const info = gInfo(latest, learner.grade, gradCfg, profile?.curriculum || 'CBC');
+                  const info = gInfo(latest, learner.grade, gradCfg, null, 'per-level');
                   const color = trajectory === 'Improving' ? '#059669' : trajectory === 'Declining' ? '#dc2626' : '#2563eb';
                   const icon = trajectory === 'Improving' ? '📈' : trajectory === 'Declining' ? '📉' : '➡️';
                   const prediction = Math.min(100, Math.max(0, latest + diff));

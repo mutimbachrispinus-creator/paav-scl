@@ -1012,7 +1012,7 @@ export default function ProfilePage() {
             {tabLoading ? <p>Loading your learners…</p> : (
               <div className="sg sg3">
                 {myLearners.map(l => (
-                  <div key={l.adm} className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setSelectedLearner(l)}>
+                  <div key={l.adm} className="stat-card" style={{ cursor: 'pointer' }} onClick={() => router.push(`/learners/${encodeURIComponent(l.adm)}`)}>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                       <div style={{ width: 48, height: 48, borderRadius: 12, background: `linear-gradient(135deg, ${M}, #6B1212)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: '#fff' }}>
                         🎓
@@ -1059,7 +1059,7 @@ export default function ProfilePage() {
                             <td style={{ fontWeight: 600 }}>{l.name}</td>
                             <td>{l.grade}</td>
                             <td>{l.stream || '—'}</td>
-                            <td><button className="btn btn-sm btn-maroon" onClick={(e) => { e.stopPropagation(); setSelectedLearner(l); }}>View Profile</button></td>
+                            <td><button className="btn btn-sm btn-maroon" onClick={(e) => { e.stopPropagation(); router.push(`/learners/${encodeURIComponent(l.adm)}`); }}>Full Profile</button></td>
                           </tr>
                         ))}
                       </tbody>
