@@ -7,13 +7,14 @@ import { TrendingUp, Users, BookOpen, AlertCircle, Loader2, ShieldAlert, Target,
 import { getAcademicStats } from '@/lib/actions/analytics';
 import { buildMeritList, getAllGrades, getDefaultSubjects } from '@/lib/cbe';
 import { useSchoolProfile } from '@/lib/school-profile';
+import { getCurriculum } from '@/lib/curriculum';
 
 const COLORS = ['#8B1A1A', '#2563EB', '#059669', '#D97706', '#7C3AED', '#DB2777'];
 
 export default function AnalyticsPage() {
   const profile = useSchoolProfile();
-  const [grade, setGrade] = useState('GRADE 1');
-  const [term, setTerm] = useState('TERM 1');
+  const [grade, setGrade] = useState('');
+  const [term, setTerm] = useState('');
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('insights');
@@ -27,15 +28,33 @@ export default function AnalyticsPage() {
   const [subjCfg, setSubjCfg] = useState({});
   const [pTerm, setPTerm] = useState('T1');
   const [pAssess, setPAssess] = useState('et1');
-  const [pGrade, setPGrade] = useState('GRADE 1');
+  const [pGrade, setPGrade] = useState('');
   const [pStream, setPStream] = useState('');
   const [pQuery, setPQuery] = useState('');
   const [staff, setStaff] = useState([]);
 
   const grades = getAllGrades(profile?.curriculum || 'CBC');
+  const curr = getCurriculum(profile?.curriculum || 'CBC');
+  const currTerms = curr.TERMS || [{ id: 'T1', name: 'Term 1' }, { id: 'T2', name: 'Term 2' }, { id: 'T3', name: 'Term 3' }];
+  const currAssessments = curr.ASSESSMENT_TYPES || [{ key: 'op1', label: '📝 Opener' }, { key: 'mt1', label: '📖 Mid-Term' }, { key: 'et1', label: '📋 End-Term' }];
+  const currLabels = curr.LABELS || { grade: 'Grade', subject: 'Subject', learner: 'Learner', learners: 'Learners', assessment: 'Assessment' };
+
+  // Sync grade & term defaults when profile/curriculum loads
+  useEffect(() => {
+    if (profile?.curriculum && grades.length) {
+      setGrade(g => g || grades[0]);
+      setPGrade(g => g || grades[0]);
+    }
+    if (profile?.curriculum && currTerms.length) {
+      setTerm(t => t || currTerms[0].id);
+      setPTerm(t => t || currTerms[0].id);
+      setPAssess(a => a || (curr.ASSESSMENT_TYPES?.[curr.ASSESSMENT_TYPES.length - 1]?.key || 'et1'));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.curriculum]);
 
   useEffect(() => {
-    if (profile?.tenantId) {
+    if (profile?.tenantId && grade && term) {
       setStats(null);
       setError(null);
       
@@ -66,6 +85,9 @@ export default function AnalyticsPage() {
       return () => clearTimeout(timeout);
     }
   }, [grade, term, profile, retryCount]);
+
+  // guard: don't render until grade/term are resolved
+  const isReady = Boolean(grade && term);
 
 
   useEffect(() => {
@@ -106,14 +128,14 @@ export default function AnalyticsPage() {
           <div className="page-hdr" style={{ marginTop: 20, border: 'none' }}>
             <div>
               <h3 style={{ fontSize: 20, fontWeight: 800 }}>{activeTab === 'outreach' ? 'Parent Communications' : 'Global Analytics'}</h3>
-              <p style={{ color: 'var(--muted)', fontSize: 13 }}><Users size={14} className="inline mr-1" /> {activeTab === 'outreach' ? `Broadcasting to ${grade}` : stats ? `Analyzing ${stats.studentCount} students in ${grade}` : `Loading data for ${grade}...`}</p>
+              <p style={{ color: 'var(--muted)', fontSize: 13 }}><Users size={14} className="inline mr-1" /> {activeTab === 'outreach' ? `Broadcasting to ${grade}` : stats ? `Analyzing ${stats.studentCount} ${(stats.labels || currLabels).learners} in ${grade}` : `Loading data for ${grade}...`}</p>
             </div>
             <div className="page-hdr-acts">
               <select value={grade} onChange={(e) => setGrade(e.target.value)} style={{ background: 'var(--slate-50)', fontWeight: 700 }}>
                 {grades.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
               <select value={term} onChange={(e) => setTerm(e.target.value)} style={{ background: 'var(--slate-50)', fontWeight: 700 }}>
-                <option value="TERM 1">TERM 1</option><option value="TERM 2">TERM 2</option><option value="TERM 3">TERM 3</option>
+                {currTerms.map(t => <option key={t.id} value={t.id}>{t.name.toUpperCase()}</option>)}
               </select>
             </div>
           </div>
@@ -124,17 +146,17 @@ export default function AnalyticsPage() {
           <div className="page-hdr" style={{ marginTop: 20, border: 'none' }}>
             <div>
               <h3 style={{ fontSize: 20, fontWeight: 800 }}>Academic Performance</h3>
-              <p style={{ color: 'var(--muted)', fontSize: 13 }}>Rankings & detailed markbooks for {pGrade}</p>
+              <p style={{ color: 'var(--muted)', fontSize: 13 }}>Rankings & detailed markbooks for {pGrade} — {currLabels.assessment} breakdown</p>
             </div>
             <div className="page-hdr-acts">
               <select value={pGrade} onChange={(e) => setPGrade(e.target.value)} style={{ borderRadius: 8 }}>
                 {grades.map(g => <option key={g}>{g}</option>)}
               </select>
               <select value={pTerm} onChange={(e) => setPTerm(e.target.value)} style={{ borderRadius: 8 }}>
-                <option value="T1">Term 1</option><option value="T2">Term 2</option><option value="T3">Term 3</option>
+                {currTerms.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
               <select value={pAssess} onChange={(e) => setPAssess(e.target.value)} style={{ borderRadius: 8 }}>
-                <option value="op1">Opener</option><option value="mt1">Mid-Term</option><option value="et1">End-Term</option>
+                {currAssessments.map(a => <option key={a.key} value={a.key}>{a.label.replace(/\p{Emoji}/gu, '').trim()}</option>)}
               </select>
               <input value={pQuery} onChange={e => setPQuery(e.target.value)} placeholder="Search learner..." style={{ borderRadius: 8, border: '1.5px solid var(--border)', padding: '8px 12px', minWidth: 180 }} />
             </div>
@@ -146,6 +168,12 @@ export default function AnalyticsPage() {
       {activeTab === 'insights' ? (
         <>
           {/* Insights loading/error states — contained to this tab only */}
+          {!isReady && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: 16 }}>
+              <Loader2 className="animate-spin" style={{ color: '#94a3b8' }} size={40} />
+              <p style={{ color: '#64748b', fontWeight: 600 }}>Resolving curriculum settings…</p>
+            </div>
+          )}
           {error && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: 16, padding: 32, textAlign: 'center' }}>
               <AlertCircle style={{ color: '#dc2626' }} size={48} />
@@ -177,7 +205,7 @@ export default function AnalyticsPage() {
                 <div>
                   <div className="sc-l" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800 }}>Class Average</div>
                   <div className="sc-n" style={{ fontSize: 24 }}>{stats.classAverage || 0}%</div>
-                  <div className="sc-sub" style={{ background: '#eff6ff', color: '#2563eb' }}>{stats.enteredLearners || 0}/{stats.studentCount || 0} learners with marks</div>
+                  <div className="sc-sub" style={{ background: '#eff6ff', color: '#2563eb' }}>{stats.enteredLearners || 0}/{stats.studentCount || 0} {(stats.labels || currLabels).learners} with marks</div>
                 </div>
               </div>
             </div>
@@ -275,7 +303,7 @@ export default function AnalyticsPage() {
                     </BarChart>
                   </ResponsiveContainer>
                   <div style={{ marginTop: 15, padding: 12, background: '#EFF6FF', borderRadius: 10, border: '1px solid #BFDBFE', fontSize: 12, color: '#1E40AF' }}>
-                    💡 <strong>Network Insight:</strong> Your class is performing {stats.classAverage > 65 ? 'above' : 'aligned with'} the national average for {grade}. Subjects like {stats.subjectMastery[0]?.name} are key strengths.
+                    💡 <strong>Network Insight:</strong> Your class is performing {stats.classAverage > 65 ? 'above' : 'aligned with'} the network average for {grade}. {(stats.labels || currLabels).subjects} like {stats.subjectMastery[0]?.name} are key strengths.
                   </div>
                 </div>
               </div>
@@ -323,7 +351,7 @@ export default function AnalyticsPage() {
               <div className="panel">
                 <div className="panel-hdr"><h3 style={{ fontSize: 16, fontWeight: 900 }}>Action Recommendations</h3></div>
                 <div className="panel-body" style={{ display: 'grid', gap: 10 }}>
-                  {buildInsightActions(stats).map((a, i) => (
+                  {buildInsightActions(stats, stats.labels || currLabels).map((a, i) => (
                     <div key={i} style={{ display: 'flex', gap: 10, padding: 12, border: '1px solid var(--border)', borderRadius: 12, background: a.bg }}>
                       <div style={{ width: 32, height: 32, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', color: a.color, flexShrink: 0 }}>{a.icon}</div>
                       <div>
@@ -700,30 +728,37 @@ function StaffPerformance({ staff, learners, marks, pTerm, pAssess, subjCfg }) {
   );
 }
 
-function buildInsightActions(stats) {
-  const weakest = stats.subjectMastery?.[stats.subjectMastery.length - 1];
+function buildInsightActions(stats, labels = {}) {
+  const weakest   = stats.subjectMastery?.[stats.subjectMastery.length - 1];
   const strongest = stats.subjectMastery?.[0];
+  const subj   = labels.subject   || 'Subject';
+  const learners = labels.learners || 'learners';
+  const assessment = labels.assessment || 'assessment';
   return [
     {
       icon: <ShieldAlert size={17} />,
       color: '#dc2626',
       bg: '#FEF2F2',
       title: 'Intervention List',
-      text: `${stats.riskCount || 0} learners are below 40%. Create a small-group remediation list and assign weekly evidence checks.`
+      text: `${stats.riskCount || 0} ${learners} are below 40%. Create a small-group remediation list and assign weekly evidence checks.`
     },
     {
       icon: <Target size={17} />,
       color: '#d97706',
       bg: '#FFFBEB',
-      title: weakest ? `Subject Recovery: ${weakest.name}` : 'Subject Recovery',
-      text: weakest ? `${weakest.name} is averaging ${weakest.average}%. Audit strand coverage, teacher workload, and item difficulty before the next assessment.` : 'No subject marks have been captured for this view yet.'
+      title: weakest ? `${subj} Recovery: ${weakest.name}` : `${subj} Recovery`,
+      text: weakest
+        ? `${weakest.name} is averaging ${weakest.average}%. Audit strand coverage, teacher workload, and item difficulty before the next ${assessment}.`
+        : `No ${subj.toLowerCase()} marks have been captured for this view yet.`
     },
     {
       icon: <Award size={17} />,
       color: '#059669',
       bg: '#ECFDF5',
       title: strongest ? `Scale What Works: ${strongest.name}` : 'Scale What Works',
-      text: strongest ? `${strongest.name} is the current strength. Reuse the teaching approach, revision rhythm, and assessment design in weaker subjects.` : 'Capture marks to identify reusable teaching strengths.'
+      text: strongest
+        ? `${strongest.name} is the current strength. Reuse the teaching approach, revision rhythm, and ${assessment} design in weaker ${subj.toLowerCase()}s.`
+        : `Capture marks to identify reusable teaching strengths.`
     },
     {
       icon: <ClipboardList size={17} />,
